@@ -9,7 +9,7 @@
 #define __BACKEND_H__
 #include <stdio.h>
 #include <stdbool.h>
-#include "xmlparser.h"
+#include "nodesetLoader.h"
 
 int addNamespace(const char *namespaceUri);
 void addNode(const TNode *node);

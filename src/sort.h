@@ -5,7 +5,7 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "xmlparser.h"
+#include "nodesetLoader.h"
 #include <assert.h>
 #include <stdbool.h>
 #include <stddef.h>

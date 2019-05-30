@@ -8,7 +8,7 @@
 #ifndef NODESET_H
 #define NODESET_H
 #include "util.h"
-#include "xmlparser.h"
+#include "nodesetLoader.h"
 #include <libxml/SAX.h>
 #include <stdbool.h>
 #include <stddef.h>

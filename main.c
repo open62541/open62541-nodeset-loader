@@ -6,7 +6,7 @@
  */
 
 #include "backend/backend.h"
-#include "include/xmlparser.h"
+#include "nodesetLoader.h"
 #include <stdio.h>
 #include <string.h>
 
