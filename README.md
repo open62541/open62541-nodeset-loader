@@ -1,5 +1,5 @@
-# xmlLoader
-xmlLoader is a library written in C99 for the purpose of loading OPC UA nodesets from xml and sorting the nodes based on their hierachical references.
+# nodesetLoader
+nodesetLoader is a library written in C99 for the purpose of loading OPC UA nodesets from xml and sorting the nodes based on their hierachical references.
 
 ## Current status
 This is only a proof of concept, not meant for production use.
