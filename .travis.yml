@@ -1,0 +1,46 @@
+language: c
+sudo: required
+
+env:
+  global:
+
+
+
+matrix:
+  fast_finish: true
+  include:
+#
+# gcc-4.8 (trusty) full host and cross build with tests:
+# doc, cert, cross-mingw32, cross-mingw64, cross-linux32, cross-raspi, linux64,
+    - os: linux
+      dist: trusty
+      compiler: gcc
+      addons:
+        apt:
+          packages:
+            - cmake
+            # tests
+            - check
+            - valgrind
+      env:
+        - DEBIAN=true
+
+
+
+before_install:
+
+install:
+
+script:
+
+  - mkdir -p build
+  - cd build
+  - cmake .. 
+  - make
+  - ./parserDemo
+  
+after_success:
+  - echo == Build success ==
+
+after_failure:
+  - echo == Build failed ==
