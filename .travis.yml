@@ -9,7 +9,9 @@ env:
 matrix:
   fast_finish: true
   include:
-
+#
+# gcc-4.8 (trusty) full host and cross build with tests:
+# doc, cert, cross-mingw32, cross-mingw64, cross-linux32, cross-raspi, linux64,
     - os: linux
       dist: trusty
       compiler: gcc
@@ -17,6 +19,7 @@ matrix:
         apt:
           packages:
             - cmake
+            # tests
             - check
             - valgrind
       env:
@@ -28,17 +31,15 @@ before_install:
 
 install:
 
-jobs:
-  include:
-    - stage: "Build"
-      script:
-        - mkdir -p build
-        - cd build
-        - cmake .. 
-        - make
-        - ./parserDemo ../nodesets/testNodeset.xml
-        - ./parserDemo ../nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml
-        - ./parserDemo ../nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
+script:
+
+  - mkdir -p build
+  - cd build
+  - cmake .. 
+  - make
+  - ./parserDemo ../nodesets/testNodeset.xml
+  - ./parserDemo ../nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml
+  - ./parserDemo ../nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
   
 after_success:
   - echo == Build success ==
