@@ -20,4 +20,6 @@ int main(int argc, char *argv[]) {
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
     loadFile(&handler);
+
+    int*test=malloc(sizeof(int));
 }
