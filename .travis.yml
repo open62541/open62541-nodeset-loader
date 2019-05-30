@@ -38,6 +38,8 @@ script:
   - cmake .. 
   - make
   - ./parserDemo ../nodesets/testNodeset.xml
+  - ./parserDemo ../nodesets/UA-Nodeset/Opc.Ua.NodeSet2.xml
+  - ./parserDemo ../nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
   
 after_success:
   - echo == Build success ==
