@@ -18,6 +18,7 @@ matrix:
       addons:
         apt:
           packages:
+            - cppcheck
             - cmake
             # tests
             - check
@@ -35,12 +36,14 @@ script:
 
   - mkdir -p build
   - cd build
-  - cmake .. 
+  - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. 
   - make
   - ./parserDemo ../nodesets/testNodeset.xml
   - ./parserDemo ../nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml
   - ./parserDemo ../nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
   - valgrind --error-exitcode=100 --leak-check=full ./parserDemo ../nodesets/testNodeset100nodes.xml
+  - cppcheck --quiet --force --error-exitcode=200 --std=c99 --std=c++11 --enable=all --template=gcc --project=compile_commands.json -j8
+
   
 after_success:
   - echo == Build success ==

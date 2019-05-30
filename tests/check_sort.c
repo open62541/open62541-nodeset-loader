@@ -53,6 +53,8 @@ START_TEST(cycle) {
 
     TNodeId idb;
     idb.idString = "nodeB";
+    idb.nsIdx = 1;
+    idb.id = "test";
 
     Reference refb;
     refb.isForward = false;

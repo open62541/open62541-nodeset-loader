@@ -48,7 +48,7 @@ static struct node *new_node(const char *str) {
 
 static struct node *search_node(struct node *root, const char *str) {
     struct node *p, *q, *r, *s, *t;
-    int a;
+
 
     assert(root);
 
@@ -59,7 +59,7 @@ static struct node *search_node(struct node *root, const char *str) {
     s = p = root->right;
 
     while(true) {
-        a = strcmp(str, p->str);
+        int a = strcmp(str, p->str);
         if(a == 0)
             return p;
 
