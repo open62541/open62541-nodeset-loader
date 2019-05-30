@@ -1,0 +1,15 @@
+---
+Language:        Cpp
+BasedOnStyle:    llvm
+IndentWidth:     4
+ColumnLimit:     90
+SpacesBeforeTrailingComments: 2
+ForEachMacros:   [ foreach, LIST_FOREACH, LIST_FOREACH_SAFE ]
+DisableFormat:   false
+
+# No space between if and parentheses
+SpaceBeforeParens: Never
+
+IndentCaseLabels: true
+
+
