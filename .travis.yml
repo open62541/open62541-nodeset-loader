@@ -13,7 +13,7 @@ matrix:
 # gcc-4.8 (trusty) full host and cross build with tests:
 # doc, cert, cross-mingw32, cross-mingw64, cross-linux32, cross-raspi, linux64,
     - os: linux
-      dist: Xenial
+      dist: xenial
       compiler: gcc
       addons:
         apt:
