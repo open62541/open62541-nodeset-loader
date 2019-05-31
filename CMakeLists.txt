@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Wno-unused-parameter)
+add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter)
 project(xmlImport)
 
 find_package(LibXml2 REQUIRED)

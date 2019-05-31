@@ -7,20 +7,6 @@
 
 #include "nodeset.h"
 
-const char OBJECT[] = "UAObject";
-const char METHOD[] = "UAMethod";
-const char OBJECTTYPE[] = "UAObjectType";
-const char VARIABLE[] = "UAVariable";
-const char DATATYPE[] = "UADataType";
-const char REFERENCETYPE[] = "UAReferenceType";
-const char DISPLAYNAME[] = "DisplayName";
-const char REFERENCES[] = "References";
-const char REFERENCE[] = "Reference";
-const char DESCRIPTION[] = "Description";
-const char ALIAS[] = "Alias";
-const char NAMESPACEURIS[] = "NamespaceUris";
-const char NAMESPACEURI[] = "Uri";
-
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
 #define ATTRIBUTE_BROWSENAME "BrowseName"
@@ -57,3 +43,33 @@ const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "HasSubtype", "HasComponent",   "HasProperty"};
 
 Alias *aliasArray[MAX_ALIAS];
+
+TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
+    if(id.nsIdx > 0) {
+        id.nsIdx = namespaces[id.nsIdx].idx;
+        return id;
+    }
+    return id;
+}
+
+TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
+    if(s == NULL) {
+        TNodeId id;
+        id.id = 0;
+        id.nsIdx = 0;
+        id.idString = "null";
+        return id;
+    }
+    TNodeId id;
+    id.nsIdx = 0;
+    id.idString = s;
+    char *idxSemi = strchr(s, ';');
+    if(idxSemi == NULL) {
+        id.id = s;
+        return id;
+    } else {
+        id.nsIdx = atoi(&s[3]);
+        id.id = idxSemi + 1;
+    }
+    return translateNodeId(namespaces, id);
+}

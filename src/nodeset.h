@@ -12,6 +12,7 @@
 #include <libxml/SAX.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -24,19 +25,20 @@
 #define MAX_REFCOUNTEDCHARS 1000000
 #define MAX_REFCOUNTEDREFS 1000000
 
-extern const char OBJECT[];
-extern const char METHOD[];
-extern const char OBJECTTYPE[];
-extern const char VARIABLE[];
-extern const char DATATYPE[];
-extern const char REFERENCETYPE[];
-extern const char DISPLAYNAME[];
-extern const char REFERENCES[];
-extern const char REFERENCE[];
-extern const char DESCRIPTION[];
-extern const char ALIAS[];
-extern const char NAMESPACEURIS[];
-extern const char NAMESPACEURI[];
+#define OBJECT "UAObject"
+#define METHOD "UAMethod"
+#define OBJECTTYPE "UAObjectType"
+#define VARIABLE "UAVariable"
+#define DATATYPE "UADataType"
+#define REFERENCETYPE "UAReferenceType"
+#define DISPLAYNAME "DisplayName"
+#define REFERENCES "References"
+#define REFERENCE "Reference"
+#define DESCRIPTION "Description"
+#define ALIAS "Alias"
+#define NAMESPACEURIS "NamespaceUris"
+#define NAMESPACEURI "Uri"
+
 
 typedef struct {
     const char *name;

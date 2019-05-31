@@ -64,36 +64,6 @@ TNodeId alias2Id(const char *alias) {
     return id;
 }
 
-TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
-    if(id.nsIdx > 0) {
-        id.nsIdx = namespaces[id.nsIdx].idx;
-        return id;
-    }
-    return id;
-}
-
-TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
-    if(s == NULL) {
-        TNodeId id;
-        id.id = 0;
-        id.nsIdx = 0;
-        id.idString = "null";
-        return id;
-    }
-    TNodeId id;
-    id.nsIdx = 0;
-    id.idString = s;
-    char *idxSemi = strchr(s, ';');
-    if(idxSemi == NULL) {
-        id.id = s;
-        return id;
-    } else {
-        id.nsIdx = atoi(&s[3]);
-        id.id = idxSemi + 1;
-    }
-    return translateNodeId(namespaces, id);
-}
-
 static void extractAttributes(const TNamespace *namespaces, TNode *node,
                               int attributeSize, const char **attributes) {
     node->id = extractNodedId(namespaces,
