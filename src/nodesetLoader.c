@@ -192,12 +192,12 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
         case PARSER_STATE_NAMESPACEURIS:
             if(strEqual(localname, NAMESPACEURI)) {
                 nodeset->namespaceTable->size++;
-                TNamespace *namespaces = (TNamespace *)realloc(
+                TNamespace *ns = (TNamespace *)realloc(
                     nodeset->namespaceTable->ns,
                     sizeof(TNamespace) * (nodeset->namespaceTable->size));
-                nodeset->namespaceTable->ns = namespaces;
+                nodeset->namespaceTable->ns = ns;
                 pctx->nextOnCharacters =
-                    &namespaces[nodeset->namespaceTable->size - 1].name;
+                    &ns[nodeset->namespaceTable->size - 1].name;
                 pctx->state = PARSER_STATE_URI;
             }
             break;
@@ -335,7 +335,7 @@ static xmlSAXHandler make_sax_handler(void) {
 
 static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     char chars[1024];
-    int res = fread(chars, 1, 4, f);
+    int res = (int) fread(chars, 1, 4, f);
     if(res <= 0) {
         return 1;
     }
@@ -343,7 +343,7 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     xmlSAXHandler SAXHander = make_sax_handler();
     xmlParserCtxtPtr ctxt =
         xmlCreatePushParserCtxt(&SAXHander, parserCtxt, chars, res, NULL);
-    while((res = fread(chars, 1, sizeof(chars), f)) > 0) {
+    while((res = (int)fread(chars, 1, sizeof(chars), f)) > 0) {
         if(xmlParseChunk(ctxt, chars, res, 0)) {
             xmlParserError(ctxt, "xmlParseChunk");
             return 1;

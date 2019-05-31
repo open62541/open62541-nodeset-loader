@@ -48,7 +48,7 @@ const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
 
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     if(id.nsIdx > 0) {
-        id.nsIdx = namespaces[id.nsIdx].idx;
+        id.nsIdx = (int) namespaces[id.nsIdx].idx;
         return id;
     }
     return id;
