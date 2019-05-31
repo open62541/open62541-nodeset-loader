@@ -4,11 +4,20 @@ set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
-    -Wno-unused-parameter
-    -Wc++-compat
-    -Wmissing-prototypes 
-    -Wstrict-prototypes
-    -Wcast-qual)
+                    -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
+                    -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
+                    -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
+                    -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
+                    -Wformat -Wformat-security -Wformat-nonliteral
+                    -Wuninitialized -Winit-self
+                    -Wcast-qual
+                    -Wstrict-overflow
+                    -Wnested-externs
+                    -Wmultichar
+                    -Wundef
+                    -Wc++-compat
+                    -fno-strict-aliasing # fewer compiler assumptions about pointer types
+                    -fexceptions) # recommended for multi-threaded C code, also in combination with C++ code
 project(xmlImport)
 
 find_package(LibXml2 REQUIRED)
