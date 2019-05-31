@@ -86,32 +86,38 @@ TNodeId alias2Id(const char *alias) {
 }
 
 void Nodeset_new() {
-    nodeset = malloc(sizeof(Nodeset));
-    nodeset->aliasArray = malloc(sizeof(Alias *) * MAX_ALIAS);
+    nodeset = (Nodeset *)malloc(sizeof(Nodeset));
+    nodeset->aliasArray = (Alias **)malloc(sizeof(Alias *) * MAX_ALIAS);
     nodeset->aliasSize = 0;
-    nodeset->countedRefs = malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
+    nodeset->countedRefs =
+        (const Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->countedChars = malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
+    nodeset->countedChars = (const char **)malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
     nodeset->charsSize = 0;
-    nodeset->nodes[NODECLASS_OBJECT] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECT]->nodes = malloc(sizeof(TNode *) * MAX_OBJECTS);
+    nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_OBJECT]->nodes =
+        (const TNode **)malloc(sizeof(TNode *) * MAX_OBJECTS);
     nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
-    nodeset->nodes[NODECLASS_VARIABLE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_VARIABLE]->nodes = malloc(sizeof(TNode *) * MAX_VARIABLES);
+    nodeset->nodes[NODECLASS_VARIABLE] = (NodeContainer *)malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_VARIABLE]->nodes =
+        (const TNode **)malloc(sizeof(TNode *) * MAX_VARIABLES);
     nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
-    nodeset->nodes[NODECLASS_METHOD] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_METHOD]->nodes = malloc(sizeof(TNode *) * MAX_METHODS);
+    nodeset->nodes[NODECLASS_METHOD] = (NodeContainer *)malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_METHOD]->nodes =
+        (const TNode **)malloc(sizeof(TNode *) * MAX_METHODS);
     nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
-    nodeset->nodes[NODECLASS_OBJECTTYPE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes = malloc(sizeof(TNode *) * MAX_DATATYPES);
+    nodeset->nodes[NODECLASS_OBJECTTYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes =
+        (const TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
     nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
-    nodeset->nodes[NODECLASS_DATATYPE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_DATATYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_DATATYPE]->nodes =
-        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+        (const TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
     nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
-    nodeset->nodes[NODECLASS_REFERENCETYPE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_REFERENCETYPE] =
+        (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
-        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+        (const TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
     nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
     nodeset->hierachicalRefs = hierachicalReferences;
     nodeset->hierachicalRefsSize = 7;
@@ -147,7 +153,7 @@ void Nodeset_cleanup() {
     }
 
     // free namespacetable, nodeset
-    free(n->namespaceTable->namespace);
+    free(n->namespaceTable->ns);
     free(n->namespaceTable);
     free(n);
 }

@@ -83,7 +83,7 @@ struct TNamespace {
 
 typedef struct {
     size_t size;
-    TNamespace *namespace;
+    TNamespace *ns;
     addNamespaceCb cb;
 } TNamespaceTable;
 

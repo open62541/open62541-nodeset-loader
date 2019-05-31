@@ -11,7 +11,7 @@
 #include <string.h>
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 
-struct edge{
+struct edge {
     struct node *dest;
     struct edge *next;
 };
@@ -19,7 +19,7 @@ struct edge{
 struct node {
     const char *str;
     struct node *left, *right;
-    int balance;    
+    int balance;
     struct node *qlink;
     struct edge *edges;
     size_t edgeCount;
@@ -33,7 +33,7 @@ static struct node *zeros = NULL;
 static size_t keyCnt = 0;
 
 static struct node *new_node(const char *str) {
-    struct node *k = malloc(sizeof *k);
+    struct node *k = (struct node *)malloc(sizeof *k);
 
     k->str = str;
     k->left = k->right = NULL;
@@ -48,7 +48,6 @@ static struct node *new_node(const char *str) {
 
 static struct node *search_node(struct node *root, const char *str) {
     struct node *p, *q, *r, *s, *t;
-
 
     assert(root);
 
@@ -157,7 +156,7 @@ static void record_relation(struct node *from, struct node *to) {
 
     if(!STREQ(from->str, to->str)) {
         to->edgeCount++;
-        e = malloc(sizeof(struct edge));
+        e = (struct edge *)malloc(sizeof(struct edge));
         e->dest = to;
         e->next = from->edges;
         from->edges = e;
