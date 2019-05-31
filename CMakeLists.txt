@@ -5,7 +5,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
     -Wno-unused-parameter
-    -Wc++-compat)
+    -Wc++-compat
+    -Wmissing-prototypes 
+    -Wstrict-prototypes)
 project(xmlImport)
 
 find_package(LibXml2 REQUIRED)

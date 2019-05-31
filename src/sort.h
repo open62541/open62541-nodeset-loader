@@ -11,7 +11,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
-void init();
+void init(void);
 void insertNode(const TNode *node);
 typedef void (*OnSortCallback)(const TNode *node);
 void sort(OnSortCallback callback);

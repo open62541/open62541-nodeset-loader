@@ -320,7 +320,7 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     pctx->nextOnCharacters = NULL;
 }
 
-static xmlSAXHandler make_sax_handler() {
+static xmlSAXHandler make_sax_handler(void) {
     xmlSAXHandler SAXHandler;
     memset(&SAXHandler, 0, sizeof(xmlSAXHandler));
     SAXHandler.initialized = XML_SAX2_MAGIC;

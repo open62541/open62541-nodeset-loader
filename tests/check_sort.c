@@ -2,7 +2,8 @@
 #include <check.h>
 #include <stdio.h>
 
-void sortCallback(const TNode *node) { printf("%s\n", node->id.idString); }
+
+static void sortCallback(const TNode *node) { printf("%s\n", node->id.idString); }
 
 START_TEST(sortNodes) {
     init();
