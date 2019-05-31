@@ -15,12 +15,12 @@
 
 static void (*nodeCallback)(const TNode *) = NULL;
 
-static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
+static const char *getAttributeValue(NodeAttribute *attr, const char **attributes,
                                int nb_attributes) {
     const int fields = 5;
     for(int i = 0; i < nb_attributes; i++) {
         const char *localname = attributes[i * fields + 0];
-        if(strcmp((char *)localname, attr->name))
+        if(strcmp((const char *)localname, attr->name))
             continue;
         const char *value_start = attributes[i * fields + 3];
         const char *value_end = attributes[i * fields + 4];
@@ -32,7 +32,7 @@ static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
         return value;
     }
     if(attr->defaultValue != NULL || attr->optional) {
-        return (char *)attr->defaultValue;
+        return (const char *)attr->defaultValue;
     }
     // todo: remove this assertation
 
@@ -63,7 +63,7 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
             ((TVariableNode *)node)->parentNodeId =
                 extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
                                                              attributes, attributeSize));
-            char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
+            const char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
             TNodeId aliasId = alias2Id(datatype);
             if(aliasId.id != 0) {
                 ((TVariableNode *)node)->datatype = aliasId;

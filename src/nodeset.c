@@ -7,6 +7,8 @@
 
 #include "nodeset.h"
 
+#define free_const(x) free((void *)(long)(x))
+
 Nodeset *nodeset = NULL;
 
 // UANode
@@ -52,7 +54,7 @@ TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     return id;
 }
 
-TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
+TNodeId extractNodedId(const TNamespace *namespaces, const char *s) {
     if(s == NULL) {
         TNodeId id;
         id.id = 0;
@@ -127,13 +129,13 @@ void Nodeset_cleanup() {
     Nodeset *n = nodeset;
     // free chars
     for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
-        free((void *)n->countedChars[cnt]);
+        free_const(n->countedChars[cnt]);
     }
     free(n->countedChars);
 
     // free refs
     for(size_t cnt = 0; cnt < n->refsSize; cnt++) {
-        free((void *)n->countedRefs[cnt]);
+        free_const(n->countedRefs[cnt]);
     }
     free(n->countedRefs);
 
@@ -146,7 +148,7 @@ void Nodeset_cleanup() {
     for(size_t cnt = 0; cnt < 6; cnt++) {
         size_t storedNodes = n->nodes[cnt]->cnt;
         for(size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++) {
-            free((void *)n->nodes[cnt]->nodes[nodeCnt]);
+            free_const(n->nodes[cnt]->nodes[nodeCnt]);
         }
         free((void *)n->nodes[cnt]->nodes);
         free((void *)n->nodes[cnt]);

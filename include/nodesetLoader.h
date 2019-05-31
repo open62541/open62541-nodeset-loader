@@ -15,8 +15,8 @@ typedef enum {
 
 typedef struct {
     int nsIdx;
-    char *id;
-    char *idString;
+    const char *id;
+    const char *idString;
 } TNodeId;
 
 struct Reference;
@@ -32,10 +32,10 @@ struct Reference {
 #define UA_NODE_ATTRIBUTES                                                               \
     TNodeClass nodeClass;                                                                \
     TNodeId id;                                                                          \
-    char *browseName;                                                                    \
-    char *displayName;                                                                   \
-    char *description;                                                                   \
-    char *writeMask;                                                                     \
+    const char *browseName;                                                              \
+    const char *displayName;                                                             \
+    const char *description;                                                             \
+    const char *writeMask;                                                               \
     Reference *hierachicalRefs;                                                          \
     Reference *nonHierachicalRefs;
 
@@ -44,20 +44,20 @@ typedef struct { UA_NODE_ATTRIBUTES } TNode;
 typedef struct {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
-    char *eventNotifier;
+    const char *eventNotifier;
 } TObjectNode;
 
 typedef struct {
     UA_NODE_ATTRIBUTES
-    char *isAbstract;
+    const char *isAbstract;
 } TObjectTypeNode;
 
 typedef struct {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
     TNodeId datatype;
-    char *arrayDimensions;
-    char *valueRank;
+    const char *arrayDimensions;
+    const char *valueRank;
 } TVariableNode;
 
 typedef struct TDataTypeNode { UA_NODE_ATTRIBUTES } TDataTypeNode;

@@ -7,7 +7,8 @@ add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
     -Wno-unused-parameter
     -Wc++-compat
     -Wmissing-prototypes 
-    -Wstrict-prototypes)
+    -Wstrict-prototypes
+    -Wcast-qual)
 project(xmlImport)
 
 find_package(LibXml2 REQUIRED)
