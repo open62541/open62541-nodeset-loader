@@ -378,13 +378,16 @@ static xmlSAXHandler make_sax_handler() {
     xmlSAXHandler SAXHandler;
     memset(&SAXHandler, 0, sizeof(xmlSAXHandler));
     SAXHandler.initialized = XML_SAX2_MAGIC;
-    SAXHandler.startElementNs = OnStartElementNs;
-    SAXHandler.endElementNs = OnEndElementNs;
-    SAXHandler.characters = OnCharacters;
+    // nodesets are encoded with UTF-8
+    // this code does no transformation on the encoded text or interprets it
+    // so it should be safe to cast xmlChar* to char*
+    SAXHandler.startElementNs = (startElementNsSAX2Func) OnStartElementNs;
+    SAXHandler.endElementNs = (endElementNsSAX2Func) OnEndElementNs;
+    SAXHandler.characters = (charactersSAXFunc) OnCharacters;
     return SAXHandler;
 }
 
-int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
+static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     char chars[1024];
     int res = fread(chars, 1, 4, f);
     if(res <= 0) {
