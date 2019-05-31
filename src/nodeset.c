@@ -7,6 +7,8 @@
 
 #include "nodeset.h"
 
+Nodeset *nodeset = NULL;
+
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
 #define ATTRIBUTE_BROWSENAME "BrowseName"
@@ -42,8 +44,6 @@ const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
     "HasSubtype", "HasComponent",   "HasProperty"};
 
-Alias *aliasArray[MAX_ALIAS];
-
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     if(id.nsIdx > 0) {
         id.nsIdx = namespaces[id.nsIdx].idx;
@@ -72,4 +72,80 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
         id.id = idxSemi + 1;
     }
     return translateNodeId(namespaces, id);
+}
+
+TNodeId alias2Id(const char *alias) {
+    for(size_t cnt = 0; cnt < nodeset->aliasSize; cnt++) {
+        if(strEqual(alias, nodeset->aliasArray[cnt]->name)) {
+            return nodeset->aliasArray[cnt]->id;
+        }
+    }
+    TNodeId id;
+    id.id = 0;
+    return id;
+}
+
+void setupNodeset() {
+    nodeset = malloc(sizeof(Nodeset));
+    nodeset->aliasArray = malloc(sizeof(Alias *) * MAX_ALIAS);
+    nodeset->aliasSize = 0;
+    nodeset->countedRefs = malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
+    nodeset->refsSize = 0;
+    nodeset->countedChars = malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
+    nodeset->charsSize = 0;
+    nodeset->nodes[NODECLASS_OBJECT] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_OBJECT]->nodes = malloc(sizeof(TNode *) * MAX_OBJECTS);
+    nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
+    nodeset->nodes[NODECLASS_VARIABLE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_VARIABLE]->nodes = malloc(sizeof(TNode *) * MAX_VARIABLES);
+    nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
+    nodeset->nodes[NODECLASS_METHOD] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_METHOD]->nodes = malloc(sizeof(TNode *) * MAX_METHODS);
+    nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
+    nodeset->nodes[NODECLASS_OBJECTTYPE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes = malloc(sizeof(TNode *) * MAX_DATATYPES);
+    nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
+    nodeset->nodes[NODECLASS_DATATYPE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_DATATYPE]->nodes =
+        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+    nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
+    nodeset->nodes[NODECLASS_REFERENCETYPE] = malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
+        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+    nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
+}
+
+void cleanupNodeset() {
+    Nodeset *n = nodeset;
+    // free chars
+    for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
+        free((void *)n->countedChars[cnt]);
+    }
+    free(n->countedChars);
+
+    // free refs
+    for(size_t cnt = 0; cnt < n->refsSize; cnt++) {
+        free((void *)n->countedRefs[cnt]);
+    }
+    free(n->countedRefs);
+
+    // free alias
+    for(size_t cnt = 0; cnt < n->aliasSize; cnt++) {
+        free(n->aliasArray[cnt]);
+    }
+    free(n->aliasArray);
+
+    for(size_t cnt = 0; cnt < 6; cnt++) {
+        size_t storedNodes = n->nodes[cnt]->cnt;
+        for(size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++) {
+            free((void *)n->nodes[cnt]->nodes[nodeCnt]);
+        }
+        free((void *)n->nodes[cnt]->nodes);
+        free((void *)n->nodes[cnt]);
+    }
+
+    // free namespacetable, nodeset
+    free(n->namespaceTable->namespace);
+    free(n->namespaceTable);
+    free(n);
 }

@@ -7,8 +7,8 @@
 
 #ifndef NODESET_H
 #define NODESET_H
-#include "util.h"
 #include "nodesetLoader.h"
+#include "util.h"
 #include <libxml/SAX.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -39,7 +39,6 @@
 #define NAMESPACEURIS "NamespaceUris"
 #define NAMESPACEURI "Uri"
 
-
 typedef struct {
     const char *name;
     const char *defaultValue;
@@ -61,8 +60,6 @@ extern NodeAttribute attrAlias;
 struct Nodeset;
 typedef struct Nodeset Nodeset;
 
-void addNodeInternal(const TNode *node);
-
 extern const char *hierachicalReferences[MAX_HIERACHICAL_REFS];
 
 typedef struct {
@@ -80,9 +77,6 @@ typedef struct TParserCtx TParserCtx;
 
 struct TNamespace;
 typedef struct TNamespace TNamespace;
-
-TNodeId extractNodedId(const TNamespace *namespaces, char *s);
-TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 
 struct TNamespace {
     size_t idx;
@@ -105,6 +99,15 @@ struct Nodeset {
     size_t refsSize;
     TNamespaceTable *namespaceTable;
 };
+
+extern Nodeset* nodeset;
+
+void addNodeInternal(const TNode *node);
+TNodeId extractNodedId(const TNamespace *namespaces, char *s);
+TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
+TNodeId alias2Id(const char *alias);
+void setupNodeset();
+void cleanupNodeset();
 
 typedef enum {
     PARSER_STATE_INIT,

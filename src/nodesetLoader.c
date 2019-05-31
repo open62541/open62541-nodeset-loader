@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static Nodeset *nodeset = NULL;
-
 static size_t hierachicalRefCount = 7;
 
 static bool isHierachicalReference(const Reference *ref) {
@@ -51,17 +49,6 @@ static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
 
     printf("attribute: %s\n", attr->name);
     assertf(false, "attribute not found, no default value set in getAttributeValue\n");
-}
-
-TNodeId alias2Id(const char *alias) {
-    for(size_t cnt = 0; cnt < nodeset->aliasSize; cnt++) {
-        if(strEqual(alias, nodeset->aliasArray[cnt]->name)) {
-            return nodeset->aliasArray[cnt]->id;
-        }
-    }
-    TNodeId id;
-    id.id = 0;
-    return id;
 }
 
 static void extractAttributes(const TNamespace *namespaces, TNode *node,
@@ -351,9 +338,9 @@ static xmlSAXHandler make_sax_handler() {
     // nodesets are encoded with UTF-8
     // this code does no transformation on the encoded text or interprets it
     // so it should be safe to cast xmlChar* to char*
-    SAXHandler.startElementNs = (startElementNsSAX2Func) OnStartElementNs;
-    SAXHandler.endElementNs = (endElementNsSAX2Func) OnEndElementNs;
-    SAXHandler.characters = (charactersSAXFunc) OnCharacters;
+    SAXHandler.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
+    SAXHandler.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
+    SAXHandler.characters = (charactersSAXFunc)OnCharacters;
     return SAXHandler;
 }
 
@@ -386,74 +373,6 @@ void addNodeInternal(const TNode *node) {
 }
 
 void initCounters() { hierachicalRefCount = 7; }
-
-static void freeMemory(TParserCtx *ctx) {
-
-    Nodeset *n = nodeset;
-    // free chars
-    for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
-        free((void *)n->countedChars[cnt]);
-    }
-    free(n->countedChars);
-
-    // free refs
-    for(size_t cnt = 0; cnt < n->refsSize; cnt++) {
-        free((void *)n->countedRefs[cnt]);
-    }
-    free(n->countedRefs);
-
-    // free alias
-    for(size_t cnt = 0; cnt < n->aliasSize; cnt++) {
-        free(n->aliasArray[cnt]);
-    }
-    free(n->aliasArray);
-
-    for(size_t cnt = 0; cnt < 6; cnt++) {
-        size_t storedNodes = n->nodes[cnt]->cnt;
-        for(size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++) {
-            free((void *)n->nodes[cnt]->nodes[nodeCnt]);
-        }
-        free((void *)n->nodes[cnt]->nodes);
-        free((void *)n->nodes[cnt]);
-    }
-
-    // free namespacetable, nodeset
-    free(n->namespaceTable->namespace);
-    free(n->namespaceTable);
-    free(n);
-
-    free(ctx);
-}
-
-static void setupNodeset() {
-    nodeset = malloc(sizeof(Nodeset));
-    nodeset->aliasArray = malloc(sizeof(Alias *) * MAX_ALIAS);
-    nodeset->aliasSize = 0;
-    nodeset->countedRefs = malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
-    nodeset->refsSize = 0;
-    nodeset->countedChars = malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
-    nodeset->charsSize = 0;
-    nodeset->nodes[NODECLASS_OBJECT] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECT]->nodes = malloc(sizeof(TNode *) * MAX_OBJECTS);
-    nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
-    nodeset->nodes[NODECLASS_VARIABLE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_VARIABLE]->nodes = malloc(sizeof(TNode *) * MAX_VARIABLES);
-    nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
-    nodeset->nodes[NODECLASS_METHOD] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_METHOD]->nodes = malloc(sizeof(TNode *) * MAX_METHODS);
-    nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
-    nodeset->nodes[NODECLASS_OBJECTTYPE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes = malloc(sizeof(TNode *) * MAX_DATATYPES);
-    nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
-    nodeset->nodes[NODECLASS_DATATYPE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_DATATYPE]->nodes =
-        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
-    nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
-    nodeset->nodes[NODECLASS_REFERENCETYPE] = malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
-        malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
-    nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
-}
 
 void loadFile(const FileHandler *fileHandler) {
     struct timespec start, startSort, startAdd, end;
@@ -514,7 +433,8 @@ void loadFile(const FileHandler *fileHandler) {
         fileHandler->callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
 
-    freeMemory(ctx);
+    cleanupNodeset();
+    free(ctx);
 
     fclose(f);
     clock_gettime(CLOCK_MONOTONIC, &end);
