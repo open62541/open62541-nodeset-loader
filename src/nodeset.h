@@ -60,8 +60,6 @@ extern NodeAttribute attrAlias;
 struct Nodeset;
 typedef struct Nodeset Nodeset;
 
-extern const char *hierachicalReferences[MAX_HIERACHICAL_REFS];
-
 typedef struct {
     char *name;
     TNodeId id;
@@ -98,16 +96,19 @@ struct Nodeset {
     size_t charsSize;
     size_t refsSize;
     TNamespaceTable *namespaceTable;
+    size_t hierachicalRefsSize;
+    const char **hierachicalRefs;
 };
 
 extern Nodeset* nodeset;
 
-void addNodeInternal(const TNode *node);
+void Nodeset_addNode(const TNode *node);
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TNodeId alias2Id(const char *alias);
-void setupNodeset();
-void cleanupNodeset();
+bool isHierachicalReference(const Reference *ref);
+void Nodeset_new();
+void Nodeset_cleanup();
 
 typedef enum {
     PARSER_STATE_INIT,

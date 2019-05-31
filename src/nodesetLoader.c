@@ -13,17 +13,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static size_t hierachicalRefCount = 7;
-
-static bool isHierachicalReference(const Reference *ref) {
-    for(size_t i = 0; i < hierachicalRefCount; i++) {
-        if(!strcmp(ref->refType.idString, hierachicalReferences[i])) {
-            return true;
-        }
-    }
-    return false;
-}
-
 static void (*nodeCallback)(const TNode *) = NULL;
 
 static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
@@ -283,7 +272,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                 Reference *ref = pctx->node->hierachicalRefs;
                 while(ref) {
                     if(!ref->isForward) {
-                        hierachicalReferences[hierachicalRefCount++] = pctx->node->id.id;
+                        nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
+                            pctx->node->id.id;
                         break;
                     }
                     ref = ref->next;
@@ -366,19 +356,10 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     return 0;
 }
 
-void addNodeInternal(const TNode *node) {
-    size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
-    nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
-    nodeset->nodes[node->nodeClass]->cnt++;
-}
-
-void initCounters() { hierachicalRefCount = 7; }
-
 void loadFile(const FileHandler *fileHandler) {
     struct timespec start, startSort, startAdd, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    setupNodeset();
-    initCounters();
+    Nodeset_new();
     FILE *f = fopen(fileHandler->file, "r");
     nodeCallback = insertNode;
     init();
@@ -406,7 +387,7 @@ void loadFile(const FileHandler *fileHandler) {
     }
 
     clock_gettime(CLOCK_MONOTONIC, &startSort);
-    sort(addNodeInternal);
+    sort(Nodeset_addNode);
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; cnt++) {
@@ -433,7 +414,7 @@ void loadFile(const FileHandler *fileHandler) {
         fileHandler->callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
 
-    cleanupNodeset();
+    Nodeset_cleanup();
     free(ctx);
 
     fclose(f);

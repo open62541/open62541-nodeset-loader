@@ -85,7 +85,7 @@ TNodeId alias2Id(const char *alias) {
     return id;
 }
 
-void setupNodeset() {
+void Nodeset_new() {
     nodeset = malloc(sizeof(Nodeset));
     nodeset->aliasArray = malloc(sizeof(Alias *) * MAX_ALIAS);
     nodeset->aliasSize = 0;
@@ -113,9 +113,11 @@ void setupNodeset() {
     nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
         malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
     nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
+    nodeset->hierachicalRefs = hierachicalReferences;
+    nodeset->hierachicalRefsSize = 7;
 }
 
-void cleanupNodeset() {
+void Nodeset_cleanup() {
     Nodeset *n = nodeset;
     // free chars
     for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
@@ -148,4 +150,19 @@ void cleanupNodeset() {
     free(n->namespaceTable->namespace);
     free(n->namespaceTable);
     free(n);
+}
+
+void Nodeset_addNode(const TNode *node) {
+    size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
+    nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
+    nodeset->nodes[node->nodeClass]->cnt++;
+}
+
+bool isHierachicalReference(const Reference *ref) {
+    for(size_t i = 0; i < nodeset->hierachicalRefsSize; i++) {
+        if(!strcmp(ref->refType.idString, nodeset->hierachicalRefs[i])) {
+            return true;
+        }
+    }
+    return false;
 }
