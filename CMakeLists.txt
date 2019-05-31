@@ -16,6 +16,7 @@ add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -Wmultichar
                     -Wundef
                     -Wc++-compat
+                    -Wsign-conversion
                     -fno-strict-aliasing # fewer compiler assumptions about pointer types
                     -fexceptions) # recommended for multi-threaded C code, also in combination with C++ code
 project(xmlImport)

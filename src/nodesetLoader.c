@@ -24,7 +24,7 @@ static const char *getAttributeValue(NodeAttribute *attr, const char **attribute
             continue;
         const char *value_start = attributes[i * fields + 3];
         const char *value_end = attributes[i * fields + 4];
-        size_t size = value_end - value_start;
+        size_t size = (size_t) (value_end - value_start);
         char *value = (char *)malloc(sizeof(char) * size + 1);
         nodeset->countedChars[nodeset->charsSize++] = value;
         memcpy(value, value_start, size);
@@ -254,7 +254,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                 nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
 
             nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].idx =
-                globalIdx;
+                (size_t)globalIdx;
             pctx->state = PARSER_STATE_NAMESPACEURIS;
         } break;
         case PARSER_STATE_NAMESPACEURIS:
@@ -312,9 +312,9 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     TParserCtx *pctx = (TParserCtx *)ctx;
     if(pctx->nextOnCharacters == NULL)
         return;
-    char *value = (char *)malloc(len + 1);
+    char *value = (char *)malloc((size_t)len + 1);
     nodeset->countedChars[nodeset->charsSize++] = value;
-    strncpy(value, ch, len);
+    strncpy(value, ch, (size_t)len);
     value[len] = '\0';
     pctx->nextOnCharacters[0] = value;
     pctx->nextOnCharacters = NULL;
