@@ -54,7 +54,7 @@ TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     return id;
 }
 
-TNodeId extractNodedId(const TNamespace *namespaces, const char *s) {
+TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
     if(s == NULL) {
         TNodeId id;
         id.id = 0;

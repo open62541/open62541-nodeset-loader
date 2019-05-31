@@ -41,7 +41,7 @@
 
 typedef struct {
     const char *name;
-    const char *defaultValue;
+    char *defaultValue;
     bool optional;
 } NodeAttribute;
 
@@ -61,7 +61,7 @@ struct Nodeset;
 typedef struct Nodeset Nodeset;
 
 typedef struct {
-    const char *name;
+    char *name;
     TNodeId id;
 } Alias;
 
@@ -78,7 +78,7 @@ typedef struct TNamespace TNamespace;
 
 struct TNamespace {
     size_t idx;
-    const char *name;
+    char *name;
 };
 
 typedef struct {
@@ -103,7 +103,7 @@ struct Nodeset {
 extern Nodeset* nodeset;
 
 void Nodeset_addNode(const TNode *node);
-TNodeId extractNodedId(const TNamespace *namespaces, const char *s);
+TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TNodeId alias2Id(const char *alias);
 bool isHierachicalReference(const Reference *ref);
@@ -127,7 +127,7 @@ struct TParserCtx {
     TParserState state;
     TNodeClass nodeClass;
     TNode *node;
-    const char **nextOnCharacters;
+    char **nextOnCharacters;
 };
 
 #endif
