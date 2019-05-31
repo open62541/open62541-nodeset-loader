@@ -370,7 +370,7 @@ void loadFile(const FileHandler *fileHandler) {
     TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
     table->cb = fileHandler->addNamespace;
     table->size = 1;
-    table->ns = (TNamespace*)(sizeof(TNamespace));
+    table->ns = (TNamespace*)malloc((sizeof(TNamespace)));
     table->ns[0].idx = 0;
     table->ns[0].name = "opcfoundation";
     nodeset->namespaceTable = table;
