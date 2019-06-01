@@ -8,10 +8,9 @@
 #ifndef NODESET_H
 #define NODESET_H
 #include "nodesetLoader.h"
-#include "util.h"
 #include <stdbool.h>
 #include <stddef.h>
-#include <string.h>
+
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -113,25 +112,5 @@ void Nodeset_cleanup(void);
 void Nodeset_sort(void);
 void Nodeset_addNodeToSort(const TNode *node);
 void Nodeset_getSortedNodes(addNodeCb callback);
-
-typedef enum {
-    PARSER_STATE_INIT,
-    PARSER_STATE_NODE,
-    PARSER_STATE_DISPLAYNAME,
-    PARSER_STATE_REFERENCES,
-    PARSER_STATE_REFERENCE,
-    PARSER_STATE_DESCRIPTION,
-    PARSER_STATE_ALIAS,
-    PARSER_STATE_UNKNOWN,
-    PARSER_STATE_NAMESPACEURIS,
-    PARSER_STATE_URI
-} TParserState;
-
-struct TParserCtx {
-    TParserState state;
-    TNodeClass nodeClass;
-    TNode *node;
-    char **nextOnCharacters;
-};
 
 #endif

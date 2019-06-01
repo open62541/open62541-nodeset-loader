@@ -7,7 +7,10 @@
 
 #include "nodeset.h"
 #include "sort.h"
+#include "util.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define free_const(x) free((void *)(long)(x))
 

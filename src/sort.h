@@ -5,13 +5,14 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "nodesetLoader.h"
-#include <assert.h>
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdlib.h>
+#ifndef SORT_H
+#define SORT_H
+
+struct TNode;
 
 void init(void);
-void addNodeToSort(const TNode *node);
-typedef void (*OnSortCallback)(const TNode *node);
+void addNodeToSort(const struct TNode *node);
+typedef void (*OnSortCallback)(const struct TNode *node);
 void sort(OnSortCallback callback);
+
+#endif

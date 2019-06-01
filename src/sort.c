@@ -6,8 +6,12 @@
  */
 
 #include "sort.h"
+#include "nodesetLoader.h"
+#include <assert.h>
 #include <error.h>
+#include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 

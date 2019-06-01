@@ -40,7 +40,10 @@ struct Reference {
     Reference *hierachicalRefs;                                                    \
     Reference *nonHierachicalRefs;
 
-typedef struct { UA_NODE_ATTRIBUTES } TNode;
+struct TNode {
+    UA_NODE_ATTRIBUTES
+};
+typedef struct TNode TNode;
 
 typedef struct {
     UA_NODE_ATTRIBUTES
