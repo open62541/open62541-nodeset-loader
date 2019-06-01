@@ -9,6 +9,7 @@
 #include "nodesetLoader.h"
 #include "nodeset.h"
 #include "util.h"
+#include <libxml/SAX.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -326,6 +327,8 @@ static xmlSAXHandler make_sax_handler(void) {
     SAXHandler.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
     SAXHandler.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
     SAXHandler.characters = (charactersSAXFunc)OnCharacters;
+    printf("subsitute: %d\n", xmlSubstituteEntitiesDefault(1));
+    printf("subsitute: %d\n", xmlSubstituteEntitiesDefault(1));
     return SAXHandler;
 }
 

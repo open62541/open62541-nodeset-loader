@@ -9,7 +9,6 @@
 #define NODESET_H
 #include "nodesetLoader.h"
 #include "util.h"
-#include <libxml/SAX.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
@@ -102,7 +101,7 @@ struct Nodeset {
 
 extern Nodeset *nodeset;
 
-//void Nodeset_addNode(const TNode *node);
+// void Nodeset_addNode(const TNode *node);
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TNodeId alias2Id(const char *alias);
