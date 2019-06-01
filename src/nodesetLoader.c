@@ -8,7 +8,6 @@
 #define _POSIX_C_SOURCE 199309L
 #include "nodesetLoader.h"
 #include "nodeset.h"
-#include "sort.h"
 #include "util.h"
 #include <stdio.h>
 #include <string.h>
@@ -261,7 +260,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             if(strEqual(localname, OBJECT) || strEqual(localname, VARIABLE) ||
                strEqual(localname, OBJECTTYPE) || strEqual(localname, DATATYPE) ||
                strEqual(localname, METHOD)) {
-                addNodeToSort(pctx->node);
+                Nodeset_addNodeToSort(pctx->node);
                 pctx->state = PARSER_STATE_INIT;
             }
             if(strEqual(localname, REFERENCETYPE)) {
@@ -274,7 +273,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                     }
                     ref = ref->next;
                 }
-                addNodeToSort(pctx->node);
+                Nodeset_addNodeToSort(pctx->node);
                 pctx->state = PARSER_STATE_INIT;
             }
             break;
@@ -370,7 +369,6 @@ bool loadFile(const FileHandler *fileHandler) {
     struct timespec start, startSort, startAdd, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
     Nodeset_new(fileHandler->addNamespace);
-    init();
 
     TParserCtx *ctx = (TParserCtx *)malloc(sizeof(TParserCtx));
     ctx->state = PARSER_STATE_INIT;
@@ -382,39 +380,17 @@ bool loadFile(const FileHandler *fileHandler) {
         status = false;
         goto cleanup;
     }
-    
+
     if(read_xmlfile(f, ctx)) {
         puts("xml read error.");
         status = false;
     }
 
     clock_gettime(CLOCK_MONOTONIC, &startSort);
-    sort(Nodeset_addNode);
+    // sorting time missing
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
-    }
-
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
-    }
-
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
-    }
-
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
-    }
-
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
-    }
-
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
-    }
+    Nodeset_getSortedNodes(fileHandler->callback);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 

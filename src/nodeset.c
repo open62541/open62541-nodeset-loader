@@ -6,6 +6,7 @@
  */
 
 #include "nodeset.h"
+#include "sort.h"
 
 #define free_const(x) free((void *)(long)(x))
 
@@ -48,7 +49,7 @@ const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
 
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     if(id.nsIdx > 0) {
-        id.nsIdx = (int) namespaces[id.nsIdx].idx;
+        id.nsIdx = (int)namespaces[id.nsIdx].idx;
         return id;
     }
     return id;
@@ -131,6 +132,45 @@ void Nodeset_new(addNamespaceCb nsCallback) {
     table->ns[0].idx = 0;
     table->ns[0].name = "opcfoundation";
     nodeset->namespaceTable = table;
+    //init sorting
+    init();
+}
+
+static void Nodeset_addNode(const TNode *node) {
+    size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
+    nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
+    nodeset->nodes[node->nodeClass]->cnt++;
+}
+
+void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
+
+void Nodeset_getSortedNodes(addNodeCb callback) {
+
+    sort(Nodeset_addNode);
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
+    }
 }
 
 void Nodeset_cleanup() {
@@ -162,16 +202,9 @@ void Nodeset_cleanup() {
         free((void *)n->nodes[cnt]);
     }
 
-    // free namespacetable, nodeset
     free(n->namespaceTable->ns);
     free(n->namespaceTable);
     free(n);
-}
-
-void Nodeset_addNode(const TNode *node) {
-    size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
-    nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
-    nodeset->nodes[node->nodeClass]->cnt++;
 }
 
 bool isHierachicalReference(const Reference *ref) {

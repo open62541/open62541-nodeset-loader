@@ -100,15 +100,18 @@ struct Nodeset {
     const char **hierachicalRefs;
 };
 
-extern Nodeset* nodeset;
+extern Nodeset *nodeset;
 
-void Nodeset_addNode(const TNode *node);
+//void Nodeset_addNode(const TNode *node);
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TNodeId alias2Id(const char *alias);
 bool isHierachicalReference(const Reference *ref);
 void Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(void);
+void Nodeset_sort(void);
+void Nodeset_addNodeToSort(const TNode *node);
+void Nodeset_getSortedNodes(addNodeCb callback);
 
 typedef enum {
     PARSER_STATE_INIT,
