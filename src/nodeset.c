@@ -7,6 +7,7 @@
 
 #include "nodeset.h"
 #include "sort.h"
+#include <stdio.h>
 
 #define free_const(x) free((void *)(long)(x))
 
@@ -143,7 +144,7 @@ void Nodeset_new(addNamespaceCb nsCallback) {
     table->size = 1;
     table->ns = (TNamespace *)malloc((sizeof(TNamespace)));
     table->ns[0].idx = 0;
-    table->ns[0].name = "opcfoundation";
+    table->ns[0].name = "http://opcfoundation.org/UA/";
     nodeset->namespaceTable = table;
     // init sorting
     init();
@@ -158,6 +159,13 @@ static void Nodeset_addNode(const TNode *node) {
 void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
 
 void Nodeset_getSortedNodes(addNodeCb callback) {
+
+    printf("--- namespace table ---\n");
+    printf("FileIdx ServerIdx URI\n");
+    for(size_t fileIndex = 0; fileIndex < nodeset->namespaceTable->size; fileIndex++) {
+        printf("%zu\t%zu\t%s\n", fileIndex, nodeset->namespaceTable->ns[fileIndex].idx,
+               nodeset->namespaceTable->ns[fileIndex].name);
+    }
 
     sort(Nodeset_addNode);
 
