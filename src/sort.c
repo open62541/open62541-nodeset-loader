@@ -213,14 +213,14 @@ void init() { root = new_node(NULL); }
 
 void addNodeToSort(const TNode *data) {
     struct node *j = NULL;
-    struct node *k = NULL;
+    //add node, no matter if there are references on it
+    j = search_node(root, data->id.idString);
+    j->data = data;
     Reference *hierachicalRef = data->hierachicalRefs;
     while(hierachicalRef) {
-
         if(!hierachicalRef->isForward) {
-            j = search_node(root, data->id.idString);
-            j->data = data;
-            k = search_node(root, hierachicalRef->target.idString);
+
+            struct node *k = search_node(root, hierachicalRef->target.idString);
             record_relation(k, j);
         }
         hierachicalRef = hierachicalRef->next;
