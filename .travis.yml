@@ -42,6 +42,7 @@ script:
   - ./parserDemo ../nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml
   - ./parserDemo ../nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
   - valgrind --error-exitcode=100 --leak-check=full ./parserDemo ../nodesets/testNodeset100nodes.xml
+  - tests/check_sort
   - cppcheck --version
   #- cppcheck --quiet --force --error-exitcode=200 --std=c99 --std=c++11 --enable=all --template=gcc --project=compile_commands.json -j8
 
