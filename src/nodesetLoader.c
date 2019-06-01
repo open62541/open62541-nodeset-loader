@@ -92,12 +92,20 @@ static void initNode(TNamespace *namespaces, TNodeClass nodeClass, TNode *node,
     node->nodeClass = nodeClass;
     node->hierachicalRefs = NULL;
     node->nonHierachicalRefs = NULL;
+    node->browseName = NULL;
+    node->displayName = NULL;
+    node->description = NULL;
+    node->writeMask = NULL;
     extractAttributes(namespaces, node, nb_attributes, attributes);
 }
 
 static void extractReferenceAttributes(TParserCtx *ctx, int attributeSize,
                                        const char **attributes) {
     Reference *newRef = (Reference *)malloc(sizeof(Reference));
+    newRef->target.idString = NULL;
+    newRef->target.id = NULL;
+    newRef->refType.idString = NULL;
+    newRef->refType.id = NULL;
     nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
     if(strEqual("true", getAttributeValue(&attrIsForward, attributes, attributeSize))) {
@@ -136,6 +144,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                 pctx->state = PARSER_STATE_ALIAS;
                 pctx->node = NULL;
                 nodeset->aliasArray[nodeset->aliasSize] = (Alias *)malloc(sizeof(Alias));
+                nodeset->aliasArray[nodeset->aliasSize]->id.idString = NULL;
                 nodeset->aliasArray[nodeset->aliasSize]->name =
                     getAttributeValue(&attrAlias, attributes, nb_attributes);
                 pctx->nextOnCharacters =
@@ -194,6 +203,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                     nodeset->namespaceTable->ns,
                     sizeof(TNamespace) * (nodeset->namespaceTable->size));
                 nodeset->namespaceTable->ns = ns;
+                ns[nodeset->namespaceTable->size - 1].name = NULL;
                 pctx->nextOnCharacters = &ns[nodeset->namespaceTable->size - 1].name;
                 pctx->state = PARSER_STATE_URI;
             }
@@ -236,6 +246,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
 static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                            const char *URI) {
     TParserCtx *pctx = (TParserCtx *)ctx;
+    pctx->nextOnCharacters = NULL;
     switch(pctx->state) {
         case PARSER_STATE_INIT:
             break;
@@ -309,12 +320,17 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     TParserCtx *pctx = (TParserCtx *)ctx;
     if(pctx->nextOnCharacters == NULL)
         return;
-    char *value = (char *)malloc((size_t)len + 1);
-    nodeset->countedChars[nodeset->charsSize++] = value;
-    strncpy(value, ch, (size_t)len);
-    value[len] = '\0';
-    pctx->nextOnCharacters[0] = value;
-    pctx->nextOnCharacters = NULL;
+    char *oldString = pctx->nextOnCharacters[0];
+    size_t oldLength = 0;
+    if(oldString != NULL) {
+        oldLength = strlen(oldString);
+    }
+    char *newValue = (char *)malloc(oldLength + (size_t)len + 1);
+    strncpy(newValue, oldString, oldLength);
+    strncpy(newValue + oldLength, ch, (size_t)len);
+    nodeset->countedChars[nodeset->charsSize++] = newValue;
+    newValue[oldLength + (size_t)len] = '\0';
+    pctx->nextOnCharacters[0] = newValue;
 }
 
 static xmlSAXHandler make_sax_handler(void) {
