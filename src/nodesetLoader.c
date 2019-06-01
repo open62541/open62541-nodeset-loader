@@ -352,47 +352,40 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     return 0;
 }
 
-void loadFile(const FileHandler *fileHandler) {
-    if(fileHandler==NULL)
-    {
+bool loadFile(const FileHandler *fileHandler) {
+
+    if(fileHandler == NULL) {
         printf("no filehandler - return\n");
-        return;
+        return false;
     }
-    if(fileHandler->addNamespace==NULL)
-    {
-        printf("no fileHandler->addNamespace -> return\n");
-        return;
+    if(fileHandler->addNamespace == NULL) {
+        printf("no fileHandler->addNamespace - return\n");
+        return false;
     }
     if(fileHandler->callback == NULL) {
-        printf("no fileHandler->callback -> return\n");
-        return;
+        printf("no fileHandler->callback - return\n");
+        return false;
     }
+    bool status = true;
     struct timespec start, startSort, startAdd, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
-    Nodeset_new();
-    FILE *f = fopen(fileHandler->file, "r");
+    Nodeset_new(fileHandler->addNamespace);
     init();
 
     TParserCtx *ctx = (TParserCtx *)malloc(sizeof(TParserCtx));
     ctx->state = PARSER_STATE_INIT;
     ctx->nextOnCharacters = NULL;
 
-    TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
-    table->cb = fileHandler->addNamespace;
-    table->size = 1;
-    table->ns = (TNamespace *)malloc((sizeof(TNamespace)));
-    table->ns[0].idx = 0;
-    table->ns[0].name = "opcfoundation";
-    nodeset->namespaceTable = table;
-
+    FILE *f = fopen(fileHandler->file, "r");
     if(!f) {
         puts("file open error.");
-        exit(1);
+        status = false;
+        goto cleanup;
     }
-
+    
     if(read_xmlfile(f, ctx)) {
         puts("xml read error.");
-        exit(1);
+        status = false;
     }
 
     clock_gettime(CLOCK_MONOTONIC, &startSort);
@@ -423,10 +416,6 @@ void loadFile(const FileHandler *fileHandler) {
         fileHandler->callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
 
-    Nodeset_cleanup();
-    free(ctx);
-
-    fclose(f);
     clock_gettime(CLOCK_MONOTONIC, &end);
 
     struct timespec parse = diff(start, startSort);
@@ -437,4 +426,10 @@ void loadFile(const FileHandler *fileHandler) {
     printf("sort (s, ms): %lu %lu\n", sort.tv_sec, sort.tv_nsec / 1000000);
     printf("add (s, ms): %lu %lu\n", add.tv_sec, add.tv_nsec / 1000000);
     printf("sum (s, ms): %lu %lu\n", sum.tv_sec, sum.tv_nsec / 1000000);
+
+cleanup:
+    Nodeset_cleanup();
+    free(ctx);
+    fclose(f);
+    return status;
 }

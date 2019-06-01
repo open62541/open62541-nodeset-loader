@@ -107,7 +107,7 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TNodeId alias2Id(const char *alias);
 bool isHierachicalReference(const Reference *ref);
-void Nodeset_new(void);
+void Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(void);
 
 typedef enum {

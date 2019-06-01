@@ -86,6 +86,6 @@ typedef struct {
     const Statistics *stat;
 } FileHandler;
 
-void loadFile(const FileHandler *fileHandler);
+bool loadFile(const FileHandler *fileHandler);
 
 #endif

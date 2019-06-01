@@ -87,7 +87,7 @@ TNodeId alias2Id(const char *alias) {
     return id;
 }
 
-void Nodeset_new() {
+void Nodeset_new(addNamespaceCb nsCallback) {
     nodeset = (Nodeset *)malloc(sizeof(Nodeset));
     nodeset->aliasArray = (Alias **)malloc(sizeof(Alias *) * MAX_ALIAS);
     nodeset->aliasSize = 0;
@@ -123,6 +123,14 @@ void Nodeset_new() {
     nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
     nodeset->hierachicalRefs = hierachicalReferences;
     nodeset->hierachicalRefsSize = 7;
+
+    TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
+    table->cb = nsCallback;
+    table->size = 1;
+    table->ns = (TNamespace *)malloc((sizeof(TNamespace)));
+    table->ns[0].idx = 0;
+    table->ns[0].name = "opcfoundation";
+    nodeset->namespaceTable = table;
 }
 
 void Nodeset_cleanup() {
