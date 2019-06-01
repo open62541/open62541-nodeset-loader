@@ -210,7 +210,7 @@ void Nodeset_cleanup() {
     }
     free(n->aliasArray);
 
-    for(size_t cnt = 0; cnt < 6; cnt++) {
+    for(size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++) {
         size_t storedNodes = n->nodes[cnt]->cnt;
         for(size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++) {
             free_const(n->nodes[cnt]->nodes[nodeCnt]);
