@@ -252,9 +252,10 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
-            }
-            else
-            {
+            } else if(strEqual(localname, "UANodeSet") ||
+                      strEqual(localname, "Aliases") || strEqual(localname, "Extensions")) {
+                pctx->state = PARSER_STATE_INIT;
+            } else {
                 enterUnknownState(pctx);
             }
             break;
@@ -292,7 +293,8 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             {
                 enterUnknownState(pctx);
             }
-            
+            break;
+
         case PARSER_STATE_REFERENCES:
             if(strEqual(localname, REFERENCE)) {
                 pctx->state = PARSER_STATE_REFERENCE;
