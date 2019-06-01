@@ -269,7 +269,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                 while(ref) {
                     if(!ref->isForward) {
                         nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
-                            pctx->node->id.id;
+                            pctx->node->id.idString;
                         break;
                     }
                     ref = ref->next;
@@ -415,8 +415,8 @@ void loadFile(const FileHandler *fileHandler) {
         fileHandler->callback(nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
     }
 
-    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->cnt; cnt++) {
-        fileHandler->callback(nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++) {
+        fileHandler->callback(nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
