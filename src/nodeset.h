@@ -19,6 +19,7 @@
 #define MAX_DATATYPES 1000
 #define MAX_VARIABLES 1000000
 #define MAX_REFERENCETYPES 1000
+#define MAX_VARIABLETYPES 1000
 #define MAX_HIERACHICAL_REFS 50
 #define MAX_ALIAS 100
 #define MAX_REFCOUNTEDCHARS 1000000
@@ -28,6 +29,7 @@
 #define METHOD "UAMethod"
 #define OBJECTTYPE "UAObjectType"
 #define VARIABLE "UAVariable"
+#define VARIABLETYPE "UAVariableType"
 #define DATATYPE "UADataType"
 #define REFERENCETYPE "UAReferenceType"
 #define DISPLAYNAME "DisplayName"

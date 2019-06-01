@@ -58,6 +58,9 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
             break;
         }
         case NODECLASS_VARIABLE:
+        {
+
+        
             ((TVariableNode *)node)->parentNodeId =
                 extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
                                                              attributes, attributeSize));
@@ -74,6 +77,26 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
                 getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
 
             break;
+        }
+        case NODECLASS_VARIABLETYPE:
+        {
+
+        
+            ((TVariableTypeNode *)node)->valueRank =
+                getAttributeValue(&attrValueRank, attributes, attributeSize);
+            char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
+            TNodeId aliasId = alias2Id(datatype);
+            if(aliasId.id != 0) {
+                ((TVariableTypeNode *)node)->datatype = aliasId;
+            } else {
+                ((TVariableTypeNode *)node)->datatype = extractNodedId(namespaces, datatype);
+            }            
+            ((TVariableTypeNode *)node)->arrayDimensions =
+                getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
+            ((TVariableTypeNode *)node)->isAbstract =
+                getAttributeValue(&attrIsAbstract, attributes, attributeSize);
+            break;
+        }
         case NODECLASS_DATATYPE:;
             break;
         case NODECLASS_METHOD:
@@ -192,6 +215,13 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                 initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
                          nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
+            } else if(strEqual(localname, VARIABLETYPE)) {
+                pctx->state = PARSER_STATE_NODE;
+                pctx->nodeClass = NODECLASS_VARIABLETYPE;
+                pctx->node = (TNode *)malloc(sizeof(TVariableTypeNode));
+                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
+                         nb_attributes, attributes);
+                pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
             }
@@ -271,7 +301,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         case PARSER_STATE_NODE:
             if(strEqual(localname, OBJECT) || strEqual(localname, VARIABLE) ||
                strEqual(localname, OBJECTTYPE) || strEqual(localname, DATATYPE) ||
-               strEqual(localname, METHOD)) {
+               strEqual(localname, METHOD) || strEqual(localname, VARIABLETYPE)) {
                 Nodeset_addNodeToSort(pctx->node);
                 pctx->state = PARSER_STATE_INIT;
             }
@@ -343,8 +373,6 @@ static xmlSAXHandler make_sax_handler(void) {
     SAXHandler.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
     SAXHandler.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
     SAXHandler.characters = (charactersSAXFunc)OnCharacters;
-    printf("subsitute: %d\n", xmlSubstituteEntitiesDefault(1));
-    printf("subsitute: %d\n", xmlSubstituteEntitiesDefault(1));
     return SAXHandler;
 }
 

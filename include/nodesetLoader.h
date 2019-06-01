@@ -2,15 +2,16 @@
 #define NODESETLOADER_H
 #include <stdbool.h>
 
-#define NODECLASS_COUNT 6
+#define NODECLASS_COUNT 7
 typedef enum {
     NODECLASS_OBJECT = 0,
     NODECLASS_OBJECTTYPE = 1,
     NODECLASS_VARIABLE = 2,
     NODECLASS_DATATYPE = 3,
     NODECLASS_METHOD = 4,
-    NODECLASS_REFERENCETYPE = 5
-    // TODO: variabletype, eventtype missing
+    NODECLASS_REFERENCETYPE = 5,
+    NODECLASS_VARIABLETYPE = 6
+    // TODO: eventtype missing
 } TNodeClass;
 
 typedef struct {
@@ -29,14 +30,14 @@ struct Reference {
     Reference *next;
 };
 
-#define UA_NODE_ATTRIBUTES                                                               \
-    TNodeClass nodeClass;                                                                \
-    TNodeId id;                                                                          \
+#define UA_NODE_ATTRIBUTES                                                         \
+    TNodeClass nodeClass;                                                          \
+    TNodeId id;                                                                    \
     char *browseName;                                                              \
     char *displayName;                                                             \
     char *description;                                                             \
     char *writeMask;                                                               \
-    Reference *hierachicalRefs;                                                          \
+    Reference *hierachicalRefs;                                                    \
     Reference *nonHierachicalRefs;
 
 typedef struct { UA_NODE_ATTRIBUTES } TNode;
@@ -51,6 +52,14 @@ typedef struct {
     UA_NODE_ATTRIBUTES
     char *isAbstract;
 } TObjectTypeNode;
+
+typedef struct {
+    UA_NODE_ATTRIBUTES
+    char *isAbstract;
+    TNodeId datatype;
+    char *arrayDimensions;
+    char *valueRank;
+} TVariableTypeNode;
 
 typedef struct {
     UA_NODE_ATTRIBUTES

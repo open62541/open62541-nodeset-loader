@@ -97,31 +97,44 @@ void Nodeset_new(addNamespaceCb nsCallback) {
     nodeset->refsSize = 0;
     nodeset->countedChars = (const char **)malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
     nodeset->charsSize = 0;
+    // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
         (const TNode **)malloc(sizeof(TNode *) * MAX_OBJECTS);
     nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
+    // variables
     nodeset->nodes[NODECLASS_VARIABLE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_VARIABLE]->nodes =
         (const TNode **)malloc(sizeof(TNode *) * MAX_VARIABLES);
     nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
+    // methods
     nodeset->nodes[NODECLASS_METHOD] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_METHOD]->nodes =
         (const TNode **)malloc(sizeof(TNode *) * MAX_METHODS);
     nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
+    // objecttypes
     nodeset->nodes[NODECLASS_OBJECTTYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes =
         (const TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
     nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
+    // datatypes
     nodeset->nodes[NODECLASS_DATATYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_DATATYPE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+        (const TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
     nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
+    // referencetypes
     nodeset->nodes[NODECLASS_REFERENCETYPE] =
         (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
         (const TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
     nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
+    // variabletypes
+    nodeset->nodes[NODECLASS_VARIABLETYPE] =
+        (NodeContainer *)malloc(sizeof(NodeContainer));
+    nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes =
+        (const TNode **)malloc(sizeof(TNode *) * MAX_VARIABLETYPES);
+    nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt = 0;
+    // known hierachical refs
     nodeset->hierachicalRefs = hierachicalReferences;
     nodeset->hierachicalRefsSize = 7;
 
@@ -132,7 +145,7 @@ void Nodeset_new(addNamespaceCb nsCallback) {
     table->ns[0].idx = 0;
     table->ns[0].name = "opcfoundation";
     nodeset->namespaceTable = table;
-    //init sorting
+    // init sorting
     init();
 }
 
@@ -166,6 +179,10 @@ void Nodeset_getSortedNodes(addNodeCb callback) {
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++) {
         callback(nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
+    }
+
+    for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt; cnt++) {
+        callback(nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
