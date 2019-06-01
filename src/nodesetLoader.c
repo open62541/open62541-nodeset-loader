@@ -79,10 +79,8 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
                 getAttributeValue(&attrEventNotifier, attributes, attributeSize);
             break;
         }
-        case NODECLASS_VARIABLE:
-        {
+        case NODECLASS_VARIABLE: {
 
-        
             ((TVariableNode *)node)->parentNodeId =
                 extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
                                                              attributes, attributeSize));
@@ -100,10 +98,8 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
 
             break;
         }
-        case NODECLASS_VARIABLETYPE:
-        {
+        case NODECLASS_VARIABLETYPE: {
 
-        
             ((TVariableTypeNode *)node)->valueRank =
                 getAttributeValue(&attrValueRank, attributes, attributeSize);
             char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
@@ -111,8 +107,9 @@ static void extractAttributes(const TNamespace *namespaces, TNode *node,
             if(aliasId.id != 0) {
                 ((TVariableTypeNode *)node)->datatype = aliasId;
             } else {
-                ((TVariableTypeNode *)node)->datatype = extractNodedId(namespaces, datatype);
-            }            
+                ((TVariableTypeNode *)node)->datatype =
+                    extractNodedId(namespaces, datatype);
+            }
             ((TVariableTypeNode *)node)->arrayDimensions =
                 getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
             ((TVariableTypeNode *)node)->isAbstract =
@@ -177,7 +174,7 @@ static void extractReferenceAttributes(TParserCtx *ctx, int attributeSize,
     ctx->nextOnCharacters = &newRef->target.idString;
 }
 
-static void enterUnknownState(TParserCtx *ctx) { 
+static void enterUnknownState(TParserCtx *ctx) {
     ctx->prev_state = ctx->state;
     ctx->state = PARSER_STATE_UNKNOWN;
     ctx->unknown_depth = 1;
@@ -253,7 +250,8 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             } else if(strEqual(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
             } else if(strEqual(localname, "UANodeSet") ||
-                      strEqual(localname, "Aliases") || strEqual(localname, "Extensions")) {
+                      strEqual(localname, "Aliases") ||
+                      strEqual(localname, "Extensions")) {
                 pctx->state = PARSER_STATE_INIT;
             } else {
                 enterUnknownState(pctx);
@@ -269,9 +267,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                 ns[nodeset->namespaceTable->size - 1].name = NULL;
                 pctx->nextOnCharacters = &ns[nodeset->namespaceTable->size - 1].name;
                 pctx->state = PARSER_STATE_URI;
-            } 
-            else 
-            {
+            } else {
                 enterUnknownState(pctx);
             }
             break;
@@ -282,15 +278,11 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             if(strEqual(localname, DISPLAYNAME)) {
                 pctx->nextOnCharacters = &pctx->node->displayName;
                 pctx->state = PARSER_STATE_DISPLAYNAME;
-            }
-            else if(strEqual(localname, REFERENCES)) {
+            } else if(strEqual(localname, REFERENCES)) {
                 pctx->state = PARSER_STATE_REFERENCES;
-            }
-            else if(strEqual(localname, DESCRIPTION)) {
+            } else if(strEqual(localname, DESCRIPTION)) {
                 pctx->state = PARSER_STATE_DESCRIPTION;
-            }
-            else
-            {
+            } else {
                 enterUnknownState(pctx);
             }
             break;
@@ -299,9 +291,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             if(strEqual(localname, REFERENCE)) {
                 pctx->state = PARSER_STATE_REFERENCE;
                 extractReferenceAttributes(pctx, nb_attributes, attributes);
-            }
-            else
-            {
+            } else {
                 enterUnknownState(pctx);
             }
             break;
@@ -325,8 +315,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
 
 static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                            const char *URI) {
-    TParserCtx *pctx = (TParserCtx *)ctx;
-    pctx->nextOnCharacters = NULL;
+    TParserCtx *pctx = (TParserCtx *)ctx;    
     switch(pctx->state) {
         case PARSER_STATE_INIT:
             break;
@@ -350,6 +339,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             break;
         case PARSER_STATE_NODE:
             Nodeset_addNodeToSort(pctx->node);
+            if(pctx->node->displayName!=NULL)
+                printf("%s\n", pctx->node->displayName);
             pctx->state = PARSER_STATE_INIT;
             if(strEqual(localname, REFERENCETYPE)) {
                 Reference *ref = pctx->node->hierachicalRefs;
@@ -368,7 +359,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         case PARSER_STATE_DESCRIPTION:
         case PARSER_STATE_DISPLAYNAME:
         case PARSER_STATE_REFERENCES:
-                pctx->state = PARSER_STATE_NODE;
+            pctx->state = PARSER_STATE_NODE;
             break;
         case PARSER_STATE_REFERENCE: {
             Reference *ref = pctx->node->hierachicalRefs;
@@ -387,11 +378,11 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         } break;
         case PARSER_STATE_UNKNOWN:
             pctx->unknown_depth--;
-            if(pctx->unknown_depth==0)
-            {
+            if(pctx->unknown_depth == 0) {
                 pctx->state = pctx->prev_state;
             }
     }
+    pctx->nextOnCharacters = NULL;
 }
 
 static void OnCharacters(void *ctx, const char *ch, int len) {
