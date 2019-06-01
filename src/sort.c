@@ -236,16 +236,8 @@ void sort(OnSortCallback callback) {
         while(head) {
             struct edge *e = head->edges;
 
-            if(callback) {
-                if(head->data != NULL) {
-                    callback(head->data);
-                } else {
-                    if(head->str[0] != 'n') {
-                        printf("\tskip namespace 0\n");
-                    } else {
-                        printf("error target node not set\n");
-                    }
-                }
+            if(head->data != NULL) {
+                callback(head->data);
             }
 
             head->str = NULL;
