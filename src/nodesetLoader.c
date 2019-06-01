@@ -13,8 +13,6 @@
 #include <stdio.h>
 #include <string.h>
 
-static void (*nodeCallback)(const TNode *) = NULL;
-
 static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
                                int nb_attributes) {
     const int fields = 5;
@@ -24,7 +22,7 @@ static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
             continue;
         const char *value_start = attributes[i * fields + 3];
         const char *value_end = attributes[i * fields + 4];
-        size_t size = (size_t) (value_end - value_start);
+        size_t size = (size_t)(value_end - value_start);
         char *value = (char *)malloc(sizeof(char) * size + 1);
         nodeset->countedChars[nodeset->charsSize++] = value;
         memcpy(value, value_start, size);
@@ -196,8 +194,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                     nodeset->namespaceTable->ns,
                     sizeof(TNamespace) * (nodeset->namespaceTable->size));
                 nodeset->namespaceTable->ns = ns;
-                pctx->nextOnCharacters =
-                    &ns[nodeset->namespaceTable->size - 1].name;
+                pctx->nextOnCharacters = &ns[nodeset->namespaceTable->size - 1].name;
                 pctx->state = PARSER_STATE_URI;
             }
             break;
@@ -264,7 +261,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             if(strEqual(localname, OBJECT) || strEqual(localname, VARIABLE) ||
                strEqual(localname, OBJECTTYPE) || strEqual(localname, DATATYPE) ||
                strEqual(localname, METHOD)) {
-                nodeCallback(pctx->node);
+                addNodeToSort(pctx->node);
                 pctx->state = PARSER_STATE_INIT;
             }
             if(strEqual(localname, REFERENCETYPE)) {
@@ -277,7 +274,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                     }
                     ref = ref->next;
                 }
-                nodeCallback(pctx->node);
+                addNodeToSort(pctx->node);
                 pctx->state = PARSER_STATE_INIT;
             }
             break;
@@ -335,7 +332,7 @@ static xmlSAXHandler make_sax_handler(void) {
 
 static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     char chars[1024];
-    int res = (int) fread(chars, 1, 4, f);
+    int res = (int)fread(chars, 1, 4, f);
     if(res <= 0) {
         return 1;
     }
@@ -356,11 +353,24 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
 }
 
 void loadFile(const FileHandler *fileHandler) {
+    if(fileHandler==NULL)
+    {
+        printf("no filehandler - return\n");
+        return;
+    }
+    if(fileHandler->addNamespace==NULL)
+    {
+        printf("no fileHandler->addNamespace -> return\n");
+        return;
+    }
+    if(fileHandler->callback == NULL) {
+        printf("no fileHandler->callback -> return\n");
+        return;
+    }
     struct timespec start, startSort, startAdd, end;
     clock_gettime(CLOCK_MONOTONIC, &start);
     Nodeset_new();
     FILE *f = fopen(fileHandler->file, "r");
-    nodeCallback = insertNode;
     init();
 
     TParserCtx *ctx = (TParserCtx *)malloc(sizeof(TParserCtx));
@@ -370,7 +380,7 @@ void loadFile(const FileHandler *fileHandler) {
     TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
     table->cb = fileHandler->addNamespace;
     table->size = 1;
-    table->ns = (TNamespace*)malloc((sizeof(TNamespace)));
+    table->ns = (TNamespace *)malloc((sizeof(TNamespace)));
     table->ns[0].idx = 0;
     table->ns[0].name = "opcfoundation";
     nodeset->namespaceTable = table;

@@ -207,7 +207,7 @@ struct node *root;
 
 void init() { root = new_node(NULL); }
 
-void insertNode(const TNode *data) {
+void addNodeToSort(const TNode *data) {
     struct node *j = NULL;
     struct node *k = NULL;
     Reference *hierachicalRef = data->hierachicalRefs;

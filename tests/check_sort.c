@@ -15,8 +15,8 @@ START_TEST(sortNodes) {
     b.hierachicalRefs = NULL;
     b.id.idString = "nodeB";
 
-    insertNode(&a);
-    insertNode(&b);
+    addNodeToSort(&a);
+    addNodeToSort(&b);
     sort(sortCallback);
 }
 END_TEST
@@ -39,8 +39,8 @@ START_TEST(nodeWithRefs) {
     b.hierachicalRefs = &ref;
     b.id.idString = "nodeB";
 
-    insertNode(&b);
-    insertNode(&a);
+    addNodeToSort(&b);
+    addNodeToSort(&a);
     sort(sortCallback);
 }
 END_TEST
@@ -74,8 +74,8 @@ START_TEST(cycle) {
     b.hierachicalRefs = &ref;
     b.id.idString = "nodeB";
 
-    insertNode(&b);
-    insertNode(&a);
+    addNodeToSort(&b);
+    addNodeToSort(&a);
     sort(sortCallback);
 }
 END_TEST
