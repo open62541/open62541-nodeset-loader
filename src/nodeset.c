@@ -163,12 +163,15 @@ void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
 
 bool Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
 
+
+#ifdef XMLIMPORT_TRACE
     printf("--- namespace table ---\n");
     printf("FileIdx ServerIdx URI\n");
     for(size_t fileIndex = 0; fileIndex < nodeset->namespaceTable->size; fileIndex++) {
         printf("%zu\t%zu\t%s\n", fileIndex, nodeset->namespaceTable->ns[fileIndex].idx,
                nodeset->namespaceTable->ns[fileIndex].name);
     }
+#endif
 
     if(!sort(Nodeset_addNode))
     {
@@ -199,7 +202,6 @@ bool Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
     }
 
-    printf("variables: %zu", nodeset->nodes[NODECLASS_VARIABLE]->cnt);
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
