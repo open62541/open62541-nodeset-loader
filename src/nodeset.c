@@ -199,6 +199,7 @@ bool Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
     }
 
+    printf("variables: %zu", nodeset->nodes[NODECLASS_VARIABLE]->cnt);
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }

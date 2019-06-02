@@ -10,7 +10,6 @@
 #include <stdbool.h>
 
 struct TNode;
-
 void init(void);
 void addNodeToSort(const struct TNode *node);
 typedef void (*OnSortCallback)(const struct TNode *node);

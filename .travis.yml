@@ -33,7 +33,6 @@ before_install:
 install:
 
 script:
-
   - mkdir -p build
   - cd build
   - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. 
@@ -42,8 +41,7 @@ script:
   - make integrationTests
   #- cppcheck --quiet --force --error-exitcode=200 --std=c99 --std=c++11 --enable=all --template=gcc --project=compile_commands.json -j8
 
-  
-after_success:
+  after_success:
   - echo == Build success ==
 
 after_failure:
