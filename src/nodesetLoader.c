@@ -33,6 +33,7 @@ struct TParserCtx {
     TNodeClass nodeClass;
     TNode *node;
     char **nextOnCharacters;
+    void *userContext;
 };
 
 static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
@@ -315,7 +316,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
 
 static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
                            const char *URI) {
-    TParserCtx *pctx = (TParserCtx *)ctx;    
+    TParserCtx *pctx = (TParserCtx *)ctx;
     switch(pctx->state) {
         case PARSER_STATE_INIT:
             break;
@@ -327,7 +328,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             nodeset->aliasSize++;
             break;
         case PARSER_STATE_URI: {
-            int globalIdx = nodeset->namespaceTable->cb(
+            int globalIdx = nodeset->namespaceTable->cb(pctx->userContext,
                 nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
 
             nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].idx =
@@ -339,7 +340,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             break;
         case PARSER_STATE_NODE:
             Nodeset_addNodeToSort(pctx->node);
-            if(pctx->node->displayName!=NULL)
+            if(pctx->node->displayName != NULL)
                 printf("%s\n", pctx->node->displayName);
             pctx->state = PARSER_STATE_INIT;
             if(strEqual(localname, REFERENCETYPE)) {
@@ -461,6 +462,7 @@ bool loadFile(const FileHandler *fileHandler) {
     ctx->prev_state = PARSER_STATE_INIT;
     ctx->unknown_depth = 0;
     ctx->nextOnCharacters = NULL;
+    ctx->userContext = fileHandler->userContext;
 
     FILE *f = fopen(fileHandler->file, "r");
     if(!f) {
@@ -478,7 +480,7 @@ bool loadFile(const FileHandler *fileHandler) {
     // sorting time missing
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
-    Nodeset_getSortedNodes(fileHandler->callback);
+    Nodeset_getSortedNodes(fileHandler->userContext, fileHandler->callback);
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 

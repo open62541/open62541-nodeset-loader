@@ -81,9 +81,9 @@ typedef struct {
 
 typedef struct { UA_NODE_ATTRIBUTES } TReferenceTypeNode;
 
-typedef void (*addNodeCb)(const TNode *);
+typedef void (*addNodeCb)(void* userContext, const TNode *);
 
-typedef int (*addNamespaceCb)(const char *);
+typedef int (*addNamespaceCb)(void* userContext, const char *);
 
 typedef struct {
     int loadTimeMs;
@@ -96,6 +96,7 @@ typedef struct {
     addNamespaceCb addNamespace;
     addNodeCb callback;
     const Statistics *stat;
+    void *userContext;
 } FileHandler;
 
 bool loadFile(const FileHandler *fileHandler);

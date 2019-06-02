@@ -161,7 +161,7 @@ static void Nodeset_addNode(const TNode *node) {
 
 void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
 
-void Nodeset_getSortedNodes(addNodeCb callback) {
+void Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
 
     printf("--- namespace table ---\n");
     printf("FileIdx ServerIdx URI\n");
@@ -173,31 +173,31 @@ void Nodeset_getSortedNodes(addNodeCb callback) {
     sort(Nodeset_addNode);
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
     }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
-        callback(nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
+        callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
 }
 
