@@ -227,7 +227,7 @@ void addNodeToSort(const TNode *data) {
     }
 }
 
-void sort(OnSortCallback callback) {
+bool sort(OnSortCallback callback) {
     walk_tree(root, count_items);
 
     while(keyCnt > 0) {
@@ -261,7 +261,10 @@ void sort(OnSortCallback callback) {
 
         if(keyCnt > 0) {
             printf("graph contains a loop\n");
-            return;
+            free(root);
+            return false;
         }
     }
+    free(root);
+    return true;
 }

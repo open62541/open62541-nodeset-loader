@@ -161,7 +161,7 @@ static void Nodeset_addNode(const TNode *node) {
 
 void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
 
-void Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
+bool Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
 
     printf("--- namespace table ---\n");
     printf("FileIdx ServerIdx URI\n");
@@ -170,7 +170,10 @@ void Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
                nodeset->namespaceTable->ns[fileIndex].name);
     }
 
-    sort(Nodeset_addNode);
+    if(!sort(Nodeset_addNode))
+    {
+        return false;
+    }
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
@@ -199,6 +202,7 @@ void Nodeset_getSortedNodes(void* userContext, addNodeCb callback) {
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
     }
+    return true;
 }
 
 void Nodeset_cleanup() {

@@ -111,6 +111,6 @@ void Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(void);
 void Nodeset_sort(void);
 void Nodeset_addNodeToSort(const TNode *node);
-void Nodeset_getSortedNodes(void* userContext, addNodeCb callback);
+bool Nodeset_getSortedNodes(void* userContext, addNodeCb callback);
 
 #endif

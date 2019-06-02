@@ -7,12 +7,13 @@
 
 #ifndef SORT_H
 #define SORT_H
+#include <stdbool.h>
 
 struct TNode;
 
 void init(void);
 void addNodeToSort(const struct TNode *node);
 typedef void (*OnSortCallback)(const struct TNode *node);
-void sort(OnSortCallback callback);
+bool sort(OnSortCallback callback);
 
 #endif

@@ -43,3 +43,8 @@ target_compile_options(profile PRIVATE -O0 -g -pg)
 target_link_libraries(profile ${LIBXML2_LIBRARIES} -pg)
 
 add_subdirectory(tests)
+
+add_custom_target(integrationTests
+    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integrationTests/integrationTests.sh
+    DEPENDS parserDemo)
+

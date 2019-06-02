@@ -11,14 +11,21 @@
 #include <string.h>
 
 int main(int argc, char *argv[]) {
-    if(argc != 2) {
+    if(argc < 2) {
         printf("specify nodesetfile as argument. E.g. parserDemo text.xml\n");
-        return -1;
+        return 1;
     }
     FileHandler handler;
-    handler.file = argv[1];
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
     handler.userContext = NULL;
-    loadFile(&handler);
+
+    for(int cnt = 1; cnt < argc; cnt++) {
+        handler.file = argv[cnt];
+        if(!loadFile(&handler)) {
+            printf("nodeset could not be loaded, exit\n");
+            return 1;
+        }
+    }
+    return 0;
 }

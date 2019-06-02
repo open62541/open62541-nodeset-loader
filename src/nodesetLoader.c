@@ -340,8 +340,6 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             break;
         case PARSER_STATE_NODE:
             Nodeset_addNodeToSort(pctx->node);
-            if(pctx->node->displayName != NULL)
-                printf("%s\n", pctx->node->displayName);
             pctx->state = PARSER_STATE_INIT;
             if(strEqual(localname, REFERENCETYPE)) {
                 Reference *ref = pctx->node->hierachicalRefs;
@@ -480,7 +478,10 @@ bool loadFile(const FileHandler *fileHandler) {
     // sorting time missing
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
-    Nodeset_getSortedNodes(fileHandler->userContext, fileHandler->callback);
+    if(!Nodeset_getSortedNodes(fileHandler->userContext, fileHandler->callback))
+    {
+        status = false;
+    }
 
     clock_gettime(CLOCK_MONOTONIC, &end);
 
