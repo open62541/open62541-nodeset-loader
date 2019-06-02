@@ -11,6 +11,6 @@
 #include <stdbool.h>
 #include "nodesetLoader.h"
 
-int addNamespace(const char *namespaceUri);
-void addNode(const TNode *node);
+int addNamespace(void* userContext, const char *namespaceUri);
+void addNode(void* userContext, const TNode *node);
 #endif

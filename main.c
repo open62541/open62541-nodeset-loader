@@ -19,5 +19,6 @@ int main(int argc, char *argv[]) {
     handler.file = argv[1];
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
+    handler.userContext = NULL;
     loadFile(&handler);
 }

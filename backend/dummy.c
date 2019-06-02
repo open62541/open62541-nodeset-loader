@@ -7,12 +7,12 @@
 
 #include "backend.h"
 
-int addNamespace(const char* uri)
+int addNamespace(void* userContext, const char* uri)
 {
     return 1;
 }
 
-void addNode(const TNode* node)
+void addNode(void* userContext, const TNode* node)
 {
     return;
     /*
