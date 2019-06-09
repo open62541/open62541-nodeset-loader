@@ -52,16 +52,14 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                              const char *URI, int nb_namespaces, const char **namespaces,
                              int nb_attributes, int nb_defaulted,
                              const char **attributes) {
-
     TParserCtx *pctx = (TParserCtx *)ctx;
     switch(pctx->state) {
         case PARSER_STATE_INIT:
-            if(strEqual(localname, ALIAS)) {
-                pctx->state = PARSER_STATE_ALIAS;
-                pctx->node = NULL;
-                Alias *alias = Nodeset_newAlias(nb_attributes, attributes);
-                pctx->nextOnCharacters = &alias->id.idString;
-                pctx->state = PARSER_STATE_ALIAS;
+            if(strEqual(localname, VARIABLE)) {
+                pctx->state = PARSER_STATE_NODE;
+                pctx->nodeClass = NODECLASS_VARIABLE;
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
+                pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, OBJECT)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_OBJECT;
@@ -70,11 +68,6 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             } else if(strEqual(localname, OBJECTTYPE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_OBJECTTYPE;
-                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
-                pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, VARIABLE)) {
-                pctx->state = PARSER_STATE_NODE;
-                pctx->nodeClass = NODECLASS_VARIABLE;
                 pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, DATATYPE)) {
@@ -99,62 +92,71 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
-            } else if(strEqual(localname, "UANodeSet") ||
-                      strEqual(localname, "Aliases") ||
-                      strEqual(localname, "Extensions")) {
-                pctx->state = PARSER_STATE_INIT;
-            } else {
-                enterUnknownState(pctx);
             }
-            break;
-        case PARSER_STATE_NAMESPACEURIS:
-            if(strEqual(localname, NAMESPACEURI)) {
-                TNamespace *ns = Nodeset_newNamespace();                  
-                pctx->nextOnCharacters = &ns->name;
-                pctx->state = PARSER_STATE_URI;
-            } else {
-                enterUnknownState(pctx);
+            else if(strEqual(localname, ALIAS)) {
+                pctx->state = PARSER_STATE_ALIAS;
+                pctx->node = NULL;
+                Alias *alias = Nodeset_newAlias(nb_attributes, attributes);
+                pctx->nextOnCharacters = &alias->id.idString;
+                pctx->state = PARSER_STATE_ALIAS;
             }
-            break;
-        case PARSER_STATE_URI:
-            enterUnknownState(pctx);
-            break;
-        case PARSER_STATE_NODE:
-            if(strEqual(localname, DISPLAYNAME)) {
-                pctx->nextOnCharacters = &pctx->node->displayName;
-                pctx->state = PARSER_STATE_DISPLAYNAME;
-            } else if(strEqual(localname, REFERENCES)) {
-                pctx->state = PARSER_STATE_REFERENCES;
-            } else if(strEqual(localname, DESCRIPTION)) {
-                pctx->state = PARSER_STATE_DESCRIPTION;
-            } else {
-                enterUnknownState(pctx);
-            }
-            break;
+                else if(strEqual(localname, "UANodeSet") ||
+                        strEqual(localname, "Aliases") ||
+                        strEqual(localname, "Extensions")) {
+                    pctx->state = PARSER_STATE_INIT;
+                }
+                else {
+                    enterUnknownState(pctx);
+                }
+                break;
+                case PARSER_STATE_NAMESPACEURIS:
+                    if(strEqual(localname, NAMESPACEURI)) {
+                        TNamespace *ns = Nodeset_newNamespace();
+                        pctx->nextOnCharacters = &ns->name;
+                        pctx->state = PARSER_STATE_URI;
+                    } else {
+                        enterUnknownState(pctx);
+                    }
+                    break;
+                case PARSER_STATE_URI:
+                    enterUnknownState(pctx);
+                    break;
+                case PARSER_STATE_NODE:
+                    if(strEqual(localname, DISPLAYNAME)) {
+                        pctx->nextOnCharacters = &pctx->node->displayName;
+                        pctx->state = PARSER_STATE_DISPLAYNAME;
+                    } else if(strEqual(localname, REFERENCES)) {
+                        pctx->state = PARSER_STATE_REFERENCES;
+                    } else if(strEqual(localname, DESCRIPTION)) {
+                        pctx->state = PARSER_STATE_DESCRIPTION;
+                    } else {
+                        enterUnknownState(pctx);
+                    }
+                    break;
 
-        case PARSER_STATE_REFERENCES:
-            if(strEqual(localname, REFERENCE)) {
-                pctx->state = PARSER_STATE_REFERENCE;
-                extractReferenceAttributes(pctx, nb_attributes, attributes);
-            } else {
-                enterUnknownState(pctx);
-            }
-            break;
-        case PARSER_STATE_DESCRIPTION:
-            enterUnknownState(pctx);
-            break;
-        case PARSER_STATE_ALIAS:
-            enterUnknownState(pctx);
-            break;
-        case PARSER_STATE_DISPLAYNAME:
-            enterUnknownState(pctx);
-            break;
-        case PARSER_STATE_REFERENCE:
-            enterUnknownState(pctx);
-            break;
-        case PARSER_STATE_UNKNOWN:
-            pctx->unknown_depth++;
-            break;
+                case PARSER_STATE_REFERENCES:
+                    if(strEqual(localname, REFERENCE)) {
+                        pctx->state = PARSER_STATE_REFERENCE;
+                        extractReferenceAttributes(pctx, nb_attributes, attributes);
+                    } else {
+                        enterUnknownState(pctx);
+                    }
+                    break;
+                case PARSER_STATE_DESCRIPTION:
+                    enterUnknownState(pctx);
+                    break;
+                case PARSER_STATE_ALIAS:
+                    enterUnknownState(pctx);
+                    break;
+                case PARSER_STATE_DISPLAYNAME:
+                    enterUnknownState(pctx);
+                    break;
+                case PARSER_STATE_REFERENCE:
+                    enterUnknownState(pctx);
+                    break;
+                case PARSER_STATE_UNKNOWN:
+                    pctx->unknown_depth++;
+                    break;
     }
 }
 
