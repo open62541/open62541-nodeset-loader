@@ -36,142 +36,9 @@ struct TParserCtx {
     void *userContext;
 };
 
-static char *getAttributeValue(NodeAttribute *attr, const char **attributes,
-                               int nb_attributes) {
-    const int fields = 5;
-    for(int i = 0; i < nb_attributes; i++) {
-        const char *localname = attributes[i * fields + 0];
-        if(strcmp((const char *)localname, attr->name))
-            continue;
-        const char *value_start = attributes[i * fields + 3];
-        const char *value_end = attributes[i * fields + 4];
-        size_t size = (size_t)(value_end - value_start);
-        char *value = (char *)malloc(sizeof(char) * size + 1);
-        nodeset->countedChars[nodeset->charsSize++] = value;
-        memcpy(value, value_start, size);
-        value[size] = '\0';
-        return value;
-    }
-    if(attr->defaultValue != NULL || attr->optional) {
-        return attr->defaultValue;
-    }
-    // todo: remove this assertation
-
-    printf("attribute: %s\n", attr->name);
-    assertf(false, "attribute not found, no default value set in getAttributeValue\n");
-}
-
-static void extractAttributes(const TNamespace *namespaces, TNode *node,
-                              int attributeSize, const char **attributes) {
-    node->id = extractNodedId(namespaces,
-                              getAttributeValue(&attrNodeId, attributes, attributeSize));
-    node->browseName = getAttributeValue(&attrBrowseName, attributes, attributeSize);
-    switch(node->nodeClass) {
-        case NODECLASS_OBJECTTYPE: {
-            ((TObjectTypeNode *)node)->isAbstract =
-                getAttributeValue(&attrIsAbstract, attributes, attributeSize);
-            break;
-        }
-        case NODECLASS_OBJECT: {
-            ((TObjectNode *)node)->parentNodeId =
-                extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
-                                                             attributes, attributeSize));
-            ((TObjectNode *)node)->eventNotifier =
-                getAttributeValue(&attrEventNotifier, attributes, attributeSize);
-            break;
-        }
-        case NODECLASS_VARIABLE: {
-
-            ((TVariableNode *)node)->parentNodeId =
-                extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
-                                                             attributes, attributeSize));
-            char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
-            TNodeId aliasId = alias2Id(datatype);
-            if(aliasId.id != 0) {
-                ((TVariableNode *)node)->datatype = aliasId;
-            } else {
-                ((TVariableNode *)node)->datatype = extractNodedId(namespaces, datatype);
-            }
-            ((TVariableNode *)node)->valueRank =
-                getAttributeValue(&attrValueRank, attributes, attributeSize);
-            ((TVariableNode *)node)->arrayDimensions =
-                getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
-
-            break;
-        }
-        case NODECLASS_VARIABLETYPE: {
-
-            ((TVariableTypeNode *)node)->valueRank =
-                getAttributeValue(&attrValueRank, attributes, attributeSize);
-            char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
-            TNodeId aliasId = alias2Id(datatype);
-            if(aliasId.id != 0) {
-                ((TVariableTypeNode *)node)->datatype = aliasId;
-            } else {
-                ((TVariableTypeNode *)node)->datatype =
-                    extractNodedId(namespaces, datatype);
-            }
-            ((TVariableTypeNode *)node)->arrayDimensions =
-                getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
-            ((TVariableTypeNode *)node)->isAbstract =
-                getAttributeValue(&attrIsAbstract, attributes, attributeSize);
-            break;
-        }
-        case NODECLASS_DATATYPE:;
-            break;
-        case NODECLASS_METHOD:
-            ((TMethodNode *)node)->parentNodeId =
-                extractNodedId(namespaces, getAttributeValue(&attrParentNodeId,
-                                                             attributes, attributeSize));
-            break;
-        case NODECLASS_REFERENCETYPE:;
-            break;
-        default:;
-    }
-}
-
-static void initNode(TNamespace *namespaces, TNodeClass nodeClass, TNode *node,
-                     int nb_attributes, const char **attributes) {
-    node->nodeClass = nodeClass;
-    node->hierachicalRefs = NULL;
-    node->nonHierachicalRefs = NULL;
-    node->browseName = NULL;
-    node->displayName = NULL;
-    node->description = NULL;
-    node->writeMask = NULL;
-    extractAttributes(namespaces, node, nb_attributes, attributes);
-}
-
 static void extractReferenceAttributes(TParserCtx *ctx, int attributeSize,
                                        const char **attributes) {
-    Reference *newRef = (Reference *)malloc(sizeof(Reference));
-    newRef->target.idString = NULL;
-    newRef->target.id = NULL;
-    newRef->refType.idString = NULL;
-    newRef->refType.id = NULL;
-    nodeset->countedRefs[nodeset->refsSize++] = newRef;
-    newRef->next = NULL;
-    if(strEqual("true", getAttributeValue(&attrIsForward, attributes, attributeSize))) {
-        newRef->isForward = true;
-    } else {
-        newRef->isForward = false;
-    }
-    newRef->refType =
-        extractNodedId(nodeset->namespaceTable->ns,
-                       getAttributeValue(&attrReferenceType, attributes, attributeSize));
-    if(isHierachicalReference(newRef)) {
-        Reference **lastRef = &ctx->node->hierachicalRefs;
-        while(*lastRef) {
-            lastRef = &(*lastRef)->next;
-        }
-        *lastRef = newRef;
-    } else {
-        Reference **lastRef = &ctx->node->nonHierachicalRefs;
-        while(*lastRef) {
-            lastRef = &(*lastRef)->next;
-        }
-        *lastRef = newRef;
-    }
+    Reference *newRef = Nodeset_newReference(ctx->node, attributeSize, attributes);
     ctx->nextOnCharacters = &newRef->target.idString;
 }
 
@@ -192,61 +59,43 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             if(strEqual(localname, ALIAS)) {
                 pctx->state = PARSER_STATE_ALIAS;
                 pctx->node = NULL;
-                nodeset->aliasArray[nodeset->aliasSize] = (Alias *)malloc(sizeof(Alias));
-                nodeset->aliasArray[nodeset->aliasSize]->id.idString = NULL;
-                nodeset->aliasArray[nodeset->aliasSize]->name =
-                    getAttributeValue(&attrAlias, attributes, nb_attributes);
-                pctx->nextOnCharacters =
-                    &nodeset->aliasArray[nodeset->aliasSize]->id.idString;
+                Alias *alias = Nodeset_newAlias(nb_attributes, attributes);
+                pctx->nextOnCharacters = &alias->id.idString;
                 pctx->state = PARSER_STATE_ALIAS;
             } else if(strEqual(localname, OBJECT)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_OBJECT;
-                pctx->node = (TNode *)malloc(sizeof(TObjectNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, OBJECTTYPE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_OBJECTTYPE;
-                pctx->node = (TNode *)malloc(sizeof(TObjectTypeNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, VARIABLE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_VARIABLE;
-                pctx->node = (TNode *)malloc(sizeof(TVariableNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, DATATYPE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_DATATYPE;
-                pctx->node = (TNode *)malloc(sizeof(TDataTypeNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, METHOD)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_METHOD;
-                pctx->node = (TNode *)malloc(sizeof(TMethodNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, REFERENCETYPE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_REFERENCETYPE;
-                pctx->node = (TNode *)malloc(sizeof(TReferenceTypeNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, VARIABLETYPE)) {
                 pctx->state = PARSER_STATE_NODE;
                 pctx->nodeClass = NODECLASS_VARIABLETYPE;
-                pctx->node = (TNode *)malloc(sizeof(TVariableTypeNode));
-                initNode(nodeset->namespaceTable->ns, pctx->nodeClass, pctx->node,
-                         nb_attributes, attributes);
+                pctx->node = Nodeset_newNode(pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
             } else if(strEqual(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
@@ -260,13 +109,8 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             break;
         case PARSER_STATE_NAMESPACEURIS:
             if(strEqual(localname, NAMESPACEURI)) {
-                nodeset->namespaceTable->size++;
-                TNamespace *ns = (TNamespace *)realloc(
-                    nodeset->namespaceTable->ns,
-                    sizeof(TNamespace) * (nodeset->namespaceTable->size));
-                nodeset->namespaceTable->ns = ns;
-                ns[nodeset->namespaceTable->size - 1].name = NULL;
-                pctx->nextOnCharacters = &ns[nodeset->namespaceTable->size - 1].name;
+                TNamespace *ns = Nodeset_newNamespace();                  
+                pctx->nextOnCharacters = &ns->name;
                 pctx->state = PARSER_STATE_URI;
             } else {
                 enterUnknownState(pctx);
@@ -321,39 +165,19 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         case PARSER_STATE_INIT:
             break;
         case PARSER_STATE_ALIAS:
-            nodeset->aliasArray[nodeset->aliasSize]->id =
-                extractNodedId(nodeset->namespaceTable->ns,
-                               nodeset->aliasArray[nodeset->aliasSize]->id.idString);
+            Nodeset_newAliasFinish();
             pctx->state = PARSER_STATE_INIT;
-            nodeset->aliasSize++;
             break;
         case PARSER_STATE_URI: {
-            int globalIdx = nodeset->namespaceTable->cb(pctx->userContext,
-                nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
-
-            nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].idx =
-                (size_t)globalIdx;
+            Nodeset_newNamespaceFinish(pctx->userContext);
             pctx->state = PARSER_STATE_NAMESPACEURIS;
         } break;
         case PARSER_STATE_NAMESPACEURIS:
             pctx->state = PARSER_STATE_INIT;
             break;
         case PARSER_STATE_NODE:
-            Nodeset_addNodeToSort(pctx->node);
-            pctx->state = PARSER_STATE_INIT;
-            if(strEqual(localname, REFERENCETYPE)) {
-                Reference *ref = pctx->node->hierachicalRefs;
-                while(ref) {
-                    if(!ref->isForward) {
-                        nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
-                            pctx->node->id.idString;
-                        break;
-                    }
-                    ref = ref->next;
-                }
-                Nodeset_addNodeToSort(pctx->node);
-                pctx->state = PARSER_STATE_INIT;
-            }
+            Nodeset_newNodeFinish(pctx->node);
+            pctx->state = PARSER_STATE_INIT;            
             break;
         case PARSER_STATE_DESCRIPTION:
         case PARSER_STATE_DISPLAYNAME:
@@ -361,18 +185,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             pctx->state = PARSER_STATE_NODE;
             break;
         case PARSER_STATE_REFERENCE: {
-            Reference *ref = pctx->node->hierachicalRefs;
-            while(ref) {
-                ref->target =
-                    extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
-                ref = ref->next;
-            }
-            ref = pctx->node->nonHierachicalRefs;
-            while(ref) {
-                ref->target =
-                    extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
-                ref = ref->next;
-            }
+            Nodeset_newReferenceFinish(pctx->node);            
             pctx->state = PARSER_STATE_REFERENCES;
         } break;
         case PARSER_STATE_UNKNOWN:
@@ -396,7 +209,7 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     char *newValue = (char *)malloc(oldLength + (size_t)len + 1);
     strncpy(newValue, oldString, oldLength);
     strncpy(newValue + oldLength, ch, (size_t)len);
-    nodeset->countedChars[nodeset->charsSize++] = newValue;
+    Nodeset_addRefCountedChar(newValue);
     newValue[oldLength + (size_t)len] = '\0';
     pctx->nextOnCharacters[0] = newValue;
 }
@@ -478,8 +291,7 @@ bool loadFile(const FileHandler *fileHandler) {
     // sorting time missing
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
-    if(!Nodeset_getSortedNodes(fileHandler->userContext, fileHandler->callback))
-    {
+    if(!Nodeset_getSortedNodes(fileHandler->userContext, fileHandler->callback)) {
         status = false;
     }
 
