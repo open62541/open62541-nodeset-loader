@@ -20,6 +20,8 @@ struct edge {
     struct edge *next;
 };
 
+typedef struct edge edge;
+
 struct node {
     const char *str;
     struct node *left, *right;
@@ -30,14 +32,18 @@ struct node {
     const TNode *data;
 };
 
-static struct node *head = NULL;
+typedef struct node node;
 
-static struct node *zeros = NULL;
+static node *head = NULL;
+
+static node *zeros = NULL;
+
+struct node *root1 = NULL;
 
 static size_t keyCnt = 0;
 
-static struct node *new_node(const char *str) {
-    struct node *k = (struct node *)malloc(sizeof *k);
+static node *new_node(const char *str) {
+    node *k = (node *)malloc(sizeof *k);
 
     k->str = str;
     k->left = k->right = NULL;
@@ -50,16 +56,16 @@ static struct node *new_node(const char *str) {
     return k;
 }
 
-static struct node *search_node(struct node *root, const char *str) {
-    struct node *p, *q, *r, *s, *t;
+static node *search_node(node *rootNode, const char *str) {
+    node *p, *q, *r, *s, *t;
 
-    assert(root);
+    assert(rootNode);
 
-    if(root->right == NULL)
-        return (root->right = new_node(str));
+    if(rootNode->right == NULL)
+        return (rootNode->right = new_node(str));
 
-    t = root;
-    s = p = root->right;
+    t = rootNode;
+    s = p = rootNode->right;
 
     while(true) {
         int a = strcmp(str, p->str);
@@ -155,24 +161,24 @@ static struct node *search_node(struct node *root, const char *str) {
     }
 }
 
-static void record_relation(struct node *from, struct node *to) {
+static void record_relation(node *from, node *to) {
     struct edge *e;
 
     if(!STREQ(from->str, to->str)) {
         to->edgeCount++;
-        e = (struct edge *)malloc(sizeof(struct edge));
+        e = (edge *)malloc(sizeof(edge));
         e->dest = to;
         e->next = from->edges;
         from->edges = e;
     }
 }
 
-static bool count_items(struct node *unused) {
+static bool count_items(node *unused) {
     keyCnt++;
     return false;
 }
 
-static bool scan_zeros(struct node *k) {
+static bool scan_zeros(node *k) {
     if(k->edgeCount == 0 && k->str) {
         if(head == NULL)
             head = k;
@@ -185,42 +191,42 @@ static bool scan_zeros(struct node *k) {
     return false;
 }
 
-static bool recurse_tree(struct node *root, bool (*action)(struct node *)) {
-    if(root->left == NULL && root->right == NULL)
-        return (*action)(root);
+static bool recurse_tree(node *rootNode, bool (*action)(node *)) {
+    if(rootNode->left == NULL && rootNode->right == NULL)
+        return (*action)(rootNode);
     else {
-        if(root->left != NULL)
-            if(recurse_tree(root->left, action))
+        if(rootNode->left != NULL)
+            if(recurse_tree(rootNode->left, action))
                 return true;
-        if((*action)(root))
+        if((*action)(rootNode))
             return true;
-        if(root->right != NULL)
-            if(recurse_tree(root->right, action))
+        if(rootNode->right != NULL)
+            if(recurse_tree(rootNode->right, action))
                 return true;
     }
 
     return false;
 }
 
-static void walk_tree(struct node *root, bool (*action)(struct node *)) {
-    if(root->right)
-        recurse_tree(root->right, action);
+static void walk_tree(node *rootNode, bool (*action)(node *)) {
+    if(rootNode->right)
+        recurse_tree(rootNode->right, action);
 }
 
-struct node *root;
 
-void init() { root = new_node(NULL); }
+
+void init() { root1 = new_node(NULL); }
 
 void addNodeToSort(const TNode *data) {
-    struct node *j = NULL;
+    node *j = NULL;
     //add node, no matter if there are references on it
-    j = search_node(root, data->id.idString);
+    j = search_node(root1, data->id.idString);
     j->data = data;
     Reference *hierachicalRef = data->hierachicalRefs;
     while(hierachicalRef) {
         if(!hierachicalRef->isForward) {
 
-            struct node *k = search_node(root, hierachicalRef->target.idString);
+            node *k = search_node(root1, hierachicalRef->target.idString);
             record_relation(k, j);
         }
         hierachicalRef = hierachicalRef->next;
@@ -228,13 +234,13 @@ void addNodeToSort(const TNode *data) {
 }
 
 bool sort(OnSortCallback callback) {
-    walk_tree(root, count_items);
+    walk_tree(root1, count_items);
 
     while(keyCnt > 0) {
-        walk_tree(root, scan_zeros);
+        walk_tree(root1, scan_zeros);
 
         while(head) {
-            struct edge *e = head->edges;
+            edge *e = head->edges;
 
             if(head->data != NULL) {
                 callback(head->data);
@@ -249,22 +255,21 @@ bool sort(OnSortCallback callback) {
                     zeros->qlink = e->dest;
                     zeros = e->dest;
                 }
-                struct edge *tmp = e;
+                edge *tmp = e;
                 e = e->next;
                 free(tmp);
             }
 
-            struct node *tmp = head;
+            node *tmp = head;
             head = head->qlink;
             free(tmp);
         }
-
         if(keyCnt > 0) {
             printf("graph contains a loop\n");
-            free(root);
+            free(root1);
             return false;
         }
     }
-    free(root);
+    free(root1);
     return true;
 }
