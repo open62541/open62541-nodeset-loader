@@ -16,6 +16,7 @@
         printf(M);                                                                       \
         assert(A);                                                                       \
     }
+
 bool strEqual(const char *lhs, const char *rhs);
 
 struct timespec diff(struct timespec start, struct timespec end);
