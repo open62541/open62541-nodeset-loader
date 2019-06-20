@@ -19,7 +19,7 @@ cmake .. \
 make \
 
 ## Running the demo
-./parserDemo <nodeSetFile>
+./parserDemo pathToNodesetFile1 pathToNodesetFile2
   
 ## Integration with open62541
 
