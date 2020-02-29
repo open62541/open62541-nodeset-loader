@@ -310,6 +310,9 @@ bool loadFile(const FileHandler *fileHandler) {
 cleanup:
     Nodeset_cleanup();
     free(ctx);
-    fclose(f);
+    if(f)
+    {
+        fclose(f);
+    }    
     return status;
 }

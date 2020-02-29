@@ -1,6 +1,9 @@
-#ifndef NODESETLOADER_H
-#define NODESETLOADER_H
+#pragma once
 #include <stdbool.h>
+
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 #define NODECLASS_COUNT 7
 typedef enum {
@@ -101,4 +104,6 @@ typedef struct {
 
 bool loadFile(const FileHandler *fileHandler);
 
+#ifdef __cplusplus
+}
 #endif
