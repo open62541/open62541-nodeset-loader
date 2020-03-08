@@ -2,7 +2,7 @@
 #include <stdbool.h>
 
 #ifdef __cplusplus
-extern "C"{
+extern "C" {
 #endif
 
 #define NODECLASS_COUNT 7
@@ -33,14 +33,14 @@ struct Reference {
     Reference *next;
 };
 
-#define UA_NODE_ATTRIBUTES                                                         \
-    TNodeClass nodeClass;                                                          \
-    TNodeId id;                                                                    \
-    char *browseName;                                                              \
-    char *displayName;                                                             \
-    char *description;                                                             \
-    char *writeMask;                                                               \
-    Reference *hierachicalRefs;                                                    \
+#define UA_NODE_ATTRIBUTES                                                               \
+    TNodeClass nodeClass;                                                                \
+    TNodeId id;                                                                          \
+    char *browseName;                                                                    \
+    char *displayName;                                                                   \
+    char *description;                                                                   \
+    char *writeMask;                                                                     \
+    Reference *hierachicalRefs;                                                          \
     Reference *nonHierachicalRefs;
 
 struct TNode {
@@ -77,21 +77,25 @@ typedef struct {
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
-    Value* value;
+    Value *value;
 } TVariableNode;
 
-typedef struct TDataTypeNode { UA_NODE_ATTRIBUTES } TDataTypeNode;
+typedef struct TDataTypeNode {
+    UA_NODE_ATTRIBUTES
+} TDataTypeNode;
 
 typedef struct {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
 } TMethodNode;
 
-typedef struct { UA_NODE_ATTRIBUTES } TReferenceTypeNode;
+typedef struct {
+    UA_NODE_ATTRIBUTES
+} TReferenceTypeNode;
 
-typedef void (*addNodeCb)(void* userContext, const TNode *);
+typedef void (*addNodeCb)(void *userContext, const TNode *);
 
-typedef int (*addNamespaceCb)(void* userContext, const char *);
+typedef int (*addNamespaceCb)(void *userContext, const char *);
 
 typedef struct {
     int loadTimeMs;
@@ -99,24 +103,18 @@ typedef struct {
     int addNodeTimeMs;
 } Statistics;
 
-
-
-
-
 typedef Value *(*newValueCb)(const TNode *node);
 typedef void (*startValueCb)(Value *val, const char *localname);
 typedef void (*endValueCb)(Value *val, const char *localname, char *value);
 typedef void (*finishValueCb)(Value *val);
 
-typedef struct
-{
-    void* userData;
+typedef struct {
+    void *userData;
     newValueCb newValue;
     startValueCb start;
     endValueCb end;
     finishValueCb finish;
 } ValueInterface;
-
 
 typedef struct {
     const char *file;
@@ -124,7 +122,7 @@ typedef struct {
     addNodeCb callback;
     const Statistics *stat;
     void *userContext;
-    ValueInterface* valueHandling;
+    ValueInterface *valueHandling;
 } FileHandler;
 
 bool loadFile(const FileHandler *fileHandler);
