@@ -67,12 +67,17 @@ typedef struct {
     char *valueRank;
 } TVariableTypeNode;
 
+/* Value Handling */
+struct Value;
+typedef struct Value Value;
+
 typedef struct {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
+    Value* value;
 } TVariableNode;
 
 typedef struct TDataTypeNode { UA_NODE_ATTRIBUTES } TDataTypeNode;
@@ -94,12 +99,32 @@ typedef struct {
     int addNodeTimeMs;
 } Statistics;
 
+
+
+
+
+typedef Value *(*newValueCb)(const TNode *node);
+typedef void (*startValueCb)(Value *val, const char *localname);
+typedef void (*endValueCb)(Value *val, const char *localname, char *value);
+typedef void (*finishValueCb)(Value *val);
+
+typedef struct
+{
+    void* userData;
+    newValueCb newValue;
+    startValueCb start;
+    endValueCb end;
+    finishValueCb finish;
+} ValueInterface;
+
+
 typedef struct {
     const char *file;
     addNamespaceCb addNamespace;
     addNodeCb callback;
     const Statistics *stat;
     void *userContext;
+    ValueInterface* valueHandling;
 } FileHandler;
 
 bool loadFile(const FileHandler *fileHandler);

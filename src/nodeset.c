@@ -359,25 +359,25 @@ TNode *Nodeset_newNode(TNodeClass nodeClass, int nb_attributes, const char **att
     TNode *node = NULL;
     switch(nodeClass) {
         case NODECLASS_VARIABLE:
-            node = (TNode *)malloc(sizeof(TVariableNode));
+            node = (TNode *)calloc(1, sizeof(TVariableNode));
             break;
         case NODECLASS_OBJECT:
-            node = (TNode *)malloc(sizeof(TObjectNode));
+            node = (TNode *)calloc(1, sizeof(TObjectNode));
             break;
         case NODECLASS_OBJECTTYPE:
-            node = (TNode *)malloc(sizeof(TObjectTypeNode));
+            node = (TNode *)calloc(1, sizeof(TObjectTypeNode));
             break;
         case NODECLASS_REFERENCETYPE:
-            node = (TNode *)malloc(sizeof(TReferenceTypeNode));
+            node = (TNode *)calloc(1, sizeof(TReferenceTypeNode));
             break;
         case NODECLASS_VARIABLETYPE:
-            node = (TNode *)malloc(sizeof(TVariableTypeNode));
+            node = (TNode *)calloc(1, sizeof(TVariableTypeNode));
             break;
         case NODECLASS_DATATYPE:
-            node = (TNode *)malloc(sizeof(TDataTypeNode));
+            node = (TNode *)calloc(1, sizeof(TDataTypeNode));
             break;
         case NODECLASS_METHOD:
-            node = (TNode *)malloc(sizeof(TMethodNode));
+            node = (TNode *)calloc(1, sizeof(TMethodNode));
             break;
     }
     initNode(nodeset->namespaceTable->ns, nodeClass, node, nb_attributes, attributes);
@@ -401,17 +401,14 @@ Reference *Nodeset_newReference(TNode *node, int attributeSize, const char **att
         extractNodedId(nodeset->namespaceTable->ns,
                        getAttributeValue(&attrReferenceType, attributes, attributeSize));
     if(isHierachicalReference(newRef)) {
-        Reference **lastRef = &node->hierachicalRefs;
-        while(*lastRef) {
-            lastRef = &(*lastRef)->next;
-        }
-        *lastRef = newRef;
+        Reference *lastRef = node->hierachicalRefs;
+        node->hierachicalRefs = newRef;
+        newRef->next = lastRef;
+       
     } else {
-        Reference **lastRef = &node->nonHierachicalRefs;
-        while(*lastRef) {
-            lastRef = &(*lastRef)->next;
-        }
-        *lastRef = newRef;
+        Reference *lastRef = node->hierachicalRefs;
+        node->hierachicalRefs = newRef;
+        newRef->next = lastRef;
     }
     return newRef;
 }
@@ -424,10 +421,10 @@ Alias *Nodeset_newAlias(int attributeSize, const char **attributes) {
     return nodeset->aliasArray[nodeset->aliasSize];
 }
 
-void Nodeset_newAliasFinish() {
-    nodeset->aliasArray[nodeset->aliasSize]->id =
+void Nodeset_newAliasFinish(Alias* alias, char* idString) {
+    alias->id =
         extractNodedId(nodeset->namespaceTable->ns,
-                       nodeset->aliasArray[nodeset->aliasSize]->id.idString);
+                       idString);
     nodeset->aliasSize++;
 }
 
@@ -442,8 +439,9 @@ TNamespace* Nodeset_newNamespace()
     return &ns[nodeset->namespaceTable->size - 1];
 }
 
-void Nodeset_newNamespaceFinish(void* userContext)
+void Nodeset_newNamespaceFinish(void* userContext, char* namespaceUri)
 {
+    nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name = namespaceUri;
     int globalIdx = nodeset->namespaceTable->cb(
         userContext,
         nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
@@ -468,9 +466,13 @@ void Nodeset_newNodeFinish(TNode* node)
     }
 }
 
-void Nodeset_newReferenceFinish(TNode* node)
+void Nodeset_newReferenceFinish(Reference* ref, TNode* node, char* targetId)
 {
+    ref->target.idString = targetId;
+    ref->target = extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
+    /*
     Reference *ref = node->hierachicalRefs;
+    ref->target.idString = targetId;
     while(ref) {
         ref->target = extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
         ref = ref->next;
@@ -480,6 +482,7 @@ void Nodeset_newReferenceFinish(TNode* node)
         ref->target = extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
         ref = ref->next;
     }
+    */
 }
 
 void Nodeset_addRefCountedChar(char *newChar)

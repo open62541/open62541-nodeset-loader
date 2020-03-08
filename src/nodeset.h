@@ -37,6 +37,7 @@
 #define ALIAS "Alias"
 #define NAMESPACEURIS "NamespaceUris"
 #define NAMESPACEURI "Uri"
+#define VALUE "Value"
 
 typedef struct {
     const char *name;
@@ -111,11 +112,11 @@ bool Nodeset_getSortedNodes(void *userContext, addNodeCb callback);
 TNode *Nodeset_newNode(TNodeClass nodeClass, int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(TNode *node);
 Reference *Nodeset_newReference(TNode *node, int attributeSize, const char **attributes);
-void Nodeset_newReferenceFinish(TNode *node);
+void Nodeset_newReferenceFinish(Reference* ref, TNode *node, char* targetId);
 Alias *Nodeset_newAlias(int attributeSize, const char **attribute);
-void Nodeset_newAliasFinish(void);
+void Nodeset_newAliasFinish(Alias* alias, char* idString);
 TNamespace *Nodeset_newNamespace(void);
-void Nodeset_newNamespaceFinish(void* userContext);
+void Nodeset_newNamespaceFinish(void* userContext, char* namespaceUri);
 void Nodeset_addRefCountedChar(char *newChar);
 
 #endif
