@@ -12,9 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define free_const(x) free((void *)(long)(x))
-
-static void Nodeset_addNodeToSort(const TNode *node);
+static void Nodeset_addNodeToSort(TNode *node);
 static TNodeId alias2Id(Nodeset* nodeset, const char *alias);
 static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref);
 
@@ -99,46 +97,46 @@ Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
     nodeset->aliasArray = (Alias **)malloc(sizeof(Alias *) * MAX_ALIAS);
     nodeset->aliasSize = 0;
     nodeset->countedRefs =
-        (const Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
+        (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->countedChars = (const char **)malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
+    nodeset->countedChars = (char **)malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
     nodeset->charsSize = 0;
     // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_OBJECTS);
+        (TNode **)malloc(sizeof(TNode *) * MAX_OBJECTS);
     nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
     // variables
     nodeset->nodes[NODECLASS_VARIABLE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_VARIABLE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_VARIABLES);
+        (TNode **)malloc(sizeof(TNode *) * MAX_VARIABLES);
     nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
     // methods
     nodeset->nodes[NODECLASS_METHOD] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_METHOD]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_METHODS);
+        (TNode **)malloc(sizeof(TNode *) * MAX_METHODS);
     nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
     // objecttypes
     nodeset->nodes[NODECLASS_OBJECTTYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
+        (TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
     nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
     // datatypes
     nodeset->nodes[NODECLASS_DATATYPE] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_DATATYPE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
+        (TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
     nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
     // referencetypes
     nodeset->nodes[NODECLASS_REFERENCETYPE] =
         (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
+        (TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
     nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
     // variabletypes
     nodeset->nodes[NODECLASS_VARIABLETYPE] =
         (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes =
-        (const TNode **)malloc(sizeof(TNode *) * MAX_VARIABLETYPES);
+        (TNode **)malloc(sizeof(TNode *) * MAX_VARIABLETYPES);
     nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt = 0;
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalReferences;
@@ -156,13 +154,13 @@ Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
     return nodeset;
 }
 
-static void Nodeset_addNode(Nodeset* nodeset, const TNode *node) {
+static void Nodeset_addNode(Nodeset* nodeset, TNode *node) {
     size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
     nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
     nodeset->nodes[node->nodeClass]->cnt++;
 }
 
-static void Nodeset_addNodeToSort(const TNode *node) { addNodeToSort(node); }
+static void Nodeset_addNodeToSort(TNode *node) { addNodeToSort(node); }
 
 bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback) {
 
@@ -213,13 +211,13 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     Nodeset *n = nodeset;
     // free chars
     for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
-        free_const(n->countedChars[cnt]);
+        free(n->countedChars[cnt]);
     }
     free(n->countedChars);
 
     // free refs
     for(size_t cnt = 0; cnt < n->refsSize; cnt++) {
-        free_const(n->countedRefs[cnt]);
+        free(n->countedRefs[cnt]);
     }
     free(n->countedRefs);
 
@@ -232,7 +230,7 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     for(size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++) {
         size_t storedNodes = n->nodes[cnt]->cnt;
         for(size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++) {
-            free_const(n->nodes[cnt]->nodes[nodeCnt]);
+            free(n->nodes[cnt]->nodes[nodeCnt]);
         }
         free((void *)n->nodes[cnt]->nodes);
         free((void *)n->nodes[cnt]);

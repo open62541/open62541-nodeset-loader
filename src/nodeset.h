@@ -67,7 +67,7 @@ typedef struct {
 
 typedef struct {
     size_t cnt;
-    const TNode **nodes;
+    TNode **nodes;
 } NodeContainer;
 
 struct TParserCtx;
@@ -88,8 +88,8 @@ typedef struct {
 } TNamespaceTable;
 
 struct Nodeset {
-    const Reference **countedRefs;
-    const char **countedChars;
+    Reference **countedRefs;
+    char **countedChars;
     Alias **aliasArray;
     NodeContainer *nodes[NODECLASS_COUNT];
     size_t aliasSize;

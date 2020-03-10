@@ -12,8 +12,8 @@
 struct TNode;
 struct Nodeset;
 void init(void);
-void addNodeToSort(const struct TNode *node);
-typedef void (*OnSortCallback)(struct Nodeset* nodeset, const struct TNode *node);
+void addNodeToSort(struct TNode *node);
+typedef void (*OnSortCallback)(struct Nodeset* nodeset, struct TNode *node);
 bool sort(struct Nodeset* nodeset, OnSortCallback callback);
 
 #endif

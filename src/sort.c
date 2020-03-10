@@ -29,7 +29,7 @@ struct node {
     struct node *qlink;
     struct edge *edges;
     size_t edgeCount;
-    const TNode *data;
+    TNode *data;
 };
 
 typedef struct node node;
@@ -217,7 +217,7 @@ static void walk_tree(node *rootNode, bool (*action)(node *)) {
 
 void init() { root1 = new_node(NULL); }
 
-void addNodeToSort(const TNode *data) {
+void addNodeToSort(TNode *data) {
     node *j = NULL;
     //add node, no matter if there are references on it
     j = search_node(root1, data->id.idString);

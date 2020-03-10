@@ -8,7 +8,7 @@ static int sortedNodesCnt = 0;
 
 struct Nodeset;
 
-static void sortCallback(struct Nodeset* nodeset, const TNode *node) 
+static void sortCallback(struct Nodeset* nodeset, TNode *node) 
 { 
     printf("%s\n", node->id.idString);
     sortedNodes[sortedNodesCnt] = node;
