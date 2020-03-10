@@ -11,6 +11,7 @@
 #include <libxml/SAX.h>
 #include <stdio.h>
 #include <string.h>
+#include <charAllocator.h>
 
 typedef enum {
     PARSER_STATE_INIT,
@@ -231,14 +232,11 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     if(oldString != NULL) {
         oldLength = strlen(oldString);
     }
-    char *newValue = (char *)malloc(oldLength + (size_t)len + 1);
+    char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, oldLength + (size_t)len + 1);
     if(oldString != NULL) {
         memcpy(newValue, oldString, oldLength);
     }
     memcpy(newValue + oldLength, ch, (size_t)len);
-    //todo:
-    //Nodeset_addRefCountedChar(pctx->nodeset, newValue);
-    newValue[oldLength + (size_t)len] = '\0';
     pctx->onCharacters = newValue;
 }
 

@@ -99,8 +99,7 @@ Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
     nodeset->countedRefs =
         (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->countedChars = (char **)malloc(sizeof(char *) * MAX_REFCOUNTEDCHARS);
-    nodeset->charsSize = 0;
+    nodeset->charArena = CharArenaAllocator_new(1024*1024*1024);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
@@ -209,11 +208,8 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callb
 
 void Nodeset_cleanup(Nodeset *nodeset) {
     Nodeset *n = nodeset;
-    // free chars
-    for(size_t cnt = 0; cnt < n->charsSize; cnt++) {
-        free(n->countedChars[cnt]);
-    }
-    free(n->countedChars);
+
+    CharArenaAllocator_delete(nodeset->charArena);
 
     // free refs
     for(size_t cnt = 0; cnt < n->refsSize; cnt++) {
@@ -260,8 +256,7 @@ static char *getAttributeValue(Nodeset* nodeset, NodeAttribute *attr, const char
         const char *value_start = attributes[i * fields + 3];
         const char *value_end = attributes[i * fields + 4];
         size_t size = (size_t)(value_end - value_start);
-        char *value = (char *)malloc(sizeof(char) * size + 1);
-        nodeset->countedChars[nodeset->charsSize++] = value;
+        char *value = CharArenaAllocator_malloc(nodeset->charArena, size + 1);
         memcpy(value, value_start, size);
         value[size] = '\0';
         return value;
@@ -469,9 +464,4 @@ void Nodeset_newReferenceFinish(Nodeset* nodeset, Reference* ref, TNode* node, c
 {
     ref->target.idString = targetId;
     ref->target = extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
-}
-
-void Nodeset_addRefCountedChar(Nodeset* nodeset, char *newChar)
-{
-    nodeset->countedChars[nodeset->charsSize++] = newChar;
 }

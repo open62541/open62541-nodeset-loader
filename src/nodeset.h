@@ -10,6 +10,7 @@
 #include "nodesetLoader.h"
 #include <stdbool.h>
 #include <stddef.h>
+#include <charAllocator.h>
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -89,11 +90,10 @@ typedef struct {
 
 struct Nodeset {
     Reference **countedRefs;
-    char **countedChars;
+    struct CharArena* charArena;
     Alias **aliasArray;
     NodeContainer *nodes[NODECLASS_COUNT];
     size_t aliasSize;
-    size_t charsSize;
     size_t refsSize;
     TNamespaceTable *namespaceTable;
     size_t hierachicalRefsSize;
@@ -102,12 +102,9 @@ struct Nodeset {
 
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
-//TNodeId alias2Id(const char *alias);
-//bool isHierachicalReference(const Reference *ref);
 Nodeset* Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset* nodeset);
 void Nodeset_sort(Nodeset *nodeset);
-//void Nodeset_addNodeToSort(Nodeset *nodeset, const TNode *node);
 bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass, int attributeSize,
                        const char **attributes);
@@ -120,6 +117,5 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attrib
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString);
 TNamespace *Nodeset_newNamespace(Nodeset *nodeset);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext, char *namespaceUri);
-void Nodeset_addRefCountedChar(Nodeset *nodeset, char *newChar);
 
 #endif
