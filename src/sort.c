@@ -233,7 +233,7 @@ void addNodeToSort(const TNode *data) {
     }
 }
 
-bool sort(OnSortCallback callback) {
+bool sort(struct Nodeset* nodeset, OnSortCallback callback) {
     walk_tree(root1, count_items);
 
     while(keyCnt > 0) {
@@ -243,7 +243,7 @@ bool sort(OnSortCallback callback) {
             edge *e = head->edges;
 
             if(head->data != NULL) {
-                callback(head->data);
+                callback(nodeset, head->data);
             }
 
             head->str = NULL;

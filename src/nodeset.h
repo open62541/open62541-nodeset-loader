@@ -102,21 +102,24 @@ struct Nodeset {
 
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
-TNodeId alias2Id(const char *alias);
-bool isHierachicalReference(const Reference *ref);
-void Nodeset_new(addNamespaceCb nsCallback);
-void Nodeset_cleanup(void);
-void Nodeset_sort(void);
-void Nodeset_addNodeToSort(const TNode *node);
-bool Nodeset_getSortedNodes(void *userContext, addNodeCb callback);
-TNode *Nodeset_newNode(TNodeClass nodeClass, int attributeSize, const char **attributes);
-void Nodeset_newNodeFinish(TNode *node);
-Reference *Nodeset_newReference(TNode *node, int attributeSize, const char **attributes);
-void Nodeset_newReferenceFinish(Reference* ref, TNode *node, char* targetId);
-Alias *Nodeset_newAlias(int attributeSize, const char **attribute);
-void Nodeset_newAliasFinish(Alias* alias, char* idString);
-TNamespace *Nodeset_newNamespace(void);
-void Nodeset_newNamespaceFinish(void* userContext, char* namespaceUri);
-void Nodeset_addRefCountedChar(char *newChar);
+//TNodeId alias2Id(const char *alias);
+//bool isHierachicalReference(const Reference *ref);
+Nodeset* Nodeset_new(addNamespaceCb nsCallback);
+void Nodeset_cleanup(Nodeset* nodeset);
+void Nodeset_sort(Nodeset *nodeset);
+//void Nodeset_addNodeToSort(Nodeset *nodeset, const TNode *node);
+bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback);
+TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass, int attributeSize,
+                       const char **attributes);
+void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);
+Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node, int attributeSize,
+                                const char **attributes);
+void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
+                                char *targetId);
+Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attribute);
+void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString);
+TNamespace *Nodeset_newNamespace(Nodeset *nodeset);
+void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext, char *namespaceUri);
+void Nodeset_addRefCountedChar(Nodeset *nodeset, char *newChar);
 
 #endif

@@ -6,7 +6,9 @@
 static const TNode* sortedNodes[100];
 static int sortedNodesCnt = 0;
 
-static void sortCallback(const TNode *node) 
+struct Nodeset;
+
+static void sortCallback(struct Nodeset* nodeset, const TNode *node) 
 { 
     printf("%s\n", node->id.idString);
     sortedNodes[sortedNodesCnt] = node;
@@ -22,7 +24,7 @@ START_TEST(singleNode) {
     a.id.idString = "nodeA";
 
     addNodeToSort(&a);
-    sort(sortCallback);
+    sort(NULL, sortCallback);
     ck_assert_int_eq(sortedNodesCnt, 1);
 }
 END_TEST
@@ -44,7 +46,7 @@ START_TEST(sortNodes) {
     addNodeToSort(&a);
     addNodeToSort(&b);
     addNodeToSort(&c);
-    sort(sortCallback);
+    sort(NULL, sortCallback);
     ck_assert_int_eq(sortedNodesCnt, 3);
 }
 END_TEST
@@ -71,7 +73,7 @@ START_TEST(nodeWithRefs_1) {
 
     addNodeToSort(&b);
     addNodeToSort(&a);
-    sort(sortCallback);
+    sort(NULL, sortCallback);
     ck_assert_int_eq(sortedNodesCnt, 2);
     ck_assert_str_eq(sortedNodes[0]->id.idString, "nodeA");
     ck_assert_str_eq(sortedNodes[1]->id.idString, "nodeB");
@@ -100,7 +102,7 @@ START_TEST(nodeWithRefs_2) {
 
     addNodeToSort(&a);
     addNodeToSort(&b);
-    sort(sortCallback);
+    sort(NULL, sortCallback);
     ck_assert_int_eq(sortedNodesCnt, 2);
     ck_assert_str_eq(sortedNodes[0]->id.idString, "nodeA");
     ck_assert_str_eq(sortedNodes[1]->id.idString, "nodeB");
@@ -139,13 +141,13 @@ START_TEST(cycle) {
 
     addNodeToSort(&b);
     addNodeToSort(&a);
-    sort(sortCallback);
+    sort(NULL, sortCallback);
 }
 END_TEST
 
 START_TEST(empty) {
     init();
-    sort(sortCallback);
+    sort(NULL, sortCallback);
 }
 END_TEST
 
