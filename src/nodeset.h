@@ -105,7 +105,7 @@ TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 Nodeset* Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset* nodeset);
 void Nodeset_sort(Nodeset *nodeset);
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback);
+bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback, ValueInterface* valIf);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass, int attributeSize,
                        const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);

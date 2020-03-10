@@ -99,7 +99,7 @@ Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
     nodeset->countedRefs =
         (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->charArena = CharArenaAllocator_new(1024*1024*1024);
+    nodeset->charArena = CharArenaAllocator_new(1024*1024*20);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
@@ -161,7 +161,7 @@ static void Nodeset_addNode(Nodeset* nodeset, TNode *node) {
 
 static void Nodeset_addNodeToSort(TNode *node) { addNodeToSort(node); }
 
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback) {
+bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback, ValueInterface* valIf) {
 
 #ifdef XMLIMPORT_TRACE
     printf("--- namespace table ---\n");
@@ -202,6 +202,7 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callb
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
+        valIf->deleteValue(((TVariableNode*)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])->value);
     }
     return true;
 }

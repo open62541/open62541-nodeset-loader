@@ -107,6 +107,7 @@ typedef Value *(*newValueCb)(const TNode *node);
 typedef void (*startValueCb)(Value *val, const char *localname);
 typedef void (*endValueCb)(Value *val, const char *localname, char *value);
 typedef void (*finishValueCb)(Value *val);
+typedef void (*deleteValueCb)(Value* val);
 
 typedef struct {
     void *userData;
@@ -114,6 +115,7 @@ typedef struct {
     startValueCb start;
     endValueCb end;
     finishValueCb finish;
+    deleteValueCb deleteValue;
 } ValueInterface;
 
 typedef struct {

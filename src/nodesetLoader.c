@@ -42,14 +42,6 @@ struct TParserCtx {
     Nodeset* nodeset;
 };
 
-/*
-static void extractReferenceAttributes(TParserCtx *ctx, int attributeSize,
-                                       const char **attributes) {
-    Reference *newRef = Nodeset_newReference(ctx->node, attributeSize, attributes);
-    ctx->nextOnCharacters = &newRef->target.idString;
-}
-*/
-
 static void enterUnknownState(TParserCtx *ctx) {
     ctx->prev_state = ctx->state;
     ctx->state = PARSER_STATE_UNKNOWN;
@@ -319,7 +311,7 @@ bool loadFile(const FileHandler *fileHandler) {
     // sorting time missing
     clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
-    if(!Nodeset_getSortedNodes(nodeset, fileHandler->userContext, fileHandler->callback)) {
+    if(!Nodeset_getSortedNodes(nodeset, fileHandler->userContext, fileHandler->callback, ctx->valIf)) {
         status = false;
     }
 
