@@ -12,6 +12,23 @@
 #include <string.h>
 #include <charAllocator.h>
 
+#define OBJECT "UAObject"
+#define METHOD "UAMethod"
+#define OBJECTTYPE "UAObjectType"
+#define VARIABLE "UAVariable"
+#define VARIABLETYPE "UAVariableType"
+#define DATATYPE "UADataType"
+#define REFERENCETYPE "UAReferenceType"
+#define VIEW "UAView"
+#define DISPLAYNAME "DisplayName"
+#define REFERENCES "References"
+#define REFERENCE "Reference"
+#define DESCRIPTION "Description"
+#define ALIAS "Alias"
+#define NAMESPACEURIS "NamespaceUris"
+#define NAMESPACEURI "Uri"
+#define VALUE "Value"
+
 typedef enum {
     PARSER_STATE_INIT,
     PARSER_STATE_NODE,
@@ -266,7 +283,7 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt) {
     return 0;
 }
 
-bool loadFile(const FileHandler *fileHandler) {
+bool loadFile(const FileContext *fileHandler) {
 
     if(fileHandler == NULL) {
         printf("no filehandler - return\n");

@@ -97,12 +97,6 @@ typedef void (*addNodeCb)(void *userContext, const TNode *);
 
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-typedef struct {
-    int loadTimeMs;
-    int sortTimeMs;
-    int addNodeTimeMs;
-} Statistics;
-
 typedef Value *(*newValueCb)(const TNode *node);
 typedef void (*startValueCb)(Value *val, const char *localname);
 typedef void (*endValueCb)(Value *val, const char *localname, char *value);
@@ -122,12 +116,11 @@ typedef struct {
     const char *file;
     addNamespaceCb addNamespace;
     addNodeCb callback;
-    const Statistics *stat;
     void *userContext;
     ValueInterface *valueHandling;
-} FileHandler;
+} FileContext;
 
-bool loadFile(const FileHandler *fileHandler);
+bool loadFile(const FileContext *fileContext);
 
 #ifdef __cplusplus
 }

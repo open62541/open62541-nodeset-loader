@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
         printf("specify nodesetfile as argument. E.g. parserDemo text.xml\n");
         return 1;
     }
-    FileHandler handler;
+    FileContext handler;
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
     handler.userContext = NULL;

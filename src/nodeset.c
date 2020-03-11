@@ -15,6 +15,18 @@ static void Nodeset_addNodeToSort(TNode *node);
 static TNodeId alias2Id(Nodeset* nodeset, const char *alias);
 static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref);
 
+#define MAX_OBJECTTYPES 1000
+#define MAX_OBJECTS 100000
+#define MAX_METHODS 1000
+#define MAX_DATATYPES 1000
+#define MAX_VARIABLES 1000000
+#define MAX_REFERENCETYPES 1000
+#define MAX_VARIABLETYPES 1000
+#define MAX_HIERACHICAL_REFS 50
+#define MAX_ALIAS 100
+#define MAX_REFCOUNTEDCHARS 10000000
+#define MAX_REFCOUNTEDREFS 1000000
+
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
 #define ATTRIBUTE_BROWSENAME "BrowseName"
@@ -34,17 +46,24 @@ static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref);
 #define ATTRIBUTE_SYMMETRIC "Symmetric"
 #define ATTRIBUTE_ALIAS "Alias"
 
-    NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL, false};
-NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL, false};
-NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL, true};
-NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, NULL, true};
-NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24", false};
-NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1", false};
-NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, "", false};
-NodeAttribute attrIsAbstract = {ATTRIBUTE_ARRAYDIMENSIONS, "false", false};
-NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true", false};
-NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL, true};
-NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL, false};
+typedef struct {
+    const char *name;
+    char *defaultValue;
+    bool optional;
+} NodeAttribute;
+
+const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL, false};
+const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL, false};
+const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL, true};
+const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, NULL, true};
+const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24", false};
+const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1", false};
+const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, "", false};
+const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false", false};
+const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true", false};
+const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL, true};
+const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL, false};
+const NodeAttribute attrExecutable = {"Executable", "true", false};
 
 const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
@@ -246,7 +265,7 @@ static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref) {
     return false;
 }
 
-static char *getAttributeValue(Nodeset* nodeset, NodeAttribute *attr, const char **attributes,
+static char *getAttributeValue(Nodeset* nodeset, const NodeAttribute *attr, const char **attributes,
                                int nb_attributes) {
     const int fields = 5;
     for(int i = 0; i < nb_attributes; i++) {

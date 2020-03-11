@@ -24,40 +24,6 @@
 #define MAX_REFCOUNTEDCHARS 10000000
 #define MAX_REFCOUNTEDREFS 1000000
 
-#define OBJECT "UAObject"
-#define METHOD "UAMethod"
-#define OBJECTTYPE "UAObjectType"
-#define VARIABLE "UAVariable"
-#define VARIABLETYPE "UAVariableType"
-#define DATATYPE "UADataType"
-#define REFERENCETYPE "UAReferenceType"
-#define DISPLAYNAME "DisplayName"
-#define REFERENCES "References"
-#define REFERENCE "Reference"
-#define DESCRIPTION "Description"
-#define ALIAS "Alias"
-#define NAMESPACEURIS "NamespaceUris"
-#define NAMESPACEURI "Uri"
-#define VALUE "Value"
-
-typedef struct {
-    const char *name;
-    char *defaultValue;
-    bool optional;
-} NodeAttribute;
-
-extern NodeAttribute attrNodeId;
-extern NodeAttribute attrBrowseName;
-extern NodeAttribute attrParentNodeId;
-extern NodeAttribute attrEventNotifier;
-extern NodeAttribute attrDataType;
-extern NodeAttribute attrValueRank;
-extern NodeAttribute attrArrayDimensions;
-extern NodeAttribute attrIsAbstract;
-extern NodeAttribute attrIsForward;
-extern NodeAttribute attrReferenceType;
-extern NodeAttribute attrAlias;
-
 struct Nodeset;
 typedef struct Nodeset Nodeset;
 
