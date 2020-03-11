@@ -7,7 +7,6 @@
 
 #include "nodeset.h"
 #include "sort.h"
-#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -83,7 +82,7 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
 
 static TNodeId alias2Id(Nodeset* nodeset, const char *alias) {
     for(size_t cnt = 0; cnt < nodeset->aliasSize; cnt++) {
-        if(strEqual(alias, nodeset->aliasArray[cnt]->name)) {
+        if(!strcmp(alias, nodeset->aliasArray[cnt]->name)) {
             return nodeset->aliasArray[cnt]->id;
         }
     }
@@ -202,7 +201,7 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callb
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
-        valIf->deleteValue(((TVariableNode*)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])->value);
+        valIf->deleteValue(&((TVariableNode*)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])->value);
     }
     return true;
 }
@@ -259,16 +258,12 @@ static char *getAttributeValue(Nodeset* nodeset, NodeAttribute *attr, const char
         size_t size = (size_t)(value_end - value_start);
         char *value = CharArenaAllocator_malloc(nodeset->charArena, size + 1);
         memcpy(value, value_start, size);
-        value[size] = '\0';
         return value;
     }
     if(attr->defaultValue != NULL || attr->optional) {
         return attr->defaultValue;
     }
-    // todo: remove this assertation
-
-    printf("attribute: %s\n", attr->name);
-    assertf(false, "attribute not found, no default value set in getAttributeValue\n");
+    return NULL;
 }
 
 static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TNode *node,
@@ -390,7 +385,7 @@ Reference *Nodeset_newReference(Nodeset* nodeset, TNode *node, int attributeSize
     newRef->refType.id = NULL;
     nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
-    if(strEqual("true", getAttributeValue(nodeset, &attrIsForward, attributes, attributeSize))) {
+    if(!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes, attributeSize))) {
         newRef->isForward = true;
     } else {
         newRef->isForward = false;

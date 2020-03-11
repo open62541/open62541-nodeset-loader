@@ -7,7 +7,6 @@
 
 #include "nodesetLoader.h"
 #include "nodeset.h"
-#include "util.h"
 #include <libxml/SAX.h>
 #include <stdio.h>
 #include <string.h>
@@ -55,52 +54,52 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
     TParserCtx *pctx = (TParserCtx *)ctx;
     switch(pctx->state) {
         case PARSER_STATE_INIT:
-            if(strEqual(localname, VARIABLE)) {
+            if(!strcmp(localname, VARIABLE)) {
                 pctx->nodeClass = NODECLASS_VARIABLE;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, OBJECT)) {
+            } else if(!strcmp(localname, OBJECT)) {
                 pctx->nodeClass = NODECLASS_OBJECT;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, OBJECTTYPE)) {
+            } else if(!strcmp(localname, OBJECTTYPE)) {
                 pctx->nodeClass = NODECLASS_OBJECTTYPE;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, DATATYPE)) {
+            } else if(!strcmp(localname, DATATYPE)) {
                 pctx->nodeClass = NODECLASS_DATATYPE;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, METHOD)) {
+            } else if(!strcmp(localname, METHOD)) {
                 pctx->nodeClass = NODECLASS_METHOD;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, REFERENCETYPE)) {
+            } else if(!strcmp(localname, REFERENCETYPE)) {
                 pctx->nodeClass = NODECLASS_REFERENCETYPE;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, VARIABLETYPE)) {
+            } else if(!strcmp(localname, VARIABLETYPE)) {
                 pctx->nodeClass = NODECLASS_VARIABLETYPE;
                 pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass, nb_attributes, attributes);
                 pctx->state = PARSER_STATE_NODE;
-            } else if(strEqual(localname, NAMESPACEURIS)) {
+            } else if(!strcmp(localname, NAMESPACEURIS)) {
                 pctx->state = PARSER_STATE_NAMESPACEURIS;
-            } else if(strEqual(localname, ALIAS)) {
+            } else if(!strcmp(localname, ALIAS)) {
                 pctx->state = PARSER_STATE_ALIAS;
                 pctx->node = NULL;
                 Alias *alias = Nodeset_newAlias(pctx->nodeset, nb_attributes, attributes);
                 pctx->alias = alias;
                 pctx->state = PARSER_STATE_ALIAS;
-            } else if(strEqual(localname, "UANodeSet") ||
-                      strEqual(localname, "Aliases") ||
-                      strEqual(localname, "Extensions")) {
+            } else if(!strcmp(localname, "UANodeSet") ||
+                      !strcmp(localname, "Aliases") ||
+                      !strcmp(localname, "Extensions")) {
                 pctx->state = PARSER_STATE_INIT;
             } else {
                 enterUnknownState(pctx);
             }
             break;
         case PARSER_STATE_NAMESPACEURIS:
-            if(strEqual(localname, NAMESPACEURI)) {
+            if(!strcmp(localname, NAMESPACEURI)) {
                 Nodeset_newNamespace(pctx->nodeset);
                 //pctx->nextOnCharacters = &ns->name;
                 pctx->state = PARSER_STATE_URI;
@@ -112,14 +111,14 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             enterUnknownState(pctx);
             break;
         case PARSER_STATE_NODE:
-            if(strEqual(localname, DISPLAYNAME)) {
+            if(!strcmp(localname, DISPLAYNAME)) {
                 //pctx->nextOnCharacters = &pctx->node->displayName;
                 pctx->state = PARSER_STATE_DISPLAYNAME;
-            } else if(strEqual(localname, REFERENCES)) {
+            } else if(!strcmp(localname, REFERENCES)) {
                 pctx->state = PARSER_STATE_REFERENCES;
-            } else if(strEqual(localname, DESCRIPTION)) {
+            } else if(!strcmp(localname, DESCRIPTION)) {
                 pctx->state = PARSER_STATE_DESCRIPTION;
-            } else if(strEqual(localname, VALUE)) {
+            } else if(!strcmp(localname, VALUE)) {
                 //pctx->val = pctx->valIf->(pctx->node->id);
                 pctx->val = pctx->valIf->newValue(pctx->node);
                 pctx->state = PARSER_STATE_VALUE;
@@ -134,7 +133,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             break;
 
         case PARSER_STATE_REFERENCES:
-            if(strEqual(localname, REFERENCE)) {
+            if(!strcmp(localname, REFERENCE)) {
                 pctx->state = PARSER_STATE_REFERENCE;
                 //extractReferenceAttributes(pctx, nb_attributes, attributes);
                 pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node, nb_attributes, attributes);
@@ -282,8 +281,6 @@ bool loadFile(const FileHandler *fileHandler) {
         return false;
     }
     bool status = true;
-    struct timespec start, startSort, startAdd, end;
-    clock_gettime(CLOCK_MONOTONIC, &start);
     Nodeset* nodeset = Nodeset_new(fileHandler->addNamespace);
 
     TParserCtx *ctx = (TParserCtx *)malloc(sizeof(TParserCtx));
@@ -297,34 +294,19 @@ bool loadFile(const FileHandler *fileHandler) {
 
     FILE *f = fopen(fileHandler->file, "r");
     if(!f) {
-        puts("file open error.");
+        printf("file open error\n");
         status = false;
         goto cleanup;
     }
 
     if(read_xmlfile(f, ctx)) {
-        puts("xml read error.");
+        printf("xml read error\n");
         status = false;
     }
-
-    clock_gettime(CLOCK_MONOTONIC, &startSort);
-    // sorting time missing
-    clock_gettime(CLOCK_MONOTONIC, &startAdd);
 
     if(!Nodeset_getSortedNodes(nodeset, fileHandler->userContext, fileHandler->callback, ctx->valIf)) {
         status = false;
     }
-
-    clock_gettime(CLOCK_MONOTONIC, &end);
-
-    struct timespec parse = diff(start, startSort);
-    struct timespec sort = diff(startSort, startAdd);
-    struct timespec add = diff(startAdd, end);
-    struct timespec sum = diff(start, end);
-    printf("parse (s, ms): %lu %lu\n", parse.tv_sec, parse.tv_nsec / 1000000);
-    printf("sort (s, ms): %lu %lu\n", sort.tv_sec, sort.tv_nsec / 1000000);
-    printf("add (s, ms): %lu %lu\n", add.tv_sec, add.tv_nsec / 1000000);
-    printf("sum (s, ms): %lu %lu\n", sum.tv_sec, sum.tv_nsec / 1000000);
 
 cleanup:
     Nodeset_cleanup(nodeset);
