@@ -9,11 +9,19 @@
 #define SORT_H
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct TNode;
 struct Nodeset;
 void init(void);
 void addNodeToSort(struct TNode *node);
-typedef void (*OnSortCallback)(struct Nodeset* nodeset, struct TNode *node);
-bool sort(struct Nodeset* nodeset, OnSortCallback callback);
+typedef void (*OnSortCallback)(struct Nodeset *nodeset, struct TNode *node);
+bool sort(struct Nodeset *nodeset, OnSortCallback callback);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
