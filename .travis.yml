@@ -18,10 +18,8 @@ matrix:
       addons:
         apt:
           packages:
-            - cppcheck
             - cmake
             # tests
-            - check
             - valgrind
       env:
         - DEBIAN=true
@@ -39,7 +37,6 @@ script:
   - make  - 
   - tests/check_sort
   - make integrationTests
-  #- cppcheck --quiet --force --error-exitcode=200 --std=c99 --std=c++11 --enable=all --template=gcc --project=compile_commands.json -j8
 
   after_success:
   - echo == Build success ==
