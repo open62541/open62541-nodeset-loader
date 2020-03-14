@@ -266,6 +266,8 @@ bool sort(struct Nodeset* nodeset, OnSortCallback callback) {
         }
         if(keyCnt > 0) {
             printf("graph contains a loop\n");
+            free(root1->left);
+            free(root1->right);
             free(root1);
             return false;
         }

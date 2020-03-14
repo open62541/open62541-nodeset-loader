@@ -51,6 +51,7 @@ struct TParserCtx {
     TNode *node;
     Alias* alias;
     char *onCharacters;
+    size_t onCharLength;
     void *userContext;
     struct Value *val;
     ValueInterface* valIf;
@@ -176,6 +177,7 @@ static void OnStartElementNs(void *ctx, const char *localname, const char *prefi
             break;
     }
     pctx->onCharacters = NULL;
+    pctx->onCharLength = 0;
 }
 
 static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
@@ -231,15 +233,13 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             }
     }
     pctx->onCharacters = NULL;
+    pctx->onCharLength = 0;
 }
 
 static void OnCharacters(void *ctx, const char *ch, int len) {
     TParserCtx *pctx = (TParserCtx *)ctx;
     char *oldString = pctx->onCharacters;
-    size_t oldLength = 0;
-    if(oldString != NULL) {
-        oldLength = strlen(oldString);
-    }
+    size_t oldLength = pctx->onCharLength;
     char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, oldLength + (size_t)len + 1);
     if(oldString != NULL) {
         memcpy(newValue, oldString, oldLength);
@@ -306,6 +306,7 @@ bool loadFile(const FileContext *fileHandler) {
     ctx->prev_state = PARSER_STATE_INIT;
     ctx->unknown_depth = 0;
     ctx->onCharacters = NULL;
+    ctx->onCharLength = 0;
     ctx->userContext = fileHandler->userContext;
     ctx->valIf = fileHandler->valueHandling;
 

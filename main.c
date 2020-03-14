@@ -19,6 +19,14 @@ int main(int argc, char *argv[]) {
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
     handler.userContext = NULL;
+    ValueInterface valIf;
+    valIf.userData = NULL;
+    valIf.newValue = Value_new;
+    valIf.start = Value_start;
+    valIf.end = Value_end;
+    valIf.finish = Value_finish;
+    valIf.deleteValue = Value_delete;
+    handler.valueHandling = &valIf;
 
     for(int cnt = 1; cnt < argc; cnt++) {
         handler.file = argv[cnt];

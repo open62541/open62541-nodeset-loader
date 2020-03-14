@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.0)
 
+project(nodesetLoader)
+
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
                     -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
@@ -40,8 +42,4 @@ target_compile_options(profile PRIVATE -O0 -g -pg)
 target_link_libraries(profile CONAN_PKG::libxml2 -pg)
 
 add_subdirectory(tests)
-
-add_custom_target(integrationTests
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integrationTests/integrationTests.sh
-    DEPENDS parserDemo)
 

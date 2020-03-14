@@ -12,8 +12,8 @@
 #include <string.h>
 
 static void Nodeset_addNodeToSort(TNode *node);
-static TNodeId alias2Id(Nodeset* nodeset, const char *alias);
-static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref);
+static TNodeId alias2Id(Nodeset *nodeset, const char *alias);
+static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -99,7 +99,7 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
     return translateNodeId(namespaces, id);
 }
 
-static TNodeId alias2Id(Nodeset* nodeset, const char *alias) {
+static TNodeId alias2Id(Nodeset *nodeset, const char *alias) {
     for(size_t cnt = 0; cnt < nodeset->aliasSize; cnt++) {
         if(!strcmp(alias, nodeset->aliasArray[cnt]->name)) {
             return nodeset->aliasArray[cnt]->id;
@@ -110,14 +110,13 @@ static TNodeId alias2Id(Nodeset* nodeset, const char *alias) {
     return id;
 }
 
-Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
-    Nodeset* nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
+Nodeset *Nodeset_new(addNamespaceCb nsCallback) {
+    Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     nodeset->aliasArray = (Alias **)malloc(sizeof(Alias *) * MAX_ALIAS);
     nodeset->aliasSize = 0;
-    nodeset->countedRefs =
-        (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
+    nodeset->countedRefs = (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->charArena = CharArenaAllocator_new(1024*1024*20);
+    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
@@ -171,7 +170,7 @@ Nodeset* Nodeset_new(addNamespaceCb nsCallback) {
     return nodeset;
 }
 
-static void Nodeset_addNode(Nodeset* nodeset, TNode *node) {
+static void Nodeset_addNode(Nodeset *nodeset, TNode *node) {
     size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
     nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
     nodeset->nodes[node->nodeClass]->cnt++;
@@ -179,7 +178,8 @@ static void Nodeset_addNode(Nodeset* nodeset, TNode *node) {
 
 static void Nodeset_addNodeToSort(TNode *node) { addNodeToSort(node); }
 
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback, ValueInterface* valIf) {
+bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback,
+                            ValueInterface *valIf) {
 
 #ifdef XMLIMPORT_TRACE
     printf("--- namespace table ---\n");
@@ -220,7 +220,9 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callb
 
     for(size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++) {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
-        valIf->deleteValue(&((TVariableNode*)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])->value);
+
+        valIf->deleteValue(
+            &((TVariableNode *)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])->value);
     }
     return true;
 }
@@ -256,7 +258,7 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     free(n);
 }
 
-static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref) {
+static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref) {
     for(size_t i = 0; i < nodeset->hierachicalRefsSize; i++) {
         if(!strcmp(ref->refType.idString, nodeset->hierachicalRefs[i])) {
             return true;
@@ -265,8 +267,8 @@ static bool isHierachicalReference(Nodeset* nodeset, const Reference *ref) {
     return false;
 }
 
-static char *getAttributeValue(Nodeset* nodeset, const NodeAttribute *attr, const char **attributes,
-                               int nb_attributes) {
+static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
+                               const char **attributes, int nb_attributes) {
     const int fields = 5;
     for(int i = 0; i < nb_attributes; i++) {
         const char *localname = attributes[i * fields + 0];
@@ -285,11 +287,12 @@ static char *getAttributeValue(Nodeset* nodeset, const NodeAttribute *attr, cons
     return NULL;
 }
 
-static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TNode *node,
+static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces, TNode *node,
                               int attributeSize, const char **attributes) {
-    node->id = extractNodedId(namespaces,
-                              getAttributeValue(nodeset, &attrNodeId, attributes, attributeSize));
-    node->browseName = getAttributeValue(nodeset, &attrBrowseName, attributes, attributeSize);
+    node->id = extractNodedId(
+        namespaces, getAttributeValue(nodeset, &attrNodeId, attributes, attributeSize));
+    node->browseName =
+        getAttributeValue(nodeset, &attrBrowseName, attributes, attributeSize);
     switch(node->nodeClass) {
         case NODECLASS_OBJECTTYPE: {
             ((TObjectTypeNode *)node)->isAbstract =
@@ -309,7 +312,8 @@ static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TN
             ((TVariableNode *)node)->parentNodeId =
                 extractNodedId(namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                                              attributes, attributeSize));
-            char *datatype = getAttributeValue(nodeset, &attrDataType, attributes, attributeSize);
+            char *datatype =
+                getAttributeValue(nodeset, &attrDataType, attributes, attributeSize);
             TNodeId aliasId = alias2Id(nodeset, datatype);
             if(aliasId.id != 0) {
                 ((TVariableNode *)node)->datatype = aliasId;
@@ -318,8 +322,8 @@ static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TN
             }
             ((TVariableNode *)node)->valueRank =
                 getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize);
-            ((TVariableNode *)node)->arrayDimensions =
-                getAttributeValue(nodeset, &attrArrayDimensions, attributes, attributeSize);
+            ((TVariableNode *)node)->arrayDimensions = getAttributeValue(
+                nodeset, &attrArrayDimensions, attributes, attributeSize);
 
             break;
         }
@@ -327,7 +331,8 @@ static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TN
 
             ((TVariableTypeNode *)node)->valueRank =
                 getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize);
-            char *datatype = getAttributeValue(nodeset, &attrDataType, attributes, attributeSize);
+            char *datatype =
+                getAttributeValue(nodeset, &attrDataType, attributes, attributeSize);
             TNodeId aliasId = alias2Id(nodeset, datatype);
             if(aliasId.id != 0) {
                 ((TVariableTypeNode *)node)->datatype = aliasId;
@@ -335,8 +340,8 @@ static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TN
                 ((TVariableTypeNode *)node)->datatype =
                     extractNodedId(namespaces, datatype);
             }
-            ((TVariableTypeNode *)node)->arrayDimensions =
-                getAttributeValue(nodeset, &attrArrayDimensions, attributes, attributeSize);
+            ((TVariableTypeNode *)node)->arrayDimensions = getAttributeValue(
+                nodeset, &attrArrayDimensions, attributes, attributeSize);
             ((TVariableTypeNode *)node)->isAbstract =
                 getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
             break;
@@ -354,8 +359,8 @@ static void extractAttributes(Nodeset* nodeset, const TNamespace *namespaces, TN
     }
 }
 
-static void initNode(Nodeset* nodeset, TNamespace *namespaces, TNodeClass nodeClass, TNode *node,
-                     int nb_attributes, const char **attributes) {
+static void initNode(Nodeset *nodeset, TNamespace *namespaces, TNodeClass nodeClass,
+                     TNode *node, int nb_attributes, const char **attributes) {
     node->nodeClass = nodeClass;
     node->hierachicalRefs = NULL;
     node->nonHierachicalRefs = NULL;
@@ -392,11 +397,13 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass, int nb_attributes
             node = (TNode *)calloc(1, sizeof(TMethodNode));
             break;
     }
-    initNode(nodeset, nodeset->namespaceTable->ns, nodeClass, node, nb_attributes, attributes);
+    initNode(nodeset, nodeset->namespaceTable->ns, nodeClass, node, nb_attributes,
+             attributes);
     return node;
 }
 
-Reference *Nodeset_newReference(Nodeset* nodeset, TNode *node, int attributeSize, const char **attributes) {
+Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node, int attributeSize,
+                                const char **attributes) {
     Reference *newRef = (Reference *)malloc(sizeof(Reference));
     newRef->target.idString = NULL;
     newRef->target.id = NULL;
@@ -404,19 +411,20 @@ Reference *Nodeset_newReference(Nodeset* nodeset, TNode *node, int attributeSize
     newRef->refType.id = NULL;
     nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
-    if(!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes, attributeSize))) {
+    if(!strcmp("true",
+               getAttributeValue(nodeset, &attrIsForward, attributes, attributeSize))) {
         newRef->isForward = true;
     } else {
         newRef->isForward = false;
     }
-    newRef->refType =
-        extractNodedId(nodeset->namespaceTable->ns,
-                       getAttributeValue(nodeset, &attrReferenceType, attributes, attributeSize));
+    newRef->refType = extractNodedId(
+        nodeset->namespaceTable->ns,
+        getAttributeValue(nodeset, &attrReferenceType, attributes, attributeSize));
     if(isHierachicalReference(nodeset, newRef)) {
         Reference *lastRef = node->hierachicalRefs;
         node->hierachicalRefs = newRef;
         newRef->next = lastRef;
-       
+
     } else {
         Reference *lastRef = node->hierachicalRefs;
         node->hierachicalRefs = newRef;
@@ -434,9 +442,7 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attrib
 }
 
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString) {
-    alias->id =
-        extractNodedId(nodeset->namespaceTable->ns,
-                       idString);
+    alias->id = extractNodedId(nodeset->namespaceTable->ns, idString);
     nodeset->aliasSize++;
 }
 
@@ -453,8 +459,7 @@ TNamespace *Nodeset_newNamespace(Nodeset *nodeset) {
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext, char *namespaceUri) {
     nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name = namespaceUri;
     int globalIdx = nodeset->namespaceTable->cb(
-        userContext,
-        nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
+        userContext, nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
 
     nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].idx =
         (size_t)globalIdx;
@@ -475,8 +480,8 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node) {
     }
 }
 
-void Nodeset_newReferenceFinish(Nodeset* nodeset, Reference* ref, TNode* node, char* targetId)
-{
+void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
+                                char *targetId) {
     ref->target.idString = targetId;
     ref->target = extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
 }
