@@ -426,8 +426,8 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node, int attributeSize
         newRef->next = lastRef;
 
     } else {
-        Reference *lastRef = node->hierachicalRefs;
-        node->hierachicalRefs = newRef;
+        Reference *lastRef = node->nonHierachicalRefs;
+        node->nonHierachicalRefs = newRef;
         newRef->next = lastRef;
     }
     return newRef;
