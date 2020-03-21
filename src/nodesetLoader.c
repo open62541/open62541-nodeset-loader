@@ -238,14 +238,20 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
 
 static void OnCharacters(void *ctx, const char *ch, int len) {
     TParserCtx *pctx = (TParserCtx *)ctx;
-    char *oldString = pctx->onCharacters;
-    size_t oldLength = pctx->onCharLength;
-    char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, oldLength + (size_t)len + 1);
-    if(oldString != NULL) {
-        memcpy(newValue, oldString, oldLength);
+    if(pctx->onCharacters==NULL)
+    {
+        char *newValue = CharArenaAllocator_malloc(
+            pctx->nodeset->charArena, (size_t)len + 1);
+        pctx->onCharacters=newValue;
     }
-    memcpy(newValue + oldLength, ch, (size_t)len);
-    pctx->onCharacters = newValue;
+    else
+    {
+        CharArenaAllocator_expand(pctx->nodeset->charArena, (size_t)len+1);
+    }
+    memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
+    pctx->onCharLength += (size_t)len;
+    if(pctx->onCharLength>200)
+        printf("%ld\n", pctx->onCharLength);
 }
 
 static xmlSAXHandler make_sax_handler(void) {
