@@ -284,6 +284,7 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     free(n->namespaceTable->ns);
     free(n->namespaceTable);
     free(n);
+    cleanup();
 }
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref) {

@@ -16,6 +16,7 @@ extern "C" {
 struct TNode;
 struct Nodeset;
 void init(void);
+void cleanup(void);
 void addNodeToSort(struct TNode *node);
 typedef void (*OnSortCallback)(struct Nodeset *nodeset, struct TNode *node);
 bool sort(struct Nodeset *nodeset, OnSortCallback callback);

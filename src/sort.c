@@ -213,9 +213,8 @@ static void walk_tree(node *rootNode, bool (*action)(node *)) {
         recurse_tree(rootNode->right, action);
 }
 
-
-
 void init() { root1 = new_node(NULL); }
+void cleanup() {free(root1);}
 
 void addNodeToSort(TNode *data) {
     node *j = NULL;
@@ -273,5 +272,6 @@ bool sort(struct Nodeset* nodeset, OnSortCallback callback) {
         }
     }
     free(root1);
+    root1=NULL;
     return true;
 }
