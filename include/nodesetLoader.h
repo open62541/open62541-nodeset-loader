@@ -1,5 +1,6 @@
 #pragma once
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,6 +24,11 @@ typedef struct {
     char *idString;
 } TNodeId;
 
+typedef struct {
+    uint16_t nsIdx;
+    char* name;
+} TBrowseName;
+
 struct Reference;
 typedef struct Reference Reference;
 
@@ -36,7 +42,7 @@ struct Reference {
 #define UA_NODE_ATTRIBUTES                                                               \
     TNodeClass nodeClass;                                                                \
     TNodeId id;                                                                          \
-    char *browseName;                                                                    \
+    TBrowseName browseName;                                                              \
     char *displayName;                                                                   \
     char *description;                                                                   \
     char *writeMask;                                                                     \

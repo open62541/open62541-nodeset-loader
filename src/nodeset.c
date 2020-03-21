@@ -77,6 +77,16 @@ TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id) {
     return id;
 }
 
+TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName bn)
+{
+    if (bn.nsIdx > 0)
+    {
+        bn.nsIdx = (uint16_t)namespaces[bn.nsIdx].idx;
+        return bn;
+    }
+    return bn;
+}
+
 TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
     if(s == NULL) {
         TNodeId id;
@@ -97,6 +107,24 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s) {
         id.id = idxSemi + 1;
     }
     return translateNodeId(namespaces, id);
+}
+
+TBrowseName extractBrowseName(const TNamespace* namespaces, char*s)
+{
+    TBrowseName bn;
+    bn.nsIdx = 0;
+    char* bnName = strchr(s, ':');
+    if (bnName == NULL)
+    {
+        bn.name = s;
+        return bn;
+    }
+    else
+    {
+        bn.nsIdx = (uint16_t)atoi(&s[0]);
+        bn.name = bnName + 1;
+    }
+    return translateBrowseName(namespaces, bn);
 }
 
 static TNodeId alias2Id(Nodeset *nodeset, const char *alias) {
@@ -292,7 +320,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces, TN
     node->id = extractNodedId(
         namespaces, getAttributeValue(nodeset, &attrNodeId, attributes, attributeSize));
     node->browseName =
-        getAttributeValue(nodeset, &attrBrowseName, attributes, attributeSize);
+        extractBrowseName(namespaces, getAttributeValue(nodeset, &attrBrowseName, attributes, attributeSize));
     switch(node->nodeClass) {
         case NODECLASS_OBJECTTYPE: {
             ((TObjectTypeNode *)node)->isAbstract =
@@ -364,7 +392,6 @@ static void initNode(Nodeset *nodeset, TNamespace *namespaces, TNodeClass nodeCl
     node->nodeClass = nodeClass;
     node->hierachicalRefs = NULL;
     node->nonHierachicalRefs = NULL;
-    node->browseName = NULL;
     node->displayName = NULL;
     node->description = NULL;
     node->writeMask = NULL;

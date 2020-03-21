@@ -57,7 +57,9 @@ struct Nodeset {
 };
 
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);
+TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
+TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
 Nodeset* Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset* nodeset);
 void Nodeset_sort(Nodeset *nodeset);
