@@ -250,8 +250,6 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
     }
     memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
     pctx->onCharLength += (size_t)len;
-    if(pctx->onCharLength>200)
-        printf("%ld\n", pctx->onCharLength);
 }
 
 static xmlSAXHandler make_sax_handler(void) {
