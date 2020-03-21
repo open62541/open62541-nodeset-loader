@@ -116,7 +116,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback) {
     nodeset->aliasSize = 0;
     nodeset->countedRefs = (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
+    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 5);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] = (NodeContainer *)malloc(sizeof(NodeContainer));
     nodeset->nodes[NODECLASS_OBJECT]->nodes =
