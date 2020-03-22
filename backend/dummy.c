@@ -7,34 +7,13 @@
 
 #include "backend.h"
 
-int addNamespace(void* userContext, const char* uri)
-{
-    return 1;
-}
+int addNamespace(void *userContext, const char *uri) { return 1; }
 
-void addNode(void* userContext, const TNode* node)
-{
-    return;
-}
+void addNode(void *userContext, const TNode *node) { return; }
 
-struct Value *Value_new(const TNode *node)
-{
-    return NULL;
-}
+struct Value *Value_new(const TNode *node) { return NULL; }
 
-void Value_start(Value *val, const char *localname)
-{
-
-}
-void Value_end(Value *val, const char *localname, char *value)
-{
-
-}
-void Value_finish(Value *val)
-{
-
-}
-void Value_delete(Value **val)
-{
-    
-}
+void Value_start(Value *val, const char *localname) {}
+void Value_end(Value *val, const char *localname, char *value) {}
+void Value_finish(Value *val) {}
+void Value_delete(Value **val) {}

@@ -7,7 +7,8 @@ extern "C" {
 #endif
 
 #define NODECLASS_COUNT 7
-typedef enum {
+typedef enum
+{
     NODECLASS_OBJECT = 0,
     NODECLASS_OBJECTTYPE = 1,
     NODECLASS_VARIABLE = 2,
@@ -18,54 +19,61 @@ typedef enum {
     // TODO: eventtype missing
 } TNodeClass;
 
-typedef struct {
+typedef struct
+{
     int nsIdx;
     char *id;
     char *idString;
 } TNodeId;
 
-typedef struct {
+typedef struct
+{
     uint16_t nsIdx;
-    char* name;
+    char *name;
 } TBrowseName;
 
 struct Reference;
 typedef struct Reference Reference;
 
-struct Reference {
+struct Reference
+{
     bool isForward;
     TNodeId refType;
     TNodeId target;
     Reference *next;
 };
 
-#define UA_NODE_ATTRIBUTES                                                               \
-    TNodeClass nodeClass;                                                                \
-    TNodeId id;                                                                          \
-    TBrowseName browseName;                                                              \
-    char *displayName;                                                                   \
-    char *description;                                                                   \
-    char *writeMask;                                                                     \
-    Reference *hierachicalRefs;                                                          \
+#define UA_NODE_ATTRIBUTES                                                     \
+    TNodeClass nodeClass;                                                      \
+    TNodeId id;                                                                \
+    TBrowseName browseName;                                                    \
+    char *displayName;                                                         \
+    char *description;                                                         \
+    char *writeMask;                                                           \
+    Reference *hierachicalRefs;                                                \
     Reference *nonHierachicalRefs;
 
-struct TNode {
+struct TNode
+{
     UA_NODE_ATTRIBUTES
 };
 typedef struct TNode TNode;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *eventNotifier;
 } TObjectNode;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
     char *isAbstract;
 } TObjectTypeNode;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
     char *isAbstract;
     TNodeId datatype;
@@ -77,7 +85,8 @@ typedef struct {
 struct Value;
 typedef struct Value Value;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
     TNodeId datatype;
@@ -86,16 +95,19 @@ typedef struct {
     Value *value;
 } TVariableNode;
 
-typedef struct TDataTypeNode {
+typedef struct TDataTypeNode
+{
     UA_NODE_ATTRIBUTES
 } TDataTypeNode;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
 } TMethodNode;
 
-typedef struct {
+typedef struct
+{
     UA_NODE_ATTRIBUTES
 } TReferenceTypeNode;
 
@@ -107,9 +119,10 @@ typedef Value *(*newValueCb)(const TNode *node);
 typedef void (*startValueCb)(Value *val, const char *localname);
 typedef void (*endValueCb)(Value *val, const char *localname, char *value);
 typedef void (*finishValueCb)(Value *val);
-typedef void (*deleteValueCb)(Value** val);
+typedef void (*deleteValueCb)(Value **val);
 
-typedef struct {
+typedef struct
+{
     void *userData;
     newValueCb newValue;
     startValueCb start;
@@ -118,7 +131,8 @@ typedef struct {
     deleteValueCb deleteValue;
 } ValueInterface;
 
-typedef struct {
+typedef struct
+{
     const char *file;
     addNamespaceCb addNamespace;
     addNodeCb callback;
