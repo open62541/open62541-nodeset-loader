@@ -213,10 +213,11 @@ static void walk_tree(node *rootNode, bool (*action)(node *)) {
         recurse_tree(rootNode->right, action);
 }
 
-void init() { root1 = new_node(NULL); }
-void cleanup() {free(root1);}
+void Sort_init() { root1 = new_node(NULL); }
+void Sort_cleanup() {free(root1);}
 
-void addNodeToSort(TNode *data) {
+void Sort_addNode(TNode *data)
+{
     node *j = NULL;
     //add node, no matter if there are references on it
     j = search_node(root1, data->id.idString);
@@ -232,7 +233,8 @@ void addNodeToSort(TNode *data) {
     }
 }
 
-bool sort(struct Nodeset* nodeset, OnSortCallback callback) {
+bool Sort_start(struct Nodeset *nodeset, Sort_SortedNodeCallback callback)
+{
     walk_tree(root1, count_items);
 
     while(keyCnt > 0) {

@@ -15,11 +15,11 @@ extern "C" {
 
 struct TNode;
 struct Nodeset;
-void init(void);
-void cleanup(void);
-void addNodeToSort(struct TNode *node);
-typedef void (*OnSortCallback)(struct Nodeset *nodeset, struct TNode *node);
-bool sort(struct Nodeset *nodeset, OnSortCallback callback);
+void Sort_init(void);
+void Sort_cleanup(void);
+void Sort_addNode(struct TNode *node);
+typedef void (*Sort_SortedNodeCallback)(struct Nodeset *nodeset, struct TNode *node);
+bool Sort_start(struct Nodeset *nodeset, Sort_SortedNodeCallback callback);
 
 #ifdef __cplusplus
 }
