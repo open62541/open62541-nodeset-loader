@@ -4,9 +4,9 @@
 #add_test(NAME sortTest WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND check_sort ${CMAKE_CURRENT_LIST_DIR})
 
 add_test(NAME import_testNodeset WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND ./parserDemo ${PROJECT_SOURCE_DIR}/nodesets/testNodeset100nodes.xml)
-add_test(NAME import_Nodeset2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml)
+add_test(NAME import_Nodeset2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml)
 add_test(NAME import_DI WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin 
-    COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml)
-add_test(NAME import_PLCOpen WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml 
-                                ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/DI/Opc.Ua.Di.NodeSet2.xml
-                                ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/PLCopen/Opc.Ua.Plc.NodeSet2.xml)
+    COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/UA-Nodeset/Schema/Opc.Ua.NodeSet2.xml ${PROJECT_SOURCE_DIR}/nodesetsOpc.Ua.Di.NodeSet2.xml)
+add_test(NAME import_PLCOpen WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml 
+                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Di.NodeSet2.xml
+                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Plc.NodeSet2.xml)
