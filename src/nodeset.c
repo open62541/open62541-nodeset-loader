@@ -49,26 +49,28 @@ typedef struct
 {
     const char *name;
     char *defaultValue;
-    bool optional;
 } NodeAttribute;
 
-const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL, false};
-const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL, false};
-const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL, true};
-const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, NULL, true};
-const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24", false};
-const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1", false};
-const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, "",
-                                           false};
-const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false", false};
-const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true", false};
-const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL, true};
-const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL, false};
-const NodeAttribute attrExecutable = {"Executable", "true", false};
+const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL};
+const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL};
+const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL};
+const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, NULL};
+const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
+const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
+const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
+const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
+const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};
+const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL};
+const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL};
+const NodeAttribute attrExecutable = {"Executable", "true"};
+const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
+const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
+const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
+const NodeAttribute attrSymmetric= {"Symmetric", "false"};
 
 const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
-    "HasSubtype", "HasComponent",   "HasProperty"};
+    "HasSubtype", "HasComponent",   "HasProperty", "HasEncoding"};
 
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id)
 {
@@ -353,11 +355,8 @@ static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
         memcpy(value, value_start, size);
         return value;
     }
-    if (attr->defaultValue != NULL || attr->optional)
-    {
-        return attr->defaultValue;
-    }
-    return NULL;
+    //we return the defaultValue, if NULL or not, following code has to cope with it
+    return attr->defaultValue;
 }
 
 static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
@@ -409,7 +408,10 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
             nodeset, &attrValueRank, attributes, attributeSize);
         ((TVariableNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
-
+        ((TVariableNode *)node)->accessLevel = getAttributeValue(
+            nodeset, &attrAccessLevel, attributes, attributeSize);
+        ((TVariableNode *)node)->userAccessLevel = getAttributeValue(
+            nodeset, &attrUserAccessLevel, attributes, attributeSize);
         break;
     }
     case NODECLASS_VARIABLETYPE:
@@ -441,8 +443,14 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
         ((TMethodNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
+        ((TMethodNode *)node)->executable = getAttributeValue(
+            nodeset, &attrExecutable, attributes, attributeSize);
+        ((TMethodNode *)node)->userExecutable = getAttributeValue(
+            nodeset, &attrUserExecutable, attributes, attributeSize);
         break;
-    case NODECLASS_REFERENCETYPE:;
+    case NODECLASS_REFERENCETYPE:
+        ((TReferenceTypeNode *)node)->symmetric = getAttributeValue(
+            nodeset, &attrSymmetric, attributes, attributeSize);
         break;
     default:;
     }

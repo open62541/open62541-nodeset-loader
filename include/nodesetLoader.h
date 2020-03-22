@@ -92,6 +92,8 @@ typedef struct
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
+    char *accessLevel;
+    char *userAccessLevel;
     Value *value;
 } TVariableNode;
 
@@ -104,11 +106,14 @@ typedef struct
 {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
+    char* executable;
+    char* userExecutable;
 } TMethodNode;
 
 typedef struct
 {
     UA_NODE_ATTRIBUTES
+    char* symmetric;
 } TReferenceTypeNode;
 
 typedef void (*addNodeCb)(void *userContext, const TNode *);
