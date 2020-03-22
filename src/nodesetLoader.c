@@ -28,6 +28,8 @@
 #define NAMESPACEURIS "NamespaceUris"
 #define NAMESPACEURI "Uri"
 #define VALUE "Value"
+#define EXTENSIONS "Extensions"
+#define EXTENSION "Extension"
 
 typedef enum
 {
@@ -41,11 +43,14 @@ typedef enum
     PARSER_STATE_UNKNOWN,
     PARSER_STATE_NAMESPACEURIS,
     PARSER_STATE_URI,
-    PARSER_STATE_VALUE
+    PARSER_STATE_VALUE,
+    PARSER_STATE_EXTENSION,
+    PARSER_STATE_EXTENSIONS
 } TParserState;
 
 struct TParserCtx
 {
+    void *userContext;
     TParserState state;
     TParserState prev_state;
     size_t unknown_depth;
@@ -53,10 +58,11 @@ struct TParserCtx
     TNode *node;
     Alias *alias;
     char *onCharacters;
-    size_t onCharLength;
-    void *userContext;
-    struct Value *val;
+    size_t onCharLength;    
+    Value *val;
+    Extension *ext;
     ValueInterface *valIf;
+    ExtensionInterface* extIf;
     Reference *ref;
     Nodeset *nodeset;
 };
@@ -182,9 +188,12 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         else if (!strcmp(localname, VALUE))
         {
-            // pctx->val = pctx->valIf->(pctx->node->id);
             pctx->val = pctx->valIf->newValue(pctx->node);
             pctx->state = PARSER_STATE_VALUE;
+        }
+        else if (!strcmp(localname, EXTENSIONS))
+        {
+            pctx->state = PARSER_STATE_EXTENSIONS;
         }
         else
         {
@@ -193,8 +202,22 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_VALUE:
-        // Value_start(pctx->val, localname);
         pctx->valIf->start(pctx->val, localname);
+        break;
+
+    case PARSER_STATE_EXTENSIONS:
+        if(!strcmp(localname, EXTENSION))
+        {
+            pctx->ext = pctx->extIf->newExtension(pctx->node);
+            pctx->state = PARSER_STATE_EXTENSION;
+        }
+        else
+        {
+            enterUnknownState(pctx);
+        }
+        break;
+    case PARSER_STATE_EXTENSION:
+        pctx->extIf->start(pctx->ext, localname);
         break;
 
     case PARSER_STATE_REFERENCES:
@@ -276,15 +299,27 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             pctx->valIf->finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
-            // Value_finish(pctx->val);
             pctx->state = PARSER_STATE_NODE;
         }
         else
         {
             pctx->valIf->end(pctx->val, localname, pctx->onCharacters);
-            // Value_end(pctx->val, pctx->node, localname, pctx->onCharacters);
         }
         break;
+    case PARSER_STATE_EXTENSION:
+        if(!strcmp(localname, EXTENSION))
+        {
+            pctx->extIf->finish(pctx->ext);
+            pctx->state = PARSER_STATE_EXTENSIONS;
+        }
+        else
+        {
+            pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+        }
+        break;
+    case PARSER_STATE_EXTENSIONS:
+        pctx->state = PARSER_STATE_NODE;
+        break;        
     case PARSER_STATE_DESCRIPTION:
         pctx->state = PARSER_STATE_NODE;
         break;
@@ -377,7 +412,12 @@ bool loadFile(const FileContext *fileHandler)
     bool status = true;
     Nodeset *nodeset = Nodeset_new(fileHandler->addNamespace);
 
-    TParserCtx *ctx = (TParserCtx *)malloc(sizeof(TParserCtx));
+    TParserCtx *ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
+    if(!ctx)
+    {
+        status = false;
+        goto cleanup;
+    }
     ctx->nodeset = nodeset;
     ctx->state = PARSER_STATE_INIT;
     ctx->prev_state = PARSER_STATE_INIT;
@@ -386,6 +426,7 @@ bool loadFile(const FileContext *fileHandler)
     ctx->onCharLength = 0;
     ctx->userContext = fileHandler->userContext;
     ctx->valIf = fileHandler->valueHandling;
+    ctx->extIf = fileHandler->extensionHandling;
 
     FILE *f = fopen(fileHandler->file, "r");
     if (!f)

@@ -106,18 +106,17 @@ typedef struct
 {
     UA_NODE_ATTRIBUTES
     TNodeId parentNodeId;
-    char* executable;
-    char* userExecutable;
+    char *executable;
+    char *userExecutable;
 } TMethodNode;
 
 typedef struct
 {
     UA_NODE_ATTRIBUTES
-    char* symmetric;
+    char *symmetric;
 } TReferenceTypeNode;
 
 typedef void (*addNodeCb)(void *userContext, const TNode *);
-
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
 typedef Value *(*newValueCb)(const TNode *node);
@@ -125,6 +124,15 @@ typedef void (*startValueCb)(Value *val, const char *localname);
 typedef void (*endValueCb)(Value *val, const char *localname, char *value);
 typedef void (*finishValueCb)(Value *val);
 typedef void (*deleteValueCb)(Value **val);
+
+struct Extension;
+typedef struct Extension Extension;
+
+typedef Extension *(*newExtensionCb)(const TNode *);
+typedef void (*startExtensionCb)(Extension *ext, const char *localname);
+typedef void (*endExtensionCb)(Extension *val, const char *localname,
+                               char *value);
+typedef void (*finishExtensionCb)(Extension *val);
 
 typedef struct
 {
@@ -138,11 +146,21 @@ typedef struct
 
 typedef struct
 {
+    void *userData;
+    newExtensionCb newExtension;
+    startExtensionCb start;
+    endExtensionCb end;
+    finishExtensionCb finish;
+} ExtensionInterface;
+
+typedef struct
+{
+    void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    addNodeCb callback;
-    void *userContext;
+    addNodeCb callback;    
     ValueInterface *valueHandling;
+    ExtensionInterface *extensionHandling;
 } FileContext;
 
 bool loadFile(const FileContext *fileContext);
