@@ -1,4 +1,3 @@
-
 #add_executable(check_sort check_sort.cpp)
 #target_include_directories(check_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 #target_link_libraries(check_sort CONAN_PKG::gtest xmlImport)
