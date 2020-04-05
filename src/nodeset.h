@@ -7,12 +7,10 @@
 
 #ifndef NODESET_H
 #define NODESET_H
-#include "nodesetLoader.h"
+#include <charAllocator.h>
+#include <nodesetLoader/nodesetLoader.h>
 #include <stdbool.h>
 #include <stddef.h>
-#include <charAllocator.h>
-
-
 
 struct Nodeset;
 typedef struct Nodeset Nodeset;

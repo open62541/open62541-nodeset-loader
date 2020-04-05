@@ -6,9 +6,9 @@
  */
 
 #include "sort.h"
-#include "nodesetLoader.h"
 #include <assert.h>
 #include <error.h>
+#include <nodesetLoader/nodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

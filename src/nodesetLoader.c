@@ -5,7 +5,7 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "nodesetLoader.h"
+#include <nodesetLoader/nodesetLoader.h>
 #include "nodeset.h"
 #include <charAllocator.h>
 #include <libxml/SAX.h>
@@ -411,8 +411,17 @@ bool loadFile(const FileContext *fileHandler)
     }
     bool status = true;
     Nodeset *nodeset = Nodeset_new(fileHandler->addNamespace);
+    TParserCtx* ctx = NULL;
+    FILE *f = fopen(fileHandler->file, "r");
 
-    TParserCtx *ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
+    if (!f)
+    {
+        printf("file open error\n");
+        status = false;
+        goto cleanup;
+    }
+
+    ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
     if(!ctx)
     {
         status = false;
@@ -427,14 +436,6 @@ bool loadFile(const FileContext *fileHandler)
     ctx->userContext = fileHandler->userContext;
     ctx->valIf = fileHandler->valueHandling;
     ctx->extIf = fileHandler->extensionHandling;
-
-    FILE *f = fopen(fileHandler->file, "r");
-    if (!f)
-    {
-        printf("file open error\n");
-        status = false;
-        goto cleanup;
-    }
 
     if (read_xmlfile(f, ctx))
     {
