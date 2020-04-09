@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+option(ENABLE_PROFILING off "enable profiling")
+
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
                     -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
@@ -34,12 +36,15 @@ target_link_libraries(parserDemo xmlImport)
 target_compile_options(parserDemo PRIVATE ${C_COMPILE_DEFS})
 
 #target for profiling
-add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
-target_include_directories(profile
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_compile_options(profile PRIVATE -O0 -g -pg)
-target_link_libraries(profile CONAN_PKG::libxml2 -pg)
+
+if(${ENABLE_PROFILING})
+    add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
+    target_include_directories(profile
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
+        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+    target_compile_options(profile PRIVATE -O0 -g -pg)
+    target_link_libraries(profile CONAN_PKG::libxml2 -pg)
+endif()
 
 add_subdirectory(tests)
 
