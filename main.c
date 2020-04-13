@@ -15,10 +15,12 @@ int main(int argc, char *argv[]) {
         printf("specify nodesetfile as argument. E.g. parserDemo text.xml\n");
         return 1;
     }
+
+    int maxValueRank=-1;
     FileContext handler;
     handler.callback = addNode;
     handler.addNamespace = addNamespace;
-    handler.userContext = NULL;
+    handler.userContext = &maxValueRank;
     ValueInterface valIf;
     valIf.userData = NULL;
     valIf.newValue = Value_new;
@@ -35,5 +37,6 @@ int main(int argc, char *argv[]) {
             return 1;
         }
     }
+    printf("maxValue Rank: %d", maxValueRank);
     return 0;
 }

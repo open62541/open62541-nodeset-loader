@@ -15,12 +15,14 @@
 struct Nodeset;
 typedef struct Nodeset Nodeset;
 
-typedef struct {
+typedef struct
+{
     char *name;
     TNodeId id;
 } Alias;
 
-typedef struct {
+typedef struct
+{
     size_t cnt;
     TNode **nodes;
 } NodeContainer;
@@ -31,20 +33,23 @@ typedef struct TParserCtx TParserCtx;
 struct TNamespace;
 typedef struct TNamespace TNamespace;
 
-struct TNamespace {
+struct TNamespace
+{
     size_t idx;
     char *name;
 };
 
-typedef struct {
+typedef struct
+{
     size_t size;
     TNamespace *ns;
     addNamespaceCb cb;
 } TNamespaceTable;
 
-struct Nodeset {
+struct Nodeset
+{
     Reference **countedRefs;
-    struct CharArena* charArena;
+    struct CharArena *charArena;
     Alias **aliasArray;
     NodeContainer *nodes[NODECLASS_COUNT];
     size_t aliasSize;
@@ -58,20 +63,25 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s);
 TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
 TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
-Nodeset* Nodeset_new(addNamespaceCb nsCallback);
-void Nodeset_cleanup(Nodeset* nodeset);
+Nodeset *Nodeset_new(addNamespaceCb nsCallback);
+void Nodeset_cleanup(Nodeset *nodeset);
 void Nodeset_sort(Nodeset *nodeset);
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext, addNodeCb callback, ValueInterface* valIf);
-TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass, int attributeSize,
-                       const char **attributes);
+bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
+                            addNodeCb callback, ValueInterface *valIf);
+TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
+                       int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);
-Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node, int attributeSize,
-                                const char **attributes);
+Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
+                                int attributeSize, const char **attributes);
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId);
-Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attribute);
+Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
+                        const char **attribute);
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString);
 TNamespace *Nodeset_newNamespace(Nodeset *nodeset);
-void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext, char *namespaceUri);
+void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
+                                char *namespaceUri);
+void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
+                              const char **attributes);
 
 #endif

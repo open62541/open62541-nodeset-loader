@@ -6,10 +6,28 @@
  */
 
 #include "backend.h"
+#include "stdio.h"
 
 int addNamespace(void *userContext, const char *uri) { return 1; }
 
-void addNode(void *userContext, const TNode *node) { return; }
+void addNode(void *userContext, const TNode *node) {
+    if(node->nodeClass == NODECLASS_DATATYPE)
+    {
+        const TDataTypeNode* n = (const TDataTypeNode*)node;
+        printf("browseName: %s\n", n->browseName.name);
+        for(size_t i=0; i<n->definition->fieldCnt; i++)
+        {
+            printf("\t field %s\t\t valueRank: %d\n",
+                   n->definition->fields[i].name,
+                   n->definition->fields[i].valueRank);
+            if (n->definition->fields[i].valueRank > *(int*)userContext)
+            {
+                *(int *)userContext = n->definition->fields[i].valueRank;
+            }
+        }
+        
+    }
+}
 
 struct Value *Value_new(const TNode *node) { return NULL; }
 

@@ -66,7 +66,9 @@ const NodeAttribute attrExecutable = {"Executable", "true"};
 const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
 const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
-const NodeAttribute attrSymmetric= {"Symmetric", "false"};
+const NodeAttribute attrSymmetric = {"Symmetric", "false"};
+const NodeAttribute dataTypeField_Name = {"Name", NULL};
+const NodeAttribute dataTypeField_DataType = {"DataType", NULL};
 
 const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
@@ -355,7 +357,8 @@ static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
         memcpy(value, value_start, size);
         return value;
     }
-    //we return the defaultValue, if NULL or not, following code has to cope with it
+    // we return the defaultValue, if NULL or not, following code has to cope
+    // with it
     return attr->defaultValue;
 }
 
@@ -491,8 +494,13 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
         node = (TNode *)calloc(1, sizeof(TVariableTypeNode));
         break;
     case NODECLASS_DATATYPE:
-        node = (TNode *)calloc(1, sizeof(TDataTypeNode));
-        break;
+    {
+        TDataTypeNode *n = (TDataTypeNode *)calloc(1, sizeof(TDataTypeNode));
+        n->definition =
+            (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
+        node = (TNode *)n;
+    }
+    break;
     case NODECLASS_METHOD:
         node = (TNode *)calloc(1, sizeof(TMethodNode));
         break;
@@ -605,4 +613,27 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
     ref->target.idString = targetId;
     ref->target =
         extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
+}
+
+static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
+{
+    definition->fieldCnt++;
+    definition->fields = (DataTypeDefinitionField *)realloc(
+        definition->fields,
+        definition->fieldCnt * sizeof(DataTypeDefinitionField));
+    return &definition->fields[definition->fieldCnt - 1];
+}
+
+void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
+                              const char **attributes)
+{
+    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    DataTypeDefinitionField *newField = getNewField(dataTypeNode->definition);
+    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
+                                       attributeSize);
+    newField->dataType =
+        extractNodedId(nodeset->namespaceTable->ns,
+                       getAttributeValue(nodeset, &dataTypeField_DataType,
+                                         attributes, attributeSize));
+    newField->valueRank = atoi(getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,9 +98,23 @@ typedef struct
     Value *value;
 } TVariableNode;
 
+typedef struct 
+{
+    char* name;
+    TNodeId dataType;
+    int valueRank;
+} DataTypeDefinitionField;
+
+typedef struct
+{
+    DataTypeDefinitionField* fields;
+    size_t fieldCnt;
+} DataTypeDefinition;
+
 typedef struct TDataTypeNode
 {
     UA_NODE_ATTRIBUTES
+    DataTypeDefinition* definition;
 } TDataTypeNode;
 
 typedef struct
