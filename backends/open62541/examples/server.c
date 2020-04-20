@@ -19,8 +19,8 @@ int main(int argc, const char* argv[])
     UA_ServerConfig_setDefault(UA_Server_getConfig(server));
 
     FileContext handler;
-    handler.callback = addNode;
-    handler.addNamespace = addNamespace;
+    handler.callback = Backend_addNode;
+    handler.addNamespace = Backend_addNamespace;
     handler.userContext = server;
     ValueInterface valIf;
     valIf.userData = NULL;
