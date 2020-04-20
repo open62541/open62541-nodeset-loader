@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.0)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
+option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
+
 add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
                     -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
@@ -31,16 +33,13 @@ target_include_directories(xmlImport
 target_link_libraries(xmlImport ${LIBXML2_LIBRARIES} rt)
 
 
-add_executable(parserDemo main.c backend/dummy.c)
-target_link_libraries(parserDemo xmlImport)
-
 #target for profiling
-add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/util.c src/sort.c src/nodeset.c)
-target_include_directories(profile
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
-target_compile_options(profile PRIVATE -O0 -g -pg)
-target_link_libraries(profile ${LIBXML2_LIBRARIES} -pg)
+#add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/util.c src/sort.c src/nodeset.c)
+#target_include_directories(profile
+#    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
+#    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
+#target_compile_options(profile PRIVATE -O0 -g -pg)
+#target_link_libraries(profile ${LIBXML2_LIBRARIES} -pg)
 
 add_subdirectory(tests)
 
@@ -48,3 +47,9 @@ add_custom_target(integrationTests
     COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integrationTests/integrationTests.sh
     DEPENDS parserDemo)
 
+#backends
+if(${ENABLE_BACKEND_OPEN62541})
+    add_subdirectory(open62541)
+endif()
+
+add_subdirectory(backends)

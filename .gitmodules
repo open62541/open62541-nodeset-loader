@@ -1,3 +1,6 @@
 [submodule "nodesets/UA-Nodeset"]
 	path = nodesets/UA-Nodeset
 	url = https://github.com/OPCFoundation/UA-Nodeset.git
+[submodule "open62541"]
+	path = open62541
+	url = git@github.com:open62541/open62541.git
