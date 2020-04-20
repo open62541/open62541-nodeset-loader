@@ -1,27 +1,7 @@
 #include <nodesetLoader/nodesetLoader.h>
 #include "value.h"
 #include <open62541/server.h>
-
-static UA_NodeId getNodeIdFromChars(TNodeId id) {
-    if(!id.id) {
-        return UA_NODEID_NULL;
-    }
-    UA_UInt16 nsidx = (UA_UInt16)id.nsIdx;
-
-    switch(id.id[0]) {
-        // integer
-        case 'i': {
-            UA_UInt32 nodeId = (UA_UInt32)atoi(&id.id[2]);
-            return UA_NODEID_NUMERIC(nsidx, nodeId);
-            break;
-        }
-        case 's': {
-            return UA_NODEID_STRING_ALLOC(nsidx, &id.id[2]);
-            break;
-        }
-    }
-    return UA_NODEID_NULL;
-}
+#include "conversion.h"
 
 static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node) {
     Reference *ref = node->nonHierachicalRefs;
@@ -112,8 +92,8 @@ static void handleMethodNode(const TMethodNode *node, UA_NodeId *id,
                              const UA_LocalizedText *lt, const UA_QualifiedName *qn,
                              UA_Server *server) {
     UA_MethodAttributes attr = UA_MethodAttributes_default;
-    attr.executable = true;
-    attr.userExecutable = true;
+    attr.executable = isTrue(node->executable);
+    attr.userExecutable = isTrue(node->userExecutable);
     attr.displayName = *lt;
 
     UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn, attr, NULL,
