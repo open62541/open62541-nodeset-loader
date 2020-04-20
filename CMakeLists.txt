@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.0)
 
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+project(nodesetLoader)
 
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
+#option(ENABLE_PROFILING off "enable profiling")
 
-add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
+set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
                     -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
                     -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
@@ -26,26 +26,23 @@ add_definitions(-std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
 
 find_package(LibXml2 REQUIRED)
 
-add_library(xmlImport SHARED src/nodesetLoader.c src/util.c src/sort.c src/nodeset.c)
+add_library(xmlImport SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
 target_include_directories(xmlImport 
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(xmlImport ${LIBXML2_LIBRARIES} rt)
+target_link_libraries(xmlImport ${LIBXML2_LIBRARIES})
+target_compile_options(xmlImport PRIVATE ${C_COMPILE_DEFS})
 
-
-#target for profiling
-#add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/util.c src/sort.c src/nodeset.c)
-#target_include_directories(profile
-#    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
-#    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
-#target_compile_options(profile PRIVATE -O0 -g -pg)
-#target_link_libraries(profile ${LIBXML2_LIBRARIES} -pg)
+#if(${ENABLE_PROFILING})
+#    add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
+#    target_include_directories(profile
+#        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
+#        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+#    target_compile_options(profile PRIVATE -O0 -g -pg)
+#    target_link_libraries(profile CONAN_PKG::libxml2 -pg)
+#endif()
 
 add_subdirectory(tests)
-
-add_custom_target(integrationTests
-    COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/tests/integrationTests/integrationTests.sh
-    DEPENDS parserDemo)
 
 #backends
 if(${ENABLE_BACKEND_OPEN62541})

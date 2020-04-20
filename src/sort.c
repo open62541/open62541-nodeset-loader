@@ -6,9 +6,9 @@
  */
 
 #include "sort.h"
-#include "nodesetLoader.h"
 #include <assert.h>
 #include <error.h>
+#include <nodesetLoader/nodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,7 +29,7 @@ struct node {
     struct node *qlink;
     struct edge *edges;
     size_t edgeCount;
-    const TNode *data;
+    TNode *data;
 };
 
 typedef struct node node;
@@ -213,11 +213,11 @@ static void walk_tree(node *rootNode, bool (*action)(node *)) {
         recurse_tree(rootNode->right, action);
 }
 
+void Sort_init() { root1 = new_node(NULL); }
+void Sort_cleanup() {free(root1);}
 
-
-void init() { root1 = new_node(NULL); }
-
-void addNodeToSort(const TNode *data) {
+void Sort_addNode(TNode *data)
+{
     node *j = NULL;
     //add node, no matter if there are references on it
     j = search_node(root1, data->id.idString);
@@ -233,7 +233,8 @@ void addNodeToSort(const TNode *data) {
     }
 }
 
-bool sort(OnSortCallback callback) {
+bool Sort_start(struct Nodeset *nodeset, Sort_SortedNodeCallback callback)
+{
     walk_tree(root1, count_items);
 
     while(keyCnt > 0) {
@@ -243,7 +244,7 @@ bool sort(OnSortCallback callback) {
             edge *e = head->edges;
 
             if(head->data != NULL) {
-                callback(head->data);
+                callback(nodeset, head->data);
             }
 
             head->str = NULL;
@@ -266,10 +267,13 @@ bool sort(OnSortCallback callback) {
         }
         if(keyCnt > 0) {
             printf("graph contains a loop\n");
+            free(root1->left);
+            free(root1->right);
             free(root1);
             return false;
         }
     }
     free(root1);
+    root1=NULL;
     return true;
 }
