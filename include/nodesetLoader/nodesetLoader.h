@@ -103,12 +103,14 @@ typedef struct
     char* name;
     TNodeId dataType;
     int valueRank;
+    int value;
 } DataTypeDefinitionField;
 
 typedef struct
 {
     DataTypeDefinitionField* fields;
     size_t fieldCnt;
+    bool isEnum;
 } DataTypeDefinition;
 
 typedef struct TDataTypeNode

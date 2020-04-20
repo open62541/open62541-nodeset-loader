@@ -69,6 +69,7 @@ const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
 const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", NULL};
+const NodeAttribute dataTypeField_Value = {"Value", NULL};
 
 const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
     "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
@@ -161,7 +162,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     nodeset->countedRefs =
         (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
-    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 5);
+    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 15);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] =
         (NodeContainer *)malloc(sizeof(NodeContainer));
@@ -636,4 +637,11 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                        getAttributeValue(nodeset, &dataTypeField_DataType,
                                          attributes, attributeSize));
     newField->valueRank = atoi(getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
+    char *value =
+        getAttributeValue(nodeset, &dataTypeField_Value, attributes, attributeSize);
+    if(value)
+    {
+        newField->value = atoi(value);
+        dataTypeNode->definition->isEnum = true;
+    }
 }
