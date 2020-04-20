@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+include(CTest)
+enable_testing()
+
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 #option(ENABLE_PROFILING off "enable profiling")
 
