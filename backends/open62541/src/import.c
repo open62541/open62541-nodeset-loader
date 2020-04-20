@@ -223,7 +223,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
                               NULL);
 }
 
-void importNodesCallback(void *userContext, const TNode *node) {
+void addNode(void *userContext, const TNode *node){
     UA_Server *server = (UA_Server *)userContext;
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;

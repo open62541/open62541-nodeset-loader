@@ -6,4 +6,4 @@ target_link_libraries(backendOpen62541 PRIVATE xmlImport)
 target_link_libraries(backendOpen62541 PUBLIC open62541)
 
 #add_subdirectory(tests)
-#add_subdirectory(examples)
+add_subdirectory(examples)
