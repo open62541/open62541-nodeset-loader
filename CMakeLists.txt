@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+
 include(CTest)
 enable_testing()
 
@@ -28,6 +30,8 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -fexceptions) # recommended for multi-threaded C code, also in combination with C++ code
 
 find_package(LibXml2 REQUIRED)
+find_package(Check REQUIRED)
+
 
 add_library(xmlImport SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
 target_include_directories(xmlImport 

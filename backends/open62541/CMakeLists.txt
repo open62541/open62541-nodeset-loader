@@ -5,5 +5,5 @@ target_include_directories(backendOpen62541 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/i
 target_link_libraries(backendOpen62541 PRIVATE xmlImport)
 target_link_libraries(backendOpen62541 PUBLIC open62541)
 
-#add_subdirectory(tests)
+add_subdirectory(tests)
 add_subdirectory(examples)
