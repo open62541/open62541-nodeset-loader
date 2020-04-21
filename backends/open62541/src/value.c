@@ -1,6 +1,6 @@
 #include "value.h"
 #include "conversion.h"
-//#include <cassert>
+#include <assert.h>
 #include <nodesetLoader/nodesetLoader.h>
 #include <open62541/types_generated.h>
 
