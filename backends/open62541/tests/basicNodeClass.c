@@ -1,15 +1,12 @@
-#include <check.h>
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "check.h"
+#include "unistd.h"
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
-
-#include "check.h"
-#include "unistd.h"
-
 #include <openBackend.h>
 
 UA_Server *server;
@@ -29,7 +26,7 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-START_TEST(import_ValueRank)
+START_TEST(Server_ImportBasicNodeClassTest)
 {
     FileContext ctx;
     ctx.callback = Backend_addNode;
@@ -45,24 +42,6 @@ START_TEST(import_ValueRank)
     valIf.deleteValue = Value_delete;
     ctx.valueHandling = &valIf;
     ck_assert(loadFile(&ctx));
-
-    UA_Variant var;
-    UA_Variant_init(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var));
-    ck_assert(1==*(int*)var.data);
-    UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6003), &var));
-    ck_assert(13 == ((int *)var.data)[1]);
-    UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var));
-    ck_assert(300 == ((int *)var.data)[2]);
-    UA_Variant_clear(&var);
 }
 END_TEST
 
@@ -71,7 +50,7 @@ static Suite *testSuite_Client(void)
     Suite *s = suite_create("server nodeset import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, import_ValueRank);
+    tcase_add_test(tc_server, Server_ImportBasicNodeClassTest);
     suite_add_tcase(s, tc_server);
     return s;
 }

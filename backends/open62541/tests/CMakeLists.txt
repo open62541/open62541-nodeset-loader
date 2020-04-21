@@ -15,3 +15,9 @@ target_link_libraries(valueRank  PRIVATE xmlImport open62541 backendOpen62541 ${
 add_test(NAME valueRank_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND ./valueRank ${CMAKE_CURRENT_SOURCE_DIR}/valueRank.xml)
+
+add_executable(basicNodeClass basicNodeClass.c)
+target_link_libraries(basicNodeClass PRIVATE xmlImport open62541 backendOpen62541 ${CHECK_LIBRARIES})
+add_test(NAME basicNodeClass_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND ./basicNodeClass ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClassTest.xml)

@@ -212,6 +212,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
     UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
                               typeDefId, attr, NULL, NULL);
+    UA_free(arrDims);
 
     // value is copied in addVariableNode
     Value_delete(&((TVariableNode *)node)->value);
