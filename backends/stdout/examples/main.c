@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     handler.addNamespace = addNamespace;
     handler.userContext = NULL;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;

@@ -23,7 +23,7 @@ int main(int argc, const char* argv[])
     handler.addNamespace = Backend_addNamespace;
     handler.userContext = server;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;
@@ -41,7 +41,7 @@ int main(int argc, const char* argv[])
         }
     }
 
-    UA_StatusCode retval = UA_Server_run(server, &running);
+    UA_Server_run(server, &running);
 
     UA_Server_delete(server);
 }

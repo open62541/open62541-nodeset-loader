@@ -17,7 +17,7 @@ enum VALUE_STATE
 
 struct TypeList;
 
-typedef struct Value
+struct Value
 {
     bool isArray;
     enum VALUE_STATE state;
@@ -27,7 +27,8 @@ typedef struct Value
     size_t offset;
     const char *name;
     const UA_DataType *datatype;
-} Value;
+};
+
 
 struct Value *Value_new(const struct TNode *node);
 void Value_start(struct Value *val, const char *localname);

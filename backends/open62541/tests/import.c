@@ -33,7 +33,7 @@ START_TEST(Server_ImportNodeset) {
     ctx.userContext = server;
     ctx.file = nodesetPath;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;
@@ -52,12 +52,13 @@ START_TEST(Server_ImportNoFile) {
     ctx.userContext = server;
     ctx.file = "notExisting.xml";
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;
     valIf.finish = Value_finish;
     valIf.deleteValue = Value_delete;
+    ctx.valueHandling = &valIf;
     ck_assert(!loadFile(&ctx));
 }
 END_TEST
@@ -75,8 +76,6 @@ static Suite *testSuite_Client(void) {
     tcase_add_test(tc_server, Server_ImportNodeset);
     tcase_add_test(tc_server, Server_ImportNoFile);
     tcase_add_test(tc_server, Server_EmptyHandler);
-    //tcase_add_test(tc_server, Server_ImportBasicNodeClassTest);
-    //tcase_add_test(tc_server, Server_LoadNS0Values);
     suite_add_tcase(s, tc_server);
     return s;
 }

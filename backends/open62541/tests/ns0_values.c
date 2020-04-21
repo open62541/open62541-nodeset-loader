@@ -35,7 +35,6 @@ static UA_UInt16 getNamespaceIndex(const char* uri)
     for(size_t cnt = 0; cnt < namespaceArray.arrayLength; cnt++) {
         if(!strncmp((char*)((UA_String*)namespaceArray.data)[cnt].data, uri, ((UA_String*)namespaceArray.data)[cnt].length))
         {
-            
             nsidx =(UA_UInt16)cnt;
             break;
         }
@@ -51,7 +50,7 @@ START_TEST(Server_LoadNS0Values) {
     ctx.userContext = server;
     ctx.file = nodesetPath;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;
@@ -99,7 +98,7 @@ START_TEST(Server_LoadNS0Values) {
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1008), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_LOCALIZEDTEXT);
-    ck_assert_int_eq(var.arrayLength, 2);
+    ck_assert(var.arrayLength==2);
     s = UA_STRING("griasEich!");
     ck_assert(UA_String_equal(&((UA_LocalizedText *)var.data)->text, &s));
     s = UA_STRING("Hi!");

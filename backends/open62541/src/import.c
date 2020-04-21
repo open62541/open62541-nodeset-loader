@@ -146,29 +146,27 @@ static void handleMethodNode(const TMethodNode *node, UA_NodeId *id,
     }
 }
 
-int getArrayDimensions(const char *s, UA_UInt32** dims)
+static size_t getArrayDimensions(const char *s, UA_UInt32** dims)
 {
-    int length = strlen(s);
-    int arrSize = 0;
+    size_t length = strlen(s);
+    size_t arrSize = 0;
     if (0==length)
     {
         return 0;
     }
-    size_t idx = 0;
     // add the first one
     int val = atoi(s);
     arrSize++;
-    *dims = malloc(sizeof(UA_UInt32));
-    *dims[0] = val;
+    *dims = (UA_UInt32*) malloc(sizeof(UA_UInt32));
+    *dims[0] = (UA_UInt32)val;
 
     const char* subString = strchr(s, ';');
 
     while (subString!=NULL)
     {
-        int val = atoi(subString + 1);
         arrSize++;
-        *dims = realloc(*dims, arrSize*sizeof(UA_UInt32));
-        *dims[arrSize-1]=val;
+        *dims = (UA_UInt32*)realloc(*dims, arrSize*sizeof(UA_UInt32));
+        *dims[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
         subString = strchr(subString + 1, ';');
     }
     return arrSize;
@@ -215,7 +213,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     UA_free(arrDims);
 
     // value is copied in addVariableNode
-    Value_delete(&((TVariableNode *)node)->value);
+    Value_delete(&((TVariableNode *)(uintptr_t)node)->value);
 }
 
 static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,

@@ -34,7 +34,7 @@ START_TEST(Server_ImportBasicNodeClassTest)
     ctx.userContext = server;
     ctx.file = nodesetPath;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;

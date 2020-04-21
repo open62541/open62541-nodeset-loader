@@ -16,7 +16,7 @@ typedef enum
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
     NODECLASS_VARIABLETYPE = 6
-    // TODO: eventtype missing
+    // eventtype is handled like a object type
 } TNodeClass;
 
 typedef struct
