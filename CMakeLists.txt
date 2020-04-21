@@ -15,7 +15,7 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
                     -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
                     -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
-                    -Wmissing-prototypes -Wstrict-prototypes #-Wredundant-decls
+                    -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
                     -Wformat -Wformat-security -Wformat-nonliteral
                     -Wuninitialized -Winit-self
                     -Wcast-qual
