@@ -5,10 +5,10 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include <nodesetLoader/nodesetLoader.h>
 #include "nodeset.h"
 #include <charAllocator.h>
 #include <libxml/SAX.h>
+#include <nodesetLoader/nodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -58,11 +58,11 @@ struct TParserCtx
     TNode *node;
     Alias *alias;
     char *onCharacters;
-    size_t onCharLength;    
+    size_t onCharLength;
     Value *val;
     Extension *ext;
     ValueInterface *valIf;
-    ExtensionInterface* extIf;
+    ExtensionInterface *extIf;
     Reference *ref;
     Nodeset *nodeset;
 };
@@ -206,9 +206,12 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_EXTENSIONS:
-        if(!strcmp(localname, EXTENSION))
+        if (!strcmp(localname, EXTENSION))
         {
-            pctx->ext = pctx->extIf->newExtension(pctx->node);
+            if (pctx->extIf)
+            {
+                pctx->ext = pctx->extIf->newExtension(pctx->node);
+            }
             pctx->state = PARSER_STATE_EXTENSION;
         }
         else
@@ -217,17 +220,18 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        pctx->extIf->start(pctx->ext, localname);
+        if(pctx->extIf)
+        {
+            pctx->extIf->start(pctx->ext, localname);
+        }        
         break;
 
     case PARSER_STATE_REFERENCES:
         if (!strcmp(localname, REFERENCE))
         {
             pctx->state = PARSER_STATE_REFERENCE;
-            // extractReferenceAttributes(pctx, nb_attributes, attributes);
             pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
                                              nb_attributes, attributes);
-            // Nodeset_newReference
         }
         else
         {
@@ -307,19 +311,25 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        if(!strcmp(localname, EXTENSION))
+        if (!strcmp(localname, EXTENSION))
         {
-            pctx->extIf->finish(pctx->ext);
+            if (pctx->extIf)
+            {
+                pctx->extIf->finish(pctx->ext);
+            }
             pctx->state = PARSER_STATE_EXTENSIONS;
         }
         else
         {
-            pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+            if (pctx->extIf)
+            {
+                pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+            }
         }
         break;
     case PARSER_STATE_EXTENSIONS:
         pctx->state = PARSER_STATE_NODE;
-        break;        
+        break;
     case PARSER_STATE_DESCRIPTION:
         pctx->state = PARSER_STATE_NODE;
         break;
@@ -411,7 +421,7 @@ bool loadFile(const FileContext *fileHandler)
     }
     bool status = true;
     Nodeset *nodeset = Nodeset_new(fileHandler->addNamespace);
-    TParserCtx* ctx = NULL;
+    TParserCtx *ctx = NULL;
     FILE *f = fopen(fileHandler->file, "r");
 
     if (!f)
@@ -422,7 +432,7 @@ bool loadFile(const FileContext *fileHandler)
     }
 
     ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
-    if(!ctx)
+    if (!ctx)
     {
         status = false;
         goto cleanup;

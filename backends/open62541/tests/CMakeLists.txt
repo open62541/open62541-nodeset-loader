@@ -21,3 +21,9 @@ target_link_libraries(basicNodeClass PRIVATE xmlImport open62541 backendOpen6254
 add_test(NAME basicNodeClass_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND ./basicNodeClass ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClassTest.xml)
+
+add_executable(extension extension.c)
+target_link_libraries(extension PRIVATE xmlImport open62541 backendOpen62541 ${CHECK_LIBRARIES})
+add_test(NAME extension_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND ./extension ${CMAKE_CURRENT_SOURCE_DIR}/extension.xml)

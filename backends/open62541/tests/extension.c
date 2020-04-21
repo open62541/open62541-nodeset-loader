@@ -2,31 +2,32 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#include "check.h"
+#include "unistd.h"
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
-
-#include "check.h"
-#include "unistd.h"
-
 #include <openBackend.h>
 
 UA_Server *server;
-char* nodesetPath=NULL;
+char *nodesetPath = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
+static void teardown(void)
+{
     UA_Server_run_shutdown(server);
     UA_Server_delete(server);
 }
 
-START_TEST(Server_ImportNodeset) {
+START_TEST(extensions)
+{
     FileContext ctx;
     ctx.callback = Backend_addNode;
     ctx.addNamespace = Backend_addNamespace;
@@ -44,44 +45,18 @@ START_TEST(Server_ImportNodeset) {
 }
 END_TEST
 
-
-START_TEST(Server_ImportNoFile) {
-    FileContext ctx;
-    ctx.callback = Backend_addNode;
-    ctx.addNamespace = Backend_addNamespace;
-    ctx.userContext = server;
-    ctx.file = "notExisting.xml";
-    ValueInterface valIf;
-    valIf.userData = NULL;
-    valIf.newValue = Value_new;
-    valIf.start = Value_start;
-    valIf.end = Value_end;
-    valIf.finish = Value_finish;
-    valIf.deleteValue = Value_delete;
-    ck_assert(!loadFile(&ctx));
-}
-END_TEST
-
-
-START_TEST(Server_EmptyHandler) {
-    ck_assert(!loadFile(NULL));
-}
-END_TEST
-
-static Suite *testSuite_Client(void) {
-    Suite *s = suite_create("server nodeset import");
-    TCase *tc_server = tcase_create("server nodeset import");
+static Suite *testSuite_Client(void)
+{
+    Suite *s = suite_create("extensions");
+    TCase *tc_server = tcase_create("extensions");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, Server_ImportNodeset);
-    tcase_add_test(tc_server, Server_ImportNoFile);
-    tcase_add_test(tc_server, Server_EmptyHandler);
-    //tcase_add_test(tc_server, Server_ImportBasicNodeClassTest);
-    //tcase_add_test(tc_server, Server_LoadNS0Values);
+    tcase_add_test(tc_server, extensions);
     suite_add_tcase(s, tc_server);
     return s;
 }
 
-int main(int argc, char*argv[]) {
+int main(int argc, char *argv[])
+{
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
