@@ -161,7 +161,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
         if (!strcmp(localname, NAMESPACEURI))
         {
             Nodeset_newNamespace(pctx->nodeset);
-            // pctx->nextOnCharacters = &ns->name;
             pctx->state = PARSER_STATE_URI;
         }
         else
@@ -175,7 +174,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME))
         {
-            // pctx->nextOnCharacters = &pctx->node->displayName;
             pctx->state = PARSER_STATE_DISPLAYNAME;
         }
         else if (!strcmp(localname, REFERENCES))

@@ -136,7 +136,7 @@ typedef void (*finishExtensionCb)(Extension *val);
 
 typedef struct
 {
-    void *userData;
+    void *userContext;
     newValueCb newValue;
     startValueCb start;
     endValueCb end;
@@ -146,7 +146,7 @@ typedef struct
 
 typedef struct
 {
-    void *userData;
+    void *userContext;
     newExtensionCb newExtension;
     startExtensionCb start;
     endExtensionCb end;
