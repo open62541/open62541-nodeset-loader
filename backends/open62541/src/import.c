@@ -4,6 +4,30 @@
 #include <open62541/server.h>
 #include <openBackend.h>
 
+void BackendOpen62541_addNode(void *userContext, const TNode *node);
+int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
+
+bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
+                            void *extensionHandling)
+{
+    FileContext handler;
+    handler.callback = BackendOpen62541_addNode;
+    handler.addNamespace = BackendOpen62541_addNamespace;
+    handler.userContext = server;
+    handler.file = path;
+    ValueInterface valIf;
+    valIf.userContext = NULL;
+    valIf.newValue = BackendOpen62541_Value_new;
+    valIf.start = BackendOpen62541_Value_start;
+    valIf.end = BackendOpen62541_Value_end;
+    valIf.finish = BackendOpen62541_Value_finish;
+    valIf.deleteValue = BackendOpen62541_Value_delete;
+    handler.valueHandling = &valIf;
+    handler.extensionHandling = NULL;
+
+    return loadFile(&handler);
+}
+
 static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node)
 {
     Reference *ref = node->nonHierachicalRefs;
@@ -133,7 +157,7 @@ static void handleMethodNode(const TMethodNode *node, UA_NodeId *id,
 
     UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn,
                             attr, NULL, 0, NULL, 0, NULL, NULL, NULL);
-    Reference* ref = node->nonHierachicalRefs;
+    Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
         UA_NodeId refId = getReferenceTypeId(ref);
@@ -146,26 +170,26 @@ static void handleMethodNode(const TMethodNode *node, UA_NodeId *id,
     }
 }
 
-static size_t getArrayDimensions(const char *s, UA_UInt32** dims)
+static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
 {
     size_t length = strlen(s);
     size_t arrSize = 0;
-    if (0==length)
+    if (0 == length)
     {
         return 0;
     }
     // add the first one
     int val = atoi(s);
     arrSize++;
-    *dims = (UA_UInt32*) malloc(sizeof(UA_UInt32));
+    *dims = (UA_UInt32 *)malloc(sizeof(UA_UInt32));
     *dims[0] = (UA_UInt32)val;
 
-    const char* subString = strchr(s, ';');
+    const char *subString = strchr(s, ';');
 
-    while (subString!=NULL)
+    while (subString != NULL)
     {
         arrSize++;
-        *dims = (UA_UInt32*)realloc(*dims, arrSize*sizeof(UA_UInt32));
+        *dims = (UA_UInt32 *)realloc(*dims, arrSize * sizeof(UA_UInt32));
         *dims[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
         subString = strchr(subString + 1, ';');
     }
@@ -182,13 +206,14 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.displayName = *lt;
     attr.dataType = getNodeIdFromChars(node->datatype);
     attr.valueRank = atoi(node->valueRank);
-    UA_UInt32* arrDims = NULL;
-    attr.arrayDimensionsSize = getArrayDimensions(node->arrayDimensions, &arrDims);
+    UA_UInt32 *arrDims = NULL;
+    attr.arrayDimensionsSize =
+        getArrayDimensions(node->arrayDimensions, &arrDims);
     attr.arrayDimensions = arrDims;
 
     // todo: is this really necessary??
     UA_UInt32 dims = 0;
-    if (attr.arrayDimensionsSize==0 && node->value && node->value->isArray)
+    if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {
         dims = (UA_UInt32)node->value->arrayCnt;
         attr.arrayDimensions = &dims;
@@ -213,7 +238,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     UA_free(arrDims);
 
     // value is copied in addVariableNode
-    Value_delete(&((TVariableNode *)(uintptr_t)node)->value);
+    BackendOpen62541_Value_delete(&((TVariableNode *)(uintptr_t)node)->value);
 }
 
 static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
@@ -286,7 +311,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
                               attr, NULL, NULL);
 }
 
-void Backend_addNode(void *userContext, const TNode *node)
+void BackendOpen62541_addNode(void *userContext, const TNode *node)
 {
     UA_Server *server = (UA_Server *)userContext;
     UA_NodeId id = getNodeIdFromChars(node->id);
@@ -333,7 +358,7 @@ void Backend_addNode(void *userContext, const TNode *node)
     }
 }
 
-int Backend_addNamespace(void *userContext, const char *namespaceUri)
+int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
 {
     int idx =
         (int)UA_Server_addNamespace((UA_Server *)userContext, namespaceUri);

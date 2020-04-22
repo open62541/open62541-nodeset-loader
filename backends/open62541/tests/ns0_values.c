@@ -44,20 +44,8 @@ static UA_UInt16 getNamespaceIndex(const char* uri)
 }
 
 START_TEST(Server_LoadNS0Values) {
-    FileContext ctx;
-    ctx.callback = Backend_addNode;
-    ctx.addNamespace = Backend_addNamespace;
-    ctx.userContext = server;
-    ctx.file = nodesetPath;
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = Value_new;
-    valIf.start = Value_start;
-    valIf.end = Value_end;
-    valIf.finish = Value_finish;
-    valIf.deleteValue = Value_delete;
-    ctx.valueHandling = &valIf;
-    ck_assert(loadFile(&ctx));
+
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_UInt16 nsIdx =
         getNamespaceIndex("http://open62541.com/nodesetimport/tests/namespaceZeroValues");
     ck_assert_uint_gt(nsIdx, 0);

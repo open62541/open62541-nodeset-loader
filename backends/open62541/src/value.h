@@ -29,11 +29,11 @@ struct Value
     const UA_DataType *datatype;
 };
 
-
-struct Value *Value_new(const struct TNode *node);
-void Value_start(struct Value *val, const char *localname);
-void Value_end(struct Value *val, const char *localname, char *value);
-void Value_finish(struct Value *val);
-void Value_delete(struct Value **val);
+struct Value *BackendOpen62541_Value_new(const struct TNode *node);
+void BackendOpen62541_Value_start(struct Value *val, const char *localname);
+void BackendOpen62541_Value_end(struct Value *val, const char *localname,
+                                char *value);
+void BackendOpen62541_Value_finish(struct Value *val);
+void BackendOpen62541_Value_delete(struct Value **val);
 
 #endif

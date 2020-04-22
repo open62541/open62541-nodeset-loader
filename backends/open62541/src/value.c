@@ -44,7 +44,8 @@ static TypeList *TypeList_pop(TypeList *stack) {
     return tmp;
 }
 
-Value *Value_new(const TNode *node) {
+Value *BackendOpen62541_Value_new(const TNode *node)
+{
     if(!(node->nodeClass == NODECLASS_VARIABLE)) {
         if(node->nodeClass == NODECLASS_VARIABLETYPE) {
             printf("Values on variable types are not handled\n");
@@ -91,7 +92,8 @@ static void isBuiltinSpecialType(Value *val) {
     }
 }
 
-void Value_start(Value *val, const char *localname) {
+void BackendOpen62541_Value_start(Value *val, const char *localname)
+{
     if(!val)
         return;
     switch(val->state) {
@@ -258,7 +260,8 @@ static void nextType(Value *val) {
     }
 }
 
-void Value_end(Value *val, const char *localname, char *value) {
+void BackendOpen62541_Value_end(Value *val, const char *localname, char *value)
+{
     if(!val)
         return;
     switch(val->state) {
@@ -316,7 +319,8 @@ void Value_end(Value *val, const char *localname, char *value) {
     }
 }
 
-void Value_finish(Value *val) {
+void BackendOpen62541_Value_finish(Value *val)
+{
     if(!val) {
         return;
     }
@@ -325,7 +329,8 @@ void Value_finish(Value *val) {
     }
 }
 
-void Value_delete(Value **val) {
+void BackendOpen62541_Value_delete(Value **val)
+{
     Value *v = *val;
     if(!v)
         return;

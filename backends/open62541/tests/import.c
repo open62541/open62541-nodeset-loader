@@ -27,45 +27,21 @@ static void teardown(void) {
 }
 
 START_TEST(Server_ImportNodeset) {
-    FileContext ctx;
-    ctx.callback = Backend_addNode;
-    ctx.addNamespace = Backend_addNamespace;
-    ctx.userContext = server;
-    ctx.file = nodesetPath;
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = Value_new;
-    valIf.start = Value_start;
-    valIf.end = Value_end;
-    valIf.finish = Value_finish;
-    valIf.deleteValue = Value_delete;
-    ctx.valueHandling = &valIf;
-    ck_assert(loadFile(&ctx));
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath,
+                                         NULL));
 }
 END_TEST
 
 
 START_TEST(Server_ImportNoFile) {
-    FileContext ctx;
-    ctx.callback = Backend_addNode;
-    ctx.addNamespace = Backend_addNamespace;
-    ctx.userContext = server;
-    ctx.file = "notExisting.xml";
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = Value_new;
-    valIf.start = Value_start;
-    valIf.end = Value_end;
-    valIf.finish = Value_finish;
-    valIf.deleteValue = Value_delete;
-    ctx.valueHandling = &valIf;
-    ck_assert(!loadFile(&ctx));
+    ck_assert(
+        !NodesetLoader_loadFile(server, "notExisting.xml", NULL));
 }
 END_TEST
 
 
 START_TEST(Server_EmptyHandler) {
-    ck_assert(!loadFile(NULL));
+    ck_assert(!NodesetLoader_loadFile(NULL, NULL, NULL));
 }
 END_TEST
 
