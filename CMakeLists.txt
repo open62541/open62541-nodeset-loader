@@ -42,15 +42,15 @@ if(${ENABLE_BACKEND_OPEN62541})
     add_subdirectory(open62541)
 endif()
 
-add_library(xmlImport SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
-target_include_directories(xmlImport 
+add_library(NodesetLoader SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
+target_include_directories(NodesetLoader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(xmlImport PRIVATE ${LIBXML2_LIBRARIES})
+target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 if(${ENABLE_BACKEND_OPEN62541})
-    target_link_libraries(xmlImport PRIVATE open62541)
+    target_link_libraries(NodesetLoader PRIVATE open62541)
 endif()
-target_compile_options(xmlImport PRIVATE ${C_COMPILE_DEFS})
+target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 
 #if(${ENABLE_PROFILING})
 #    add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
