@@ -2,7 +2,28 @@
 #include "value.h"
 #include <nodesetLoader/nodesetLoader.h>
 #include <open62541/server.h>
-#include <openBackend.h>
+#include <Nodeset>
+#include <NodesetLoader_open62541.h>
+
+bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
+                            void *extensionHandling)
+{
+    FileContext handler;
+    handler.callback = Backend_addNode;
+    handler.addNamespace = Backend_addNamespace;
+    handler.userContext = server;
+    handler.file = path;
+    ValueInterface valIf;
+    valIf.userContext = NULL;
+    valIf.newValue = Value_new;
+    valIf.start = Value_start;
+    valIf.end = Value_end;
+    valIf.finish = Value_finish;
+    valIf.deleteValue = Value_delete;
+    handler.valueHandling = &valIf;
+
+    return loadFile(&handler);
+}
 
 static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node)
 {

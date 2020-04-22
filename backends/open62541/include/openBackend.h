@@ -7,16 +7,11 @@
 
 #ifndef __BACKEND_H__
 #define __BACKEND_H__
-#include <nodesetLoader/nodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 
-int Backend_addNamespace(void *userContext, const char *namespaceUri);
-void Backend_addNode(void *userContext, const TNode *node);
+struct UA_Server;
+bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
+                            void *extensionHandling);
 
-struct Value *Value_new(const TNode *node);
-void Value_start(Value *val, const char *localname);
-void Value_end(Value *val, const char *localname, char *value);
-void Value_finish(Value *val);
-void Value_delete(Value **val);
 #endif
