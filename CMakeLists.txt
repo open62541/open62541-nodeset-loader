@@ -37,11 +37,19 @@ if(${ENABLE_ASAN})
     set(${C_COMPILE_DEFS} -g -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 endif()
 
+#backends
+if(${ENABLE_BACKEND_OPEN62541})
+    add_subdirectory(open62541)
+endif()
+
 add_library(xmlImport SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
 target_include_directories(xmlImport 
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
-target_link_libraries(xmlImport ${LIBXML2_LIBRARIES})
+target_link_libraries(xmlImport PRIVATE ${LIBXML2_LIBRARIES})
+if(${ENABLE_BACKEND_OPEN62541})
+    target_link_libraries(xmlImport PRIVATE open62541)
+endif()
 target_compile_options(xmlImport PRIVATE ${C_COMPILE_DEFS})
 
 #if(${ENABLE_PROFILING})
@@ -54,10 +62,4 @@ target_compile_options(xmlImport PRIVATE ${C_COMPILE_DEFS})
 #endif()
 
 add_subdirectory(tests)
-
-#backends
-if(${ENABLE_BACKEND_OPEN62541})
-    add_subdirectory(open62541)
-endif()
-
 add_subdirectory(backends)

@@ -1,9 +1,10 @@
+target_sources(xmlImport
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c 
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/value.c
+)
 
-add_library(backendOpen62541 STATIC src/import.c src/value.c)
-target_include_directories(backendOpen62541 PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_include_directories(backendOpen62541 PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(backendOpen62541 PRIVATE xmlImport)
-target_link_libraries(backendOpen62541 PUBLIC open62541)
+target_include_directories(xmlImport PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 add_subdirectory(tests)
 add_subdirectory(examples)
