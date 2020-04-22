@@ -10,7 +10,7 @@ Support parsing of extensions (via a callback interface)
 
 ## dependencies
 xmlImport: libXml (http://www.xmlsoft.org/) for parsing the nodeset xml \
-unit testing: gtest (https://github.com/google/googletest)
+unit testing: libcheck
 
 ## Design goals
 1) performance
@@ -26,7 +26,7 @@ make \
 ./parserDemo pathToNodesetFile1 pathToNodesetFile2
   
 ## Integration with open62541
-take a look on https://github.com/matkonnerth/openWrapper
+take a look on https://github.com/matkonnerth/openWrapper or on the server example
 
 ## todos
 
