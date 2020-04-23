@@ -39,6 +39,10 @@ START_TEST(import_ValueRank)
 
     UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 5002), &refTypeClass);
     ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
+
+    UA_StatusCode status = UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 5003), &refTypeClass);
+    ck_assert(UA_STATUSCODE_GOOD==status);
+    ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
 }
 END_TEST
 

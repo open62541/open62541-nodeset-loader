@@ -33,7 +33,7 @@ static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node)
     Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
-        if (!strcmp("HasTypeDefinition", ref->refType.idString))
+        if (!strcmp("i=40", ref->refType.id))
         {
             return getNodeIdFromChars(ref->target);
         }
