@@ -1,6 +1,7 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,8 +24,9 @@ typedef struct
 {
     int nsIdx;
     char *id;
-    char *idString;
 } TNodeId;
+
+int TNodeId_cmp(const TNodeId* id1, const TNodeId* id2);
 
 typedef struct
 {

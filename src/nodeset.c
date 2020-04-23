@@ -97,14 +97,12 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s)
     if (s == NULL)
     {
         TNodeId id;
-        id.id = 0;
+        id.id = NULL;
         id.nsIdx = 0;
-        id.idString = "null";
         return id;
     }
     TNodeId id;
     id.nsIdx = 0;
-    id.idString = s;
     char *idxSemi = strchr(s, ';');
     if (idxSemi == NULL)
     {
@@ -331,7 +329,7 @@ static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
 {
     for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
     {
-        if (!strcmp(ref->refType.idString, nodeset->hierachicalRefs[i]))
+        if (!TNodeId_cmp(&ref->refType, &nodeset->hierachicalRefs[i].id))
         {
             return true;
         }
