@@ -23,7 +23,7 @@ struct edge {
 typedef struct edge edge;
 
 struct node {
-    const char *str;
+    const TNodeId* id;
     struct node *left, *right;
     int balance;
     struct node *qlink;
@@ -42,10 +42,10 @@ struct node *root1 = NULL;
 
 static size_t keyCnt = 0;
 
-static node *new_node(const char *str) {
+static node *new_node(const TNodeId* id) {
     node *k = (node *)malloc(sizeof *k);
 
-    k->str = str;
+    k->id = id;
     k->left = k->right = NULL;
     k->balance = 0;
 
@@ -56,19 +56,19 @@ static node *new_node(const char *str) {
     return k;
 }
 
-static node *search_node(node *rootNode, const char *str) {
+static node *search_node(node *rootNode, const TNodeId* nodeId) {
     node *p, *q, *r, *s, *t;
 
     assert(rootNode);
 
     if(rootNode->right == NULL)
-        return (rootNode->right = new_node(str));
+        return (rootNode->right = new_node(nodeId));
 
     t = rootNode;
     s = p = rootNode->right;
 
     while(true) {
-        int a = strcmp(str, p->str);
+        int a = TNodeId_cmp(nodeId, p->id);
         if(a == 0)
             return p;
 
@@ -78,28 +78,34 @@ static node *search_node(node *rootNode, const char *str) {
             q = p->right;
 
         if(q == NULL) {
-            q = new_node(str);
+            q = new_node(nodeId);
 
             if(a < 0)
                 p->left = q;
             else
                 p->right = q;
 
-            assert(!STREQ(str, s->str));
-            if(strcmp(str, s->str) < 0) {
+            assert(TNodeId_cmp(nodeId, s->id));
+            if (TNodeId_cmp(nodeId, s->id) < 0)
+            {
                 r = p = s->left;
                 a = -1;
-            } else {
+            }
+            else
+            {
                 r = p = s->right;
                 a = 1;
             }
 
             while(p != q) {
-                assert(!STREQ(str, p->str));
-                if(strcmp(str, p->str) < 0) {
+                assert(TNodeId_cmp(nodeId, p->id));
+                if (TNodeId_cmp(nodeId, p->id) < 0)
+                {
                     p->balance = -1;
                     p = p->left;
-                } else {
+                }
+                else
+                {
                     p->balance = 1;
                     p = p->right;
                 }
@@ -164,7 +170,8 @@ static node *search_node(node *rootNode, const char *str) {
 static void record_relation(node *from, node *to) {
     struct edge *e;
 
-    if(!STREQ(from->str, to->str)) {
+    if (TNodeId_cmp(from->id, to->id))
+    {
         to->edgeCount++;
         e = (edge *)malloc(sizeof(edge));
         e->dest = to;
@@ -179,7 +186,7 @@ static bool count_items(node *unused) {
 }
 
 static bool scan_zeros(node *k) {
-    if(k->edgeCount == 0 && k->str) {
+    if(k->edgeCount == 0 && k->id) {
         if(head == NULL)
             head = k;
         else
@@ -220,13 +227,13 @@ void Sort_addNode(TNode *data)
 {
     node *j = NULL;
     //add node, no matter if there are references on it
-    j = search_node(root1, data->id.idString);
+    j = search_node(root1, &data->id);
     j->data = data;
     Reference *hierachicalRef = data->hierachicalRefs;
     while(hierachicalRef) {
         if(!hierachicalRef->isForward) {
 
-            node *k = search_node(root1, hierachicalRef->target.idString);
+            node *k = search_node(root1, &hierachicalRef->target);
             record_relation(k, j);
         }
         hierachicalRef = hierachicalRef->next;
@@ -247,7 +254,7 @@ bool Sort_start(struct Nodeset *nodeset, Sort_SortedNodeCallback callback)
                 callback(nodeset, head->data);
             }
 
-            head->str = NULL;
+            head->id = NULL;
             keyCnt--;
 
             while(e) {

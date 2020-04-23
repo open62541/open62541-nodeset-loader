@@ -71,7 +71,7 @@ const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 
 TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
-     {0, "i=35", "i=35"},
+     {0, "i=35"},
      {0, "Organizes"},
      NULL,
      NULL,
@@ -80,7 +80,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=36", "i=36"},
+     {0, "i=36"},
      {0, "HasEventSource"},
      NULL,
      NULL,
@@ -89,7 +89,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=48", "i=48"},
+     {0, "i=48"},
      {0, "HasNotifier"},
      NULL,
      NULL,
@@ -98,7 +98,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=44", "i=44"},
+     {0, "i=44"},
      {0, "Aggregates"},
      NULL,
      NULL,
@@ -107,7 +107,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=45", "i=45"},
+     {0, "i=45"},
      {0, "HasSubtype"},
      NULL,
      NULL,
@@ -116,7 +116,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=47", "i=47"},
+     {0, "i=47"},
      {0, "HasComponent"},
      NULL,
      NULL,
@@ -125,7 +125,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=46", "i=46"},
+     {0, "i=46"},
      {0, "HasProperty"},
      NULL,
      NULL,
@@ -134,7 +134,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=47", "i=47"},
+     {0, "i=47"},
      {0, "HasEncoding"},
      NULL,
      NULL,
@@ -169,14 +169,12 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s)
     if (s == NULL)
     {
         TNodeId id;
-        id.id = 0;
+        id.id = NULL;
         id.nsIdx = 0;
-        id.idString = "null";
         return id;
     }
     TNodeId id;
     id.nsIdx = 0;
-    id.idString = s;
     char *idxSemi = strchr(s, ';');
     if (idxSemi == NULL)
     {
@@ -218,7 +216,7 @@ static TNodeId alias2Id(Nodeset *nodeset, const char *alias)
             return nodeset->aliasArray[cnt]->id;
         }
     }
-    TNodeId id = {0, NULL, NULL};
+    TNodeId id = {0, NULL};
     return id;
 }
 
@@ -402,7 +400,7 @@ static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
 {
     for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
     {
-        if (!strcmp(ref->refType.id, nodeset->hierachicalRefs[i].id.id))
+        if (!TNodeId_cmp(&ref->refType, &nodeset->hierachicalRefs[i].id))
         {
             return true;
         }
@@ -578,9 +576,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes)
 {
     Reference *newRef = (Reference *)malloc(sizeof(Reference));
-    newRef->target.idString = NULL;
     newRef->target.id = NULL;
-    newRef->refType.idString = NULL;
     newRef->refType.id = NULL;
     nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
@@ -594,9 +590,9 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         newRef->isForward = false;
     }
     // TODO: should we check if its an alias
-    newRef->refType.idString = getAttributeValue(nodeset, &attrReferenceType,
+    char* aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
                                                  attributes, attributeSize);
-    TNodeId aliasId = alias2Id(nodeset, newRef->refType.idString);
+    TNodeId aliasId = alias2Id(nodeset, aliasIdString);
 
     if (aliasId.id != NULL)
     {
@@ -604,8 +600,8 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     }
     else
     {
-        newRef->refType = extractNodedId(nodeset->namespaceTable->ns,
-                                         newRef->refType.idString);
+        newRef->refType =
+            extractNodedId(nodeset->namespaceTable->ns, aliasIdString);
     }
     
     if (isHierachicalReference(nodeset, newRef))
@@ -627,7 +623,8 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
                         const char **attributes)
 {
     nodeset->aliasArray[nodeset->aliasSize] = (Alias *)malloc(sizeof(Alias));
-    nodeset->aliasArray[nodeset->aliasSize]->id.idString = NULL;
+    nodeset->aliasArray[nodeset->aliasSize]->id.id = NULL;
+    nodeset->aliasArray[nodeset->aliasSize]->id.nsIdx = 0;
     nodeset->aliasArray[nodeset->aliasSize]->name =
         getAttributeValue(nodeset, &attrAlias, attributes, attributeSize);
     return nodeset->aliasArray[nodeset->aliasSize];
@@ -672,8 +669,8 @@ static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
         {
             for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
             {
-                if (!strcmp(nodeset->hierachicalRefs[i].id.idString,
-                            ref->target.idString))
+                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id,
+                            &ref->target))
                 {
                     nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
                         *(TReferenceTypeNode *)node;
@@ -697,7 +694,6 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
-    ref->target.idString = targetId;
     ref->target =
-        extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
+        extractNodedId(nodeset->namespaceTable->ns, targetId);
 }
