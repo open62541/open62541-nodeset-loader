@@ -51,7 +51,7 @@ struct Nodeset {
     size_t refsSize;
     TNamespaceTable *namespaceTable;
     size_t hierachicalRefsSize;
-    const char **hierachicalRefs;
+    TReferenceTypeNode *hierachicalRefs;
 };
 
 TNodeId extractNodedId(const TNamespace *namespaces, char *s);

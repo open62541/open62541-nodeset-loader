@@ -48,39 +48,7 @@ static UA_NodeId getReferenceTypeId(const Reference *ref)
     {
         return UA_NODEID_NULL;
     }
-    if (!strcmp(ref->refType.idString, "HasProperty"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY);
-    }
-    else if (!strcmp(ref->refType.idString, "HasComponent"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT);
-    }
-    else if (!strcmp(ref->refType.idString, "Organizes"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES);
-    }
-    else if (!strcmp(ref->refType.idString, "HasTypeDefinition"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
-    }
-    else if (!strcmp(ref->refType.idString, "HasSubtype"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE);
-    }
-    else if (!strcmp(ref->refType.idString, "HasEncoding"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASENCODING);
-    }
-    else if (!strcmp(ref->refType.idString, "HasModellingRule"))
-    {
-        return UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE);
-    }
-    else
-    {
-        return getNodeIdFromChars(ref->refType);
-    }
-    return UA_NODEID_NULL;
+    return getNodeIdFromChars(ref->refType);
 }
 
 static UA_NodeId getReferenceTarget(const Reference *ref)
