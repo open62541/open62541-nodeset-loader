@@ -10,6 +10,14 @@ int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
                             void *extensionHandling)
 {
+    if(!server)
+    {
+        return false;
+    }
+    if(!path)
+    {
+        return false;
+    }
     FileContext handler;
     handler.callback = BackendOpen62541_addNode;
     handler.addNamespace = BackendOpen62541_addNamespace;
