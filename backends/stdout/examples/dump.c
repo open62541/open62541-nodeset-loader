@@ -14,19 +14,19 @@ int addNamespace(void* userContext, const char* uri)
 
 void addNode(void* userContext, const TNode* node)
 {
-    printf("NodeId: %s BrowseName: %s DisplayName: %s\n", node->id.idString,
+    printf("NodeId: %s BrowseName: %s DisplayName: %s\n", node->id.id,
     node->browseName.name, node->displayName);
 
     switch (node->nodeClass)
     {
         case NODECLASS_OBJECT:
-            printf("\tparentNodeId: %s\n", ((const TObjectNode *)node)->parentNodeId.idString);
+            printf("\tparentNodeId: %s\n", ((const TObjectNode *)node)->parentNodeId.id);
             printf("\teventNotifier: %s\n", ((const TObjectNode *)node)->eventNotifier);
             break;
         case NODECLASS_VARIABLE:
             printf("\tparentNodeId: %s\n", ((const TVariableNode
-    *)node)->parentNodeId.idString);
-            printf("\tdatatype: %s\n", ((const TVariableNode *)node)->datatype.idString);
+    *)node)->parentNodeId.id);
+            printf("\tdatatype: %s\n", ((const TVariableNode *)node)->datatype.id);
             printf("\tvalueRank: %s\n", ((const TVariableNode *)node)->valueRank);
             printf("\tarrayDimensions: %s\n", ((const TVariableNode *)node)->valueRank);
             break;
@@ -44,16 +44,16 @@ void addNode(void* userContext, const TNode* node)
     Reference *hierachicalRef = node->hierachicalRefs;
     while (hierachicalRef)
     {
-        printf("\treftype: %s target: %s\n", hierachicalRef->refType.idString,
-    hierachicalRef->target.idString);
+        printf("\treftype: %s target: %s\n", hierachicalRef->refType.id,
+    hierachicalRef->target.id);
         hierachicalRef = hierachicalRef->next;
     }
 
     Reference *nonHierRef = node->nonHierachicalRefs;
     while (nonHierRef)
     {
-        printf("\treftype: %s target: %s\n", nonHierRef->refType.idString,
-    nonHierRef->target.idString);
+        printf("\treftype: %s target: %s\n", nonHierRef->refType.id,
+    nonHierRef->target.id);
         nonHierRef = nonHierRef->next;
     }
     

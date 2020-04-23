@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 static TNodeId alias2Id(Nodeset *nodeset, const char *alias);
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
@@ -66,11 +67,82 @@ const NodeAttribute attrExecutable = {"Executable", "true"};
 const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
 const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
-const NodeAttribute attrSymmetric= {"Symmetric", "false"};
+const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 
-const char *hierachicalReferences[MAX_HIERACHICAL_REFS] = {
-    "Organizes",  "HasEventSource", "HasNotifier", "Aggregates",
-    "HasSubtype", "HasComponent",   "HasProperty", "HasEncoding"};
+TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=35"},
+     {0, "Organizes"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=36"},
+     {0, "HasEventSource"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=48"},
+     {0, "HasNotifier"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=44"},
+     {0, "Aggregates"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=45"},
+     {0, "HasSubtype"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=47"},
+     {0, "HasComponent"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=46"},
+     {0, "HasProperty"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=47"},
+     {0, "HasEncoding"},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL},
+};
 
 TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id)
 {
@@ -144,8 +216,7 @@ static TNodeId alias2Id(Nodeset *nodeset, const char *alias)
             return nodeset->aliasArray[cnt]->id;
         }
     }
-    TNodeId id;
-    id.id = 0;
+    TNodeId id = {0, NULL};
     return id;
 }
 
@@ -201,8 +272,8 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
         (TNode **)malloc(sizeof(TNode *) * MAX_VARIABLETYPES);
     nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt = 0;
     // known hierachical refs
-    nodeset->hierachicalRefs = hierachicalReferences;
-    nodeset->hierachicalRefsSize = 7;
+    nodeset->hierachicalRefs = hierachicalRefs;
+    nodeset->hierachicalRefsSize = 8;
 
     TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
     table->cb = nsCallback;
@@ -353,7 +424,8 @@ static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
         memcpy(value, value_start, size);
         return value;
     }
-    //we return the defaultValue, if NULL or not, following code has to cope with it
+    // we return the defaultValue, if NULL or not, following code has to cope
+    // with it
     return attr->defaultValue;
 }
 
@@ -393,7 +465,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
         TNodeId aliasId = alias2Id(nodeset, datatype);
-        if (aliasId.id != 0)
+        if (aliasId.id != NULL)
         {
             ((TVariableNode *)node)->datatype = aliasId;
         }
@@ -420,7 +492,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
         TNodeId aliasId = alias2Id(nodeset, datatype);
-        if (aliasId.id != 0)
+        if (aliasId.id != NULL)
         {
             ((TVariableTypeNode *)node)->datatype = aliasId;
         }
@@ -504,9 +576,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes)
 {
     Reference *newRef = (Reference *)malloc(sizeof(Reference));
-    newRef->target.idString = NULL;
     newRef->target.id = NULL;
-    newRef->refType.idString = NULL;
     newRef->refType.id = NULL;
     nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
@@ -519,10 +589,21 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     {
         newRef->isForward = false;
     }
-    newRef->refType =
-        extractNodedId(nodeset->namespaceTable->ns,
-                       getAttributeValue(nodeset, &attrReferenceType,
-                                         attributes, attributeSize));
+    // TODO: should we check if its an alias
+    char* aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
+                                                 attributes, attributeSize);
+    TNodeId aliasId = alias2Id(nodeset, aliasIdString);
+
+    if (aliasId.id != NULL)
+    {
+        newRef->refType = aliasId;
+    }
+    else
+    {
+        newRef->refType =
+            extractNodedId(nodeset->namespaceTable->ns, aliasIdString);
+    }
+    
     if (isHierachicalReference(nodeset, newRef))
     {
         Reference *lastRef = node->hierachicalRefs;
@@ -542,7 +623,8 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
                         const char **attributes)
 {
     nodeset->aliasArray[nodeset->aliasSize] = (Alias *)malloc(sizeof(Alias));
-    nodeset->aliasArray[nodeset->aliasSize]->id.idString = NULL;
+    nodeset->aliasArray[nodeset->aliasSize]->id.id = NULL;
+    nodeset->aliasArray[nodeset->aliasSize]->id.nsIdx = 0;
     nodeset->aliasArray[nodeset->aliasSize]->name =
         getAttributeValue(nodeset, &attrAlias, attributes, attributeSize);
     return nodeset->aliasArray[nodeset->aliasSize];
@@ -578,29 +660,40 @@ void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
         (size_t)globalIdx;
 }
 
+static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
+{
+    Reference *ref = node->hierachicalRefs;
+    while (ref)
+    {
+        if (!ref->isForward)
+        {
+            for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
+            {
+                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id,
+                            &ref->target))
+                {
+                    nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
+                        *(TReferenceTypeNode *)node;
+                    break;
+                }
+            }
+        }
+        ref = ref->next;
+    }
+}
+
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 {
     Sort_addNode(node);
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
-        Reference *ref = node->hierachicalRefs;
-        while (ref)
-        {
-            if (!ref->isForward)
-            {
-                nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
-                    node->id.idString;
-                break;
-            }
-            ref = ref->next;
-        }
+        addIfHierachicalReferenceType(nodeset, node);
     }
 }
 
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
-    ref->target.idString = targetId;
     ref->target =
-        extractNodedId(nodeset->namespaceTable->ns, ref->target.idString);
+        extractNodedId(nodeset->namespaceTable->ns, targetId);
 }
