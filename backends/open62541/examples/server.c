@@ -27,6 +27,6 @@ int main(int argc, const char *argv[])
         }
     }
 
-    //UA_Server_run(server, &running);
+    UA_Server_run(server, &running);
     UA_Server_delete(server);
 }
