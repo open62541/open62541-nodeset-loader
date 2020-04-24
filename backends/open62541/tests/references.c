@@ -43,7 +43,7 @@ static UA_NodeId getTypeDefinitionId(UA_Server* server, const UA_NodeId targetId
         return UA_NODEID_NULL;
     }
     UA_NodeId id = br.references->nodeId.nodeId;
-    UA_BrowseDescription_clear(&bd);
+    UA_BrowseResult_clear(&br);
     return id;
 }
 
