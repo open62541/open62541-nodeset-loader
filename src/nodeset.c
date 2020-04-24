@@ -7,10 +7,10 @@
 
 #include "nodeset.h"
 #include "sort.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 static TNodeId alias2Id(Nodeset *nodeset, const char *alias);
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
@@ -572,6 +572,25 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
     return node;
 }
 
+static bool isKnownReferenceType(Nodeset *nodeset, const TNodeId *refTypeId)
+{
+    //we state that we know all references from namespace 0
+    if (refTypeId->nsIdx == 0)
+    {
+        return true;
+    }
+    for (size_t i = 0; i < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; i++)
+    {
+        if (!TNodeId_cmp(
+                refTypeId,
+                &nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[i]->id))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes)
 {
@@ -590,8 +609,8 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         newRef->isForward = false;
     }
     // TODO: should we check if its an alias
-    char* aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
-                                                 attributes, attributeSize);
+    char *aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
+                                            attributes, attributeSize);
     TNodeId aliasId = alias2Id(nodeset, aliasIdString);
 
     if (aliasId.id != NULL)
@@ -603,8 +622,12 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         newRef->refType =
             extractNodedId(nodeset->namespaceTable->ns, aliasIdString);
     }
-    
-    if (isHierachicalReference(nodeset, newRef))
+
+    bool isKnownRef =
+        isKnownReferenceType(nodeset, &newRef->refType);
+    // TODO: we have to check later on, if it's really a hierachical reference
+    // type, otherwise the reference should be marked as non hierachical
+    if (isHierachicalReference(nodeset, newRef) || !isKnownRef)
     {
         Reference *lastRef = node->hierachicalRefs;
         node->hierachicalRefs = newRef;
@@ -669,8 +692,7 @@ static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
         {
             for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
             {
-                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id,
-                            &ref->target))
+                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id, &ref->target))
                 {
                     nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
                         *(TReferenceTypeNode *)node;
@@ -694,6 +716,5 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
-    ref->target =
-        extractNodedId(nodeset->namespaceTable->ns, targetId);
+    ref->target = extractNodedId(nodeset->namespaceTable->ns, targetId);
 }
