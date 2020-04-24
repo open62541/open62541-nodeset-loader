@@ -33,3 +33,9 @@ target_link_libraries(newHierachicalRef PRIVATE NodesetLoader open62541 ${CHECK_
 add_test(NAME newHierachicalRef_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND ./newHierachicalRef ${CMAKE_CURRENT_SOURCE_DIR}/newHierachicalRef.xml)
+
+add_executable(references references.c)
+target_link_libraries(references PRIVATE NodesetLoader open62541 ${CHECK_LIBRARIES})
+add_test(NAME references_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND ./references ${CMAKE_CURRENT_SOURCE_DIR}/references.xml)
