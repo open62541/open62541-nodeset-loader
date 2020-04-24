@@ -5,10 +5,10 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "sort.h"
+#include "Sort.h"
 #include <assert.h>
 #include <error.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

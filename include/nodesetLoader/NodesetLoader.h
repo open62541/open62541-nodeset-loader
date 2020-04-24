@@ -2,6 +2,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "TNodeId.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,14 +21,6 @@ typedef enum
     NODECLASS_VARIABLETYPE = 6
     // eventtype is handled like a object type
 } TNodeClass;
-
-typedef struct
-{
-    int nsIdx;
-    char *id;
-} TNodeId;
-
-int TNodeId_cmp(const TNodeId* id1, const TNodeId* id2);
 
 typedef struct
 {
