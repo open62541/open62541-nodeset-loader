@@ -1,7 +1,7 @@
-#add_executable(check_sort check_sort.cpp)
-#target_include_directories(check_sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-#target_link_libraries(check_sort CONAN_PKG::gtest xmlImport)
-#add_test(NAME sortTest WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND check_sort ${CMAKE_CURRENT_LIST_DIR})
+add_executable(sort sort.c)
+target_include_directories(sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+target_link_libraries(sort PRIVATE NodesetLoader ${CHECK_LIBRARIES} pthread)
+add_test(NAME sort_Test WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/bin COMMAND sort ${CMAKE_CURRENT_LIST_DIR})
 
 SET(STDOUT_BINARY_DIR ${CMAKE_BINARY_DIR}/backends/stdout/examples)
 
