@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/instances/Types.xsd" xmlns:s2="http://yourorganisation.org/types/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://yourorganisation.org/instances/</Uri>
+        <Uri>http://yourorganisation.org/types/</Uri>
+    </NamespaceUris>
+    <Aliases>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <ua:ModelInfo Tool="UaModeler" Hash="MdnuusI1nECVCxySCR/Gew==" Version="1.6.2"/>
+        </Extension>
+    </Extensions>
+    <UAObject NodeId="ns=1;i=5002" BrowseName="1:MyListInstance">
+        <DisplayName>MyListInstance</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">ns=2;i=1002</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+    </UAObject>
+    <UAObject ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=5001" BrowseName="1:Instance1">
+        <DisplayName>Instance1</DisplayName>
+        <Description>The type for objects that organize other nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+    </UAObject>
+    <UAObject ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=5003" BrowseName="1:Instance2">
+        <DisplayName>Instance2</DisplayName>
+        <Description>The base type for all object nodes.</Description>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+    </UAObject>
+    <UAObjectType NodeId="ns=2;i=1002" BrowseName="2:MyList">
+        <DisplayName>MyList</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">ns=2;i=5001</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=58</Reference>
+        </References>
+    </UAObjectType>
+    <UAObject SymbolicName="Data" ParentNodeId="ns=2;i=1002" NodeId="ns=2;i=5001" BrowseName="1:&lt;Data>">
+        <DisplayName>&lt;Data></DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="HasModellingRule">i=11508</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=2;i=1002</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>

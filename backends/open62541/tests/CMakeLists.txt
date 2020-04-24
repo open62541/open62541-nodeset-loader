@@ -39,3 +39,9 @@ target_link_libraries(references PRIVATE NodesetLoader open62541 ${CHECK_LIBRARI
 add_test(NAME references_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND references ${CMAKE_CURRENT_SOURCE_DIR}/references.xml)
+
+add_executable(multipleNamespaces multipleNamespaces.c)
+target_link_libraries(multipleNamespaces PRIVATE NodesetLoader open62541 ${CHECK_LIBRARIES})
+add_test(NAME multipleNamespaces_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND multipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/multipleNamespaces.xml)
