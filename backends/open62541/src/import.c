@@ -186,6 +186,8 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.arrayDimensionsSize =
         getArrayDimensions(node->arrayDimensions, &arrDims);
     attr.arrayDimensions = arrDims;
+    attr.accessLevel = (UA_Byte) atoi(node->accessLevel);
+    attr.userAccessLevel = (UA_Byte) atoi(node->userAccessLevel);
 
     // todo: is this really necessary??
     UA_UInt32 dims = 0;
