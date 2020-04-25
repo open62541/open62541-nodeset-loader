@@ -48,7 +48,8 @@ add_library(NodesetLoader SHARED
     src/Nodeset.c 
     src/CharAllocator.c 
     src/AliasList.c 
-    src/NamespaceList.c)
+    src/NamespaceList.c
+    src/Node.c)
 target_include_directories(NodesetLoader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})

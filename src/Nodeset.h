@@ -28,20 +28,14 @@ typedef struct TParserCtx TParserCtx;
 
 struct AliasList;
 struct Nodeset {
-    Reference **countedRefs;
     struct CharArena* charArena;
     struct AliasList* aliasList;
     NodeContainer *nodes[NODECLASS_COUNT];
-    size_t refsSize;
     struct NamespaceList* namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
 };
 
-//TNodeId extractNodedId(const TNamespace *namespaces, char *s);
-//TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
-//TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
-//TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
 Nodeset* Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset* nodeset);
 void Nodeset_sort(Nodeset *nodeset);
