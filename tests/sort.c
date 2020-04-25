@@ -17,23 +17,24 @@ static void sortCallback(struct Nodeset* nodeset, TNode *node)
 
 START_TEST(singleNode) {
     sortedNodesCnt = 0;
-    Sort_init();
+    SortContext* ctx = Sort_init();
 
     TNode a;
     a.hierachicalRefs = NULL;
     a.id.nsIdx = 0;
     a.id.id = "nodeA";
 
-    Sort_addNode(&a);
-    Sort_start(NULL, sortCallback);
+    Sort_addNode(ctx, &a);
+    Sort_start(ctx, NULL, sortCallback);
     ck_assert(sortedNodesCnt == 1);
+    Sort_cleanup(ctx);
 }
 END_TEST
 
 
 START_TEST(sortNodes) {
     sortedNodesCnt = 0;
-    Sort_init();
+    SortContext *ctx = Sort_init();
 
     TNode a;
     a.hierachicalRefs = NULL;
@@ -48,11 +49,12 @@ START_TEST(sortNodes) {
     c.id.nsIdx = 0;
     c.id.id = "nodeC";
 
-    Sort_addNode(&a);
-    Sort_addNode(&b);
-    Sort_addNode(&c);
-    Sort_start(NULL, sortCallback);
+    Sort_addNode(ctx, &a);
+    Sort_addNode(ctx, &b);
+    Sort_addNode(ctx, &c);
+    Sort_start(ctx, NULL, sortCallback);
     ck_assert(sortedNodesCnt==3);
+    Sort_cleanup(ctx);
 }
 END_TEST
 
@@ -61,7 +63,7 @@ END_TEST
 // expect: nodeA, nodeB
 START_TEST(nodeWithRefs_1) {
     sortedNodesCnt = 0;
-    Sort_init();
+    SortContext *ctx = Sort_init();
 
     TNode a;
 
@@ -79,12 +81,13 @@ START_TEST(nodeWithRefs_1) {
     b.id.nsIdx = 0;
     b.id.id = "nodeB";
 
-    Sort_addNode(&b);
-    Sort_addNode(&a);
-    Sort_start(NULL, sortCallback);
+    Sort_addNode(ctx, &b);
+    Sort_addNode(ctx, &a);
+    Sort_start(ctx, NULL, sortCallback);
     ck_assert(sortedNodesCnt==2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
     ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
+    Sort_cleanup(ctx);
 }
 END_TEST
 
@@ -93,7 +96,7 @@ END_TEST
 // expect: nodeA, nodeB
 START_TEST(nodeWithRefs_2) {
     sortedNodesCnt = 0;
-    Sort_init();
+    SortContext *ctx = Sort_init();
 
     TNode a;
 
@@ -111,12 +114,13 @@ START_TEST(nodeWithRefs_2) {
     b.id.nsIdx=0;
     b.id.id = "nodeB";
 
-    Sort_addNode(&a);
-    Sort_addNode(&b);
-    Sort_start(NULL, sortCallback);
+    Sort_addNode(ctx, &a);
+    Sort_addNode(ctx, &b);
+    Sort_start(ctx, NULL, sortCallback);
     ck_assert(sortedNodesCnt == 2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
     ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
+    Sort_cleanup(ctx);
 }
 END_TEST
 
@@ -160,8 +164,9 @@ TEST(sort, cycle) {
 
 START_TEST(empty)
 {
-    Sort_init();
-    Sort_start(NULL, sortCallback);
+    SortContext *ctx = Sort_init();
+    Sort_start(ctx, NULL, sortCallback);
+    Sort_cleanup(ctx);
 }
 END_TEST
 

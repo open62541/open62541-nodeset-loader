@@ -24,6 +24,7 @@ struct NamespaceList;
 
 struct NodeContainer;
 struct AliasList;
+struct SortContext;
 struct Nodeset {
     struct CharArena* charArena;
     struct AliasList* aliasList;
@@ -31,6 +32,7 @@ struct Nodeset {
     struct NamespaceList* namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
+    struct SortContext* sortCtx;
 };
 
 
@@ -39,7 +41,7 @@ void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 size_t Nodeset_getNodes(
     Nodeset *nodeset, TNodeClass nodeClass,
-    TNode **nodes);
+    TNode ***nodes);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
                        int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);

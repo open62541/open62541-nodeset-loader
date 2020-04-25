@@ -34,13 +34,13 @@ struct node {
 
 typedef struct node node;
 
-static node *head = NULL;
-
-static node *zeros = NULL;
-
-struct node *root1 = NULL;
-
-static size_t keyCnt = 0;
+struct SortContext
+{
+    node *head;
+    node *zeros;
+    node *root1;
+    size_t keyCnt;
+};
 
 static node *new_node(const TNodeId* id) {
     node *k = (node *)malloc(sizeof *k);
@@ -180,107 +180,110 @@ static void record_relation(node *from, node *to) {
     }
 }
 
-static bool count_items(node *unused) {
-    keyCnt++;
+static bool count_items(SortContext* ctx, node *unused) {
+    ctx->keyCnt++;
     return false;
 }
 
-static bool scan_zeros(node *k) {
+static bool scan_zeros(SortContext* ctx, node *k) {
     if(k->edgeCount == 0 && k->id) {
-        if(head == NULL)
-            head = k;
+        if(ctx->head == NULL)
+            ctx->head = k;
         else
-            zeros->qlink = k;
+            ctx->zeros->qlink = k;
 
-        zeros = k;
+        ctx->zeros = k;
     }
 
     return false;
 }
 
-static bool recurse_tree(node *rootNode, bool (*action)(node *)) {
+static bool recurse_tree(SortContext* ctx, node *rootNode, bool (*action)(SortContext* ctx, node *)) {
     if(rootNode->left == NULL && rootNode->right == NULL)
-        return (*action)(rootNode);
+        return (*action)(ctx, rootNode);
     else {
         if(rootNode->left != NULL)
-            if(recurse_tree(rootNode->left, action))
+            if(recurse_tree(ctx, rootNode->left, action))
                 return true;
-        if((*action)(rootNode))
+        if((*action)(ctx, rootNode))
             return true;
         if(rootNode->right != NULL)
-            if(recurse_tree(rootNode->right, action))
+            if(recurse_tree(ctx, rootNode->right, action))
                 return true;
     }
 
     return false;
 }
 
-static void walk_tree(node *rootNode, bool (*action)(node *)) {
+static void walk_tree(SortContext* ctx, node *rootNode, bool (*action)(SortContext* ctx, node *)) {
     if(rootNode->right)
-        recurse_tree(rootNode->right, action);
+        recurse_tree(ctx, rootNode->right, action);
 }
 
-void Sort_init() { root1 = new_node(NULL); }
-void Sort_cleanup() {free(root1);}
+SortContext* Sort_init() { 
+    SortContext* ctx = (SortContext*) calloc(1, sizeof(SortContext));
+    ctx->root1 = new_node(NULL);
+    return ctx;
+}
 
-void Sort_addNode(TNode *data)
+void Sort_cleanup(SortContext* ctx) {
+    free(ctx->root1);
+    free(ctx);
+}
+
+void Sort_addNode(SortContext* ctx, TNode *data)
 {
     node *j = NULL;
     //add node, no matter if there are references on it
-    j = search_node(root1, &data->id);
+    j = search_node(ctx->root1, &data->id);
     j->data = data;
     Reference *hierachicalRef = data->hierachicalRefs;
     while(hierachicalRef) {
         if(!hierachicalRef->isForward) {
 
-            node *k = search_node(root1, &hierachicalRef->target);
+            node *k = search_node(ctx->root1, &hierachicalRef->target);
             record_relation(k, j);
         }
         hierachicalRef = hierachicalRef->next;
     }
 }
 
-bool Sort_start(struct Nodeset *nodeset, Sort_SortedNodeCallback callback)
+bool Sort_start(SortContext* ctx, struct Nodeset *nodeset, Sort_SortedNodeCallback callback)
 {
-    walk_tree(root1, count_items);
+    walk_tree(ctx, ctx->root1, count_items);
 
-    while(keyCnt > 0) {
-        walk_tree(root1, scan_zeros);
+    while(ctx->keyCnt > 0) {
+        walk_tree(ctx, ctx->root1, scan_zeros);
 
-        while(head) {
-            edge *e = head->edges;
+        while(ctx->head) {
+            edge *e = ctx->head->edges;
 
-            if(head->data != NULL) {
-                callback(nodeset, head->data);
+            if(ctx->head->data != NULL) {
+                callback(nodeset, ctx->head->data);
             }
 
-            head->id = NULL;
-            keyCnt--;
+            ctx->head->id = NULL;
+            ctx->keyCnt--;
 
             while(e) {
                 e->dest->edgeCount--;
                 if(e->dest->edgeCount == 0) {
-                    zeros->qlink = e->dest;
-                    zeros = e->dest;
+                    ctx->zeros->qlink = e->dest;
+                    ctx->zeros = e->dest;
                 }
                 edge *tmp = e;
                 e = e->next;
                 free(tmp);
             }
 
-            node *tmp = head;
-            head = head->qlink;
+            node *tmp = ctx->head;
+            ctx->head = ctx->head->qlink;
             free(tmp);
         }
-        if(keyCnt > 0) {
+        if(ctx->keyCnt > 0) {
             printf("graph contains a loop\n");
-            free(root1->left);
-            free(root1->right);
-            free(root1);
             return false;
         }
     }
-    free(root1);
-    root1=NULL;
     return true;
 }

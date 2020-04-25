@@ -496,13 +496,6 @@ bool NodesetLoader_importFile(NodesetLoader* loader, const FileContext *fileHand
         status = false;
     }
 
-    Nodeset_sort(loader->nodeset);
-    //if (!Nodeset_getSortedNodes(nodeset, fileHandler->userContext,
-    //                            fileHandler->callback, ctx->valIf))
-    //{
-    //    status = false;
-    //}
-
 cleanup:
     free(ctx);
     if (f)
@@ -512,6 +505,10 @@ cleanup:
     return status;
 }
 
+bool NodesetLoader_sort(NodesetLoader* loader)
+{
+    return Nodeset_sort(loader->nodeset);
+}
 
 NodesetLoader *NodesetLoader_new()
 {
@@ -527,7 +524,7 @@ void NodesetLoader_delete(NodesetLoader *loader)
 }
 
 size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                             TNode **nodes)
+                             TNode ***nodes)
 {
     return Nodeset_getNodes(loader->nodeset, nodeClass, nodes);
 }

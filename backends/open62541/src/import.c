@@ -340,77 +340,76 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 
     NodesetLoader *loader = NodesetLoader_new();
     bool status = NodesetLoader_importFile(loader, &handler);
-
+    NodesetLoader_sort(loader);
     if (status)
     {
         {
-            TReferenceTypeNode *nodes = NULL;
+            TNode** nodes = NULL;
             size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE,
-                                                (TNode **)&nodes);
-            for (TReferenceTypeNode *node = nodes; node != nodes + cnt; node++)
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TDataTypeNode *nodes = NULL;
+            TNode **nodes = NULL;
             size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE,
-                                                (TNode **)&nodes);
-            for (TDataTypeNode *node = nodes; node != nodes + cnt; node++)
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TObjectTypeNode *nodes = NULL;
+            TNode **nodes = NULL;
             size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE,
-                                                (TNode **)&nodes);
-            for (TObjectTypeNode *node = nodes; node != nodes + cnt; node++)
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TObjectNode *nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECT,
-                                                (TNode **)&nodes);
-            for (TObjectNode *node = nodes; node != nodes + cnt; node++)
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_OBJECT, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TMethodNode *nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_METHOD,
-                                                (TNode **)&nodes);
-            for (TMethodNode *node = nodes; node != nodes + cnt; node++)
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_METHOD, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TVariableTypeNode *nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE,
-                                                (TNode **)&nodes);
-            for (TVariableTypeNode *node = nodes; node != nodes + cnt; node++)
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
+                addNode(server, *node);
             }
         }
 
         {
-            TVariableNode *nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLE,
-                                                (TNode **)&nodes);
-            for (TVariableNode *node = nodes; node != nodes + cnt; node++)
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_VARIABLE, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
             {
-                addNode(server, (TNode *)node);
-                BackendOpen62541_Value_delete(&node->value);
+                addNode(server, *node);
             }
         }
     }

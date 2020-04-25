@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_ALIAS 100
+#define MAX_ALIAS 300
 
 struct AliasList
 {
@@ -22,6 +22,7 @@ AliasList *AliasList_new()
 
 Alias *AliasList_newAlias(AliasList *list, char *name)
 {
+    assert(list->size < MAX_ALIAS);
     list->data[list->size].name = name;
     list->data[list->size].id.id = NULL;
     list->data[list->size].id.nsIdx = 0;

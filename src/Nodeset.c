@@ -238,7 +238,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
-    Sort_init();
+    nodeset->sortCtx = Sort_init();
     return nodeset;
 }
 
@@ -249,23 +249,17 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 
 bool Nodeset_sort(Nodeset *nodeset)
 {
-    return Sort_start(nodeset, Nodeset_addNode);
+    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode);
 }
 
-size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode **nodes)
+size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes)
 {
-    *nodes = *nodeset->nodes[nodeClass]->nodes;
+    *nodes = nodeset->nodes[nodeClass]->nodes;
     return nodeset->nodes[nodeClass]->size;
-    /*
-    valIf->deleteValue(
-        &((TVariableNode *)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])
-             ->value);
-    */
 }
 
 void Nodeset_cleanup(Nodeset *nodeset)
 {
-    Nodeset *n = nodeset;
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
     for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
@@ -273,8 +267,8 @@ void Nodeset_cleanup(Nodeset *nodeset)
         NodeContainer_delete(nodeset->nodes[cnt]);
     }
     NamespaceList_delete(nodeset->namespaces);
-    free(n);
-    Sort_cleanup();
+    Sort_cleanup(nodeset->sortCtx);
+    free(nodeset);
 }
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
@@ -512,7 +506,7 @@ static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
 
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 {
-    Sort_addNode(node);
+    Sort_addNode(nodeset->sortCtx, node);
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
         addIfHierachicalReferenceType(nodeset, node);
