@@ -17,9 +17,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    int maxValueRank=-1;
+    int maxValueRank = -1;
     FileContext handler;
-    handler.callback = addNode;
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
     ValueInterface valIf;
@@ -31,15 +30,91 @@ int main(int argc, char *argv[])
     valIf.deleteValue = Value_delete;
     handler.valueHandling = &valIf;
 
+    NodesetLoader *loader = NodesetLoader_new();
+
     for (int cnt = 1; cnt < argc; cnt++)
     {
         handler.file = argv[cnt];
-        if (!loadFile(&handler))
+        if (!NodesetLoader_importFile(loader, &handler))
         {
             printf("nodeset could not be loaded, exit\n");
             return 1;
         }
     }
+
+    {
+        TReferenceTypeNode **nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE,
+                                            (TNode **)nodes);
+        for (TReferenceTypeNode **node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)*node);
+        }
+    }
+
+    {
+        TDataTypeNode *nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE,
+                                            (TNode **)&nodes);
+        for (TDataTypeNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+        }
+    }
+
+    {
+        TObjectTypeNode *nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE,
+                                            (TNode **)&nodes);
+        for (TObjectTypeNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+        }
+    }
+
+    {
+        TObjectNode *nodes = NULL;
+        size_t cnt =
+            NodesetLoader_getNodes(loader, NODECLASS_OBJECT, (TNode **)&nodes);
+        for (TObjectNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+        }
+    }
+
+    {
+        TMethodNode *nodes = NULL;
+        size_t cnt =
+            NodesetLoader_getNodes(loader, NODECLASS_METHOD, (TNode **)&nodes);
+        for (TMethodNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+        }
+    }
+
+    {
+        TVariableTypeNode *nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE,
+                                            (TNode **)&nodes);
+        for (TVariableTypeNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+        }
+    }
+
+    {
+        TVariableNode *nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLE,
+                                            (TNode **)&nodes);
+        for (TVariableNode *node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)node);
+            //BackendOpen62541_Value_delete(&node->value);
+        }
+    }
+
+    NodesetLoader_delete(loader);
+
     printf("maxValue Rank: %d", maxValueRank);
     return 0;
 }

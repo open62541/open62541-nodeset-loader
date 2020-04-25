@@ -169,12 +169,17 @@ typedef struct
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    addNodeCb callback;    
     ValueInterface *valueHandling;
     ExtensionInterface *extensionHandling;
 } FileContext;
 
-bool loadFile(const FileContext *fileContext);
+struct NodesetLoader;
+typedef struct NodesetLoader NodesetLoader;
+
+NodesetLoader* NodesetLoader_new(void);
+bool NodesetLoader_importFile(NodesetLoader *loader, const FileContext *fileContext);
+void NodesetLoader_delete(NodesetLoader* loader);
+size_t NodesetLoader_getNodes(const NodesetLoader* loader, TNodeClass nodeClass, TNode** nodes);
 
 #ifdef __cplusplus
 }

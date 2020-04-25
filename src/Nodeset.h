@@ -36,9 +36,10 @@ struct Nodeset {
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset *nodeset);
-void Nodeset_sort(Nodeset *nodeset);
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
-                            addNodeCb callback, ValueInterface *valIf);
+bool Nodeset_sort(Nodeset *nodeset);
+size_t Nodeset_getNodes(
+    Nodeset *nodeset, TNodeClass nodeClass,
+    TNode **nodes);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
                        int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);

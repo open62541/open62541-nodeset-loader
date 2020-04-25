@@ -8,14 +8,14 @@
 #include "Nodeset.h"
 #include "AliasList.h"
 #include "NamespaceList.h"
+#include "Sort.h"
+#include "nodes/DataTypeNode.h"
 #include "nodes/Node.h"
 #include "nodes/NodeContainer.h"
-#include "Sort.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "nodes/DataTypeNode.h"
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
 static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
@@ -247,58 +247,20 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
     NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
-                            addNodeCb callback, ValueInterface *valIf)
+bool Nodeset_sort(Nodeset *nodeset)
 {
-    if (!Sort_start(nodeset, Nodeset_addNode))
-    {
-        return false;
-    }
+    return Sort_start(nodeset, Nodeset_addNode);
+}
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->size;
-         cnt++)
-    {
-        callback(userContext,
-                 nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->size;
-         cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->size;
-         cnt++)
-    {
-        callback(userContext,
-                 nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
-
-        valIf->deleteValue(
-            &((TVariableNode *)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])
-                 ->value);
-    }
-    return true;
+size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode **nodes)
+{
+    *nodes = *nodeset->nodes[nodeClass]->nodes;
+    return nodeset->nodes[nodeClass]->size;
+    /*
+    valIf->deleteValue(
+        &((TVariableNode *)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])
+             ->value);
+    */
 }
 
 void Nodeset_cleanup(Nodeset *nodeset)
@@ -567,18 +529,19 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
-   
-    DataTypeDefinitionField *newField = DataTypeNode_addDefinitionField(dataTypeNode);
+
+    DataTypeDefinitionField *newField =
+        DataTypeNode_addDefinitionField(dataTypeNode);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
-    newField->dataType =
-        extractNodedId(nodeset->namespaces,
-                       getAttributeValue(nodeset, &dataTypeField_DataType,
-                                         attributes, attributeSize));
-    newField->valueRank = atoi(getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
-    char *value =
-        getAttributeValue(nodeset, &dataTypeField_Value, attributes, attributeSize);
-    if(value)
+    newField->dataType = extractNodedId(
+        nodeset->namespaces, getAttributeValue(nodeset, &dataTypeField_DataType,
+                                               attributes, attributeSize));
+    newField->valueRank = atoi(
+        getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
+    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
+                                    attributeSize);
+    if (value)
     {
         newField->value = atoi(value);
         dataTypeNode->definition->isEnum = true;
