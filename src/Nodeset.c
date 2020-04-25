@@ -575,6 +575,11 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    if(!dataTypeNode->definition)
+    {
+        dataTypeNode->definition = (DataTypeDefinition*)calloc(1, sizeof(DataTypeDefinition));
+        assert(dataTypeNode->definition);
+    }
     DataTypeDefinitionField *newField = getNewField(dataTypeNode->definition);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
