@@ -6,9 +6,10 @@
  */
 
 #include "Nodeset.h"
+#include "AliasList.h"
+#include "NamespaceList.h"
+#include "Node.h"
 #include "Sort.h"
-#include <AliasList.h>
-#include <NamespaceList.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,8 @@ static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
 static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
 static TNodeId alias2Id(const Nodeset *nodeset, char *name);
 static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
-static TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName id);
+static TBrowseName translateBrowseName(const NamespaceList *namespaces,
+                                       TBrowseName id);
 TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 
 #define MAX_OBJECTTYPES 1000
@@ -29,9 +31,6 @@ TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define MAX_REFERENCETYPES 1000
 #define MAX_VARIABLETYPES 1000
 #define MAX_HIERACHICAL_REFS 50
-
-#define MAX_REFCOUNTEDCHARS 10000000
-#define MAX_REFCOUNTEDREFS 1000000
 
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
@@ -229,9 +228,6 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
-    nodeset->countedRefs =
-        (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
-    nodeset->refsSize = 0;
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
     // objects
     nodeset->nodes[NODECLASS_OBJECT] =
@@ -362,19 +358,12 @@ void Nodeset_cleanup(Nodeset *nodeset)
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
 
-    // free refs
-    for (size_t cnt = 0; cnt < n->refsSize; cnt++)
-    {
-        free(n->countedRefs[cnt]);
-    }
-    free(n->countedRefs);
-
     for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
     {
         size_t storedNodes = n->nodes[cnt]->cnt;
         for (size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++)
         {
-            free(n->nodes[cnt]->nodes[nodeCnt]);
+            Node_delete(n->nodes[cnt]->nodes[nodeCnt]);
         }
         free((void *)n->nodes[cnt]->nodes);
         free((void *)n->nodes[cnt]);
@@ -497,7 +486,7 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
     }
 }
 
-static void initNode(Nodeset *nodeset, const NamespaceList* namespaces,
+static void initNode(Nodeset *nodeset, const NamespaceList *namespaces,
                      TNodeClass nodeClass, TNode *node, int nb_attributes,
                      const char **attributes)
 {
@@ -513,33 +502,9 @@ static void initNode(Nodeset *nodeset, const NamespaceList* namespaces,
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
                        int nb_attributes, const char **attributes)
 {
-    TNode *node = NULL;
-    switch (nodeClass)
-    {
-    case NODECLASS_VARIABLE:
-        node = (TNode *)calloc(1, sizeof(TVariableNode));
-        break;
-    case NODECLASS_OBJECT:
-        node = (TNode *)calloc(1, sizeof(TObjectNode));
-        break;
-    case NODECLASS_OBJECTTYPE:
-        node = (TNode *)calloc(1, sizeof(TObjectTypeNode));
-        break;
-    case NODECLASS_REFERENCETYPE:
-        node = (TNode *)calloc(1, sizeof(TReferenceTypeNode));
-        break;
-    case NODECLASS_VARIABLETYPE:
-        node = (TNode *)calloc(1, sizeof(TVariableTypeNode));
-        break;
-    case NODECLASS_DATATYPE:
-        node = (TNode *)calloc(1, sizeof(TDataTypeNode));
-        break;
-    case NODECLASS_METHOD:
-        node = (TNode *)calloc(1, sizeof(TMethodNode));
-        break;
-    }
-    initNode(nodeset, nodeset->namespaces, nodeClass, node,
-             nb_attributes, attributes);
+    TNode *node = Node_new(nodeClass);
+    initNode(nodeset, nodeset->namespaces, nodeClass, node, nb_attributes,
+             attributes);
     return node;
 }
 
@@ -568,7 +533,6 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     Reference *newRef = (Reference *)malloc(sizeof(Reference));
     newRef->target.id = NULL;
     newRef->refType.id = NULL;
-    nodeset->countedRefs[nodeset->refsSize++] = newRef;
     newRef->next = NULL;
     if (!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes,
                                           attributeSize)))
