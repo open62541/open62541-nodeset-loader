@@ -175,7 +175,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NAMESPACEURIS:
         if (!strcmp(localname, NAMESPACEURI))
         {
-            Nodeset_newNamespace(pctx->nodeset);
             pctx->state = PARSER_STATE_URI;
         }
         else
