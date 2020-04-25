@@ -5,10 +5,10 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "nodeset.h"
-#include <charAllocator.h>
+#include "Nodeset.h"
+#include <CharAllocator.h>
 #include <libxml/SAX.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -56,7 +56,7 @@ struct TParserCtx
     size_t unknown_depth;
     TNodeClass nodeClass;
     TNode *node;
-    Alias *alias;
+    struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;
     Value *val;
@@ -157,9 +157,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             pctx->state = PARSER_STATE_ALIAS;
             pctx->node = NULL;
-            Alias *alias =
+            pctx->alias =
                 Nodeset_newAlias(pctx->nodeset, nb_attributes, attributes);
-            pctx->alias = alias;
             pctx->state = PARSER_STATE_ALIAS;
         }
         else if (!strcmp(localname, "UANodeSet") ||
@@ -234,10 +233,10 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        if(pctx->extIf)
+        if (pctx->extIf)
         {
             pctx->extIf->start(pctx->ext, localname);
-        }        
+        }
         break;
 
     case PARSER_STATE_REFERENCES:

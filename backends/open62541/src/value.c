@@ -1,7 +1,7 @@
 #include "value.h"
 #include "conversion.h"
 #include <assert.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <open62541/types_generated.h>
 
 typedef struct TypeList TypeList;

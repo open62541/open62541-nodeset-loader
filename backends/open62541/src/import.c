@@ -1,6 +1,6 @@
 #include "conversion.h"
 #include "value.h"
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <openBackend.h>
 

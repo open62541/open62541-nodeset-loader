@@ -9,7 +9,7 @@
 #define __BACKEND_H__
 #include <stdio.h>
 #include <stdbool.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 
 int addNamespace(void* userContext, const char *namespaceUri);
 void addNode(void* userContext, const TNode *node);

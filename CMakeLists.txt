@@ -42,7 +42,7 @@ if(${ENABLE_BACKEND_OPEN62541})
     add_subdirectory(open62541)
 endif()
 
-add_library(NodesetLoader SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
+add_library(NodesetLoader SHARED src/NodesetLoader.c src/Sort.c src/Nodeset.c src/CharAllocator.c src/AliasList.c)
 target_include_directories(NodesetLoader
     PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})

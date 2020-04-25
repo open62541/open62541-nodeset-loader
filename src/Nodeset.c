@@ -5,15 +5,17 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "nodeset.h"
-#include "sort.h"
+#include "Nodeset.h"
+#include "Sort.h"
+#include <AliasList.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static TNodeId alias2Id(Nodeset *nodeset, const char *alias);
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
+TNodeId extractNodedId(const TNamespace *namespaces, char *s);
+static TNodeId alias2Id(const Nodeset *nodeset, char *name);
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -23,7 +25,7 @@ static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
 #define MAX_REFERENCETYPES 1000
 #define MAX_VARIABLETYPES 1000
 #define MAX_HIERACHICAL_REFS 50
-#define MAX_ALIAS 100
+
 #define MAX_REFCOUNTEDCHARS 10000000
 #define MAX_REFCOUNTEDREFS 1000000
 
@@ -207,24 +209,20 @@ TBrowseName extractBrowseName(const TNamespace *namespaces, char *s)
     return translateBrowseName(namespaces, bn);
 }
 
-static TNodeId alias2Id(Nodeset *nodeset, const char *alias)
+static TNodeId alias2Id(const Nodeset *nodeset, char *name)
 {
-    for (size_t cnt = 0; cnt < nodeset->aliasSize; cnt++)
+    const TNodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
+    if (!alias)
     {
-        if (!strcmp(alias, nodeset->aliasArray[cnt]->name))
-        {
-            return nodeset->aliasArray[cnt]->id;
-        }
+        return extractNodedId(nodeset->namespaceTable->ns, name);
     }
-    TNodeId id = {0, NULL};
-    return id;
+    return *alias;
 }
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
-    nodeset->aliasArray = (Alias **)malloc(sizeof(Alias *) * MAX_ALIAS);
-    nodeset->aliasSize = 0;
+    nodeset->aliasList = AliasList_new();
     nodeset->countedRefs =
         (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
@@ -364,6 +362,7 @@ void Nodeset_cleanup(Nodeset *nodeset)
     Nodeset *n = nodeset;
 
     CharArenaAllocator_delete(nodeset->charArena);
+    AliasList_delete(nodeset->aliasList);
 
     // free refs
     for (size_t cnt = 0; cnt < n->refsSize; cnt++)
@@ -371,13 +370,6 @@ void Nodeset_cleanup(Nodeset *nodeset)
         free(n->countedRefs[cnt]);
     }
     free(n->countedRefs);
-
-    // free alias
-    for (size_t cnt = 0; cnt < n->aliasSize; cnt++)
-    {
-        free(n->aliasArray[cnt]);
-    }
-    free(n->aliasArray);
 
     for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
     {
@@ -464,16 +456,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
                                           attributes, attributeSize));
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        TNodeId aliasId = alias2Id(nodeset, datatype);
-        if (aliasId.id != NULL)
-        {
-            ((TVariableNode *)node)->datatype = aliasId;
-        }
-        else
-        {
-            ((TVariableNode *)node)->datatype =
-                extractNodedId(namespaces, datatype);
-        }
+        ((TVariableNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((TVariableNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
         ((TVariableNode *)node)->arrayDimensions = getAttributeValue(
@@ -491,16 +474,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
             nodeset, &attrValueRank, attributes, attributeSize);
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        TNodeId aliasId = alias2Id(nodeset, datatype);
-        if (aliasId.id != NULL)
-        {
-            ((TVariableTypeNode *)node)->datatype = aliasId;
-        }
-        else
-        {
-            ((TVariableTypeNode *)node)->datatype =
-                extractNodedId(namespaces, datatype);
-        }
+        ((TVariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((TVariableTypeNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
         ((TVariableTypeNode *)node)->isAbstract = getAttributeValue(
@@ -574,7 +548,7 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
 
 static bool isKnownReferenceType(Nodeset *nodeset, const TNodeId *refTypeId)
 {
-    //we state that we know all references from namespace 0
+    // we state that we know all references from namespace 0
     if (refTypeId->nsIdx == 0)
     {
         return true;
@@ -611,20 +585,10 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     // TODO: should we check if its an alias
     char *aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
                                             attributes, attributeSize);
-    TNodeId aliasId = alias2Id(nodeset, aliasIdString);
 
-    if (aliasId.id != NULL)
-    {
-        newRef->refType = aliasId;
-    }
-    else
-    {
-        newRef->refType =
-            extractNodedId(nodeset->namespaceTable->ns, aliasIdString);
-    }
+    newRef->refType = alias2Id(nodeset, aliasIdString);
 
-    bool isKnownRef =
-        isKnownReferenceType(nodeset, &newRef->refType);
+    bool isKnownRef = isKnownReferenceType(nodeset, &newRef->refType);
     // TODO: we have to check later on, if it's really a hierachical reference
     // type, otherwise the reference should be marked as non hierachical
     if (isHierachicalReference(nodeset, newRef) || !isKnownRef)
@@ -645,18 +609,14 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
 Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
                         const char **attributes)
 {
-    nodeset->aliasArray[nodeset->aliasSize] = (Alias *)malloc(sizeof(Alias));
-    nodeset->aliasArray[nodeset->aliasSize]->id.id = NULL;
-    nodeset->aliasArray[nodeset->aliasSize]->id.nsIdx = 0;
-    nodeset->aliasArray[nodeset->aliasSize]->name =
-        getAttributeValue(nodeset, &attrAlias, attributes, attributeSize);
-    return nodeset->aliasArray[nodeset->aliasSize];
+    return AliasList_newAlias(
+        nodeset->aliasList,
+        getAttributeValue(nodeset, &attrAlias, attributes, attributeSize));
 }
 
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString)
 {
     alias->id = extractNodedId(nodeset->namespaceTable->ns, idString);
-    nodeset->aliasSize++;
 }
 
 TNamespace *Nodeset_newNamespace(Nodeset *nodeset)
