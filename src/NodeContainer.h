@@ -6,6 +6,7 @@ struct NodeContainer
 {
     TNode **nodes;
     size_t size;
+    size_t capacity;
     size_t incrementSize;
 };
 typedef struct NodeContainer NodeContainer;

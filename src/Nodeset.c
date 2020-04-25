@@ -24,13 +24,6 @@ static TBrowseName translateBrowseName(const NamespaceList *namespaces,
                                        TBrowseName id);
 TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 
-#define MAX_OBJECTTYPES 1000
-#define MAX_OBJECTS 100000
-#define MAX_METHODS 1000
-#define MAX_DATATYPES 1000
-#define MAX_VARIABLES 1000000
-#define MAX_REFERENCETYPES 1000
-#define MAX_VARIABLETYPES 1000
 #define MAX_HIERACHICAL_REFS 50
 
 // UANode
@@ -230,13 +223,13 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
-    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(MAX_OBJECTS);
-    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(MAX_VARIABLES);
-    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(MAX_METHODS);
-    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(MAX_OBJECTTYPES);
-    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(MAX_DATATYPES);
-    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(MAX_REFERENCETYPES);
-    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(MAX_VARIABLETYPES);
+    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000);
+    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000);
+    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(1000);
+    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(100);
+    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(100);
+    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(100);
+    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100);
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
@@ -252,19 +245,6 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
                             addNodeCb callback, ValueInterface *valIf)
 {
-
-#ifdef XMLIMPORT_TRACE
-    printf("--- namespace table ---\n");
-    printf("FileIdx ServerIdx URI\n");
-    for (size_t fileIndex = 0; fileIndex < nodeset->namespaceTable->size;
-         fileIndex++)
-    {
-        printf("%zu\t%zu\t%s\n", fileIndex,
-               nodeset->namespaceTable->ns[fileIndex].idx,
-               nodeset->namespaceTable->ns[fileIndex].name);
-    }
-#endif
-
     if (!Sort_start(nodeset, Nodeset_addNode))
     {
         return false;
