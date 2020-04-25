@@ -11,6 +11,7 @@
 #include <nodesetLoader/NodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
+#include <assert.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -45,7 +46,9 @@ typedef enum
     PARSER_STATE_URI,
     PARSER_STATE_VALUE,
     PARSER_STATE_EXTENSION,
-    PARSER_STATE_EXTENSIONS
+    PARSER_STATE_EXTENSIONS,
+    PARSER_STATE_DATATYPE_DEFINITION,
+    PARSER_STATE_DATATYPE_DEFINITION_FIELD
 } TParserState;
 
 struct TParserCtx
@@ -64,6 +67,11 @@ struct TParserCtx
     ValueInterface *valIf;
     ExtensionInterface *extIf;
     Reference *ref;
+    Nodeset *nodeset;
+};
+
+struct NodesetLoader
+{
     Nodeset *nodeset;
 };
 
@@ -207,10 +215,29 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             pctx->state = PARSER_STATE_EXTENSIONS;
         }
+        else if (!strcmp(localname, "Definition"))
+        {
+            pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+        }
         else
         {
             enterUnknownState(pctx);
         }
+        break;
+    case PARSER_STATE_DATATYPE_DEFINITION:
+        if (!strcmp(localname, "Field"))
+        {
+            Nodeset_addDataTypeField(pctx->nodeset, pctx->node, nb_attributes,
+                                     attributes);
+            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
+        }
+        else
+        {
+            enterUnknownState(pctx);
+        }
+        break;
+    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
+        enterUnknownState(pctx);
         break;
 
     case PARSER_STATE_VALUE:
@@ -345,6 +372,12 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_DESCRIPTION:
         pctx->state = PARSER_STATE_NODE;
         break;
+    case PARSER_STATE_DATATYPE_DEFINITION:
+        pctx->state = PARSER_STATE_NODE;
+        break;
+    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
+        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+        break;
     case PARSER_STATE_UNKNOWN:
         pctx->unknown_depth--;
         if (pctx->unknown_depth == 0)
@@ -413,9 +446,8 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt)
     return 0;
 }
 
-bool loadFile(const FileContext *fileHandler)
+bool NodesetLoader_importFile(NodesetLoader* loader, const FileContext *fileHandler)
 {
-
     if (fileHandler == NULL)
     {
         printf("no filehandler - return\n");
@@ -426,13 +458,12 @@ bool loadFile(const FileContext *fileHandler)
         printf("no fileHandler->addNamespace - return\n");
         return false;
     }
-    if (fileHandler->callback == NULL)
-    {
-        printf("no fileHandler->callback - return\n");
-        return false;
-    }
     bool status = true;
-    Nodeset *nodeset = Nodeset_new(fileHandler->addNamespace);
+    if(!loader->nodeset)
+    {
+        loader->nodeset = Nodeset_new(fileHandler->addNamespace);
+    }
+    
     TParserCtx *ctx = NULL;
     FILE *f = fopen(fileHandler->file, "r");
 
@@ -449,7 +480,7 @@ bool loadFile(const FileContext *fileHandler)
         status = false;
         goto cleanup;
     }
-    ctx->nodeset = nodeset;
+    ctx->nodeset = loader->nodeset;
     ctx->state = PARSER_STATE_INIT;
     ctx->prev_state = PARSER_STATE_INIT;
     ctx->unknown_depth = 0;
@@ -465,14 +496,7 @@ bool loadFile(const FileContext *fileHandler)
         status = false;
     }
 
-    if (!Nodeset_getSortedNodes(nodeset, fileHandler->userContext,
-                                fileHandler->callback, ctx->valIf))
-    {
-        status = false;
-    }
-
 cleanup:
-    Nodeset_cleanup(nodeset);
     free(ctx);
     if (f)
     {
@@ -480,3 +504,28 @@ cleanup:
     }
     return status;
 }
+
+bool NodesetLoader_sort(NodesetLoader* loader)
+{
+    return Nodeset_sort(loader->nodeset);
+}
+
+NodesetLoader *NodesetLoader_new()
+{
+    NodesetLoader *loader = (NodesetLoader*)calloc(1, sizeof(NodesetLoader));
+    assert(loader);
+    return loader;
+}
+
+void NodesetLoader_delete(NodesetLoader *loader)
+{
+    Nodeset_cleanup(loader->nodeset);
+    free(loader);
+}
+
+size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
+                             TNode ***nodes)
+{
+    return Nodeset_getNodes(loader->nodeset, nodeClass, nodes);
+}
+

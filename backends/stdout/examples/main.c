@@ -16,10 +16,11 @@ int main(int argc, char *argv[])
         printf("specify nodesetfile as argument. E.g. parserDemo text.xml\n");
         return 1;
     }
+
+    int maxValueRank = -1;
     FileContext handler;
-    handler.callback = addNode;
     handler.addNamespace = addNamespace;
-    handler.userContext = NULL;
+    handler.userContext = &maxValueRank;
     ValueInterface valIf;
     valIf.userContext = NULL;
     valIf.newValue = Value_new;
@@ -29,14 +30,32 @@ int main(int argc, char *argv[])
     valIf.deleteValue = Value_delete;
     handler.valueHandling = &valIf;
 
+    NodesetLoader *loader = NodesetLoader_new();
+
     for (int cnt = 1; cnt < argc; cnt++)
     {
         handler.file = argv[cnt];
-        if (!loadFile(&handler))
+        if (!NodesetLoader_importFile(loader, &handler))
         {
             printf("nodeset could not be loaded, exit\n");
             return 1;
         }
     }
+
+    NodesetLoader_sort(loader);
+
+    for (int i = 0; i < NODECLASS_COUNT; i++)
+    {
+        TNode **nodes = NULL;
+        size_t cnt = NodesetLoader_getNodes(loader, i, &nodes);
+        for (TNode **node = nodes; node != nodes + cnt; node++)
+        {
+            dumpNode(NULL, (TNode *)*node);
+        }
+    }
+
+    NodesetLoader_delete(loader);
+
+    printf("maxValue Rank: %d", maxValueRank);
     return 0;
 }

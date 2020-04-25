@@ -8,9 +8,10 @@
 #include "Nodeset.h"
 #include "AliasList.h"
 #include "NamespaceList.h"
-#include "Node.h"
-#include "NodeContainer.h"
 #include "Sort.h"
+#include "nodes/DataTypeNode.h"
+#include "nodes/Node.h"
+#include "nodes/NodeContainer.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -67,6 +68,9 @@ const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
 const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
 const NodeAttribute attrSymmetric = {"Symmetric", "false"};
+const NodeAttribute dataTypeField_Name = {"Name", NULL};
+const NodeAttribute dataTypeField_DataType = {"DataType", NULL};
+const NodeAttribute dataTypeField_Value = {"Value", NULL};
 
 TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
@@ -220,6 +224,7 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
 Nodeset *Nodeset_new(addNamespaceCb nsCallback)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
+
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
@@ -233,7 +238,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
-    Sort_init();
+    nodeset->sortCtx = Sort_init();
     return nodeset;
 }
 
@@ -242,63 +247,19 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
     NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
-bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
-                            addNodeCb callback, ValueInterface *valIf)
+bool Nodeset_sort(Nodeset *nodeset)
 {
-    if (!Sort_start(nodeset, Nodeset_addNode))
-    {
-        return false;
-    }
+    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode);
+}
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->size;
-         cnt++)
-    {
-        callback(userContext,
-                 nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->size;
-         cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->size;
-         cnt++)
-    {
-        callback(userContext,
-                 nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
-    }
-
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->size; cnt++)
-    {
-        callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
-
-        valIf->deleteValue(
-            &((TVariableNode *)nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt])
-                 ->value);
-    }
-    return true;
+size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes)
+{
+    *nodes = nodeset->nodes[nodeClass]->nodes;
+    return nodeset->nodes[nodeClass]->size;
 }
 
 void Nodeset_cleanup(Nodeset *nodeset)
 {
-    Nodeset *n = nodeset;
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
     for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
@@ -306,8 +267,8 @@ void Nodeset_cleanup(Nodeset *nodeset)
         NodeContainer_delete(nodeset->nodes[cnt]);
     }
     NamespaceList_delete(nodeset->namespaces);
-    free(n);
-    Sort_cleanup();
+    Sort_cleanup(nodeset->sortCtx);
+    free(nodeset);
 }
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
@@ -545,7 +506,7 @@ static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
 
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 {
-    Sort_addNode(node);
+    Sort_addNode(nodeset->sortCtx, node);
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
         addIfHierachicalReferenceType(nodeset, node);
@@ -556,4 +517,27 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
     ref->target = extractNodedId(nodeset->namespaces, targetId);
+}
+
+void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
+                              const char **attributes)
+{
+    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+
+    DataTypeDefinitionField *newField =
+        DataTypeNode_addDefinitionField(dataTypeNode);
+    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
+                                       attributeSize);
+    newField->dataType = extractNodedId(
+        nodeset->namespaces, getAttributeValue(nodeset, &dataTypeField_DataType,
+                                               attributes, attributeSize));
+    newField->valueRank = atoi(
+        getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
+    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
+                                    attributeSize);
+    if (value)
+    {
+        newField->value = atoi(value);
+        dataTypeNode->definition->isEnum = true;
+    }
 }

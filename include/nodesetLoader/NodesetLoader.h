@@ -4,7 +4,6 @@
 #include <string.h>
 #include "TNodeId.h"
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -93,9 +92,25 @@ typedef struct
     Value *value;
 } TVariableNode;
 
+typedef struct 
+{
+    char* name;
+    TNodeId dataType;
+    int valueRank;
+    int value;
+} DataTypeDefinitionField;
+
+typedef struct
+{
+    DataTypeDefinitionField* fields;
+    size_t fieldCnt;
+    bool isEnum;
+} DataTypeDefinition;
+
 typedef struct TDataTypeNode
 {
     UA_NODE_ATTRIBUTES
+    DataTypeDefinition* definition;
 } TDataTypeNode;
 
 typedef struct
@@ -154,12 +169,18 @@ typedef struct
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    addNodeCb callback;    
     ValueInterface *valueHandling;
     ExtensionInterface *extensionHandling;
 } FileContext;
 
-bool loadFile(const FileContext *fileContext);
+struct NodesetLoader;
+typedef struct NodesetLoader NodesetLoader;
+
+NodesetLoader* NodesetLoader_new(void);
+bool NodesetLoader_importFile(NodesetLoader *loader, const FileContext *fileContext);
+void NodesetLoader_delete(NodesetLoader* loader);
+size_t NodesetLoader_getNodes(const NodesetLoader* loader, TNodeClass nodeClass, TNode*** nodes);
+bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus
 }
