@@ -8,13 +8,14 @@
 #include "Nodeset.h"
 #include "AliasList.h"
 #include "NamespaceList.h"
-#include "Node.h"
-#include "NodeContainer.h"
+#include "nodes/Node.h"
+#include "nodes/NodeContainer.h"
 #include "Sort.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "nodes/DataTypeNode.h"
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
 static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
@@ -562,25 +563,12 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
     ref->target = extractNodedId(nodeset->namespaces, targetId);
 }
 
-static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
-{
-    definition->fieldCnt++;
-    definition->fields = (DataTypeDefinitionField *)realloc(
-        definition->fields,
-        definition->fieldCnt * sizeof(DataTypeDefinitionField));
-    return &definition->fields[definition->fieldCnt - 1];
-}
-
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
-    if(!dataTypeNode->definition)
-    {
-        dataTypeNode->definition = (DataTypeDefinition*)calloc(1, sizeof(DataTypeDefinition));
-        assert(dataTypeNode->definition);
-    }
-    DataTypeDefinitionField *newField = getNewField(dataTypeNode->definition);
+   
+    DataTypeDefinitionField *newField = DataTypeNode_addDefinitionField(dataTypeNode);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
     newField->dataType =
