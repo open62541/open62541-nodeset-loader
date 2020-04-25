@@ -1,41 +1,41 @@
 #include "AliasList.h"
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAX_ALIAS 100
 
 struct AliasList
 {
-    Alias* data;
+    Alias *data;
     size_t size;
 };
 
 AliasList *AliasList_new()
 {
-    struct AliasList* list = (AliasList*)calloc(1, sizeof(*list));
+    struct AliasList *list = (AliasList *)calloc(1, sizeof(*list));
     assert(list);
-    list->data = (Alias*)calloc(MAX_ALIAS, sizeof(Alias));
+    list->data = (Alias *)calloc(MAX_ALIAS, sizeof(Alias));
     assert(list->data);
     return list;
 }
 
-Alias* AliasList_newAlias(AliasList* list, char* name)
+Alias *AliasList_newAlias(AliasList *list, char *name)
 {
     list->data[list->size].name = name;
     list->data[list->size].id.id = NULL;
     list->data[list->size].id.nsIdx = 0;
     list->size++;
-    return &list->data[list->size-1];
+    return &list->data[list->size - 1];
 }
 
-const TNodeId* AliasList_getNodeId(const AliasList* list, const char *name)
+const TNodeId *AliasList_getNodeId(const AliasList *list, const char *name)
 {
-    for (size_t cnt = 0; cnt < list->size; cnt++)
+    for (Alias* alias = list->data; alias != list->data + list->size; alias++)
     {
-        if (!strcmp(name, list->data[cnt].name))
+        if (!strcmp(name, alias->name))
         {
-            return &list->data[cnt].id;
+            return &alias->id;
         }
     }
     return NULL;
@@ -43,10 +43,6 @@ const TNodeId* AliasList_getNodeId(const AliasList* list, const char *name)
 
 void AliasList_delete(AliasList *list)
 {
-    //for (size_t cnt = 0; cnt < n->aliasSize; cnt++)
-    //{
-    //    free(n->aliasArray[cnt]);
-    //}
     free(list->data);
     free(list);
 }

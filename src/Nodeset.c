@@ -362,6 +362,7 @@ void Nodeset_cleanup(Nodeset *nodeset)
     Nodeset *n = nodeset;
 
     CharArenaAllocator_delete(nodeset->charArena);
+    AliasList_delete(nodeset->aliasList);
 
     // free refs
     for (size_t cnt = 0; cnt < n->refsSize; cnt++)
