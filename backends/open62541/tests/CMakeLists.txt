@@ -59,3 +59,4 @@ add_test(NAME structMultipleNamespaces_Test
     COMMAND structMultipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/basestruct.xml ${CMAKE_CURRENT_SOURCE_DIR}/extendedstruct.xml)
 
 add_subdirectory(dataTypeImport)
+add_subdirectory(integration)
