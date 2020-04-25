@@ -1,4 +1,3 @@
-
 #ifndef VALUE_H
 #define VALUE_H
 #include <open62541/types.h>

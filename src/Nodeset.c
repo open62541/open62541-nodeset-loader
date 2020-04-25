@@ -528,11 +528,7 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
         DataTypeNode_addDefinitionField(dataTypeNode);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
-    newField->dataType = extractNodedId(
-        nodeset->namespaces, getAttributeValue(nodeset, &dataTypeField_DataType,
-                                               attributes, attributeSize));
-    newField->valueRank = atoi(
-        getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize));
+    
     char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
                                     attributeSize);
     if (value)
@@ -540,4 +536,13 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
         newField->value = atoi(value);
         dataTypeNode->definition->isEnum = true;
     }
+    else
+    {
+        newField->dataType = alias2Id(
+            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
+                                       attributes, attributeSize));
+        newField->valueRank = atoi(getAttributeValue(
+            nodeset, &attrValueRank, attributes, attributeSize));
+    }
+    
 }

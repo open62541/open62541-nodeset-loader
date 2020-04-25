@@ -3,6 +3,7 @@
 #include <nodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <openBackend.h>
+#include "DataTypeImporter.h"
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -413,6 +414,16 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             }
         }
     }
+
+    DataTypeImporter* importer = DataTypeImporter_new(server);
+    TNode **nodes = NULL;
+    size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
+    for (TNode **node = nodes; node != nodes + cnt; node++)
+    {
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode*)*node);
+    }
+    DataTypeImporter_delete(importer);
+
     NodesetLoader_delete(loader);
     return status;
 }
