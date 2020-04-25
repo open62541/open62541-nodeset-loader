@@ -5,10 +5,10 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "nodeset.h"
-#include <charAllocator.h>
+#include "Nodeset.h"
+#include <CharAllocator.h>
 #include <libxml/SAX.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -58,7 +58,7 @@ struct TParserCtx
     size_t unknown_depth;
     TNodeClass nodeClass;
     TNode *node;
-    Alias *alias;
+    struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;
     Value *val;
@@ -68,6 +68,22 @@ struct TParserCtx
     Reference *ref;
     Nodeset *nodeset;
 };
+
+int TNodeId_cmp(const TNodeId *id1, const TNodeId *id2)
+{
+    if (id1->nsIdx == id2->nsIdx)
+    {
+        return strcmp(id1->id, id2->id);
+    }
+    if (id1->nsIdx < id2->nsIdx)
+    {
+        return -1;
+    }
+    else
+    {
+        return 1;
+    }
+}
 
 static void enterUnknownState(TParserCtx *ctx)
 {
@@ -143,9 +159,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             pctx->state = PARSER_STATE_ALIAS;
             pctx->node = NULL;
-            Alias *alias =
+            pctx->alias =
                 Nodeset_newAlias(pctx->nodeset, nb_attributes, attributes);
-            pctx->alias = alias;
             pctx->state = PARSER_STATE_ALIAS;
         }
         else if (!strcmp(localname, "UANodeSet") ||
@@ -162,8 +177,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NAMESPACEURIS:
         if (!strcmp(localname, NAMESPACEURI))
         {
-            Nodeset_newNamespace(pctx->nodeset);
-            // pctx->nextOnCharacters = &ns->name;
             pctx->state = PARSER_STATE_URI;
         }
         else
@@ -177,7 +190,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME))
         {
-            // pctx->nextOnCharacters = &pctx->node->displayName;
             pctx->state = PARSER_STATE_DISPLAYNAME;
         }
         else if (!strcmp(localname, REFERENCES))
@@ -229,7 +241,10 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_EXTENSIONS:
         if (!strcmp(localname, EXTENSION))
         {
-            pctx->ext = pctx->extIf->newExtension(pctx->node);
+            if (pctx->extIf)
+            {
+                pctx->ext = pctx->extIf->newExtension(pctx->node);
+            }
             pctx->state = PARSER_STATE_EXTENSION;
         }
         else
@@ -238,17 +253,18 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        pctx->extIf->start(pctx->ext, localname);
+        if (pctx->extIf)
+        {
+            pctx->extIf->start(pctx->ext, localname);
+        }
         break;
 
     case PARSER_STATE_REFERENCES:
         if (!strcmp(localname, REFERENCE))
         {
             pctx->state = PARSER_STATE_REFERENCE;
-            // extractReferenceAttributes(pctx, nb_attributes, attributes);
             pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
                                              nb_attributes, attributes);
-            // Nodeset_newReference
         }
         else
         {
@@ -330,12 +346,18 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_EXTENSION:
         if (!strcmp(localname, EXTENSION))
         {
-            pctx->extIf->finish(pctx->ext);
+            if (pctx->extIf)
+            {
+                pctx->extIf->finish(pctx->ext);
+            }
             pctx->state = PARSER_STATE_EXTENSIONS;
         }
         else
         {
-            pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+            if (pctx->extIf)
+            {
+                pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+            }
         }
         break;
     case PARSER_STATE_EXTENSIONS:

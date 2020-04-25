@@ -5,13 +5,14 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "backend/backend.h"
-#include <nodesetLoader/nodesetLoader.h>
+#include "backend.h"
 #include <stdio.h>
 #include <string.h>
 
-int main(int argc, char *argv[]) {
-    if(argc < 2) {
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
         printf("specify nodesetfile as argument. E.g. parserDemo text.xml\n");
         return 1;
     }
@@ -22,7 +23,7 @@ int main(int argc, char *argv[]) {
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
     ValueInterface valIf;
-    valIf.userData = NULL;
+    valIf.userContext = NULL;
     valIf.newValue = Value_new;
     valIf.start = Value_start;
     valIf.end = Value_end;
@@ -30,9 +31,11 @@ int main(int argc, char *argv[]) {
     valIf.deleteValue = Value_delete;
     handler.valueHandling = &valIf;
 
-    for(int cnt = 1; cnt < argc; cnt++) {
+    for (int cnt = 1; cnt < argc; cnt++)
+    {
         handler.file = argv[cnt];
-        if(!loadFile(&handler)) {
+        if (!loadFile(&handler))
+        {
             printf("nodeset could not be loaded, exit\n");
             return 1;
         }

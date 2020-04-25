@@ -2,7 +2,14 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
-option(ENABLE_PROFILING off "enable profiling")
+set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+include(CTest)
+enable_testing()
+
+option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
+option(ENABLE_ASAN off "build with address sanitizer enabled")
+#option(ENABLE_PROFILING off "enable profiling")
 
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
@@ -23,28 +30,44 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -fno-strict-aliasing # fewer compiler assumptions about pointer types
                     -fexceptions) # recommended for multi-threaded C code, also in combination with C++ code
 
-add_library(xmlImport SHARED src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator)
-target_include_directories(xmlImport 
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(xmlImport CONAN_PKG::libxml2)
-target_compile_options(xmlImport PRIVATE ${C_COMPILE_DEFS})
+find_package(LibXml2 REQUIRED)
+find_package(Check REQUIRED)
 
-
-add_executable(parserDemo main.c backend/dummy.c)
-target_link_libraries(parserDemo xmlImport)
-target_compile_options(parserDemo PRIVATE ${C_COMPILE_DEFS})
-
-#target for profiling
-
-if(${ENABLE_PROFILING})
-    add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
-    target_include_directories(profile
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
-        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-    target_compile_options(profile PRIVATE -O0 -g -pg)
-    target_link_libraries(profile CONAN_PKG::libxml2 -pg)
+if(${ENABLE_ASAN})
+    set(${C_COMPILE_DEFS} -g -fsanitize=address -fsanitize=leak -fsanitize=undefined)
 endif()
 
-add_subdirectory(tests)
+#backends
+if(${ENABLE_BACKEND_OPEN62541})
+    add_subdirectory(open62541)
+endif()
 
+add_library(NodesetLoader SHARED 
+    src/NodesetLoader.c 
+    src/Sort.c 
+    src/Nodeset.c 
+    src/CharAllocator.c 
+    src/AliasList.c 
+    src/NamespaceList.c
+    src/Node.c
+    src/NodeContainer.c)
+target_include_directories(NodesetLoader
+    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
+target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
+if(${ENABLE_BACKEND_OPEN62541})
+    target_link_libraries(NodesetLoader PRIVATE open62541)
+endif()
+target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
+
+#if(${ENABLE_PROFILING})
+#    add_executable(profile main.c backend/dummy.c src/nodesetLoader.c src/sort.c src/nodeset.c src/charAllocator.c)
+#    target_include_directories(profile
+#        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include 
+#        PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+#    target_compile_options(profile PRIVATE -O0 -g -pg)
+#    target_link_libraries(profile CONAN_PKG::libxml2 -pg)
+#endif()
+
+add_subdirectory(tests)
+add_subdirectory(backends)

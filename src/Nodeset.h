@@ -7,62 +7,33 @@
 
 #ifndef NODESET_H
 #define NODESET_H
-#include <charAllocator.h>
-#include <nodesetLoader/nodesetLoader.h>
+#include <CharAllocator.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <stdbool.h>
 #include <stddef.h>
 
 struct Nodeset;
 typedef struct Nodeset Nodeset;
-
-typedef struct
-{
-    char *name;
-    TNodeId id;
-} Alias;
-
-typedef struct
-{
-    size_t cnt;
-    TNode **nodes;
-} NodeContainer;
-
+struct Alias;
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-struct TNamespace;
-typedef struct TNamespace TNamespace;
 
-struct TNamespace
-{
-    size_t idx;
-    char *name;
-};
+struct NamespaceList;
 
-typedef struct
-{
-    size_t size;
-    TNamespace *ns;
-    addNamespaceCb cb;
-} TNamespaceTable;
 
-struct Nodeset
-{
-    Reference **countedRefs;
-    struct CharArena *charArena;
-    Alias **aliasArray;
-    NodeContainer *nodes[NODECLASS_COUNT];
-    size_t aliasSize;
-    size_t refsSize;
-    TNamespaceTable *namespaceTable;
+struct NodeContainer;
+struct AliasList;
+struct Nodeset {
+    struct CharArena* charArena;
+    struct AliasList* aliasList;
+    struct NodeContainer *nodes[NODECLASS_COUNT];
+    struct NamespaceList* namespaces;
     size_t hierachicalRefsSize;
-    const char **hierachicalRefs;
+    TReferenceTypeNode *hierachicalRefs;
 };
 
-TNodeId extractNodedId(const TNamespace *namespaces, char *s);
-TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
-TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
-TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
+
 Nodeset *Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset *nodeset);
 void Nodeset_sort(Nodeset *nodeset);
@@ -75,13 +46,13 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes);
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId);
-Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
+struct Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
                         const char **attribute);
-void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString);
-TNamespace *Nodeset_newNamespace(Nodeset *nodeset);
+void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias, char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes);
+
 
 #endif

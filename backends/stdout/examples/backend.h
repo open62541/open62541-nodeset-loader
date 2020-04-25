@@ -7,12 +7,12 @@
 
 #ifndef __BACKEND_H__
 #define __BACKEND_H__
-#include <nodesetLoader/nodesetLoader.h>
-#include <stdbool.h>
 #include <stdio.h>
+#include <stdbool.h>
+#include <nodesetLoader/NodesetLoader.h>
 
-int addNamespace(void *userContext, const char *namespaceUri);
-void addNode(void *userContext, const TNode *node);
+int addNamespace(void* userContext, const char *namespaceUri);
+void addNode(void* userContext, const TNode *node);
 
 struct Value *Value_new(const TNode *node);
 void Value_start(Value *val, const char *localname);

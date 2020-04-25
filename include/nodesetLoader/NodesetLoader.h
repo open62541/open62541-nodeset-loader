@@ -1,7 +1,8 @@
 #pragma once
 #include <stdbool.h>
 #include <stdint.h>
-#include <stddef.h>
+#include <string.h>
+#include "TNodeId.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,15 +18,8 @@ typedef enum
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
     NODECLASS_VARIABLETYPE = 6
-    // TODO: eventtype missing
+    // eventtype is handled like a object type
 } TNodeClass;
-
-typedef struct
-{
-    int nsIdx;
-    char *id;
-    char *idString;
-} TNodeId;
 
 typedef struct
 {
@@ -153,7 +147,7 @@ typedef void (*finishExtensionCb)(Extension *val);
 
 typedef struct
 {
-    void *userData;
+    void *userContext;
     newValueCb newValue;
     startValueCb start;
     endValueCb end;
@@ -163,7 +157,7 @@ typedef struct
 
 typedef struct
 {
-    void *userData;
+    void *userContext;
     newExtensionCb newExtension;
     startExtensionCb start;
     endExtensionCb end;

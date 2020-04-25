@@ -1,45 +1,32 @@
 language: c
-sudo: required
 
 env:
   global:
 
-
-
-matrix:
+jobs:
   fast_finish: true
   include:
-#
-# gcc-4.8 (trusty) full host and cross build with tests:
-# doc, cert, cross-mingw32, cross-mingw64, cross-linux32, cross-raspi, linux64,
-    - os: linux
-      dist: xenial
-      compiler: gcc
-      addons:
-        apt:
-          packages:
-            - cmake
-            # tests
-            - valgrind
-      env:
-        - DEBIAN=true
-
-
+    os: linux
+    dist: bionic
+    compiler: gcc
+    addons:
+      apt:
+        packages:
+          - cmake
+          - valgrind
+          - check
+    env:
+      - GCC_MEMCHECK=true
 
 before_install:
 
 install:
 
 script:
-  - mkdir -p build
-  - cd build
-  - cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=ON .. 
-  - make  - 
-  - tests/check_sort
-  - make integrationTests
+  sh ./travis_script.sh
 
-  after_success:
-  - echo == Build success ==
+after_success:
+- echo == Build success ==
 
 after_failure:
-  - echo == Build failed ==
+- echo == Build failed ==

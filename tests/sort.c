@@ -1,6 +1,6 @@
-#include "sort.h"
-#include "nodesetLoader.h"
-#include <gtest/gtest.h>
+#include "Sort.h"
+#include <nodesetLoader/NodesetLoader.h>
+#include <check.h>
 #include <stdio.h>
 
 static const TNode* sortedNodes[100];
@@ -10,57 +10,64 @@ struct Nodeset;
 
 static void sortCallback(struct Nodeset* nodeset, TNode *node) 
 { 
-    printf("%s\n", node->id.idString);
+    printf("%s\n", node->id.id);
     sortedNodes[sortedNodesCnt] = node;
     sortedNodesCnt++;
 }
 
-TEST(sort, singleNode) {
+START_TEST(singleNode) {
     sortedNodesCnt = 0;
-    init();
+    Sort_init();
 
     TNode a;
     a.hierachicalRefs = NULL;
-    a.id.idString = (char *)"nodeA";
+    a.id.nsIdx = 0;
+    a.id.id = "nodeA";
 
-    addNodeToSort(&a);
-    sort(NULL, sortCallback);
-    ASSERT_EQ(sortedNodesCnt, 1);
+    Sort_addNode(&a);
+    Sort_start(NULL, sortCallback);
+    ck_assert(sortedNodesCnt == 1);
 }
+END_TEST
 
 
-TEST(sort, sortNodes) {
+START_TEST(sortNodes) {
     sortedNodesCnt = 0;
-    init();
+    Sort_init();
 
     TNode a;
     a.hierachicalRefs = NULL;
-    a.id.idString = (char *)"nodeA";
+    a.id.nsIdx =0;
+    a.id.id = "nodeA";
     TNode b;
     b.hierachicalRefs = NULL;
-    b.id.idString = (char *)"nodeB";
+    b.id.nsIdx = 0;
+    b.id.id = "nodeB";
     TNode c;
     c.hierachicalRefs = NULL;
-    c.id.idString = (char *)"nodeC";
+    c.id.nsIdx = 0;
+    c.id.id = "nodeC";
 
-    addNodeToSort(&a);
-    addNodeToSort(&b);
-    addNodeToSort(&c);
-    sort(NULL, sortCallback);
-    ASSERT_EQ(sortedNodesCnt, 3);
+    Sort_addNode(&a);
+    Sort_addNode(&b);
+    Sort_addNode(&c);
+    Sort_start(NULL, sortCallback);
+    ck_assert(sortedNodesCnt==3);
 }
+END_TEST
 
 
 // nodeB -> nodeA
 // expect: nodeA, nodeB
-TEST(sort, nodeWithRefs_1) {
+START_TEST(nodeWithRefs_1) {
     sortedNodesCnt = 0;
-    init();
+    Sort_init();
 
     TNode a;
 
     a.hierachicalRefs = NULL;
-    a.id.idString = (char *)"nodeA";
+    a.id.nsIdx=0;
+    a.id.id = "nodeA";
 
     Reference ref;
     ref.isForward = false;
@@ -69,27 +76,30 @@ TEST(sort, nodeWithRefs_1) {
 
     TNode b;
     b.hierachicalRefs = &ref;
-    b.id.idString = (char *)"nodeB";
+    b.id.nsIdx = 0;
+    b.id.id = "nodeB";
 
-    addNodeToSort(&b);
-    addNodeToSort(&a);
-    sort(NULL, sortCallback);
-    ASSERT_EQ(sortedNodesCnt, 2);
-    ASSERT_EQ(sortedNodes[0]->id.idString, "nodeA");
-    ASSERT_EQ(sortedNodes[1]->id.idString, "nodeB");
+    Sort_addNode(&b);
+    Sort_addNode(&a);
+    Sort_start(NULL, sortCallback);
+    ck_assert(sortedNodesCnt==2);
+    ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
+    ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
 }
+END_TEST
 
 
 // nodeB -> nodeA
 // expect: nodeA, nodeB
-TEST(sort, nodeWithRefs_2) {
+START_TEST(nodeWithRefs_2) {
     sortedNodesCnt = 0;
-    init();
+    Sort_init();
 
     TNode a;
 
     a.hierachicalRefs = NULL;
-    a.id.idString = (char*)"nodeA";
+    a.id.nsIdx=0;
+    a.id.id = "nodeA";
 
     Reference ref;
     ref.isForward = false;
@@ -98,15 +108,17 @@ TEST(sort, nodeWithRefs_2) {
 
     TNode b;
     b.hierachicalRefs = &ref;
-    b.id.idString = (char*)"nodeB";
+    b.id.nsIdx=0;
+    b.id.id = "nodeB";
 
-    addNodeToSort(&a);
-    addNodeToSort(&b);
-    sort(NULL, sortCallback);
-    ASSERT_EQ(sortedNodesCnt, 2);
-    ASSERT_EQ(sortedNodes[0]->id.idString, "nodeA");
-    ASSERT_EQ(sortedNodes[1]->id.idString, "nodeB");
+    Sort_addNode(&a);
+    Sort_addNode(&b);
+    Sort_start(NULL, sortCallback);
+    ck_assert(sortedNodesCnt == 2);
+    ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
+    ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
 }
+END_TEST
 
 //todo: fix this test, memleak in sort nodes
 // cycle nodeB -> nodeA and NodeA -> NodeB
@@ -146,11 +158,13 @@ TEST(sort, cycle) {
 }
 */
 
-TEST(sort, empty) {
-    init();
-    sort(NULL, sortCallback);
+START_TEST(empty)
+{
+    Sort_init();
+    Sort_start(NULL, sortCallback);
 }
-/*
+END_TEST
+
 int main(void) {
     Suite *s = suite_create("Sort tests");
     TCase *tc = tcase_create("test cases");
@@ -158,7 +172,7 @@ int main(void) {
     tcase_add_test(tc, sortNodes);
     tcase_add_test(tc, nodeWithRefs_1);
     tcase_add_test(tc, nodeWithRefs_2);
-    tcase_add_test(tc, cycle);
+    //tcase_add_test(tc, cycle);
     tcase_add_test(tc, empty);
     suite_add_tcase(s, tc);
 
@@ -170,4 +184,3 @@ int main(void) {
 
     return (number_failed == 0) ? 0 : -1;
 }
-*/
