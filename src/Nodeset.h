@@ -17,20 +17,16 @@ typedef struct Nodeset Nodeset;
 
 struct Alias;
 
-typedef struct {
-    size_t cnt;
-    TNode **nodes;
-} NodeContainer;
-
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
+struct NodeContainer;
 
 struct AliasList;
 struct Nodeset {
     struct CharArena* charArena;
     struct AliasList* aliasList;
-    NodeContainer *nodes[NODECLASS_COUNT];
+    struct NodeContainer *nodes[NODECLASS_COUNT];
     struct NamespaceList* namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;

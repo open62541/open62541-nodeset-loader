@@ -9,6 +9,7 @@
 #include "AliasList.h"
 #include "NamespaceList.h"
 #include "Node.h"
+#include "NodeContainer.h"
 #include "Sort.h"
 #include <assert.h>
 #include <stdio.h>
@@ -229,48 +230,13 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
-    // objects
-    nodeset->nodes[NODECLASS_OBJECT] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECT]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_OBJECTS);
-    nodeset->nodes[NODECLASS_OBJECT]->cnt = 0;
-    // variables
-    nodeset->nodes[NODECLASS_VARIABLE] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_VARIABLE]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_VARIABLES);
-    nodeset->nodes[NODECLASS_VARIABLE]->cnt = 0;
-    // methods
-    nodeset->nodes[NODECLASS_METHOD] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_METHOD]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_METHODS);
-    nodeset->nodes[NODECLASS_METHOD]->cnt = 0;
-    // objecttypes
-    nodeset->nodes[NODECLASS_OBJECTTYPE] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
-    nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt = 0;
-    // datatypes
-    nodeset->nodes[NODECLASS_DATATYPE] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_DATATYPE]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_DATATYPES);
-    nodeset->nodes[NODECLASS_DATATYPE]->cnt = 0;
-    // referencetypes
-    nodeset->nodes[NODECLASS_REFERENCETYPE] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_REFERENCETYPES);
-    nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt = 0;
-    // variabletypes
-    nodeset->nodes[NODECLASS_VARIABLETYPE] =
-        (NodeContainer *)malloc(sizeof(NodeContainer));
-    nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes =
-        (TNode **)malloc(sizeof(TNode *) * MAX_VARIABLETYPES);
-    nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt = 0;
+    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(MAX_OBJECTS);
+    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(MAX_VARIABLES);
+    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(MAX_METHODS);
+    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(MAX_OBJECTTYPES);
+    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(MAX_DATATYPES);
+    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(MAX_REFERENCETYPES);
+    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(MAX_VARIABLETYPES);
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
@@ -280,9 +246,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
 
 static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 {
-    size_t cnt = nodeset->nodes[node->nodeClass]->cnt;
-    nodeset->nodes[node->nodeClass]->nodes[cnt] = node;
-    nodeset->nodes[node->nodeClass]->cnt++;
+    NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
 bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
@@ -306,41 +270,42 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
         return false;
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt;
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_REFERENCETYPE]->size;
          cnt++)
     {
         callback(userContext,
                  nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->cnt; cnt++)
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_DATATYPE]->size; cnt++)
     {
         callback(userContext, nodeset->nodes[NODECLASS_DATATYPE]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->cnt; cnt++)
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECTTYPE]->size;
+         cnt++)
     {
         callback(userContext, nodeset->nodes[NODECLASS_OBJECTTYPE]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->cnt; cnt++)
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_OBJECT]->size; cnt++)
     {
         callback(userContext, nodeset->nodes[NODECLASS_OBJECT]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->cnt; cnt++)
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_METHOD]->size; cnt++)
     {
         callback(userContext, nodeset->nodes[NODECLASS_METHOD]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->cnt;
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLETYPE]->size;
          cnt++)
     {
         callback(userContext,
                  nodeset->nodes[NODECLASS_VARIABLETYPE]->nodes[cnt]);
     }
 
-    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->cnt; cnt++)
+    for (size_t cnt = 0; cnt < nodeset->nodes[NODECLASS_VARIABLE]->size; cnt++)
     {
         callback(userContext, nodeset->nodes[NODECLASS_VARIABLE]->nodes[cnt]);
 
@@ -354,21 +319,12 @@ bool Nodeset_getSortedNodes(Nodeset *nodeset, void *userContext,
 void Nodeset_cleanup(Nodeset *nodeset)
 {
     Nodeset *n = nodeset;
-
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
-
     for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
     {
-        size_t storedNodes = n->nodes[cnt]->cnt;
-        for (size_t nodeCnt = 0; nodeCnt < storedNodes; nodeCnt++)
-        {
-            Node_delete(n->nodes[cnt]->nodes[nodeCnt]);
-        }
-        free((void *)n->nodes[cnt]->nodes);
-        free((void *)n->nodes[cnt]);
+        NodeContainer_delete(nodeset->nodes[cnt]);
     }
-
     NamespaceList_delete(nodeset->namespaces);
     free(n);
     Sort_cleanup();
@@ -515,7 +471,7 @@ static bool isKnownReferenceType(Nodeset *nodeset, const TNodeId *refTypeId)
     {
         return true;
     }
-    for (size_t i = 0; i < nodeset->nodes[NODECLASS_REFERENCETYPE]->cnt; i++)
+    for (size_t i = 0; i < nodeset->nodes[NODECLASS_REFERENCETYPE]->size; i++)
     {
         if (!TNodeId_cmp(
                 refTypeId,
