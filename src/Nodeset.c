@@ -8,14 +8,18 @@
 #include "Nodeset.h"
 #include "Sort.h"
 #include <AliasList.h>
+#include <NamespaceList.h>
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref);
-TNodeId extractNodedId(const TNamespace *namespaces, char *s);
+static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
 static TNodeId alias2Id(const Nodeset *nodeset, char *name);
+static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
+static TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName id);
+TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 
 #define MAX_OBJECTTYPES 1000
 #define MAX_OBJECTS 100000
@@ -146,27 +150,28 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL},
 };
 
-TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id)
+TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
 {
     if (id.nsIdx > 0)
     {
-        id.nsIdx = (int)namespaces[id.nsIdx].idx;
+        id.nsIdx = (int)NamespaceList_getNamespace(namespaces, id.nsIdx)->idx;
         return id;
     }
     return id;
 }
 
-TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName bn)
+TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName bn)
 {
     if (bn.nsIdx > 0)
     {
-        bn.nsIdx = (uint16_t)namespaces[bn.nsIdx].idx;
+        bn.nsIdx =
+            (uint16_t)NamespaceList_getNamespace(namespaces, bn.nsIdx)->idx;
         return bn;
     }
     return bn;
 }
 
-TNodeId extractNodedId(const TNamespace *namespaces, char *s)
+TNodeId extractNodedId(const NamespaceList *namespaces, char *s)
 {
     if (s == NULL)
     {
@@ -191,7 +196,7 @@ TNodeId extractNodedId(const TNamespace *namespaces, char *s)
     return translateNodeId(namespaces, id);
 }
 
-TBrowseName extractBrowseName(const TNamespace *namespaces, char *s)
+TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
 {
     TBrowseName bn;
     bn.nsIdx = 0;
@@ -214,7 +219,7 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
     const TNodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
     if (!alias)
     {
-        return extractNodedId(nodeset->namespaceTable->ns, name);
+        return extractNodedId(nodeset->namespaces, name);
     }
     return *alias;
 }
@@ -223,6 +228,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     nodeset->aliasList = AliasList_new();
+    nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->countedRefs =
         (Reference **)malloc(sizeof(Reference *) * MAX_REFCOUNTEDREFS);
     nodeset->refsSize = 0;
@@ -272,14 +278,6 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
-
-    TNamespaceTable *table = (TNamespaceTable *)malloc(sizeof(TNamespaceTable));
-    table->cb = nsCallback;
-    table->size = 1;
-    table->ns = (TNamespace *)malloc((sizeof(TNamespace)));
-    table->ns[0].idx = 0;
-    table->ns[0].name = "http://opcfoundation.org/UA/";
-    nodeset->namespaceTable = table;
     Sort_init();
     return nodeset;
 }
@@ -382,8 +380,7 @@ void Nodeset_cleanup(Nodeset *nodeset)
         free((void *)n->nodes[cnt]);
     }
 
-    free(n->namespaceTable->ns);
-    free(n->namespaceTable);
+    NamespaceList_delete(nodeset->namespaces);
     free(n);
     Sort_cleanup();
 }
@@ -421,7 +418,7 @@ static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
     return attr->defaultValue;
 }
 
-static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
+static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
                               TNode *node, int attributeSize,
                               const char **attributes)
 {
@@ -500,7 +497,7 @@ static void extractAttributes(Nodeset *nodeset, const TNamespace *namespaces,
     }
 }
 
-static void initNode(Nodeset *nodeset, TNamespace *namespaces,
+static void initNode(Nodeset *nodeset, const NamespaceList* namespaces,
                      TNodeClass nodeClass, TNode *node, int nb_attributes,
                      const char **attributes)
 {
@@ -541,7 +538,7 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
         node = (TNode *)calloc(1, sizeof(TMethodNode));
         break;
     }
-    initNode(nodeset, nodeset->namespaceTable->ns, nodeClass, node,
+    initNode(nodeset, nodeset->namespaces, nodeClass, node,
              nb_attributes, attributes);
     return node;
 }
@@ -616,31 +613,13 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
 
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString)
 {
-    alias->id = extractNodedId(nodeset->namespaceTable->ns, idString);
-}
-
-TNamespace *Nodeset_newNamespace(Nodeset *nodeset)
-{
-    nodeset->namespaceTable->size++;
-    TNamespace *ns = (TNamespace *)realloc(nodeset->namespaceTable->ns,
-                                           sizeof(TNamespace) *
-                                               (nodeset->namespaceTable->size));
-    nodeset->namespaceTable->ns = ns;
-    ns[nodeset->namespaceTable->size - 1].name = NULL;
-    return &ns[nodeset->namespaceTable->size - 1];
+    alias->id = extractNodedId(nodeset->namespaces, idString);
 }
 
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri)
 {
-    nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name =
-        namespaceUri;
-    int globalIdx = nodeset->namespaceTable->cb(
-        userContext,
-        nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].name);
-
-    nodeset->namespaceTable->ns[nodeset->namespaceTable->size - 1].idx =
-        (size_t)globalIdx;
+    NamespaceList_newNamespace(nodeset->namespaces, userContext, namespaceUri);
 }
 
 static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
@@ -676,5 +655,5 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
-    ref->target = extractNodedId(nodeset->namespaceTable->ns, targetId);
+    ref->target = extractNodedId(nodeset->namespaces, targetId);
 }

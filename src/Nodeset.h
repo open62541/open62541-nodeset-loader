@@ -25,19 +25,6 @@ typedef struct {
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-struct TNamespace;
-typedef struct TNamespace TNamespace;
-
-struct TNamespace {
-    size_t idx;
-    char *name;
-};
-
-typedef struct {
-    size_t size;
-    TNamespace *ns;
-    addNamespaceCb cb;
-} TNamespaceTable;
 
 struct AliasList;
 struct Nodeset {
@@ -46,15 +33,15 @@ struct Nodeset {
     struct AliasList* aliasList;
     NodeContainer *nodes[NODECLASS_COUNT];
     size_t refsSize;
-    TNamespaceTable *namespaceTable;
+    struct NamespaceList* namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
 };
 
 //TNodeId extractNodedId(const TNamespace *namespaces, char *s);
-TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
-TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
-TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
+//TBrowseName extractBrowseName(const TNamespace *namespaces, char *s);
+//TNodeId translateNodeId(const TNamespace *namespaces, TNodeId id);
+//TBrowseName translateBrowseName(const TNamespace *namespaces, TBrowseName id);
 Nodeset* Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset* nodeset);
 void Nodeset_sort(Nodeset *nodeset);
@@ -68,7 +55,6 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId);
 struct Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attribute);
 void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias, char *idString);
-TNamespace *Nodeset_newNamespace(Nodeset *nodeset);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext, char *namespaceUri);
 
 #endif
