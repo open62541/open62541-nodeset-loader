@@ -33,7 +33,6 @@ fi
 if ! [ -z ${CLANG_RELEASE+x} ]; then
     mkdir -p build
     cd build
-    conan install -s compiler.libcxx=libstdc++11 .. --build libxml2 --build gtest --build benchmark
     cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON  ..
     make
     make test
