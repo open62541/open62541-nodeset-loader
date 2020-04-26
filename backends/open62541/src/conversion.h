@@ -1,6 +1,6 @@
 #ifndef CONVERSION_H
 #define CONVERSION_H
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <open62541/types.h>
 
 static inline UA_Boolean isNodeId(const char *s) {

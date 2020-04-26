@@ -1,40 +1,10 @@
 #include "conversion.h"
 #include "value.h"
-#include <nodesetLoader/nodesetLoader.h>
+#include <nodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <openBackend.h>
 
-void BackendOpen62541_addNode(void *userContext, const TNode *node);
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
-
-bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            void *extensionHandling)
-{
-    if(!server)
-    {
-        return false;
-    }
-    if(!path)
-    {
-        return false;
-    }
-    FileContext handler;
-    handler.callback = BackendOpen62541_addNode;
-    handler.addNamespace = BackendOpen62541_addNamespace;
-    handler.userContext = server;
-    handler.file = path;
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = BackendOpen62541_Value_new;
-    valIf.start = BackendOpen62541_Value_start;
-    valIf.end = BackendOpen62541_Value_end;
-    valIf.finish = BackendOpen62541_Value_finish;
-    valIf.deleteValue = BackendOpen62541_Value_delete;
-    handler.valueHandling = &valIf;
-    handler.extensionHandling = NULL;
-
-    return loadFile(&handler);
-}
 
 static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node)
 {
@@ -186,8 +156,8 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.arrayDimensionsSize =
         getArrayDimensions(node->arrayDimensions, &arrDims);
     attr.arrayDimensions = arrDims;
-    attr.accessLevel = (UA_Byte) atoi(node->accessLevel);
-    attr.userAccessLevel = (UA_Byte) atoi(node->userAccessLevel);
+    attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
+    attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
 
     // todo: is this really necessary??
     UA_UInt32 dims = 0;
@@ -289,15 +259,15 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
                               attr, NULL, NULL);
 }
 
-void BackendOpen62541_addNode(void *userContext, const TNode *node)
+static void addNode(UA_Server *server, const TNode *node)
 {
-    UA_Server *server = (UA_Server *)userContext;
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
     UA_LocalizedText lt = UA_LOCALIZEDTEXT((char *)"", node->displayName);
     UA_QualifiedName qn =
         UA_QUALIFIEDNAME(node->browseName.nsIdx, node->browseName.name);
+
     switch (node->nodeClass)
     {
     case NODECLASS_OBJECT:
@@ -341,4 +311,108 @@ int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
     int idx =
         (int)UA_Server_addNamespace((UA_Server *)userContext, namespaceUri);
     return idx;
+}
+
+bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
+                            void *extensionHandling)
+{
+    if (!server)
+    {
+        return false;
+    }
+    if (!path)
+    {
+        return false;
+    }
+    FileContext handler;
+    handler.addNamespace = BackendOpen62541_addNamespace;
+    handler.userContext = server;
+    handler.file = path;
+    ValueInterface valIf;
+    valIf.userContext = NULL;
+    valIf.newValue = BackendOpen62541_Value_new;
+    valIf.start = BackendOpen62541_Value_start;
+    valIf.end = BackendOpen62541_Value_end;
+    valIf.finish = BackendOpen62541_Value_finish;
+    valIf.deleteValue = BackendOpen62541_Value_delete;
+    handler.valueHandling = &valIf;
+    handler.extensionHandling = NULL;
+
+    NodesetLoader *loader = NodesetLoader_new();
+    bool status = NodesetLoader_importFile(loader, &handler);
+    NodesetLoader_sort(loader);
+    if (status)
+    {
+        {
+            TNode** nodes = NULL;
+            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE,
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE,
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE,
+                                                &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_OBJECT, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_METHOD, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+
+        {
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_VARIABLE, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                addNode(server, *node);
+            }
+        }
+    }
+    NodesetLoader_delete(loader);
+    return status;
 }

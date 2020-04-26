@@ -12,7 +12,7 @@ int addNamespace(void* userContext, const char* uri)
     return 1;
 }
 
-void addNode(void* userContext, const TNode* node)
+void dumpNode(void* userContext, const TNode* node)
 {
     printf("NodeId: %s BrowseName: %s DisplayName: %s\n", node->id.id,
     node->browseName.name, node->displayName);
