@@ -14,8 +14,8 @@ static void cleanupCustomTypes(const UA_DataTypeArray *types)
                 {
                     free((void*)m->memberName);
                 }
+                free(type->members);
             }
-            free(types->types->members);
         }
         free((void *)(uintptr_t)types->types);
         free((void*)types);

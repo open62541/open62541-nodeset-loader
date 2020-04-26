@@ -3,40 +3,41 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <open62541/server.h>
-#include <open62541/server_config_default.h>
 #include <open62541/server_config.h>
+#include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
 #include "check.h"
 #include "unistd.h"
 
-#include <openBackend.h>
-#include <dataTypes.h>
 #include "../testHelper.h"
+#include <dataTypes.h>
+#include <openBackend.h>
 
 UA_Server *server;
-char* nodesetPath=NULL;
+char *nodesetPath = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    
+static void teardown(void)
+{
+
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
-        UA_Server_getConfig(server)->customDataTypes));
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 
-START_TEST(Struct_Point) {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath,
-                                         NULL));
-    UA_NodeId typeId =UA_NODEID_NUMERIC(2, 3002);
-    const UA_DataType* type = getCustomDataType(server, &typeId);
+START_TEST(Struct_Point)
+{
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
     ck_assert(type);
 
     struct Point
@@ -88,7 +89,8 @@ START_TEST(NestedPoints)
 }
 END_TEST
 
-static Suite *testSuite_Client(void) {
+static Suite *testSuite_Client(void)
+{
     Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
@@ -99,7 +101,8 @@ static Suite *testSuite_Client(void) {
     return s;
 }
 
-int main(int argc, char*argv[]) {
+int main(int argc, char *argv[])
+{
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
