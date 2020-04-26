@@ -28,7 +28,13 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
     return 0;
 }
 
-static int getAlignment(const UA_DataType *type)
+static const UA_DataType* getTypeFromLists(bool nsZero, UA_UInt16 idx, const UA_DataType* ns0Types, const UA_DataType* customTypes)
+{
+    const UA_DataType *typelists[2] = {ns0Types, customTypes};
+    return &typelists[!nsZero][idx];
+}
+
+static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, const UA_DataType* customTypes)
 {
     switch (type->typeKind)
     {
@@ -54,8 +60,14 @@ static int getAlignment(const UA_DataType *type)
         return alignof(UA_Float);
     case UA_DATATYPEKIND_DOUBLE:
         return alignof(UA_Double);
-    default:
-        return 0;
+    case UA_DATATYPEKIND_STRUCTURE:
+    case UA_DATATYPEKIND_OPTSTRUCT:
+        // here we have to take a look on the first member
+        assert(type->members);
+        const UA_DataType *memberType = getTypeFromLists(
+            type->members[0].namespaceZero, type->members[0]
+                .memberTypeIndex, ns0Types, customTypes);
+        return getAlignment(memberType, ns0Types, customTypes);
     }
     assert(false && "typeIndex invalid");
     return 0;
@@ -63,14 +75,13 @@ static int getAlignment(const UA_DataType *type)
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
                               const UA_DataType *customTypes)
 {
-    const UA_DataType *typelists[2] = {ns0Types, customTypes};
+    
     int offset = 0;
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
-        const UA_DataType *memberType =
-            &typelists[!tm->namespaceZero][tm->memberTypeIndex];
-        int align = getAlignment(memberType);
+        const UA_DataType *memberType = getTypeFromLists(tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
+        int align = getAlignment(memberType, ns0Types, customTypes);
         if (align > 0)
         {
             tm->padding = (UA_Byte)((align - (offset % align)) % align);

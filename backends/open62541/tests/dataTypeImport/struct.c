@@ -89,6 +89,29 @@ START_TEST(NestedPoints)
 }
 END_TEST
 
+START_TEST(CustomTypeAndNs0Nested)
+{
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3005);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
+    ck_assert(type);
+
+    struct Point
+    {
+        UA_Int32 x;
+        UA_Int32 y;
+        UA_Int32 z;
+    };
+
+    struct Mixed
+    {
+        UA_Boolean valid;
+        struct Point B;
+    };
+    printf("sizeof Mixed = %d", sizeof(struct Mixed));
+    ck_assert(sizeof(struct Mixed) == type->memSize);
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("datatype Import");
@@ -97,6 +120,7 @@ static Suite *testSuite_Client(void)
     tcase_add_test(tc_server, Struct_Point);
     tcase_add_test(tc_server, Single_bool);
     tcase_add_test(tc_server, NestedPoints);
+    tcase_add_test(tc_server, CustomTypeAndNs0Nested);
     suite_add_tcase(s, tc_server);
     return s;
 }
