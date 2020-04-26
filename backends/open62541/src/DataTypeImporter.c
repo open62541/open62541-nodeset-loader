@@ -8,7 +8,7 @@
 
 struct DataTypeImporter
 {
-    UA_DataTypeArray* types;
+    UA_DataTypeArray *types;
 };
 
 static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
@@ -23,7 +23,7 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id.identifier.numeric;
         }
-        ref=ref->next;
+        ref = ref->next;
     }
     return 0;
 }
@@ -65,7 +65,6 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
 {
     const UA_DataType *typelists[2] = {ns0Types, customTypes};
     int offset = 0;
-    // everything should be there to calculate memsize, padding, etc
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
@@ -86,9 +85,10 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
     type->memSize = (UA_Byte)offset;
 }
 
-static void addDataTypeMembers(const UA_DataType* customTypes, UA_DataType *type, const TDataTypeNode *node)
+static void addDataTypeMembers(const UA_DataType *customTypes,
+                               UA_DataType *type, const TDataTypeNode *node)
 {
-    //need casting
+    // need casting here
     type->membersSize = (unsigned char)node->definition->fieldCnt;
     type->members = (UA_DataTypeMember *)calloc(node->definition->fieldCnt,
                                                 sizeof(UA_DataTypeMember));
@@ -103,18 +103,19 @@ static void addDataTypeMembers(const UA_DataType* customTypes, UA_DataType *type
             getNodeIdFromChars(node->definition->fields[i].dataType);
 
         // TODO: fix this, is just for testing
-        if(member->namespaceZero)
+        if (member->namespaceZero)
         {
             member->memberTypeIndex =
                 (UA_UInt16)(memberTypeId.identifier.numeric - 1);
         }
         else
         {
-            size_t idx =0;
+            size_t idx = 0;
             bool found = false;
-            for(const UA_DataType* customType = customTypes; customType != type; customType++)
+            for (const UA_DataType *customType = customTypes;
+                 customType != type; customType++)
             {
-                if(UA_NodeId_equal(&customType->typeId, &memberTypeId))
+                if (UA_NodeId_equal(&customType->typeId, &memberTypeId))
                 {
                     found = true;
                     break;
@@ -122,10 +123,9 @@ static void addDataTypeMembers(const UA_DataType* customTypes, UA_DataType *type
                 idx++;
             }
             assert(found);
-            member->memberTypeIndex = (UA_UInt16) idx;
+            member->memberTypeIndex = (UA_UInt16)idx;
         }
-        
-        
+
         char *memberNameCopy = (char *)UA_calloc(
             strlen(node->definition->fields[i].name) + 1, sizeof(char));
         memcpy(memberNameCopy, node->definition->fields[i].name,
@@ -134,45 +134,57 @@ static void addDataTypeMembers(const UA_DataType* customTypes, UA_DataType *type
     }
 }
 
-void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
-                                        const TDataTypeNode *node)
+static void StructureDataType_init(const DataTypeImporter* importer, UA_DataType *type,
+                                   const TDataTypeNode *node)
 {
-    if(!node->definition)
-    {
-        return;
-    }
-    if (node->definition->isEnum)
-    {
-        return;
-    }
-
-    importer->types->types = (UA_DataType *)realloc(
-        (void*)(uintptr_t)importer->types->types,
-        (importer->types->typesSize + 1) * sizeof(UA_DataType));
-
-    UA_DataType *type = (UA_DataType*)(uintptr_t)&importer->types->types[importer->types->typesSize];
+    // TODO: there can be more options (OPSTRUCT)?
+    type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
     type->typeId = getNodeIdFromChars(node->id);
-
-    //TODO: when is this true, when there are no arrays inside?
+    // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
-    //type->overlayable
+    // TODO: type->overlayable
+    addDataTypeMembers(importer->types->types, type, node);
+    setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
+    // type->typeName = node->browseName.name;
+    (*(size_t *)(uintptr_t)&importer->types->typesSize)++;
+}
+
+static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
+{
+    enumType->typeIndex = UA_TYPES_INT32;
+    enumType->typeKind = UA_DATATYPEKIND_ENUM;
+    enumType->binaryEncodingId = 0;
+    enumType->pointerFree = true;
+    enumType->overlayable = UA_BINARY_OVERLAYABLE_INTEGER;
+    enumType->members = NULL;
+    enumType->membersSize = 0;
+    enumType->memSize = sizeof(UA_Int32);
+}
+
+void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
+                                        const TDataTypeNode *node)
+{
+    if (!node->definition)
+    {
+        return;
+    }
+    importer->types->types = (UA_DataType *)realloc(
+        (void *)(uintptr_t)importer->types->types,
+        (importer->types->typesSize + 1) * sizeof(UA_DataType));
+
+    UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
+                            ->types[importer->types->typesSize];
+
     if (node->definition->isEnum)
     {
-        type->typeKind = UA_DATATYPEKIND_ENUM;
+        EnumDataType_init(type, node);
     }
     else
     {
-        // TODO: there can be more options (OPSTRUCT)
-        type->typeKind = UA_DATATYPEKIND_STRUCTURE;
+        StructureDataType_init(importer, type, node);
     }
-
-    addDataTypeMembers(importer->types->types, type, node);
-
-    setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
-    // type->typeName = node->browseName.name;
-    (*(size_t*)(uintptr_t)&importer->types->typesSize)++;
 }
 
 DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
@@ -184,8 +196,6 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
     UA_DataTypeArray *newCustomTypes =
         (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
 
-    //newCustomTypes = {UA_Server_getConfig(server)->customDataTypes, NULL, 0};
-    
     UA_ServerConfig *config = UA_Server_getConfig(server);
     newCustomTypes->next = config->customDataTypes;
 

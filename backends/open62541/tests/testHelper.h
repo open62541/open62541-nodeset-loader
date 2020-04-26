@@ -8,17 +8,17 @@ static void cleanupCustomTypes(const UA_DataTypeArray *types)
             for (const UA_DataType *type = types->types;
                  type != types->types + types->typesSize; type++)
             {
-                //free(type->typeName);
+                // free(type->typeName);
                 for (UA_DataTypeMember *m = type->members;
                      m != type->members + type->membersSize; m++)
                 {
-                    free((void*)m->memberName);
+                    free((void *)m->memberName);
                 }
                 free(type->members);
             }
         }
         free((void *)(uintptr_t)types->types);
-        free((void*)types);
+        free((void *)types);
         types = next;
     }
 }
