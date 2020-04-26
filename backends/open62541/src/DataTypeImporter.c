@@ -28,13 +28,16 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
     return 0;
 }
 
-static const UA_DataType* getTypeFromLists(bool nsZero, UA_UInt16 idx, const UA_DataType* ns0Types, const UA_DataType* customTypes)
+static const UA_DataType *getTypeFromLists(bool nsZero, UA_UInt16 idx,
+                                           const UA_DataType *ns0Types,
+                                           const UA_DataType *customTypes)
 {
     const UA_DataType *typelists[2] = {ns0Types, customTypes};
     return &typelists[!nsZero][idx];
 }
 
-static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, const UA_DataType* customTypes)
+static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
+                        const UA_DataType *customTypes)
 {
     switch (type->typeKind)
     {
@@ -83,8 +86,8 @@ static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, co
         // here we have to take a look on the first member
         assert(type->members);
         const UA_DataType *memberType = getTypeFromLists(
-            type->members[0].namespaceZero, type->members[0]
-                .memberTypeIndex, ns0Types, customTypes);
+            type->members[0].namespaceZero, type->members[0].memberTypeIndex,
+            ns0Types, customTypes);
         return getAlignment(memberType, ns0Types, customTypes);
     }
 
@@ -94,12 +97,13 @@ static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, co
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
                               const UA_DataType *customTypes)
 {
-    
+
     int offset = 0;
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
-        const UA_DataType *memberType = getTypeFromLists(tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
+        const UA_DataType *memberType = getTypeFromLists(
+            tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
         int align = getAlignment(memberType, ns0Types, customTypes);
         if (align > 0)
         {
@@ -164,21 +168,20 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
     }
 }
 
-static void StructureDataType_init(const DataTypeImporter* importer, UA_DataType *type,
-                                   const TDataTypeNode *node)
+static void StructureDataType_init(const DataTypeImporter *importer,
+                                   UA_DataType *type, const TDataTypeNode *node)
 {
     // TODO: there can be more options (OPSTRUCT)?
     type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
-    
+
     // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
     // TODO: type->overlayable
     addDataTypeMembers(importer->types->types, type, node);
     setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
     // type->typeName = node->browseName.name;
-    
 }
 
 static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
