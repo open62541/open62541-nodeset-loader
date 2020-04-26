@@ -7,45 +7,44 @@
 
 #include "backend.h"
 
-int addNamespace(void* userContext, const char* uri)
-{
-    return 1;
-}
+int addNamespace(void *userContext, const char *uri) { return 1; }
 
-void dumpNode(void* userContext, const TNode* node)
+void dumpNode(void *userContext, const TNode *node)
 {
     printf("NodeId: %s BrowseName: %s DisplayName: %s\n", node->id.id,
-    node->browseName.name, node->displayName);
+           node->browseName.name, node->displayName);
 
     switch (node->nodeClass)
     {
-        case NODECLASS_OBJECT:
-            printf("\tparentNodeId: %s\n", ((const TObjectNode *)node)->parentNodeId.id);
-            printf("\teventNotifier: %s\n", ((const TObjectNode *)node)->eventNotifier);
-            break;
-        case NODECLASS_VARIABLE:
-            printf("\tparentNodeId: %s\n", ((const TVariableNode
-    *)node)->parentNodeId.id);
-            printf("\tdatatype: %s\n", ((const TVariableNode *)node)->datatype.id);
-            printf("\tvalueRank: %s\n", ((const TVariableNode *)node)->valueRank);
-            printf("\tarrayDimensions: %s\n", ((const TVariableNode *)node)->valueRank);
-            break;
-        case NODECLASS_OBJECTTYPE:
-            break;
-        case NODECLASS_DATATYPE:
-            break;
-        case NODECLASS_METHOD:
-            break;
-        case NODECLASS_REFERENCETYPE:
-        case NODECLASS_VARIABLETYPE:
-            break;
-
+    case NODECLASS_OBJECT:
+        printf("\tparentNodeId: %s\n",
+               ((const TObjectNode *)node)->parentNodeId.id);
+        printf("\teventNotifier: %s\n",
+               ((const TObjectNode *)node)->eventNotifier);
+        break;
+    case NODECLASS_VARIABLE:
+        printf("\tparentNodeId: %s\n",
+               ((const TVariableNode *)node)->parentNodeId.id);
+        printf("\tdatatype: %s\n", ((const TVariableNode *)node)->datatype.id);
+        printf("\tvalueRank: %s\n", ((const TVariableNode *)node)->valueRank);
+        printf("\tarrayDimensions: %s\n",
+               ((const TVariableNode *)node)->valueRank);
+        break;
+    case NODECLASS_OBJECTTYPE:
+        break;
+    case NODECLASS_DATATYPE:
+        break;
+    case NODECLASS_METHOD:
+        break;
+    case NODECLASS_REFERENCETYPE:
+    case NODECLASS_VARIABLETYPE:
+        break;
     }
     Reference *hierachicalRef = node->hierachicalRefs;
     while (hierachicalRef)
     {
         printf("\treftype: %s target: %s\n", hierachicalRef->refType.id,
-    hierachicalRef->target.id);
+               hierachicalRef->target.id);
         hierachicalRef = hierachicalRef->next;
     }
 
@@ -53,13 +52,12 @@ void dumpNode(void* userContext, const TNode* node)
     while (nonHierRef)
     {
         printf("\treftype: %s target: %s\n", nonHierRef->refType.id,
-    nonHierRef->target.id);
+               nonHierRef->target.id);
         nonHierRef = nonHierRef->next;
     }
-    
 }
 
-struct Value *Value_new(const TNode *node) {return NULL;}
+struct Value *Value_new(const TNode *node) { return NULL; }
 void Value_start(Value *val, const char *localname) {}
 void Value_end(Value *val, const char *localname, char *value) {}
 void Value_finish(Value *val) {}

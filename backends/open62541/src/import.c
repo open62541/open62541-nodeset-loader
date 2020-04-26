@@ -344,9 +344,9 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     if (status)
     {
         {
-            TNode** nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE,
-                                                &nodes);
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);
@@ -355,8 +355,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 
         {
             TNode **nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE,
-                                                &nodes);
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);
@@ -365,8 +365,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 
         {
             TNode **nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE,
-                                                &nodes);
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);

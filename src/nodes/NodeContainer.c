@@ -1,13 +1,15 @@
 #include "NodeContainer.h"
-#include <stdlib.h>
 #include "Node.h"
 #include <assert.h>
+#include <stdlib.h>
 
 NodeContainer *NodeContainer_new(size_t initialSize)
 {
-    NodeContainer* container = (NodeContainer*) calloc(1, sizeof(NodeContainer));
+    NodeContainer *container =
+        (NodeContainer *)calloc(1, sizeof(NodeContainer));
     assert(container);
-    container->nodes = (TNode**) calloc(initialSize, sizeof(void*)*initialSize);
+    container->nodes =
+        (TNode **)calloc(initialSize, sizeof(void *) * initialSize);
     assert(container->nodes);
     container->size = 0;
     container->capacity = initialSize;
@@ -15,11 +17,13 @@ NodeContainer *NodeContainer_new(size_t initialSize)
     return container;
 }
 
-void NodeContainer_add(NodeContainer* container, TNode *node)
+void NodeContainer_add(NodeContainer *container, TNode *node)
 {
-    if(container->size == container->capacity)
+    if (container->size == container->capacity)
     {
-        container->nodes = (TNode**) realloc(container->nodes, (container->size + container->incrementSize) * sizeof(void*) );
+        container->nodes = (TNode **)realloc(
+            container->nodes,
+            (container->size + container->incrementSize) * sizeof(void *));
         assert(container->nodes);
         container->capacity += container->incrementSize;
     }
@@ -29,7 +33,7 @@ void NodeContainer_add(NodeContainer* container, TNode *node)
 
 void NodeContainer_delete(NodeContainer *container)
 {
-    for(size_t i = 0; i < container->size; i++)
+    for (size_t i = 0; i < container->size; i++)
     {
         Node_delete(container->nodes[i]);
     }
