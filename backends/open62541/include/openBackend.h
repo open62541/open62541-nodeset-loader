@@ -14,8 +14,10 @@
 extern "C" {
 #endif
 struct UA_Server;
+
 bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
                             void *extensionHandling);
+
 #ifdef __cplusplus
 }
 #endif

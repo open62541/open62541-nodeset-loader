@@ -1,72 +1,81 @@
-#include <check.h>
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+#include <open62541/server_config.h>
 #include <open62541/types.h>
 
 #include "check.h"
 #include "unistd.h"
 
-#include "testHelper.h"
 #include <openBackend.h>
+#include <dataTypes.h>
+#include "../testHelper.h"
 
 UA_Server *server;
-char *nodesetPath = NULL;
+char* nodesetPath=NULL;
 
-static void setup(void)
-{
+static void setup(void) {
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
+static void teardown(void) {
+    
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes); 
+    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
+        UA_Server_getConfig(server)->customDataTypes));
     UA_Server_delete(server);
 }
 
-START_TEST(import_ValueRank)
-{
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+START_TEST(Struct_Point) {
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath,
+                                         NULL));
+    UA_NodeId typeId =UA_NODEID_NUMERIC(2, 3002);
+    const UA_DataType* type = getCustomDataType(server, &typeId);
+    ck_assert(type);
 
-    UA_Variant var;
-    UA_Variant_init(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var));
-    ck_assert(1==*(int*)var.data);
-    UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6003), &var));
-    ck_assert(13 == ((int *)var.data)[1]);
-    UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var));
-    ck_assert(300 == ((int *)var.data)[2]);
-    UA_Variant_clear(&var);
+    struct Point
+    {
+        UA_Int32 x;
+        UA_Int32 y;
+        UA_Int32 z;
+    };
+
+    ck_assert(sizeof(struct Point) == type->memSize);
 }
 END_TEST
 
-static Suite *testSuite_Client(void)
+START_TEST(Single_bool)
 {
-    Suite *s = suite_create("server nodeset import");
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3003);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
+    ck_assert(type);
+
+    struct Structbool
+    {
+        UA_Boolean b;
+    };
+
+    ck_assert(sizeof(struct Structbool) == type->memSize);
+}
+END_TEST
+
+static Suite *testSuite_Client(void) {
+    Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, import_ValueRank);
+    tcase_add_test(tc_server, Struct_Point);
+    tcase_add_test(tc_server, Single_bool);
     suite_add_tcase(s, tc_server);
     return s;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char*argv[]) {
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;

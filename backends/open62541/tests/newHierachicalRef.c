@@ -27,8 +27,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
-        UA_Server_getConfig(server)->customDataTypes));
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 
@@ -38,13 +37,14 @@ START_TEST(import_ValueRank)
 
     UA_NodeClass refTypeClass = UA_NODECLASS_DATATYPE;
     UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 4002), &refTypeClass);
-    ck_assert(UA_NODECLASS_REFERENCETYPE== refTypeClass);
+    ck_assert(UA_NODECLASS_REFERENCETYPE == refTypeClass);
 
     UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 5002), &refTypeClass);
     ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
 
-    UA_StatusCode status = UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 5003), &refTypeClass);
-    ck_assert(UA_STATUSCODE_GOOD==status);
+    UA_StatusCode status = UA_Server_readNodeClass(
+        server, UA_NODEID_NUMERIC(2, 5003), &refTypeClass);
+    ck_assert(UA_STATUSCODE_GOOD == status);
     ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
 }
 END_TEST

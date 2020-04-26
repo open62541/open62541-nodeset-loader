@@ -23,6 +23,7 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id.identifier.numeric;
         }
+        ref=ref->next;
     }
     return 0;
 }
@@ -131,6 +132,10 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
     type->typeId = getNodeIdFromChars(node->id);
+
+    //TODO: when is true, when there are no arrays inside?
+    type->pointerFree = true;
+    //type->overlayable
     if (node->definition->isEnum)
     {
         type->typeKind = UA_DATATYPEKIND_ENUM;

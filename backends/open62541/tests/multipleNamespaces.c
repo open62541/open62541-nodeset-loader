@@ -13,29 +13,31 @@
 #include <openBackend.h>
 
 UA_Server *server;
-char* nodesetPath=NULL;
+char *nodesetPath = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
+static void teardown(void)
+{
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
-        UA_Server_getConfig(server)->customDataTypes));
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 
-START_TEST(Server_ImportNodeset) {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath,
-                                         NULL));
+START_TEST(Server_ImportNodeset)
+{
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 }
 END_TEST
 
-static Suite *testSuite_Client(void) {
+static Suite *testSuite_Client(void)
+{
     Suite *s = suite_create("server nodeset import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
@@ -44,7 +46,8 @@ static Suite *testSuite_Client(void) {
     return s;
 }
 
-int main(int argc, char*argv[]) {
+int main(int argc, char *argv[])
+{
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
