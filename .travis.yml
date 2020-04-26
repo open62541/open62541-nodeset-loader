@@ -20,6 +20,12 @@ jobs:
     - os: linux
       dist: bionic
       compiler: clang
+      addons:
+        apt:
+          packages:
+            - cmake
+            - valgrind
+            - check
       env:
        - CLANG_RELEASE=true
 
