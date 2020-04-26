@@ -1,5 +1,5 @@
-#include <assert.h>
 #include <CharAllocator.h>
+#include <assert.h>
 #include <stdlib.h>
 
 struct CharArena

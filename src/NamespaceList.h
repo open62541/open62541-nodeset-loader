@@ -15,9 +15,11 @@ struct Namespace
 };
 
 NamespaceList *NamespaceList_new(addNamespaceCb cb);
-Namespace *NamespaceList_newNamespace(NamespaceList *list, void* userContext, const char* uri);
-void NamespaceList_setUri(NamespaceList *list, Namespace* ns);
+Namespace *NamespaceList_newNamespace(NamespaceList *list, void *userContext,
+                                      const char *uri);
+void NamespaceList_setUri(NamespaceList *list, Namespace *ns);
 void NamespaceList_delete(NamespaceList *list);
-const Namespace* NamespaceList_getNamespace(const NamespaceList* list, int relativeIndex);
+const Namespace *NamespaceList_getNamespace(const NamespaceList *list,
+                                            int relativeIndex);
 
 #endif

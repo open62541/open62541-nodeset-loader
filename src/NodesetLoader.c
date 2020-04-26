@@ -7,11 +7,11 @@
 
 #include "Nodeset.h"
 #include <CharAllocator.h>
+#include <assert.h>
 #include <libxml/SAX.h>
 #include <nodesetLoader/NodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
-#include <assert.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -446,7 +446,8 @@ static int read_xmlfile(FILE *f, TParserCtx *parserCtxt)
     return 0;
 }
 
-bool NodesetLoader_importFile(NodesetLoader* loader, const FileContext *fileHandler)
+bool NodesetLoader_importFile(NodesetLoader *loader,
+                              const FileContext *fileHandler)
 {
     if (fileHandler == NULL)
     {
@@ -459,11 +460,11 @@ bool NodesetLoader_importFile(NodesetLoader* loader, const FileContext *fileHand
         return false;
     }
     bool status = true;
-    if(!loader->nodeset)
+    if (!loader->nodeset)
     {
         loader->nodeset = Nodeset_new(fileHandler->addNamespace);
     }
-    
+
     TParserCtx *ctx = NULL;
     FILE *f = fopen(fileHandler->file, "r");
 
@@ -505,14 +506,14 @@ cleanup:
     return status;
 }
 
-bool NodesetLoader_sort(NodesetLoader* loader)
+bool NodesetLoader_sort(NodesetLoader *loader)
 {
     return Nodeset_sort(loader->nodeset);
 }
 
 NodesetLoader *NodesetLoader_new()
 {
-    NodesetLoader *loader = (NodesetLoader*)calloc(1, sizeof(NodesetLoader));
+    NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     assert(loader);
     return loader;
 }
@@ -524,8 +525,7 @@ void NodesetLoader_delete(NodesetLoader *loader)
 }
 
 size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                             TNode ***nodes)
+                              TNode ***nodes)
 {
     return Nodeset_getNodes(loader->nodeset, nodeClass, nodes);
 }
-

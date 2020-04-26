@@ -11,8 +11,8 @@ struct NodeContainer
 };
 typedef struct NodeContainer NodeContainer;
 
-NodeContainer* NodeContainer_new(size_t initialSize);
-void NodeContainer_delete(NodeContainer* container);
-void NodeContainer_add(NodeContainer* container, TNode* node);
+NodeContainer *NodeContainer_new(size_t initialSize);
+void NodeContainer_delete(NodeContainer *container);
+void NodeContainer_add(NodeContainer *container, TNode *node);
 
 #endif
