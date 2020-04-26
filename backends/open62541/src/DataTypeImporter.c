@@ -86,7 +86,7 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
     type->memSize = (UA_Byte)offset;
 }
 
-static void addDataTypeMembers(UA_DataType *type, const TDataTypeNode *node)
+static void addDataTypeMembers(const UA_DataType* customTypes, UA_DataType *type, const TDataTypeNode *node)
 {
     //need casting
     type->membersSize = (unsigned char)node->definition->fieldCnt;
@@ -103,7 +103,29 @@ static void addDataTypeMembers(UA_DataType *type, const TDataTypeNode *node)
             getNodeIdFromChars(node->definition->fields[i].dataType);
 
         // TODO: fix this, is just for testing
-        member->memberTypeIndex = (UA_UInt16)(memberTypeId.identifier.numeric-1);
+        if(member->namespaceZero)
+        {
+            member->memberTypeIndex =
+                (UA_UInt16)(memberTypeId.identifier.numeric - 1);
+        }
+        else
+        {
+            size_t idx =0;
+            bool found = false;
+            for(const UA_DataType* customType = customTypes; customType != type; customType++)
+            {
+                if(UA_NodeId_equal(&customType->typeId, &memberTypeId))
+                {
+                    found = true;
+                    break;
+                }
+                idx++;
+            }
+            assert(found);
+            member->memberTypeIndex = (UA_UInt16) idx;
+        }
+        
+        
         char *memberNameCopy = (char *)UA_calloc(
             strlen(node->definition->fields[i].name) + 1, sizeof(char));
         memcpy(memberNameCopy, node->definition->fields[i].name,
@@ -133,7 +155,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
     type->typeId = getNodeIdFromChars(node->id);
 
-    //TODO: when is true, when there are no arrays inside?
+    //TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
     //type->overlayable
     if (node->definition->isEnum)
@@ -146,7 +168,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
         type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     }
 
-    addDataTypeMembers(type, node);
+    addDataTypeMembers(importer->types->types, type, node);
 
     setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
     // type->typeName = node->browseName.name;
