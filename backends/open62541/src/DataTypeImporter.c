@@ -141,7 +141,7 @@ static void StructureDataType_init(const DataTypeImporter* importer, UA_DataType
     type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
-    type->typeId = getNodeIdFromChars(node->id);
+    
     // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
     // TODO: type->overlayable
@@ -176,7 +176,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
-
+    type->typeId = getNodeIdFromChars(node->id);
     if (node->definition->isEnum)
     {
         EnumDataType_init(type, node);
