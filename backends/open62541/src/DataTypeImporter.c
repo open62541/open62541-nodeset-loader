@@ -60,6 +60,24 @@ static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, co
         return alignof(UA_Float);
     case UA_DATATYPEKIND_DOUBLE:
         return alignof(UA_Double);
+    case UA_DATATYPEKIND_QUALIFIEDNAME:
+        return alignof(UA_QualifiedName);
+    case UA_DATATYPEKIND_LOCALIZEDTEXT:
+        return alignof(UA_LocalizedText);
+    case UA_DATATYPEKIND_STATUSCODE:
+        return alignof(UA_StatusCode);
+    case UA_DATATYPEKIND_STRING:
+        return alignof(UA_String);
+    case UA_DATATYPEKIND_BYTESTRING:
+        return alignof(UA_ByteString);
+    case UA_DATATYPEKIND_DATETIME:
+        return alignof(UA_DateTime);
+    case UA_DATATYPEKIND_EXPANDEDNODEID:
+        return alignof(UA_ExpandedNodeId);
+    case UA_DATATYPEKIND_NODEID:
+        return alignof(UA_NodeId);
+    case UA_DATATYPEKIND_DIAGNOSTICINFO:
+        return alignof(UA_DiagnosticInfo);
     case UA_DATATYPEKIND_STRUCTURE:
     case UA_DATATYPEKIND_OPTSTRUCT:
         // here we have to take a look on the first member
@@ -69,6 +87,7 @@ static int getAlignment(const UA_DataType *type, const UA_DataType* ns0Types, co
                 .memberTypeIndex, ns0Types, customTypes);
         return getAlignment(memberType, ns0Types, customTypes);
     }
+
     assert(false && "typeIndex invalid");
     return 0;
 }
