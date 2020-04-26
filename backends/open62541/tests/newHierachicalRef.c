@@ -10,6 +10,7 @@
 #include "check.h"
 #include "unistd.h"
 
+#include "testHelper.h"
 #include <openBackend.h>
 
 UA_Server *server;
@@ -26,6 +27,8 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
+    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
+        UA_Server_getConfig(server)->customDataTypes));
     UA_Server_delete(server);
 }
 

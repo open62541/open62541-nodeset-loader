@@ -4,12 +4,14 @@
 
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+#include <open62541/server_config.h>
 #include <open62541/types.h>
 
 #include "check.h"
 #include "unistd.h"
 
 #include <openBackend.h>
+#include "testHelper.h"
 
 UA_Server *server;
 char* nodesetPath=NULL;
@@ -22,7 +24,10 @@ static void setup(void) {
 }
 
 static void teardown(void) {
+    
     UA_Server_run_shutdown(server);
+    cleanupCustomTypes((UA_DataTypeArray *)(uintptr_t)(
+        UA_Server_getConfig(server)->customDataTypes));
     UA_Server_delete(server);
 }
 

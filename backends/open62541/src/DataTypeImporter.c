@@ -145,7 +145,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
 
     setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
     // type->typeName = node->browseName.name;
-    importer->types->typesSize++;
+    (*(size_t*)(uintptr_t)&importer->types->typesSize)++;
 }
 
 DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
@@ -157,8 +157,13 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
     UA_DataTypeArray *newCustomTypes =
         (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
 
+    //newCustomTypes = {UA_Server_getConfig(server)->customDataTypes, NULL, 0};
+    
+    UA_ServerConfig *config = UA_Server_getConfig(server);
+    newCustomTypes->next = config->customDataTypes;
+
     importer->types = newCustomTypes;
-    UA_Server_getConfig(server)->customDataTypes = newCustomTypes;
+    config->customDataTypes = newCustomTypes;
 
     return importer;
 }
