@@ -148,7 +148,7 @@ static void StructureDataType_init(const DataTypeImporter* importer, UA_DataType
     addDataTypeMembers(importer->types->types, type, node);
     setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
     // type->typeName = node->browseName.name;
-    (*(size_t *)(uintptr_t)&importer->types->typesSize)++;
+    
 }
 
 static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
@@ -185,6 +185,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     {
         StructureDataType_init(importer, type, node);
     }
+    (*(size_t *)(uintptr_t)&importer->types->typesSize)++;
 }
 
 DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
