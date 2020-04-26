@@ -1,11 +1,11 @@
+#include "DataTypeImporter.h"
 #include "conversion.h"
 #include "value.h"
+#include <dataTypes.h>
 #include <nodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
-#include <openBackend.h>
-#include "DataTypeImporter.h"
-#include <dataTypes.h>
 #include <open62541/server_config.h>
+#include <openBackend.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -347,9 +347,9 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     if (status)
     {
         {
-            TNode** nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE,
-                                                &nodes);
+            TNode **nodes = NULL;
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);
@@ -358,8 +358,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 
         {
             TNode **nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE,
-                                                &nodes);
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);
@@ -368,8 +368,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 
         {
             TNode **nodes = NULL;
-            size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE,
-                                                &nodes);
+            size_t cnt =
+                NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE, &nodes);
             for (TNode **node = nodes; node != nodes + cnt; node++)
             {
                 addNode(server, *node);
@@ -417,12 +417,12 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         }
     }
 
-    DataTypeImporter* importer = DataTypeImporter_new(server);
+    DataTypeImporter *importer = DataTypeImporter_new(server);
     TNode **nodes = NULL;
     size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
     for (TNode **node = nodes; node != nodes + cnt; node++)
     {
-        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode*)*node);
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
     }
     DataTypeImporter_delete(importer);
 

@@ -30,7 +30,8 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-static UA_NodeId getTypeDefinitionId(UA_Server* server, const UA_NodeId targetId)
+static UA_NodeId getTypeDefinitionId(UA_Server *s,
+                                     const UA_NodeId targetId)
 {
     UA_BrowseDescription bd;
     UA_BrowseDescription_init(&bd);
@@ -39,8 +40,8 @@ static UA_NodeId getTypeDefinitionId(UA_Server* server, const UA_NodeId targetId
     bd.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
     bd.nodeId = targetId;
     bd.resultMask = UA_BROWSERESULTMASK_TYPEDEFINITION;
-    UA_BrowseResult br= UA_Server_browse(server, 10, &bd);
-    if(br.statusCode!= UA_STATUSCODE_GOOD || br.referencesSize!=1)
+    UA_BrowseResult br = UA_Server_browse(s, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
     {
         return UA_NODEID_NULL;
     }
@@ -53,7 +54,8 @@ START_TEST(references_typeDefinitionId)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
-    UA_NodeId baseDataVariableTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
+    UA_NodeId baseDataVariableTypeId =
+        UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
     UA_NodeId typeId = getTypeDefinitionId(server, UA_NODEID_NUMERIC(2, 6012));
     ck_assert(UA_NodeId_equal(&baseDataVariableTypeId, &typeId));
 

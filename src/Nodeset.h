@@ -18,30 +18,26 @@ struct Alias;
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-
 struct NamespaceList;
-
 
 struct NodeContainer;
 struct AliasList;
 struct SortContext;
-struct Nodeset {
-    struct CharArena* charArena;
-    struct AliasList* aliasList;
+struct Nodeset
+{
+    struct CharArena *charArena;
+    struct AliasList *aliasList;
     struct NodeContainer *nodes[NODECLASS_COUNT];
-    struct NamespaceList* namespaces;
+    struct NamespaceList *namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
-    struct SortContext* sortCtx;
+    struct SortContext *sortCtx;
 };
-
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
-size_t Nodeset_getNodes(
-    Nodeset *nodeset, TNodeClass nodeClass,
-    TNode ***nodes);
+size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
                        int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);
@@ -50,12 +46,12 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId);
 struct Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
-                        const char **attribute);
-void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias, char *idString);
+                               const char **attribute);
+void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias,
+                            char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes);
-
 
 #endif

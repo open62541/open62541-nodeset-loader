@@ -47,7 +47,7 @@ int main(int argc, char *argv[])
     for (int i = 0; i < NODECLASS_COUNT; i++)
     {
         TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, i, &nodes);
+        size_t cnt = NodesetLoader_getNodes(loader, (TNodeClass)i, &nodes);
         for (TNode **node = nodes; node != nodes + cnt; node++)
         {
             dumpNode(NULL, (TNode *)*node);

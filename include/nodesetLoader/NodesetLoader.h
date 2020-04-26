@@ -1,8 +1,8 @@
 #pragma once
+#include "TNodeId.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "TNodeId.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -92,9 +92,9 @@ typedef struct
     Value *value;
 } TVariableNode;
 
-typedef struct 
+typedef struct
 {
-    char* name;
+    char *name;
     TNodeId dataType;
     int valueRank;
     int value;
@@ -102,7 +102,7 @@ typedef struct
 
 typedef struct
 {
-    DataTypeDefinitionField* fields;
+    DataTypeDefinitionField *fields;
     size_t fieldCnt;
     bool isEnum;
 } DataTypeDefinition;
@@ -110,7 +110,7 @@ typedef struct
 typedef struct TDataTypeNode
 {
     UA_NODE_ATTRIBUTES
-    DataTypeDefinition* definition;
+    DataTypeDefinition *definition;
 } TDataTypeNode;
 
 typedef struct
@@ -176,10 +176,12 @@ typedef struct
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-NodesetLoader* NodesetLoader_new(void);
-bool NodesetLoader_importFile(NodesetLoader *loader, const FileContext *fileContext);
-void NodesetLoader_delete(NodesetLoader* loader);
-size_t NodesetLoader_getNodes(const NodesetLoader* loader, TNodeClass nodeClass, TNode*** nodes);
+NodesetLoader *NodesetLoader_new(void);
+bool NodesetLoader_importFile(NodesetLoader *loader,
+                              const FileContext *fileContext);
+void NodesetLoader_delete(NodesetLoader *loader);
+size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
+                              TNode ***nodes);
 bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus

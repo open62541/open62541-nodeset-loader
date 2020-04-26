@@ -29,7 +29,8 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -Wshadow
                     -fno-strict-aliasing # fewer compiler assumptions about pointer types
                     -fexceptions
-                    -Wswitch) # recommended for multi-threaded C code, also in combination with C++ code
+                    -Wswitch-enum)
+
 
 find_package(LibXml2 REQUIRED)
 find_package(Check REQUIRED)

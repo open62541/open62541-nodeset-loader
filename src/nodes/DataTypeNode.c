@@ -1,6 +1,6 @@
 #include "DataTypeNode.h"
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 
 static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
 {
@@ -25,9 +25,9 @@ DataTypeDefinitionField *DataTypeNode_addDefinitionField(TDataTypeNode *node)
 
 void DataTypeNode_clear(TDataTypeNode *node)
 {
-    if(node->definition)
+    if (node->definition)
     {
         free(node->definition->fields);
-    }    
+    }
     free(node->definition);
 }

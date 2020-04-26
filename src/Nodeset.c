@@ -528,7 +528,7 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
         DataTypeNode_addDefinitionField(dataTypeNode);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
-    
+
     char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
                                     attributeSize);
     if (value)
@@ -544,5 +544,4 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
         newField->valueRank = atoi(getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize));
     }
-    
 }
