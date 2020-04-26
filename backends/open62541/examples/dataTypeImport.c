@@ -2,6 +2,7 @@
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <openBackend.h>
+#include <dataTypes.h>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -49,8 +50,6 @@ int main(int argc, const char *argv[])
     UA_Variant_init(&var);
     UA_Variant_setScalar(
         &var, &p1, getCustomDataType(server, &attr.dataType));
-
-        UA_findDataType(const UA_NodeId *typeId)
 
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1000), var);
 
