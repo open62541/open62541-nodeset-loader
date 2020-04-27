@@ -37,7 +37,7 @@ install:
   - mkdir build && cd build
   - cmake -DBUILD_SHARED_LIBS=ON ..
   - make -j
-  - make install
+  - sudo make install
 
 script:
   sh ./travis_script.sh
