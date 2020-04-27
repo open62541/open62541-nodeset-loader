@@ -41,7 +41,7 @@ install:
   - sudo make install
 
 script:
-  - cd ~
+  - cd ~/nodesetLoader
   - sh ./travis_script.sh
 
 after_success:
