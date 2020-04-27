@@ -41,7 +41,7 @@ install:
   - sudo make install
 
 script:
-  - cd ~/nodesetLoader
+  - cd ~/build/matkonnerth/nodesetLoader
   - sh ./travis_script.sh
 
 after_success:
