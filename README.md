@@ -33,8 +33,5 @@ make \
 build with cmake option ENABLE_BACKEND_OPEN62541
 take a look on https://github.com/matkonnerth/openWrapper or on the server example
 
-## todos
-Import of custom Datatypes
-
 
 
