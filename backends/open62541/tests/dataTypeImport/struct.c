@@ -11,8 +11,8 @@
 #include "unistd.h"
 
 #include "../testHelper.h"
+#include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
-#include <openBackend.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;

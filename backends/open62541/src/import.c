@@ -1,11 +1,11 @@
 #include "DataTypeImporter.h"
 #include "conversion.h"
 #include "value.h"
+#include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
-#include <openBackend.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -422,7 +422,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
     for (TNode **node = nodes; node != nodes + cnt; node++)
     {
-        //add only the types
+        // add only the types
         DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
     }
     DataTypeImporter_initTypes(importer);

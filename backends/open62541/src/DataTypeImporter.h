@@ -1,6 +1,6 @@
 #ifndef DATATYPEIMPORTER_H
 #define DATATYPEIMPORTER_H
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 struct DataTypeImporter;
 typedef struct DataTypeImporter DataTypeImporter;

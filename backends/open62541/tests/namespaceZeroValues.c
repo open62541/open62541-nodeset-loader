@@ -10,38 +10,34 @@
 #include "unistd.h"
 
 #include "testHelper.h"
-#include <openBackend.h>
+#include <NodesetLoader/backendOpen62541.h>
 
 UA_Server *server;
-char *nodesetPath = NULL;
+char* nodesetPath=NULL;
 
-static void setup(void)
-{
+static void setup(void) {
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
+static void teardown(void) {
     UA_Server_run_shutdown(server);
     cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 
-static UA_UInt16 getNamespaceIndex(const char *uri)
+static UA_UInt16 getNamespaceIndex(const char* uri)
 {
     UA_Variant namespaceArray;
     UA_Variant_init(&namespaceArray);
     UA_Server_readValue(server, UA_NODEID_NUMERIC(0, 2255), &namespaceArray);
     UA_UInt16 nsidx = 0;
-    for (size_t cnt = 0; cnt < namespaceArray.arrayLength; cnt++)
-    {
-        if (!strncmp((char *)((UA_String *)namespaceArray.data)[cnt].data, uri,
-                     ((UA_String *)namespaceArray.data)[cnt].length))
+    for(size_t cnt = 0; cnt < namespaceArray.arrayLength; cnt++) {
+        if(!strncmp((char*)((UA_String*)namespaceArray.data)[cnt].data, uri, ((UA_String*)namespaceArray.data)[cnt].length))
         {
-            nsidx = (UA_UInt16)cnt;
+            nsidx =(UA_UInt16)cnt;
             break;
         }
     }
@@ -49,35 +45,33 @@ static UA_UInt16 getNamespaceIndex(const char *uri)
     return nsidx;
 }
 
-START_TEST(Server_LoadNS0Values)
-{
+START_TEST(Server_LoadNS0Values) {
 
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    UA_UInt16 nsIdx = getNamespaceIndex(
-        "http://open62541.com/nodesetimport/tests/namespaceZeroValues");
+    UA_UInt16 nsIdx =
+        getNamespaceIndex("http://open62541.com/nodesetimport/tests/namespaceZeroValues");
     ck_assert_uint_gt(nsIdx, 0);
     UA_Variant var;
     UA_Variant_init(&var);
-    // scalar double
-    UA_StatusCode retval =
-        UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1003), &var);
+    //scalar double
+    UA_StatusCode retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1003), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_DOUBLE);
     ck_assert(*(UA_Double *)var.data - 3.14 < 0.01);
     UA_Variant_clear(&var);
-    // array of Uint32
+    //array of Uint32
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1004), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_UINT32);
     ck_assert_uint_eq(((UA_UInt32 *)var.data)[2], 140);
     UA_Variant_clear(&var);
-    // extension object with nested struct
+    //extension object with nested struct
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1005), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_SERVERSTATUSDATATYPE);
     ck_assert_int_eq(((UA_ServerStatusDataType *)var.data)->state, 5);
     UA_Variant_clear(&var);
-    // array of extension object with nested struct
+    //array of extension object with nested struct
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1006), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_SERVERSTATUSDATATYPE);
@@ -94,11 +88,11 @@ START_TEST(Server_LoadNS0Values)
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1008), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_LOCALIZEDTEXT);
-    ck_assert(var.arrayLength == 2);
+    ck_assert(var.arrayLength==2);
     s = UA_STRING("griasEich!");
     ck_assert(UA_String_equal(&((UA_LocalizedText *)var.data)->text, &s));
     s = UA_STRING("Hi!");
-    ck_assert(UA_String_equal(&((UA_LocalizedText *)var.data)[1].text, &s));
+    ck_assert(UA_String_equal(&((UA_LocalizedText*)var.data)[1].text, &s));
     UA_Variant_clear(&var);
     // QualifiedName
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1009), &var);
@@ -109,8 +103,7 @@ START_TEST(Server_LoadNS0Values)
 }
 END_TEST
 
-static Suite *testSuite_Client(void)
-{
+static Suite *testSuite_Client(void) {
     Suite *s = suite_create("server nodeset import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
@@ -119,8 +112,7 @@ static Suite *testSuite_Client(void)
     return s;
 }
 
-int main(int argc, char *argv[])
-{
+int main(int argc, char*argv[]) {
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;

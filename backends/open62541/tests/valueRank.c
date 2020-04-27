@@ -11,7 +11,7 @@
 #include "unistd.h"
 
 #include "testHelper.h"
-#include <openBackend.h>
+#include <NodesetLoader/backendOpen62541.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -27,7 +27,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes); 
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 

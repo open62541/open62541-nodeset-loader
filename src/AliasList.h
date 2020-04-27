@@ -1,6 +1,6 @@
 #ifndef ALIASLIST_H
 #define ALIASLIST_H
-#include <nodesetLoader/TNodeId.h>
+#include <NodesetLoader/TNodeId.h>
 
 struct Alias
 {

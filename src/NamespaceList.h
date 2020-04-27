@@ -1,6 +1,6 @@
 #ifndef NAMESPACELIST_H
 #define NAMESPACELIST_H
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 struct NamespaceList;
 typedef struct NamespaceList NamespaceList;
