@@ -53,7 +53,8 @@ add_library(NodesetLoader SHARED
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c)
 target_include_directories(NodesetLoader
-    PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include 
+    PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+            $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
 target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 if(${ENABLE_BACKEND_OPEN62541})
@@ -63,3 +64,8 @@ target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 
 add_subdirectory(tests)
 add_subdirectory(backends)
+
+install(TARGETS NodesetLoader
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
+        INCLUDES DESTINATION include)
