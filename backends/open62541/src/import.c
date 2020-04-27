@@ -1,8 +1,8 @@
 #include "conversion.h"
 #include "value.h"
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
-#include <openBackend.h>
+#include <NodesetLoader/backendOpen62541.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 

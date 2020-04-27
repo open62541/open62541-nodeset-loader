@@ -1,5 +1,5 @@
 #include "Sort.h"
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <check.h>
 #include <stdio.h>
 

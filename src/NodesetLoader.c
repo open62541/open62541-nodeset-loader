@@ -9,7 +9,7 @@
 #include <CharAllocator.h>
 #include <assert.h>
 #include <libxml/SAX.h>
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <stdio.h>
 #include <string.h>
 

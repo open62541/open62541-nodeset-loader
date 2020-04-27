@@ -8,7 +8,7 @@
 #include "Sort.h"
 #include <assert.h>
 #include <error.h>
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
