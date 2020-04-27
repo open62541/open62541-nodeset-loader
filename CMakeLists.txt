@@ -32,14 +32,10 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
 
 find_package(LibXml2 REQUIRED)
 find_package(Check REQUIRED)
+find_package(open62541 REQUIRED)
 
 if(${ENABLE_ASAN})
     set(${C_COMPILE_DEFS} -g -fsanitize=address -fsanitize=leak -fsanitize=undefined)
-endif()
-
-#backends
-if(${ENABLE_BACKEND_OPEN62541})
-    add_subdirectory(open62541)
 endif()
 
 add_library(NodesetLoader SHARED 
@@ -51,21 +47,32 @@ add_library(NodesetLoader SHARED
     src/NamespaceList.c
     src/nodes/Node.c
     src/nodes/DataTypeNode.c
-    src/nodes/NodeContainer.c)
+    src/nodes/NodeContainer.c
+    src/TNodeId.c)
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIR})
 target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
-if(${ENABLE_BACKEND_OPEN62541})
-    target_link_libraries(NodesetLoader PRIVATE open62541)
-endif()
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 
 add_subdirectory(tests)
 add_subdirectory(backends)
 
+#install
+set(NODESETLOADER_PUBLIC_HEADER 
+    include/NodesetLoader/NodesetLoader.h
+    include/NodesetLoader/TNodeId.h
+)
+
+if(${ENABLE_BACKEND_OPEN62541})
+    list(APPEND ${NODESETLOADER_PUBLIC_HEADER} "backends/open62541/include/NodesetLoader/backendOpen62541.h")
+    message(warning "add backendOpen")
+endif()
+message(warning ${NODESETLOADER_PUBLIC_HEADER})
+set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+
 install(TARGETS NodesetLoader
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
-        INCLUDES DESTINATION include)
+        PUBLIC_HEADER DESTINATION include/NodesetLoader)

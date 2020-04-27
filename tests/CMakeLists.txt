@@ -1,6 +1,6 @@
-add_executable(sort sort.c)
-target_include_directories(sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(sort PRIVATE NodesetLoader ${CHECK_LIBRARIES} pthread)
+add_executable(sort sort.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/TNodeId.c)
+target_include_directories(sort PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} pthread)
 add_test(NAME sort_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND sort ${CMAKE_CURRENT_LIST_DIR})
 
 #these tests are simple loading nodesets and dumping it to stdout
