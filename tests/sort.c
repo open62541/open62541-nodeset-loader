@@ -1,5 +1,5 @@
 #include "Sort.h"
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <check.h>
 #include <stdio.h>
 
@@ -127,40 +127,38 @@ END_TEST
 //todo: fix this test, memleak in sort nodes
 // cycle nodeB -> nodeA and NodeA -> NodeB
 // expect: cycle detection
-/*
-TEST(sort, cycle) {
+START_TEST(cycleDetect) {
     sortedNodesCnt = 0;
-    init();
+    SortContext *ctx = Sort_init();
 
     TNode a;
-
-    TNodeId idb;
-    idb.idString = (char*)"nodeB";
-    idb.nsIdx = 1;
-    idb.id = (char *)"test";
-
-    Reference refb;
-    refb.isForward = false;
-    refb.target = idb;
-    refb.next = NULL;
-
-    a.hierachicalRefs = &refb;
-    a.id.idString = (char *)"nodeA";
-
-    Reference ref;
-    ref.isForward = false;
-    ref.target = a.id;
-    ref.next = NULL;
+    a.id.nsIdx = 1;
+    a.id.id = "nodeA";
 
     TNode b;
-    b.hierachicalRefs = &ref;
-    b.id.idString = (char *)"nodeB";
+    b.id.id = "nodeB";
+    b.id.nsIdx = 1;
 
-    addNodeToSort(&b);
-    addNodeToSort(&a);
-    sort(NULL, sortCallback);
+    Reference ref_AToB;
+    ref_AToB.isForward = false;
+    ref_AToB.target = b.id;
+    ref_AToB.next = NULL;
+
+    a.hierachicalRefs = &ref_AToB;
+
+    Reference ref_BToA;
+    ref_BToA.isForward = false;
+    ref_BToA.target = a.id;
+    ref_BToA.next = NULL;
+
+    b.hierachicalRefs = &ref_BToA;
+
+    Sort_addNode(ctx, &b);
+    Sort_addNode(ctx, &a);
+    ck_assert(!Sort_start(ctx, NULL, sortCallback));
+    Sort_cleanup(ctx);
 }
-*/
+END_TEST
 
 START_TEST(empty)
 {
@@ -177,7 +175,7 @@ int main(void) {
     tcase_add_test(tc, sortNodes);
     tcase_add_test(tc, nodeWithRefs_1);
     tcase_add_test(tc, nodeWithRefs_2);
-    //tcase_add_test(tc, cycle);
+    tcase_add_test(tc, cycleDetect);
     tcase_add_test(tc, empty);
     suite_add_tcase(s, tc);
 

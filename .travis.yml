@@ -32,9 +32,17 @@ jobs:
 before_install:
 
 install:
+  - echo ${PWD}
+  - git clone https://github.com/open62541/open62541.git
+  - cd open62541
+  - mkdir build && cd build
+  - cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo ..
+  - make -j
+  - sudo make install
 
 script:
-  sh ./travis_script.sh
+  - cd ~/build/matkonnerth/nodesetLoader
+  - sh ./travis_script.sh
 
 after_success:
 - echo == Build success ==

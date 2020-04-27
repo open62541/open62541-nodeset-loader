@@ -7,7 +7,7 @@
 
 #ifndef __BACKEND_H__
 #define __BACKEND_H__
-#include <nodesetLoader/NodesetLoader.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 

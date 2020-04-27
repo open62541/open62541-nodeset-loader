@@ -4,7 +4,10 @@ target_sources(NodesetLoader
         ${CMAKE_CURRENT_SOURCE_DIR}/src/value.c
 )
 
-target_include_directories(NodesetLoader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+target_include_directories(NodesetLoader PUBLIC 
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>
+    PRIVATE src)
 
 add_subdirectory(tests)
 add_subdirectory(examples)
