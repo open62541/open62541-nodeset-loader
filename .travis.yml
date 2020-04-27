@@ -32,6 +32,7 @@ jobs:
 before_install:
 
 install:
+  - echo ${PWD}
   - git clone https://github.com/open62541/open62541.git
   - cd open62541
   - mkdir build && cd build
@@ -40,7 +41,8 @@ install:
   - sudo make install
 
 script:
-  sh ./travis_script.sh
+  - cd ~
+  - sh ./travis_script.sh
 
 after_success:
 - echo == Build success ==
