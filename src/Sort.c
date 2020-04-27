@@ -226,8 +226,34 @@ SortContext* Sort_init() {
     return ctx;
 }
 
+static void cleanupEdges(edge* e)
+{
+    edge* tmp=e;
+    while(tmp)
+    {
+        edge* next = tmp->next;
+        free(tmp);
+        tmp=next;
+    }
+}
+
+static void cleanupSubtree(node* n)
+{
+    if(!n)
+    {
+        return;
+    }
+    cleanupSubtree(n->left);
+    cleanupSubtree(n->right);
+    cleanupEdges(n->edges);
+    free(n);
+}
+
 void Sort_cleanup(SortContext* ctx) {
-    free(ctx->root1);
+    if(ctx->root1)
+    {
+        cleanupSubtree(ctx->root1);
+    }
     free(ctx);
 }
 
@@ -271,14 +297,9 @@ bool Sort_start(SortContext* ctx, struct Nodeset *nodeset, Sort_SortedNodeCallba
                     ctx->zeros->qlink = e->dest;
                     ctx->zeros = e->dest;
                 }
-                edge *tmp = e;
                 e = e->next;
-                free(tmp);
             }
-
-            node *tmp = ctx->head;
             ctx->head = ctx->head->qlink;
-            free(tmp);
         }
         if(ctx->keyCnt > 0) {
             printf("graph contains a loop\n");
