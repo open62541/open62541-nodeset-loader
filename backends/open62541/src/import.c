@@ -1,8 +1,11 @@
+#include "DataTypeImporter.h"
 #include "conversion.h"
 #include "value.h"
+#include <NodesetLoader/backendOpen62541.h>
+#include <dataTypes.h>
 #include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
-#include <NodesetLoader/backendOpen62541.h>
+#include <open62541/server_config.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -413,6 +416,43 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             }
         }
     }
+
+    DataTypeImporter *importer = DataTypeImporter_new(server);
+    TNode **nodes = NULL;
+    size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
+    for (TNode **node = nodes; node != nodes + cnt; node++)
+    {
+        // add only the types
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
+    }
+    DataTypeImporter_initTypes(importer);
+    DataTypeImporter_delete(importer);
+
     NodesetLoader_delete(loader);
     return status;
+}
+
+const struct UA_DataType *getCustomDataType(struct UA_Server *server,
+                                            const UA_NodeId *typeId)
+{
+    UA_ServerConfig *config = UA_Server_getConfig(server);
+    const UA_DataTypeArray *types = config->customDataTypes;
+    while (types)
+    {
+        const UA_DataTypeArray *next = types->next;
+        if (types->types)
+        {
+            for (const UA_DataType *type = types->types;
+                 type != types->types + types->typesSize; type++)
+            {
+                if (UA_NodeId_equal(&type->typeId, typeId))
+                {
+                    return type;
+                }
+            }
+        }
+
+        types = next;
+    }
+    return NULL;
 }

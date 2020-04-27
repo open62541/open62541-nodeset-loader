@@ -9,6 +9,8 @@
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
+#include "testHelper.h"
+
 UA_Server *server;
 char *nodesetPath = NULL;
 
@@ -23,6 +25,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 

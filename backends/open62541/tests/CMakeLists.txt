@@ -45,3 +45,5 @@ target_link_libraries(multipleNamespaces PRIVATE NodesetLoader open62541::open62
 add_test(NAME multipleNamespaces_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND multipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/multipleNamespaces.xml)
+
+add_subdirectory(dataTypeImport)

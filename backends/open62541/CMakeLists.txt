@@ -2,6 +2,7 @@ target_sources(NodesetLoader
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c 
         ${CMAKE_CURRENT_SOURCE_DIR}/src/value.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
 )
 
 target_include_directories(NodesetLoader PUBLIC 

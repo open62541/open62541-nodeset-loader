@@ -2,14 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-#include "check.h"
-#include "unistd.h"
-#include <NodesetLoader/backendOpen62541.h>
 #include <open62541/server.h>
+#include <open62541/server_config.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
-#include "testHelper.h"
+#include "check.h"
+#include "unistd.h"
+
+#include "../testHelper.h"
+#include <dataTypes.h>
+#include <NodesetLoader/backendOpen62541.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -24,23 +27,29 @@ static void setup(void)
 
 static void teardown(void)
 {
+
     UA_Server_run_shutdown(server);
     cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 
-START_TEST(Server_ImportBasicNodeClassTest)
+START_TEST(OperatingModeEnum)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
+    ck_assert(type);
+
+    ck_assert(type->typeKind == UA_DATATYPEKIND_ENUM);
 }
 END_TEST
 
 static Suite *testSuite_Client(void)
 {
-    Suite *s = suite_create("server nodeset import");
+    Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, Server_ImportBasicNodeClassTest);
+    tcase_add_test(tc_server, OperatingModeEnum);
     suite_add_tcase(s, tc_server);
     return s;
 }

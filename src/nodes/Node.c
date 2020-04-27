@@ -1,7 +1,7 @@
 #include "Node.h"
 #include "DataTypeNode.h"
-#include <stdlib.h>
 #include <assert.h>
+#include <stdlib.h>
 
 TNode *Node_new(TNodeClass nodeClass)
 {
@@ -48,9 +48,9 @@ void Node_delete(TNode *node)
 {
     deleteRef(node->hierachicalRefs);
     deleteRef(node->nonHierachicalRefs);
-    if(node->nodeClass == NODECLASS_DATATYPE)
+    if (node->nodeClass == NODECLASS_DATATYPE)
     {
-        DataTypeNode_clear((TDataTypeNode*)node);
+        DataTypeNode_clear((TDataTypeNode *)node);
     }
     free(node);
 }

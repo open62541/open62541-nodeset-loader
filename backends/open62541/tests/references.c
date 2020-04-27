@@ -9,6 +9,7 @@
 
 #include "unistd.h"
 
+#include "testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
 
 UA_Server *server;
@@ -25,6 +26,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
+    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
     UA_Server_delete(server);
 }
 

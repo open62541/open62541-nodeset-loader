@@ -32,7 +32,11 @@ Alias *AliasList_newAlias(AliasList *list, char *name)
 
 const TNodeId *AliasList_getNodeId(const AliasList *list, const char *name)
 {
-    for (Alias *alias = list->data; alias != list->data + list->size; alias++)
+    if(!name)
+    {
+        return NULL;
+    }
+    for (Alias* alias = list->data; alias != list->data + list->size; alias++)
     {
         if (!strcmp(name, alias->name))
         {
