@@ -9,6 +9,8 @@
 struct DataTypeImporter
 {
     UA_DataTypeArray *types;
+    const TDataTypeNode **nodes;
+    size_t nodesSize;
 };
 
 static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
@@ -97,26 +99,78 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
                               const UA_DataType *customTypes)
 {
-
     int offset = 0;
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
         const UA_DataType *memberType = getTypeFromLists(
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
-        int align = getAlignment(memberType, ns0Types, customTypes);
-        if (align > 0)
+        if (!tm->isArray)
         {
+            int align = getAlignment(memberType, ns0Types, customTypes);
             tm->padding = (UA_Byte)((align - (offset % align)) % align);
+            offset = offset + tm->padding + memberType->memSize;
         }
         else
         {
-            tm->padding = 0;
+            // for arrays we have to take the size_t for the arraySize into
+            // account if the open changes the implementation of array
+            // serialization, we have a serious problem
+            // we rely here that its an size_t
+            int align = alignof(size_t);
+            tm->padding = (UA_Byte)((align - (offset % align)) % align);
+            offset = offset + tm->padding + (UA_Byte)sizeof(size_t);
+            // the void* for data
+            align = alignof(void *);
+            int padding2 = 0;
+            padding2 = (UA_Byte)((align - (offset % align)) % align);
+            offset = offset + padding2 + (UA_Byte)sizeof(void *);
+            // datatype is not pointerfree
+            type->pointerFree = false;
         }
-
-        offset = offset + tm->padding + memberType->memSize;
     }
     type->memSize = (UA_Byte)offset;
+}
+
+static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
+                                        UA_DataType *type,
+                                        const TDataTypeNode *node)
+{
+    size_t i = 0;
+    for (UA_DataTypeMember *member = type->members;
+         member != type->members + type->membersSize; member++)
+    {
+        // TODO: fix this, is just for testing
+
+        UA_NodeId memberTypeId =
+            getNodeIdFromChars(node->definition->fields[i].dataType);
+
+        if (member->namespaceZero)
+        {
+            member->memberTypeIndex =
+                (UA_UInt16)(memberTypeId.identifier.numeric - 1);
+        }
+        else
+        {
+            size_t idx = 0;
+            bool found = false;
+            for (const UA_DataType *customType = importer->types->types;
+                 customType !=
+                 importer->types->types + importer->types->typesSize;
+                 customType++)
+            {
+                if (UA_NodeId_equal(&customType->typeId, &memberTypeId))
+                {
+                    found = true;
+                    break;
+                }
+                idx++;
+            }
+            assert(found);
+            member->memberTypeIndex = (UA_UInt16)idx;
+        }
+        i++;
+    }
 }
 
 static void addDataTypeMembers(const UA_DataType *customTypes,
@@ -132,33 +186,6 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
         UA_DataTypeMember *member = type->members + i;
         member->isArray = node->definition->fields[i].valueRank >= 0;
         member->namespaceZero = node->definition->fields[i].dataType.nsIdx == 0;
-
-        UA_NodeId memberTypeId =
-            getNodeIdFromChars(node->definition->fields[i].dataType);
-
-        // TODO: fix this, is just for testing
-        if (member->namespaceZero)
-        {
-            member->memberTypeIndex =
-                (UA_UInt16)(memberTypeId.identifier.numeric - 1);
-        }
-        else
-        {
-            size_t idx = 0;
-            bool found = false;
-            for (const UA_DataType *customType = customTypes;
-                 customType != type; customType++)
-            {
-                if (UA_NodeId_equal(&customType->typeId, &memberTypeId))
-                {
-                    found = true;
-                    break;
-                }
-                idx++;
-            }
-            assert(found);
-            member->memberTypeIndex = (UA_UInt16)idx;
-        }
 
         char *memberNameCopy = (char *)UA_calloc(
             strlen(node->definition->fields[i].name) + 1, sizeof(char));
@@ -180,7 +207,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->pointerFree = true;
     // TODO: type->overlayable
     addDataTypeMembers(importer->types->types, type, node);
-    setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
+
     // type->typeName = node->browseName.name;
 }
 
@@ -194,6 +221,21 @@ static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
     enumType->members = NULL;
     enumType->membersSize = 0;
     enumType->memSize = sizeof(UA_Int32);
+}
+
+void DataTypeImporter_initTypes(DataTypeImporter *importer)
+{
+    size_t cnt = 0;
+    for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types;
+         type != importer->types->types + importer->types->typesSize; type++)
+    {
+        if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
+        {
+            setDataTypeMembersTypeIndex(importer, type, importer->nodes[cnt]);
+            setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
+        }
+        cnt++;
+    }
 }
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
@@ -210,6 +252,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
     type->typeId = getNodeIdFromChars(node->id);
+
     if (node->definition->isEnum)
     {
         EnumDataType_init(type, node);
@@ -218,6 +261,12 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     {
         StructureDataType_init(importer, type, node);
     }
+
+    importer->nodes = (const TDataTypeNode **)realloc(
+        importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
+    importer->nodes[importer->nodesSize] = node;
+    importer->nodesSize++;
+
     (*(size_t *)(uintptr_t)&importer->types->typesSize)++;
 }
 
@@ -239,4 +288,8 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
     return importer;
 }
 
-void DataTypeImporter_delete(DataTypeImporter *importer) { free(importer); }
+void DataTypeImporter_delete(DataTypeImporter *importer)
+{
+    free(importer->nodes);
+    free(importer);
+}

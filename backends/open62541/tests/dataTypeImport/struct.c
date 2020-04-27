@@ -107,8 +107,24 @@ START_TEST(CustomTypeAndNs0Nested)
         UA_Boolean valid;
         struct Point B;
     };
-    printf("sizeof Mixed = %d", sizeof(struct Mixed));
     ck_assert(sizeof(struct Mixed) == type->memSize);
+}
+END_TEST
+
+START_TEST(StructWithArray)
+{
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3006);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
+    ck_assert(type);
+
+    struct StructWithArray
+    {
+        UA_Boolean valid;
+        size_t sizeData;
+        UA_Int32* data;
+    };
+    printf("\nsizeof StructWithArray %d\n", sizeof(struct StructWithArray));
+    ck_assert(sizeof(struct StructWithArray) == type->memSize);
 }
 END_TEST
 
@@ -121,6 +137,7 @@ static Suite *testSuite_Client(void)
     tcase_add_test(tc_server, Single_bool);
     tcase_add_test(tc_server, NestedPoints);
     tcase_add_test(tc_server, CustomTypeAndNs0Nested);
+    tcase_add_test(tc_server, StructWithArray);
     suite_add_tcase(s, tc_server);
     return s;
 }

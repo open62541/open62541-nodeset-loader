@@ -422,8 +422,10 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
     for (TNode **node = nodes; node != nodes + cnt; node++)
     {
+        //add only the types
         DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
     }
+    DataTypeImporter_initTypes(importer);
     DataTypeImporter_delete(importer);
 
     NodesetLoader_delete(loader);

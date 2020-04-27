@@ -74,6 +74,30 @@
             <Field DataType="Boolean" Name="b"/>
         </Definition>
     </UADataType>
+    <UADataType NodeId="ns=1;i=3006" BrowseName="1:StructWithArray">
+        <DisplayName>StructWithArray</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5006</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:StructWithArray">
+            <Field DataType="Boolean" Name="b"/>
+            <Field DataType="Int32" ValueRank="1" ArrayDimensions="3" Name="data"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3007" BrowseName="1:StructWithArrayOfPoints">
+        <DisplayName>StructWithArrayOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5006</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:StructWithArrayOfPoints">
+            <Field DataType="Boolean" Name="b"/>
+            <Field DataType="Point" ValueRank="1" ArrayDimensions="2" Name="data"/>
+        </Definition>
+    </UADataType>
     <UAVariable SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">
         <DisplayName>TypeDictionary</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/struct/</Description>
@@ -272,6 +296,20 @@
         <DisplayName>Default XML</DisplayName>
         <References>
             <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5006" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3006</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5007" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3006</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
