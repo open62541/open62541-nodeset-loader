@@ -205,8 +205,10 @@ static void StructureDataType_init(const DataTypeImporter *importer,
 
     // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
-    // TODO: type->overlayable
+
     addDataTypeMembers(importer->types->types, type, node);
+    // TODO: type->overlayable
+    type->overlayable = false;
 
     // type->typeName = node->browseName.name;
 }
