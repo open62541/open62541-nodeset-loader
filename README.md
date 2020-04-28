@@ -24,14 +24,16 @@ unit testing: libcheck
 mkdir build \
 cd build \
 cmake .. \
-make \
+make
 
 ## Running the demo
 ./parserDemo pathToNodesetFile1 pathToNodesetFile2
   
 ## Integration with open62541
 build with cmake option ENABLE_BACKEND_OPEN62541
-take a look on https://github.com/matkonnerth/openWrapper or on the server example
+
+There is an example in the open backend, can be started with
+backends/open62541/examples/server <pathToNodeset>
 
 
 
