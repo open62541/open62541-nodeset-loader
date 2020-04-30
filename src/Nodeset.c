@@ -427,10 +427,7 @@ static bool isKnownReferenceType(Nodeset *nodeset, const TNodeId *refTypeId)
 Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes)
 {
-    Reference *newRef = (Reference *)malloc(sizeof(Reference));
-    newRef->target.id = NULL;
-    newRef->refType.id = NULL;
-    newRef->next = NULL;
+    Reference *newRef = (Reference *)calloc(1, sizeof(Reference));
     if (!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes,
                                           attributeSize)))
     {
@@ -517,6 +514,19 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
     ref->target = extractNodedId(nodeset->namespaces, targetId);
+    //handle hasEncoding in a special way
+    TNodeId hasEncodingRef = {0, "i=38"};
+    if(!TNodeId_cmp(&ref->refType, &hasEncodingRef) && !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
+    {
+        BiDirectionalReference *newRef = (BiDirectionalReference *)calloc(1, sizeof(BiDirectionalReference));
+        newRef->source = ref->target;
+        newRef->target = node->id;
+        newRef->refType = ref->refType;
+
+        BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
+        nodeset->hasEncodingRefs = newRef;
+        newRef->next = lastRef;
+    }
 }
 
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
@@ -545,3 +555,10 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
             nodeset, &attrValueRank, attributes, attributeSize));
     }
 }
+
+const BiDirectionalReference *
+Nodeset_getBiDirectionalRefs(const Nodeset *nodeset)
+{
+    return nodeset->hasEncodingRefs;
+}
+

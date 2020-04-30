@@ -20,7 +20,7 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
     Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
-        if (!TNodeId_cmp(&encodingRefType, &node->id))
+        if (!TNodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id.identifier.numeric;
@@ -99,12 +99,17 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
                               const UA_DataType *customTypes)
 {
+    if(!type->members)
+    {
+        return;
+    }
     int offset = 0;
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
         const UA_DataType *memberType = getTypeFromLists(
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
+        type->pointerFree = type->pointerFree && memberType->pointerFree;
         if (!tm->isArray)
         {
             int align = getAlignment(memberType, ns0Types, customTypes);
@@ -183,6 +188,14 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 static void addDataTypeMembers(const UA_DataType *customTypes,
                                UA_DataType *type, const TDataTypeNode *node)
 {
+    
+    if(!node->definition)
+    {
+        type->membersSize = 0;
+        type->members = NULL;
+        type->memSize = sizeof(void*);
+        return;
+    }
     // need casting here
     type->membersSize = (unsigned char)node->definition->fieldCnt;
     type->members = (UA_DataTypeMember *)calloc(node->definition->fieldCnt,
@@ -250,10 +263,6 @@ void DataTypeImporter_initTypes(DataTypeImporter *importer)
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node)
 {
-    if (!node->definition)
-    {
-        return;
-    }
     importer->types->types = (UA_DataType *)realloc(
         (void *)(uintptr_t)importer->types->types,
         (importer->types->typesSize + 1) * sizeof(UA_DataType));
@@ -262,7 +271,8 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                             ->types[importer->types->typesSize];
     type->typeId = getNodeIdFromChars(node->id);
 
-    if (node->definition->isEnum)
+
+    if (node->definition && node->definition->isEnum)
     {
         EnumDataType_init(type, node);
     }

@@ -32,6 +32,7 @@ struct Nodeset
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
     struct SortContext *sortCtx;
+    BiDirectionalReference* hasEncodingRefs;
 };
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback);
@@ -53,5 +54,5 @@ void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes);
-
+const BiDirectionalReference* Nodeset_getBiDirectionalRefs(const Nodeset* nodeset);
 #endif

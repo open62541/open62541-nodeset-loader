@@ -38,6 +38,16 @@ struct Reference
     Reference *next;
 };
 
+struct BiDirectionalReference;
+typedef struct BiDirectionalReference BiDirectionalReference;
+struct BiDirectionalReference
+{
+    TNodeId source;
+    TNodeId target;
+    TNodeId refType;
+    BiDirectionalReference* next;
+};
+
 #define UA_NODE_ATTRIBUTES                                                     \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
@@ -182,6 +192,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 void NodesetLoader_delete(NodesetLoader *loader);
 size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
                               TNode ***nodes);
+const BiDirectionalReference* NodesetLoader_getBidirectionalRefs(const NodesetLoader* loader);
 bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus
