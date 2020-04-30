@@ -53,8 +53,8 @@ add_library(NodesetLoader SHARED
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(NodesetLoader PRIVATE CONAN_PKG::libxml2)
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
+target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 
