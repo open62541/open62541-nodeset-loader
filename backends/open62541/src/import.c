@@ -162,6 +162,14 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
 
+    //euromap work around?
+    if(attr.arrayDimensions == NULL && attr.valueRank == 1)
+    {
+        attr.arrayDimensionsSize = 1;
+        attr.arrayDimensions = UA_UInt32_new();
+        *attr.arrayDimensions = 0;
+    }
+
     // todo: is this really necessary??
     UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
@@ -186,7 +194,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
     UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
                               typeDefId, attr, NULL, NULL);
-    UA_free(arrDims);
+    UA_free(attr.arrayDimensions);
 
     // value is copied in addVariableNode
     BackendOpen62541_Value_delete(&((TVariableNode *)(uintptr_t)node)->value);

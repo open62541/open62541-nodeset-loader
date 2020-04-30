@@ -11,6 +11,7 @@ struct DataTypeImporter
     UA_DataTypeArray *types;
     const TDataTypeNode **nodes;
     size_t nodesSize;
+    size_t firstNewDataType;
 };
 
 static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
@@ -83,6 +84,8 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
         return alignof(UA_NodeId);
     case UA_DATATYPEKIND_DIAGNOSTICINFO:
         return alignof(UA_DiagnosticInfo);
+    case UA_DATATYPEKIND_ENUM:
+        return alignof(UA_Int32);
     case UA_DATATYPEKIND_STRUCTURE:
     case UA_DATATYPEKIND_OPTSTRUCT:
         // here we have to take a look on the first member
@@ -198,7 +201,6 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     size_t memberOffset = 0;
     if (!UA_NodeId_equal(&parent, &structId))
     {
-        // nothing to do
         UA_UInt16 idx = getTypeIndex(importer, &parent);
         const UA_DataType *parentType = NULL;
         if (parent.namespaceIndex == 0)
@@ -292,7 +294,6 @@ static void StructureDataType_init(const DataTypeImporter *importer,
 
     // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
-
     addDataTypeMembers(importer->types->types, type, node);
     // TODO: type->overlayable
     type->overlayable = false;
@@ -316,7 +317,7 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 {
 
     size_t cnt = 0;
-    for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types;
+    for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types + importer->firstNewDataType;
          type != importer->types->types + importer->types->typesSize; type++)
     {
         if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
@@ -362,15 +363,18 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
         (DataTypeImporter *)calloc(1, sizeof(DataTypeImporter));
     assert(importer);
 
-    UA_DataTypeArray *newCustomTypes =
-        (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
-
     UA_ServerConfig *config = UA_Server_getConfig(server);
-    newCustomTypes->next = config->customDataTypes;
+    if(!config->customDataTypes)
+    {
+        //we append all types to customTypes array
+        UA_DataTypeArray *newCustomTypes =
+            (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
 
-    importer->types = newCustomTypes;
-    config->customDataTypes = newCustomTypes;
-
+        newCustomTypes->next = config->customDataTypes;
+        config->customDataTypes = newCustomTypes;
+    }
+    importer->types = (UA_DataTypeArray*)(uintptr_t)config->customDataTypes;
+    importer->firstNewDataType = importer->types->typesSize;
     return importer;
 }
 
