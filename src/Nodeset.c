@@ -268,6 +268,13 @@ void Nodeset_cleanup(Nodeset *nodeset)
     }
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
+    BiDirectionalReference* ref = nodeset->hasEncodingRefs;
+    while(ref)
+    {
+        BiDirectionalReference* tmp = ref->next;
+        free(ref);
+        ref = tmp;
+    }
     free(nodeset);
 }
 
