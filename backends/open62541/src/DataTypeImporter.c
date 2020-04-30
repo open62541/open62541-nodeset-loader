@@ -172,7 +172,14 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
                 idx++;
             }
             assert(found);
-            member->memberTypeIndex = (UA_UInt16)idx;
+            if(found)
+            {
+                member->memberTypeIndex = (UA_UInt16)idx;
+            }
+            else
+            {
+                member->memberTypeIndex = 0;
+            }
         }
         i++;
     }
