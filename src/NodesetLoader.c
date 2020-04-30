@@ -384,7 +384,7 @@ static void OnCharacters(void *ctx, const char *ch, int len)
     }
     else
     {
-        CharArenaAllocator_expand(pctx->nodeset->charArena, (size_t)len + 1);
+        CharArenaAllocator_malloc(pctx->nodeset->charArena, (size_t)len + 1);
     }
     memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
     pctx->onCharLength += (size_t)len;
