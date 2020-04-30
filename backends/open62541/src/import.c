@@ -448,7 +448,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             DataTypeImporter_addCustomDataType(importer,
                                                (TDataTypeNode *)*node);
         }
-    DataTypeImporter_initTypes(importer);
+    DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
 
     NodesetLoader_delete(loader);

@@ -34,17 +34,6 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-void typesAreMatching(const UA_DataType* t1, const UA_DataType* t2)
-{
-    bool matching =true;
-    ck_assert(t1->binaryEncodingId==t2->binaryEncodingId);
-    ck_assert(t1->membersSize == t2->membersSize);
-    ck_assert(t1->memSize == t2->memSize);
-    ck_assert(t1->overlayable == t2->overlayable);
-    ck_assert(t1->pointerFree == t2->pointerFree);
-    ck_assert(t1->typeKind == t2->typeKind);
-}
-
 START_TEST(compareDI)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));

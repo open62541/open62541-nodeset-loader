@@ -3,58 +3,30 @@
     <NamespaceUris>
         <Uri>http://yourorganisation.org/struct/</Uri>
     </NamespaceUris>
-    <Models>
-        <Model ModelUri="http://yourorganisation.org/struct/" PublicationDate="2020-04-26T10:12:27Z" Version="1.0.0">
-            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2019-09-09T00:00:00Z" Version="1.04.3"/>
-        </Model>
-    </Models>
     <Aliases>
         <Alias Alias="Boolean">i=1</Alias>
         <Alias Alias="Int32">i=6</Alias>
         <Alias Alias="String">i=12</Alias>
-        <Alias Alias="DateTime">i=13</Alias>
         <Alias Alias="ByteString">i=15</Alias>
         <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
         <Alias Alias="HasSubtype">i=45</Alias>
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasComponent">i=47</Alias>
-        <Alias Alias="IdType">i=256</Alias>
-        <Alias Alias="NumericRange">i=291</Alias>
         <Alias Alias="Point">ns=1;i=3002</Alias>
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="YYMYM7mD75jMXHNxU26MfA==" Version="1.6.3"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="Hx93iAwOzUB9oDkM02gWBA==" Version="1.6.2"/>
         </Extension>
     </Extensions>
-    <UADataType NodeId="ns=1;i=3004" BrowseName="1:NestedPoints">
-        <DisplayName>NestedPoints</DisplayName>
-        <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5005</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-        </References>
-        <Definition Name="1:NestedPoints">
-            <Field DataType="Point" Name="A"/>
-            <Field DataType="Point" Name="B"/>
-        </Definition>
-    </UADataType>
-    <UADataType NodeId="ns=1;i=3005" BrowseName="1:CustomTypeAndNS0Type">
-        <DisplayName>NestedPoints</DisplayName>
-        <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5005</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
-        </References>
-        <Definition Name="1:NestedPoints">
-            <Field DataType="Boolean" Name="valid"/>
-            <Field DataType="Point" Name="B"/>
-        </Definition>
-    </UADataType>
     <UADataType NodeId="ns=1;i=3002" BrowseName="1:Point">
         <DisplayName>Point</DisplayName>
         <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
         <Definition Name="1:Point">
@@ -63,48 +35,72 @@
             <Field DataType="Int32" Name="Z"/>
         </Definition>
     </UADataType>
-    <UADataType NodeId="ns=1;i=3003" BrowseName="1:SingleBoolean">
-        <DisplayName>SingleBoolean</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:Point">
+        <DisplayName>Point</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
         </References>
-        <Definition Name="1:SingleBoolean">
-            <Field DataType="Boolean" Name="b"/>
-        </Definition>
-    </UADataType>
-    <UADataType NodeId="ns=1;i=3006" BrowseName="1:StructWithArray">
-        <DisplayName>StructWithArray</DisplayName>
+        <Value>
+            <uax:String>Point</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:Point">
+        <DisplayName>Point</DisplayName>
         <References>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+        </References>
+        <Value>
+            <uax:String>//xs:element[@name='Point']</uax:String>
+        </Value>
+    </UAVariable>
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:VectorOfPoints">
+        <DisplayName>VectorOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
             <Reference ReferenceType="HasEncoding">ns=1;i=5006</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5005</Reference>
             <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
         </References>
-        <Definition Name="1:StructWithArray">
-            <Field DataType="Boolean" Name="b"/>
-            <Field DataType="Int32" ValueRank="1" ArrayDimensions="3" Name="data"/>
+        <Definition Name="1:VectorOfPoints">
+            <Field DataType="Boolean" Name="valid"/>
+            <Field DataType="Point" ValueRank="1" ArrayDimensions="2" Name="points"/>
         </Definition>
     </UADataType>
-    <UADataType NodeId="ns=1;i=3007" BrowseName="1:StructWithArrayOfPoints">
-        <DisplayName>StructWithArrayOfPoints</DisplayName>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6007" BrowseName="1:VectorOfPoints">
+        <DisplayName>VectorOfPoints</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5006</Reference>
-            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
-            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5004</Reference>
         </References>
-        <Definition Name="1:StructWithArrayOfPoints">
-            <Field DataType="Boolean" Name="b"/>
-            <Field DataType="Point" ValueRank="1" ArrayDimensions="2" Name="data"/>
-        </Definition>
-    </UADataType>
+        <Value>
+            <uax:String>VectorOfPoints</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6008" BrowseName="1:VectorOfPoints">
+        <DisplayName>VectorOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:String>//xs:element[@name='VectorOfPoints']</uax:String>
+        </Value>
+    </UAVariable>
     <UAVariable SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">
         <DisplayName>TypeDictionary</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/struct/</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
         </References>
         <Value>
             <uax:ByteString>PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZ
@@ -114,17 +110,16 @@
         3BjZm91bmRhdGlvbi5vcmcvVUEvIiBUYXJnZXROYW1lc3BhY2U9Imh0dHA6Ly95b3Vyb3JnY
         W5pc2F0aW9uLm9yZy9zdHJ1Y3QvIj4KIDxvcGM6SW1wb3J0IE5hbWVzcGFjZT0iaHR0cDovL
         29wY2ZvdW5kYXRpb24ub3JnL1VBLyIvPgogPG9wYzpTdHJ1Y3R1cmVkVHlwZSBCYXNlVHlwZ
-        T0idWE6RXh0ZW5zaW9uT2JqZWN0IiBOYW1lPSJOZXN0ZWRQb2ludHMiPgogIDxvcGM6Rmllb
-        GQgVHlwZU5hbWU9InRuczpQb2ludCIgTmFtZT0iQSIvPgogIDxvcGM6RmllbGQgVHlwZU5hb
-        WU9InRuczpQb2ludCIgTmFtZT0iQiIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+CiA8b3BjO
-        lN0cnVjdHVyZWRUeXBlIEJhc2VUeXBlPSJ1YTpFeHRlbnNpb25PYmplY3QiIE5hbWU9IlBva
-        W50Ij4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6SW50MzIiIE5hbWU9IlgiLz4KICA8b
-        3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6SW50MzIiIE5hbWU9IlkiLz4KICA8b3BjOkZpZWxkI
-        FR5cGVOYW1lPSJvcGM6SW50MzIiIE5hbWU9IloiLz4KIDwvb3BjOlN0cnVjdHVyZWRUeXBlP
-        gogPG9wYzpTdHJ1Y3R1cmVkVHlwZSBCYXNlVHlwZT0idWE6RXh0ZW5zaW9uT2JqZWN0IiBOY
-        W1lPSJTaW5nbGVCb29sZWFuIj4KICA8b3BjOkZpZWxkIFR5cGVOYW1lPSJvcGM6Qm9vbGVhb
-        iIgTmFtZT0iYiIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEaWN0aW9uY
-        XJ5Pgo=</uax:ByteString>
+        T0idWE6RXh0ZW5zaW9uT2JqZWN0IiBOYW1lPSJQb2ludCI+CiAgPG9wYzpGaWVsZCBUeXBlT
+        mFtZT0ib3BjOkludDMyIiBOYW1lPSJYIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0ib3BjO
+        kludDMyIiBOYW1lPSJZIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0ib3BjOkludDMyIiBOY
+        W1lPSJaIi8+CiA8L29wYzpTdHJ1Y3R1cmVkVHlwZT4KIDxvcGM6U3RydWN0dXJlZFR5cGUgQ
+        mFzZVR5cGU9InVhOkV4dGVuc2lvbk9iamVjdCIgTmFtZT0iVmVjdG9yT2ZQb2ludHMiPgogI
+        DxvcGM6RmllbGQgVHlwZU5hbWU9Im9wYzpCb29sZWFuIiBOYW1lPSJ2YWxpZCIvPgogIDxvc
+        GM6RmllbGQgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0iTm9PZnBvaW50cyIvPgogIDxvc
+        GM6RmllbGQgTGVuZ3RoRmllbGQ9Ik5vT2Zwb2ludHMiIFR5cGVOYW1lPSJ0bnM6UG9pbnQiI
+        E5hbWU9InBvaW50cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEaWN0a
+        W9uYXJ5Pgo=</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
@@ -143,7 +138,9 @@
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6008</Reference>
         </References>
         <Value>
             <uax:ByteString>PHhzOnNjaGVtYSBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCIgdGFyZ2V0TmFtZXNwYWNlPSJod
@@ -152,38 +149,29 @@
         WE9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uLm9yZy9VQS8yMDA4LzAyL1R5cGVzLnhzZCIgeG1sb
         nM6eHM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hIj4KIDx4czppbXBvcnQgb
         mFtZXNwYWNlPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvMjAwOC8wMi9UeXBlcy54c
-        2QiLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJOZXN0ZWRQb2ludHMiPgogIDx4czpzZXF1Z
-        W5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9I
-        nRuczpQb2ludCIgbmFtZT0iQSIvPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1he
-        E9jY3Vycz0iMSIgdHlwZT0idG5zOlBvaW50IiBuYW1lPSJCIi8+CiAgPC94czpzZXF1ZW5jZ
-        T4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6TmVzdGVkUG9pb
-        nRzIiBuYW1lPSJOZXN0ZWRQb2ludHMiLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0T
-        2ZOZXN0ZWRQb2ludHMiPgogIDx4czpzZXF1ZW5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2Njd
-        XJzPSIwIiBtYXhPY2N1cnM9InVuYm91bmRlZCIgdHlwZT0idG5zOk5lc3RlZFBvaW50cyIgb
-        mFtZT0iTmVzdGVkUG9pbnRzIiBuaWxsYWJsZT0idHJ1ZSIvPgogIDwveHM6c2VxdWVuY2U+C
-        iA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgdHlwZT0idG5zOkxpc3RPZk5lc3RlZ
-        FBvaW50cyIgbmFtZT0iTGlzdE9mTmVzdGVkUG9pbnRzIiBuaWxsYWJsZT0idHJ1ZSIvPgogP
-        HhzOmNvbXBsZXhUeXBlIG5hbWU9IlBvaW50Ij4KICA8eHM6c2VxdWVuY2U+CiAgIDx4czplb
-        GVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxIiB0eXBlPSJ4czppbnQiIG5hbWU9I
-        lgiLz4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9IjEiIHR5cGU9I
-        nhzOmludCIgbmFtZT0iWSIvPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY
-        3Vycz0iMSIgdHlwZT0ieHM6aW50IiBuYW1lPSJaIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwve
-        HM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0eXBlPSJ0bnM6UG9pbnQiIG5hbWU9IlBva
-        W50Ii8+CiA8eHM6Y29tcGxleFR5cGUgbmFtZT0iTGlzdE9mUG9pbnQiPgogIDx4czpzZXF1Z
-        W5jZT4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9InVuYm91bmRlZ
-        CIgdHlwZT0idG5zOlBvaW50IiBuYW1lPSJQb2ludCIgbmlsbGFibGU9InRydWUiLz4KICA8L
-        3hzOnNlcXVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuc
-        zpMaXN0T2ZQb2ludCIgbmFtZT0iTGlzdE9mUG9pbnQiIG5pbGxhYmxlPSJ0cnVlIi8+CiA8e
-        HM6Y29tcGxleFR5cGUgbmFtZT0iU2luZ2xlQm9vbGVhbiI+CiAgPHhzOnNlcXVlbmNlPgogI
-        CA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6Ym9vb
-        GVhbiIgbmFtZT0iYiIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogP
-        HhzOmVsZW1lbnQgdHlwZT0idG5zOlNpbmdsZUJvb2xlYW4iIG5hbWU9IlNpbmdsZUJvb2xlY
-        W4iLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZTaW5nbGVCb29sZWFuIj4KICA8e
+        2QiLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJQb2ludCI+CiAgPHhzOnNlcXVlbmNlPgogI
+        CA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0iMSIgdHlwZT0ieHM6aW50I
+        iBuYW1lPSJYIi8+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxI
+        iB0eXBlPSJ4czppbnQiIG5hbWU9IlkiLz4KICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwI
+        iBtYXhPY2N1cnM9IjEiIHR5cGU9InhzOmludCIgbmFtZT0iWiIvPgogIDwveHM6c2VxdWVuY
+        2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgdHlwZT0idG5zOlBvaW50IiBuY
+        W1lPSJQb2ludCIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9Ikxpc3RPZlBvaW50Ij4KICA8e
         HM6c2VxdWVuY2U+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSJ1b
-        mJvdW5kZWQiIHR5cGU9InRuczpTaW5nbGVCb29sZWFuIiBuYW1lPSJTaW5nbGVCb29sZWFuI
-        iBuaWxsYWJsZT0idHJ1ZSIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlP
-        gogPHhzOmVsZW1lbnQgdHlwZT0idG5zOkxpc3RPZlNpbmdsZUJvb2xlYW4iIG5hbWU9Ikxpc
-        3RPZlNpbmdsZUJvb2xlYW4iIG5pbGxhYmxlPSJ0cnVlIi8+CjwveHM6c2NoZW1hPgo=</uax:ByteString>
+        mJvdW5kZWQiIHR5cGU9InRuczpQb2ludCIgbmFtZT0iUG9pbnQiIG5pbGxhYmxlPSJ0cnVlI
+        i8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8eHM6ZWxlbWVudCB0e
+        XBlPSJ0bnM6TGlzdE9mUG9pbnQiIG5hbWU9Ikxpc3RPZlBvaW50IiBuaWxsYWJsZT0idHJ1Z
+        SIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9IlZlY3Rvck9mUG9pbnRzIj4KICA8eHM6c2Vxd
+        WVuY2U+CiAgIDx4czplbGVtZW50IG1pbk9jY3Vycz0iMCIgbWF4T2NjdXJzPSIxIiB0eXBlP
+        SJ4czpib29sZWFuIiBuYW1lPSJ2YWxpZCIvPgogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9I
+        jAiIG1heE9jY3Vycz0iMSIgdHlwZT0idG5zOkxpc3RPZlBvaW50IiBuYW1lPSJwb2ludHMiL
+        z4KICA8L3hzOnNlcXVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5c
+        GU9InRuczpWZWN0b3JPZlBvaW50cyIgbmFtZT0iVmVjdG9yT2ZQb2ludHMiLz4KIDx4czpjb
+        21wbGV4VHlwZSBuYW1lPSJMaXN0T2ZWZWN0b3JPZlBvaW50cyI+CiAgPHhzOnNlcXVlbmNlP
+        gogICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIiB0e
+        XBlPSJ0bnM6VmVjdG9yT2ZQb2ludHMiIG5hbWU9IlZlY3Rvck9mUG9pbnRzIiBuaWxsYWJsZ
+        T0idHJ1ZSIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZ
+        W1lbnQgdHlwZT0idG5zOkxpc3RPZlZlY3Rvck9mUG9pbnRzIiBuYW1lPSJMaXN0T2ZWZWN0b
+        3JPZlBvaW50cyIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
@@ -196,120 +184,49 @@
             <uax:String>http://yourorganisation.org/struct/Types.xsd</uax:String>
         </Value>
     </UAVariable>
-    <UAObject SymbolicName="http___yourorganisation_org_struct_" NodeId="ns=1;i=5003" BrowseName="1:http://yourorganisation.org/struct/">
-        <DisplayName>http://yourorganisation.org/struct/</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty">ns=1;i=6005</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6006</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
-            <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
-        </References>
-    </UAObject>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5003" NodeId="ns=1;i=6005" BrowseName="IsNamespaceSubset">
-        <DisplayName>IsNamespaceSubset</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-        </References>
-        <Value>
-            <uax:Boolean>false</uax:Boolean>
-        </Value>
-    </UAVariable>
-    <UAVariable DataType="DateTime" ParentNodeId="ns=1;i=5003" NodeId="ns=1;i=6006" BrowseName="NamespacePublicationDate">
-        <DisplayName>NamespacePublicationDate</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-        </References>
-        <Value>
-            <uax:DateTime>2020-04-26T10:12:27Z</uax:DateTime>
-        </Value>
-    </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5003" NodeId="ns=1;i=6007" BrowseName="NamespaceUri">
-        <DisplayName>NamespaceUri</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-        </References>
-        <Value>
-            <uax:String>http://yourorganisation.org/struct/</uax:String>
-        </Value>
-    </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5003" NodeId="ns=1;i=6008" BrowseName="NamespaceVersion">
-        <DisplayName>NamespaceVersion</DisplayName>
-        <References>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-        </References>
-        <Value>
-            <uax:String>1.0.0</uax:String>
-        </Value>
-    </UAVariable>
-    <UAVariable DataType="IdType" ParentNodeId="ns=1;i=5003" ValueRank="1" NodeId="ns=1;i=6009" ArrayDimensions="0" BrowseName="StaticNodeIdTypes">
-        <DisplayName>StaticNodeIdTypes</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-        </References>
-    </UAVariable>
-    <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5003" ValueRank="1" NodeId="ns=1;i=6010" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
-        <DisplayName>StaticNumericNodeIdRange</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-        </References>
-    </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5003" NodeId="ns=1;i=6011" BrowseName="StaticStringNodeIdPattern">
-        <DisplayName>StaticStringNodeIdPattern</DisplayName>
-        <References>
-            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5003</Reference>
-        </References>
-    </UAVariable>
     <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6005</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5004" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6007</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5005" BrowseName="Default XML">
         <DisplayName>Default XML</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6008</Reference>
         </References>
     </UAObject>
-    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5006" BrowseName="Default Binary">
-        <DisplayName>Default Binary</DisplayName>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5006" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
         <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3006</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
-        </References>
-    </UAObject>
-    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5007" BrowseName="Default XML">
-        <DisplayName>Default XML</DisplayName>
-        <References>
-            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3006</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>
