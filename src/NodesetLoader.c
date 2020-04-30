@@ -513,3 +513,9 @@ size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
 {
     return Nodeset_getNodes(loader->nodeset, nodeClass, nodes);
 }
+
+const BiDirectionalReference *
+NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
+{
+    return Nodeset_getBiDirectionalRefs(loader->nodeset);
+}

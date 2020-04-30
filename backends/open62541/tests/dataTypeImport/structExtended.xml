@@ -18,7 +18,7 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="Hx93iAwOzUB9oDkM02gWBA==" Version="1.6.2"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="Joff1+krh8eopmXhIBcvWQ==" Version="1.6.2"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3002" BrowseName="1:Point">
@@ -92,6 +92,40 @@
             <uax:String>//xs:element[@name='VectorOfPoints']</uax:String>
         </Value>
     </UAVariable>
+    <UADataType NodeId="ns=1;i=3004" BrowseName="1:SpecialVectorOfPoints">
+        <DisplayName>SpecialVectorOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5009</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5008</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=3003</Reference>
+        </References>
+        <Definition Name="1:SpecialVectorOfPoints">
+            <Field DataType="Point" Name="offset"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6009" BrowseName="1:SpecialVectorOfPoints">
+        <DisplayName>SpecialVectorOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5007</Reference>
+        </References>
+        <Value>
+            <uax:String>SpecialVectorOfPoints</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6010" BrowseName="1:SpecialVectorOfPoints">
+        <DisplayName>SpecialVectorOfPoints</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5008</Reference>
+        </References>
+        <Value>
+            <uax:String>//xs:element[@name='SpecialVectorOfPoints']</uax:String>
+        </Value>
+    </UAVariable>
     <UAVariable SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">
         <DisplayName>TypeDictionary</DisplayName>
         <Description>Collects the data type descriptions of http://yourorganisation.org/struct/</Description>
@@ -99,6 +133,7 @@
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6009</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
         </References>
@@ -118,8 +153,16 @@
         DxvcGM6RmllbGQgVHlwZU5hbWU9Im9wYzpCb29sZWFuIiBOYW1lPSJ2YWxpZCIvPgogIDxvc
         GM6RmllbGQgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0iTm9PZnBvaW50cyIvPgogIDxvc
         GM6RmllbGQgTGVuZ3RoRmllbGQ9Ik5vT2Zwb2ludHMiIFR5cGVOYW1lPSJ0bnM6UG9pbnQiI
-        E5hbWU9InBvaW50cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+Cjwvb3BjOlR5cGVEaWN0a
-        W9uYXJ5Pgo=</uax:ByteString>
+        E5hbWU9InBvaW50cyIvPgogPC9vcGM6U3RydWN0dXJlZFR5cGU+CiA8b3BjOlN0cnVjdHVyZ
+        WRUeXBlIEJhc2VUeXBlPSJ0bnM6VmVjdG9yT2ZQb2ludHMiIE5hbWU9IlNwZWNpYWxWZWN0b
+        3JPZlBvaW50cyI+CiAgPG9wYzpGaWVsZCBTb3VyY2VUeXBlPSJ0bnM6VmVjdG9yT2ZQb2lud
+        HMiIFR5cGVOYW1lPSJvcGM6Qm9vbGVhbiIgTmFtZT0idmFsaWQiLz4KICA8b3BjOkZpZWxkI
+        FNvdXJjZVR5cGU9InRuczpWZWN0b3JPZlBvaW50cyIgVHlwZU5hbWU9Im9wYzpJbnQzMiIgT
+        mFtZT0iTm9PZnBvaW50cyIvPgogIDxvcGM6RmllbGQgTGVuZ3RoRmllbGQ9Ik5vT2Zwb2lud
+        HMiIFNvdXJjZVR5cGU9InRuczpWZWN0b3JPZlBvaW50cyIgVHlwZU5hbWU9InRuczpQb2lud
+        CIgTmFtZT0icG9pbnRzIi8+CiAgPG9wYzpGaWVsZCBUeXBlTmFtZT0idG5zOlBvaW50IiBOY
+        W1lPSJvZmZzZXQiLz4KIDwvb3BjOlN0cnVjdHVyZWRUeXBlPgo8L29wYzpUeXBlRGljdGlvb
+        mFyeT4K</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
@@ -139,6 +182,7 @@
             <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6010</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6008</Reference>
         </References>
@@ -171,7 +215,21 @@
         XBlPSJ0bnM6VmVjdG9yT2ZQb2ludHMiIG5hbWU9IlZlY3Rvck9mUG9pbnRzIiBuaWxsYWJsZ
         T0idHJ1ZSIvPgogIDwveHM6c2VxdWVuY2U+CiA8L3hzOmNvbXBsZXhUeXBlPgogPHhzOmVsZ
         W1lbnQgdHlwZT0idG5zOkxpc3RPZlZlY3Rvck9mUG9pbnRzIiBuYW1lPSJMaXN0T2ZWZWN0b
-        3JPZlBvaW50cyIgbmlsbGFibGU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
+        3JPZlBvaW50cyIgbmlsbGFibGU9InRydWUiLz4KIDx4czpjb21wbGV4VHlwZSBuYW1lPSJTc
+        GVjaWFsVmVjdG9yT2ZQb2ludHMiPgogIDx4czpjb21wbGV4Q29udGVudCBtaXhlZD0iZmFsc
+        2UiPgogICA8eHM6ZXh0ZW5zaW9uIGJhc2U9InRuczpWZWN0b3JPZlBvaW50cyI+CiAgICA8e
+        HM6c2VxdWVuY2U+CiAgICAgPHhzOmVsZW1lbnQgbWluT2NjdXJzPSIwIiBtYXhPY2N1cnM9I
+        jEiIHR5cGU9InRuczpQb2ludCIgbmFtZT0ib2Zmc2V0Ii8+CiAgICA8L3hzOnNlcXVlbmNlP
+        gogICA8L3hzOmV4dGVuc2lvbj4KICA8L3hzOmNvbXBsZXhDb250ZW50PgogPC94czpjb21wb
+        GV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpTcGVjaWFsVmVjdG9yT2ZQb2ludHMiI
+        G5hbWU9IlNwZWNpYWxWZWN0b3JPZlBvaW50cyIvPgogPHhzOmNvbXBsZXhUeXBlIG5hbWU9I
+        kxpc3RPZlNwZWNpYWxWZWN0b3JPZlBvaW50cyI+CiAgPHhzOnNlcXVlbmNlPgogICA8eHM6Z
+        WxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY3Vycz0idW5ib3VuZGVkIiB0eXBlPSJ0bnM6U
+        3BlY2lhbFZlY3Rvck9mUG9pbnRzIiBuYW1lPSJTcGVjaWFsVmVjdG9yT2ZQb2ludHMiIG5pb
+        GxhYmxlPSJ0cnVlIi8+CiAgPC94czpzZXF1ZW5jZT4KIDwveHM6Y29tcGxleFR5cGU+CiA8e
+        HM6ZWxlbWVudCB0eXBlPSJ0bnM6TGlzdE9mU3BlY2lhbFZlY3Rvck9mUG9pbnRzIiBuYW1lP
+        SJMaXN0T2ZTcGVjaWFsVmVjdG9yT2ZQb2ludHMiIG5pbGxhYmxlPSJ0cnVlIi8+CjwveHM6c
+        2NoZW1hPgo=</uax:ByteString>
         </Value>
     </UAVariable>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
@@ -227,6 +285,29 @@
         <DisplayName>Default JSON</DisplayName>
         <References>
             <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5007" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6009</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5008" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6010</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5009" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
         </References>
     </UAObject>

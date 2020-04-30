@@ -21,7 +21,7 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
     Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
-        if (!TNodeId_cmp(&encodingRefType, &node->id))
+        if (!TNodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id.identifier.numeric;
@@ -102,17 +102,28 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
                               const UA_DataType *customTypes)
 {
+    if (!type->members)
+    {
+        return;
+    }
     int offset = 0;
+    int endPadding = 0;
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
         const UA_DataType *memberType = getTypeFromLists(
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
+        type->pointerFree = type->pointerFree && memberType->pointerFree;
         if (!tm->isArray)
         {
             int align = getAlignment(memberType, ns0Types, customTypes);
             tm->padding = (UA_Byte)((align - (offset % align)) % align);
             offset = offset + tm->padding + memberType->memSize;
+            //padding after struct at end is needed
+            if(memberType->memSize>sizeof(size_t))
+            {
+                endPadding = memberType->memSize % sizeof(size_t);
+            }
         }
         else
         {
@@ -132,55 +143,113 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             type->pointerFree = false;
         }
     }
-    type->memSize = (UA_Byte)offset;
+    type->memSize = (UA_UInt16)(offset + endPadding);
+}
+
+static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
+                              const UA_NodeId *id)
+{
+    if (id->namespaceIndex == 0)
+    {
+        return (UA_UInt16)(id->identifier.numeric - 1);
+    }
+    size_t idx = 0;
+    bool found = false;
+    for (const UA_DataType *customType = importer->types->types;
+         customType != importer->types->types + importer->types->typesSize;
+         customType++)
+    {
+        if (UA_NodeId_equal(&customType->typeId, id))
+        {
+            found = true;
+            break;
+        }
+        idx++;
+    }
+    assert(found);
+    if (found)
+    {
+        return (UA_UInt16)idx;
+    }
+    else
+    {
+        return 0;
+    }
+}
+
+static TNodeId getParentNode(const TDataTypeNode *node)
+{
+    Reference *ref = node->hierachicalRefs;
+    while (ref)
+    {
+        if (!ref->isForward)
+        {
+            return ref->target;
+        }
+    }
+    TNodeId nullId = {0, NULL};
+    return nullId;
 }
 
 static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
                                         UA_DataType *type,
                                         const TDataTypeNode *node)
 {
-    size_t i = 0;
-    for (UA_DataTypeMember *member = type->members;
-         member != type->members + type->membersSize; member++)
+    // member of supertype have to be added, if there is one
+    UA_NodeId parent = getNodeIdFromChars(getParentNode(node));
+    UA_NodeId structId = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
+    size_t memberOffset = 0;
+    if (!UA_NodeId_equal(&parent, &structId))
     {
-        // TODO: fix this, is just for testing
-
-        UA_NodeId memberTypeId =
-            getNodeIdFromChars(node->definition->fields[i].dataType);
-
-        assert(!UA_NodeId_equal(&memberTypeId, &UA_NODEID_NULL));
-
-        if (member->namespaceZero)
+        UA_UInt16 idx = getTypeIndex(importer, &parent);
+        const UA_DataType *parentType = NULL;
+        if (parent.namespaceIndex == 0)
         {
-            member->memberTypeIndex =
-                (UA_UInt16)(memberTypeId.identifier.numeric - 1);
+            parentType = &UA_TYPES[idx];
         }
         else
         {
-            size_t idx = 0;
-            bool found = false;
-            for (const UA_DataType *customType = importer->types->types;
-                 customType !=
-                 importer->types->types + importer->types->typesSize;
-                 customType++)
-            {
-                if (UA_NodeId_equal(&customType->typeId, &memberTypeId))
-                {
-                    found = true;
-                    break;
-                }
-                idx++;
-            }
-            assert(found);
-            if(found)
-            {
-                member->memberTypeIndex = (UA_UInt16)idx;
-            }
-            else
-            {
-                member->memberTypeIndex = 0;
-            }
+            parentType = &importer->types->types[idx];
         }
+        // copy over parent members, if no members (abstract type), nothing is done
+        if(parentType->members)
+        {
+            UA_DataTypeMember *members = (UA_DataTypeMember *)calloc(
+                (size_t)(parentType->membersSize + type->membersSize),
+                sizeof(UA_DataTypeMember));
+            memcpy(members, parentType->members,
+                   parentType->membersSize * sizeof(UA_DataTypeMember));
+
+            size_t cnt =0;
+            for(UA_DataTypeMember* m=members; m!=members+parentType->membersSize;m++)
+            {
+                char *memberNameCopy = (char *)UA_calloc(
+                    strlen(m->memberName) + 1, sizeof(char));
+                memcpy(memberNameCopy, m->memberName,
+                       strlen(m->memberName));
+                members[cnt].memberName = memberNameCopy;
+                cnt++;
+            }
+            
+
+            memcpy(members + parentType->membersSize, type->members,
+                   type->membersSize * sizeof(UA_DataTypeMember));
+            free(type->members);
+            type->members = members;
+            type->membersSize =
+                (uint8_t)(parentType->membersSize + type->membersSize);
+            type->memSize = parentType->memSize;
+            memberOffset = parentType->membersSize;
+        }
+    }
+
+    size_t i = 0;
+    for (UA_DataTypeMember *member = type->members + memberOffset;
+         member != type->members + type->membersSize; member++)
+    {
+        UA_NodeId memberTypeId =
+            getNodeIdFromChars(node->definition->fields[i].dataType);
+        member->memberTypeIndex = getTypeIndex(importer, &memberTypeId);
         i++;
     }
 }
@@ -188,7 +257,15 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 static void addDataTypeMembers(const UA_DataType *customTypes,
                                UA_DataType *type, const TDataTypeNode *node)
 {
-    // need casting here
+
+    if (!node->definition)
+    {
+        type->membersSize = 0;
+        type->members = NULL;
+        type->memSize = sizeof(void *);
+        return;
+    }
+
     type->membersSize = (unsigned char)node->definition->fieldCnt;
     type->members = (UA_DataTypeMember *)calloc(node->definition->fieldCnt,
                                                 sizeof(UA_DataTypeMember));
@@ -236,8 +313,9 @@ static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
     enumType->memSize = sizeof(UA_Int32);
 }
 
-void DataTypeImporter_initTypes(DataTypeImporter *importer)
+void DataTypeImporter_initMembers(DataTypeImporter *importer)
 {
+
     size_t cnt = 0;
     for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types + importer->firstNewDataType;
          type != importer->types->types + importer->types->typesSize; type++)
@@ -254,10 +332,6 @@ void DataTypeImporter_initTypes(DataTypeImporter *importer)
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node)
 {
-    if (!node->definition)
-    {
-        return;
-    }
     importer->types->types = (UA_DataType *)realloc(
         (void *)(uintptr_t)importer->types->types,
         (importer->types->typesSize + 1) * sizeof(UA_DataType));
@@ -266,7 +340,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                             ->types[importer->types->typesSize];
     type->typeId = getNodeIdFromChars(node->id);
 
-    if (node->definition->isEnum)
+    if (node->definition && node->definition->isEnum)
     {
         EnumDataType_init(type, node);
     }

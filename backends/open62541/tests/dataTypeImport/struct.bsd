@@ -1,0 +1,13 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://yourorganisation.org/struct/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://yourorganisation.org/struct/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="Point">
+        <opc:Field TypeName="opc:Int32" Name="X"/>
+        <opc:Field TypeName="opc:Int32" Name="Y"/>
+        <opc:Field TypeName="opc:Int32" Name="Z"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="VectorOfPoints">
+        <opc:Field TypeName="opc:Boolean" Name="valid"/>
+        <opc:Field TypeName="opc:Int32" Name="NoOfpoints"/>
+        <opc:Field LengthField="NoOfpoints" TypeName="tns:Point" Name="points"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>
