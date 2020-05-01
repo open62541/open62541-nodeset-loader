@@ -56,8 +56,6 @@ void addStructWithArray(UA_Server *server)
         UA_Int32 *data;
     };
 
-    printf("sizeo f structWithArray %d", sizeof(struct StructWithArray));
-
     UA_Int32 data[3] = {1, 2, 3};
     struct StructWithArray s;
     s.data = data;

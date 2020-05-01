@@ -5,14 +5,14 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
+#include "InternalLogger.h"
 #include "Nodeset.h"
 #include <CharAllocator.h>
+#include <NodesetLoader/Logger.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <libxml/SAX.h>
-#include <NodesetLoader/NodesetLoader.h>
 #include <string.h>
-#include "InternalLogger.h"
-#include <NodesetLoader/Logger.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -74,7 +74,7 @@ struct TParserCtx
 struct NodesetLoader
 {
     Nodeset *nodeset;
-    NodesetLoader_Logger * logger;
+    NodesetLoader_Logger *logger;
     bool internalLogger;
 };
 
@@ -462,8 +462,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     if (!f)
     {
         loader->logger->log(loader->logger->context,
-                                 NODESETLOADER_LOGLEVEL_ERROR,
-                                 "NodesetLoader: file open error");
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: file open error");
         status = false;
         goto cleanup;
     }
@@ -486,7 +486,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (read_xmlfile(f, ctx))
     {
-        loader->logger->log(loader->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
         status = false;
     }
 
@@ -504,18 +505,18 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger)
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
-    if(!logger)
+    if (!logger)
     {
         loader->logger = InternalLogger_new();
         loader->internalLogger = true;
     }
     else
     {
-        loader->logger=logger;
-    }    
+        loader->logger = logger;
+    }
     assert(loader);
     return loader;
 }
@@ -523,7 +524,7 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger)
 void NodesetLoader_delete(NodesetLoader *loader)
 {
     Nodeset_cleanup(loader->nodeset);
-    if(loader->internalLogger)
+    if (loader->internalLogger)
     {
         free(loader->logger);
     }

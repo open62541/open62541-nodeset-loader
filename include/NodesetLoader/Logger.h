@@ -11,8 +11,9 @@ enum NodesetLoader_LogLevel
     NODESETLOADER_LOGLEVEL_ERROR
 };
 
-typedef void (*NodesetLoader_Logger_log)(void *context, enum NodesetLoader_LogLevel level,
-                                              const char *message, ...);
+typedef void (*NodesetLoader_Logger_log)(void *context,
+                                         enum NodesetLoader_LogLevel level,
+                                         const char *message, ...);
 struct NodesetLoader_Logger
 {
     void *context;
