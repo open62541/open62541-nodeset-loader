@@ -11,16 +11,17 @@
 #include "unistd.h"
 
 #include "../testHelper.h"
+#include "open62541/types_specializedStruct_generated.h"
+#include "open62541/types_struct_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
-#include "open62541/types_structExtended_generated.h"
 
 UA_Server *server;
-char *nodesetPath = NULL;
+char *nodeset1 = NULL;
+char * nodeset2 = NULL;
 
 static void setup(void)
 {
-    printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
@@ -34,34 +35,38 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-START_TEST(compareDI)
+START_TEST(compareSpecializedStruct)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    printf("%s \n", nodeset1);
+    printf("%s \n", nodeset2);
+    ck_assert(NodesetLoader_loadFile(server, nodeset1, NULL));
+    ck_assert(NodesetLoader_loadFile(server, nodeset2, NULL));
 
-    UA_ServerConfig* config = UA_Server_getConfig(server);
+    UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_STRUCTEXTENDED_COUNT);
+    ck_assert(config->customDataTypes->typesSize ==
+              UA_TYPES_STRUCT_COUNT + UA_TYPES_SPECIALIZEDSTRUCT_COUNT);
 
-    for (const UA_DataType *generatedType = UA_TYPES_STRUCTEXTENDED;
-         generatedType != UA_TYPES_STRUCTEXTENDED +
-                              UA_TYPES_STRUCTEXTENDED_COUNT;
+    for (const UA_DataType *generatedType = UA_TYPES_SPECIALIZEDSTRUCT;
+         generatedType !=
+         UA_TYPES_SPECIALIZEDSTRUCT + UA_TYPES_SPECIALIZEDSTRUCT_COUNT;
          generatedType++)
     {
-        const UA_DataType* importedType = getCustomDataType(server, &generatedType->typeId);
-        ck_assert(importedType!=NULL);
+        const UA_DataType *importedType =
+            getCustomDataType(server, &generatedType->typeId);
+        ck_assert(importedType != NULL);
         typesAreMatching(generatedType, importedType);
     }
 }
 END_TEST
-
 
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, compareDI);
+    tcase_add_test(tc_server, compareSpecializedStruct);
     suite_add_tcase(s, tc_server);
     return s;
 }
@@ -71,7 +76,8 @@ int main(int argc, char *argv[])
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
-    nodesetPath = argv[1];
+    nodeset1 = argv[1];
+    nodeset2 = argv[2];
     Suite *s = testSuite_Client();
     SRunner *sr = srunner_create(s);
     srunner_set_fork_status(sr, CK_NOFORK);
