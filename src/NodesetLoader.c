@@ -438,12 +438,16 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 {
     if (fileHandler == NULL)
     {
-        loader->logger->logError(NULL, "no filehandler - abort\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: no filehandler - abort");
         return false;
     }
     if (fileHandler->addNamespace == NULL)
     {
-        loader->logger->logError(NULL, "fileHandler->addNamespace missing - abort\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
     bool status = true;
@@ -457,7 +461,9 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (!f)
     {
-        loader->logger->logError(NULL, "file open error - abort\n");
+        loader->logger->log(loader->logger->context,
+                                 NODESETLOADER_LOGLEVEL_ERROR,
+                                 "NodesetLoader: file open error");
         status = false;
         goto cleanup;
     }
@@ -480,7 +486,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (read_xmlfile(f, ctx))
     {
-        loader->logger->logError(NULL, "xml read error\n");
+        loader->logger->log(loader->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
         status = false;
     }
 
@@ -506,6 +512,10 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger)
         loader->logger = InternalLogger_new();
         loader->internalLogger = true;
     }
+    else
+    {
+        loader->logger=logger;
+    }    
     assert(loader);
     return loader;
 }

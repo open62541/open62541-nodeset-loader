@@ -1,34 +1,22 @@
 #include "InternalLogger.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 
-static void logStdOut(const char *level, const char *message)
-{
-    printf("NODESETLOADER: %s : %s\n", level, message);
-}
+static const char* logLevel[3] = {"Debug", "Warning", "Error"};
 
-static void logDebug(void *context, const char *message)
+static void logStdOut(void* context, enum NodesetLoader_LogLevel level, const char *message, ...)
 {
-    logStdOut("DEBUG", message);
-}
-
-static void logWarning(void *context, const char *message)
-{
-    logStdOut("WARNING", message);
-}
-
-static void logError(void *context, const char *message)
-{
-    logStdOut("ERROR", message);
+    va_list vl;
+    va_start(vl, message);
+    printf("NODESETLOADER: %s : %s\n", logLevel[level], message);
 }
 
 NodesetLoader_Logger *InternalLogger_new()
 {
     NodesetLoader_Logger *logger =
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
-    logger->logDebug = &logDebug;
-    logger->logWarning = &logWarning;
-    logger->logError = &logError;
+    logger->log = &logStdOut;
     return logger;
 }
 

@@ -4,19 +4,19 @@
 struct NodesetLoader_Logger;
 typedef struct NodesetLoader_Logger NodesetLoader_Logger;
 
-typedef void (*NodesetLoader_Logger_logDebug)(void *context,
-                                              const char *message);
-typedef void (*NodesetLoader_Logger_logWarning)(void *context,
-                                                const char *message);
-typedef void (*NodesetLoader_Logger_logError)(void *context,
-                                              const char *message);
+enum NodesetLoader_LogLevel
+{
+    NODESETLOADER_LOGLEVEL_DEBUG,
+    NODESETLOADER_LOGLEVEL_WARNING,
+    NODESETLOADER_LOGLEVEL_ERROR
+};
 
+typedef void (*NodesetLoader_Logger_log)(void *context, enum NodesetLoader_LogLevel level,
+                                              const char *message, ...);
 struct NodesetLoader_Logger
 {
     void *context;
-    NodesetLoader_Logger_logDebug logDebug;
-    NodesetLoader_Logger_logDebug logWarning;
-    NodesetLoader_Logger_logDebug logError;
+    NodesetLoader_Logger_log log;
 };
 
 #endif

@@ -1,9 +1,9 @@
 #include "DataTypeImporter.h"
 #include "conversion.h"
 #include "value.h"
+#include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
-#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
 
@@ -162,8 +162,8 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
 
-    //euromap work around?
-    if(attr.arrayDimensions == NULL && attr.valueRank == 1)
+    // euromap work around?
+    if (attr.arrayDimensions == NULL && attr.valueRank == 1)
     {
         attr.arrayDimensionsSize = 1;
         attr.arrayDimensions = UA_UInt32_new();
@@ -324,6 +324,27 @@ int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
     return idx;
 }
 
+static void logToOpen(void* context, enum NodesetLoader_LogLevel level, const char* message, ...)
+{
+    UA_Logger* logger = (UA_Logger*)context;
+    va_list vl;
+    va_start(vl, message);
+    UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
+    switch(level)
+    {
+        case NODESETLOADER_LOGLEVEL_DEBUG:
+            uaLevel = UA_LOGLEVEL_DEBUG;
+            break;
+        case NODESETLOADER_LOGLEVEL_ERROR:
+            uaLevel = UA_LOGLEVEL_ERROR;
+            break;
+        case NODESETLOADER_LOGLEVEL_WARNING:
+            uaLevel = UA_LOGLEVEL_WARNING;
+            break;
+    }
+    logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
+}
+
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
                             void *extensionHandling)
 {
@@ -349,7 +370,13 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.valueHandling = &valIf;
     handler.extensionHandling = NULL;
 
-    NodesetLoader *loader = NodesetLoader_new(NULL);
+
+    UA_ServerConfig* config = UA_Server_getConfig(server);
+    NodesetLoader_Logger* logger = (NodesetLoader_Logger*)calloc(1, sizeof(NodesetLoader_Logger));
+    logger->context = &config->logger;
+    logger->log = &logToOpen;
+
+    NodesetLoader *loader = NodesetLoader_new(logger);
     bool status = NodesetLoader_importFile(loader, &handler);
     NodesetLoader_sort(loader);
     if (status)
@@ -362,6 +389,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu ReferenceTypes", cnt);
         }
 
         {
@@ -372,6 +401,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu DataTypes", cnt);
         }
 
         {
@@ -382,6 +413,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu ObjectTypes", cnt);
         }
 
         {
@@ -392,6 +425,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu Objects", cnt);
         }
 
         {
@@ -402,6 +437,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu Methods", cnt);
         }
 
         {
@@ -412,6 +449,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu VariableTypes", cnt);
         }
 
         {
@@ -422,6 +461,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             {
                 addNode(server, *node);
             }
+            logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                        "imported %zu Variables", cnt);
         }
     }
 
@@ -431,35 +472,29 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     for (TNode **node = nodes; node != nodes + cnt; node++)
     {
         // add only the types
-        const BiDirectionalReference* hasEncodingRef = NodesetLoader_getBidirectionalRefs(loader);
-        /*while (hasEncodingRef)
+        const BiDirectionalReference *hasEncodingRef =
+            NodesetLoader_getBidirectionalRefs(loader);
+        while (hasEncodingRef)
         {
-            printf("source %s target %s\n", hasEncodingRef->source.id,
-                   hasEncodingRef->target.id);
-            hasEncodingRef = hasEncodingRef->next;
-        }*/
-            while (hasEncodingRef)
+            if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
             {
-                if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
-                {
-                    Reference *ref = (Reference *)calloc(1, sizeof(Reference));
-                    ref->refType = hasEncodingRef->refType;
-                    ref->target = hasEncodingRef->target;
+                Reference *ref = (Reference *)calloc(1, sizeof(Reference));
+                ref->refType = hasEncodingRef->refType;
+                ref->target = hasEncodingRef->target;
 
-                    Reference *lastRef = (*node)->nonHierachicalRefs;
-                    (*node)->nonHierachicalRefs = ref;
-                    ref->next = lastRef;
-                    break;
-                }
-                hasEncodingRef = hasEncodingRef->next;
+                Reference *lastRef = (*node)->nonHierachicalRefs;
+                (*node)->nonHierachicalRefs = ref;
+                ref->next = lastRef;
+                break;
             }
-            DataTypeImporter_addCustomDataType(importer,
-                                               (TDataTypeNode *)*node);
+            hasEncodingRef = hasEncodingRef->next;
         }
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
+    }
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
-
     NodesetLoader_delete(loader);
+    free(logger);
     return status;
 }
 
