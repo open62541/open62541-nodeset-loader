@@ -48,7 +48,7 @@ struct BiDirectionalReference
     BiDirectionalReference* next;
 };
 
-#define UA_NODE_ATTRIBUTES                                                     \
+#define NODE_ATTRIBUTES                                                     \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
     TBrowseName browseName;                                                    \
@@ -60,26 +60,26 @@ struct BiDirectionalReference
 
 struct TNode
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
 };
 typedef struct TNode TNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *eventNotifier;
 } TObjectNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     char *isAbstract;
 } TObjectTypeNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     char *isAbstract;
     TNodeId datatype;
     char *arrayDimensions;
@@ -92,7 +92,7 @@ typedef struct Value Value;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     TNodeId datatype;
     char *arrayDimensions;
@@ -119,13 +119,13 @@ typedef struct
 
 typedef struct TDataTypeNode
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     DataTypeDefinition *definition;
 } TDataTypeNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *executable;
     char *userExecutable;
@@ -133,11 +133,10 @@ typedef struct
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     char *symmetric;
 } TReferenceTypeNode;
 
-typedef void (*addNodeCb)(void *userContext, const TNode *);
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
 typedef Value *(*newValueCb)(const TNode *node);
@@ -150,8 +149,8 @@ struct Extension;
 typedef struct Extension Extension;
 
 typedef Extension *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(Extension *ext, const char *localname);
-typedef void (*endExtensionCb)(Extension *val, const char *localname,
+typedef void (*startExtensionCb)(Extension *ext, const char *name);
+typedef void (*endExtensionCb)(Extension *val, const char *name,
                                char *value);
 typedef void (*finishExtensionCb)(Extension *val);
 
