@@ -1,5 +1,7 @@
-#pragma once
+#ifndef NODESETLOADER_NODESETLOADER_H
+#define NODESETLOADER_NODESETLOADER_H
 #include "TNodeId.h"
+#include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -45,7 +47,7 @@ struct BiDirectionalReference
     TNodeId source;
     TNodeId target;
     TNodeId refType;
-    BiDirectionalReference* next;
+    BiDirectionalReference *next;
 };
 
 #define UA_NODE_ATTRIBUTES                                                     \
@@ -186,15 +188,18 @@ typedef struct
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-NodesetLoader *NodesetLoader_new(void);
-bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const FileContext *fileContext);
-void NodesetLoader_delete(NodesetLoader *loader);
-size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                              TNode ***nodes);
-const BiDirectionalReference* NodesetLoader_getBidirectionalRefs(const NodesetLoader* loader);
-bool NodesetLoader_sort(NodesetLoader *loader);
+LOADER_EXPORT NodesetLoader *NodesetLoader_new(void);
+LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
+                                            const FileContext *fileContext);
+LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
+LOADER_EXPORT size_t NodesetLoader_getNodes(const NodesetLoader *loader,
+                                            TNodeClass nodeClass,
+                                            TNode ***nodes);
+LOADER_EXPORT const BiDirectionalReference *
+NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
+LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus
 }
+#endif
 #endif
