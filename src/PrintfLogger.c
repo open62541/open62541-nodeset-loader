@@ -1,11 +1,12 @@
 #include "InternalLogger.h"
+#include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 
-static const char* logLevel[3] = {"Debug", "Warning", "Error"};
+static const char *logLevel[3] = {"Debug", "Warning", "Error"};
 
-static void logStdOut(void* context, enum NodesetLoader_LogLevel level, const char *message, ...)
+static void logStdOut(void *context, enum NodesetLoader_LogLevel level,
+                      const char *message, ...)
 {
     va_list vl;
     va_start(vl, message);
