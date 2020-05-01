@@ -148,14 +148,11 @@ typedef void (*endValueCb)(Value *val, const char *localname, char *value);
 typedef void (*finishValueCb)(Value *val);
 typedef void (*deleteValueCb)(Value **val);
 
-struct Extension;
-typedef struct Extension Extension;
-
-typedef Extension *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(Extension *ext, const char *localname);
-typedef void (*endExtensionCb)(Extension *val, const char *localname,
+typedef void *(*newExtensionCb)(const TNode *);
+typedef void (*startExtensionCb)(void * extensionData, const char *name);
+typedef void (*endExtensionCb)(void * extensionData, const char *name,
                                char *value);
-typedef void (*finishExtensionCb)(Extension *val);
+typedef void (*finishExtensionCb)(void *extensionData);
 
 typedef struct
 {
