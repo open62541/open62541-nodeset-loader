@@ -5,12 +5,13 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
+#include "InternalLogger.h"
 #include "Nodeset.h"
 #include <CharAllocator.h>
+#include <NodesetLoader/Logger.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <libxml/SAX.h>
-#include <NodesetLoader/NodesetLoader.h>
-#include <stdio.h>
 #include <string.h>
 
 #define OBJECT "UAObject"
@@ -73,6 +74,8 @@ struct TParserCtx
 struct NodesetLoader
 {
     Nodeset *nodeset;
+    NodesetLoader_Logger *logger;
+    bool internalLogger;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -435,12 +438,16 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 {
     if (fileHandler == NULL)
     {
-        printf("no filehandler - return\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: no filehandler - abort");
         return false;
     }
     if (fileHandler->addNamespace == NULL)
     {
-        printf("no fileHandler->addNamespace - return\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
     bool status = true;
@@ -454,7 +461,9 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (!f)
     {
-        printf("file open error\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: file open error");
         status = false;
         goto cleanup;
     }
@@ -477,7 +486,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (read_xmlfile(f, ctx))
     {
-        printf("xml read error\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
         status = false;
     }
 
@@ -495,9 +505,18 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new()
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
+    if (!logger)
+    {
+        loader->logger = InternalLogger_new();
+        loader->internalLogger = true;
+    }
+    else
+    {
+        loader->logger = logger;
+    }
     assert(loader);
     return loader;
 }
@@ -505,6 +524,10 @@ NodesetLoader *NodesetLoader_new()
 void NodesetLoader_delete(NodesetLoader *loader)
 {
     Nodeset_cleanup(loader->nodeset);
+    if (loader->internalLogger)
+    {
+        free(loader->logger);
+    }
     free(loader);
 }
 

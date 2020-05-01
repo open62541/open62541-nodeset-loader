@@ -49,7 +49,8 @@ add_library(NodesetLoader SHARED
     src/nodes/Node.c
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c
-    src/TNodeId.c)
+    src/TNodeId.c
+    src/PrintfLogger.c)
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
