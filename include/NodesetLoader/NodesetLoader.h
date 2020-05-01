@@ -3,6 +3,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include "Logger.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -186,7 +187,7 @@ typedef struct
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-NodesetLoader *NodesetLoader_new(void);
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger);
 bool NodesetLoader_importFile(NodesetLoader *loader,
                               const FileContext *fileContext);
 void NodesetLoader_delete(NodesetLoader *loader);

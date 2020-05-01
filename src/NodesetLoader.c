@@ -10,8 +10,9 @@
 #include <assert.h>
 #include <libxml/SAX.h>
 #include <NodesetLoader/NodesetLoader.h>
-#include <stdio.h>
 #include <string.h>
+#include "InternalLogger.h"
+#include <NodesetLoader/Logger.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -73,6 +74,8 @@ struct TParserCtx
 struct NodesetLoader
 {
     Nodeset *nodeset;
+    NodesetLoader_Logger * logger;
+    bool internalLogger;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -435,12 +438,12 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 {
     if (fileHandler == NULL)
     {
-        printf("no filehandler - return\n");
+        loader->logger->logError(NULL, "no filehandler - abort\n");
         return false;
     }
     if (fileHandler->addNamespace == NULL)
     {
-        printf("no fileHandler->addNamespace - return\n");
+        loader->logger->logError(NULL, "fileHandler->addNamespace missing - abort\n");
         return false;
     }
     bool status = true;
@@ -454,7 +457,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (!f)
     {
-        printf("file open error\n");
+        loader->logger->logError(NULL, "file open error - abort\n");
         status = false;
         goto cleanup;
     }
@@ -477,7 +480,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (read_xmlfile(f, ctx))
     {
-        printf("xml read error\n");
+        loader->logger->logError(NULL, "xml read error\n");
         status = false;
     }
 
@@ -495,9 +498,14 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new()
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
+    if(!logger)
+    {
+        loader->logger = InternalLogger_new();
+        loader->internalLogger = true;
+    }
     assert(loader);
     return loader;
 }
@@ -505,6 +513,10 @@ NodesetLoader *NodesetLoader_new()
 void NodesetLoader_delete(NodesetLoader *loader)
 {
     Nodeset_cleanup(loader->nodeset);
+    if(loader->internalLogger)
+    {
+        free(loader->logger);
+    }
     free(loader);
 }
 

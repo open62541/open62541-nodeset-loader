@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     valIf.deleteValue = Value_delete;
     handler.valueHandling = &valIf;
 
-    NodesetLoader *loader = NodesetLoader_new();
+    NodesetLoader *loader = NodesetLoader_new(NULL);
 
     for (int cnt = 1; cnt < argc; cnt++)
     {

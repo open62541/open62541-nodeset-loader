@@ -349,7 +349,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.valueHandling = &valIf;
     handler.extensionHandling = NULL;
 
-    NodesetLoader *loader = NodesetLoader_new();
+    NodesetLoader *loader = NodesetLoader_new(NULL);
     bool status = NodesetLoader_importFile(loader, &handler);
     NodesetLoader_sort(loader);
     if (status)

@@ -28,14 +28,6 @@ char *CharArenaAllocator_malloc(struct CharArena *arena, size_t size)
     return mem;
 }
 
-/*
-void CharArenaAllocator_expand(struct CharArena *arena, size_t size)
-{
-    assert(size + arena->currentSize <= arena->initialSize);
-    arena->currentSize += size;
-}
-*/
-
 void CharArenaAllocator_delete(struct CharArena *arena)
 {
     free(arena->mem);
