@@ -13,6 +13,7 @@
 #include <assert.h>
 #include <libxml/SAX.h>
 #include <string.h>
+#include "Value.h"
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -65,7 +66,6 @@ struct TParserCtx
     size_t onCharLength;
     Value *val;
     Extension *ext;
-    ValueInterface *valIf;
     ExtensionInterface *extIf;
     Reference *ref;
     Nodeset *nodeset;
@@ -195,7 +195,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         else if (!strcmp(localname, VALUE))
         {
-            pctx->val = pctx->valIf->newValue(pctx->node);
+            pctx->val = Value_new(pctx->node);
             pctx->state = PARSER_STATE_VALUE;
         }
         else if (!strcmp(localname, EXTENSIONS))
@@ -228,7 +228,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_VALUE:
-        pctx->valIf->start(pctx->val, localname);
+        Value_start(pctx->val, localname);
         break;
 
     case PARSER_STATE_EXTENSIONS:
@@ -327,13 +327,13 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE))
         {
-            pctx->valIf->finish(pctx->val);
+            Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }
         else
         {
-            pctx->valIf->end(pctx->val, localname, pctx->onCharacters);
+            Value_end(pctx->val, localname, pctx->onCharacters);
         }
         break;
     case PARSER_STATE_EXTENSION:
@@ -481,7 +481,6 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     ctx->onCharacters = NULL;
     ctx->onCharLength = 0;
     ctx->userContext = fileHandler->userContext;
-    ctx->valIf = fileHandler->valueHandling;
     ctx->extIf = fileHandler->extensionHandling;
 
     if (read_xmlfile(f, ctx))

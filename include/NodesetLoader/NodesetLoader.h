@@ -87,10 +87,8 @@ typedef struct
     char *valueRank;
 } TVariableTypeNode;
 
-/* Value Handling */
 struct Value;
 typedef struct Value Value;
-
 typedef struct
 {
     NODE_ATTRIBUTES
@@ -140,11 +138,7 @@ typedef struct
 
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-typedef Value *(*newValueCb)(const TNode *node);
-typedef void (*startValueCb)(Value *val, const char *localname);
-typedef void (*endValueCb)(Value *val, const char *localname, char *value);
-typedef void (*finishValueCb)(Value *val);
-typedef void (*deleteValueCb)(Value **val);
+
 
 struct Extension;
 typedef struct Extension Extension;
@@ -154,16 +148,6 @@ typedef void (*startExtensionCb)(Extension *ext, const char *name);
 typedef void (*endExtensionCb)(Extension *val, const char *name,
                                char *value);
 typedef void (*finishExtensionCb)(Extension *val);
-
-typedef struct
-{
-    void *userContext;
-    newValueCb newValue;
-    startValueCb start;
-    endValueCb end;
-    finishValueCb finish;
-    deleteValueCb deleteValue;
-} ValueInterface;
 
 typedef struct
 {
@@ -179,7 +163,6 @@ typedef struct
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    ValueInterface *valueHandling;
     ExtensionInterface *extensionHandling;
 } FileContext;
 

@@ -360,14 +360,6 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.addNamespace = BackendOpen62541_addNamespace;
     handler.userContext = server;
     handler.file = path;
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = BackendOpen62541_Value_new;
-    valIf.start = BackendOpen62541_Value_start;
-    valIf.end = BackendOpen62541_Value_end;
-    valIf.finish = BackendOpen62541_Value_finish;
-    valIf.deleteValue = BackendOpen62541_Value_delete;
-    handler.valueHandling = &valIf;
     handler.extensionHandling = NULL;
 
 
