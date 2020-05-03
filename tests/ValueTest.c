@@ -12,6 +12,7 @@ START_TEST(simpleVal)
     ck_assert(val->data->type == DATATYPE_PRIMITIVE);
     ck_assert(!strcmp(val->data->val.primitiveData.value, "3.1415"));
     ck_assert(!strcmp(val->data->name, "Double"));
+    ck_assert(!strcmp(val->type, "Double"));
 }
 END_TEST
 
@@ -47,10 +48,19 @@ START_TEST(ExtensionObject)
     Value_start(val, "Argument");
     Value_start(val, "Name");
     Value_end(val, "Name", "Context");
+    Value_start(val, "DataType");
+    Value_end(val, "DataType", "i=12");
     Value_end(val, "Argument", NULL);
     Value_end(val, "Body", NULL);
     Value_end(val, "ExtensionObject", NULL);
     ck_assert(val);
+    ck_assert(!strcmp(val->type, "i=297"));
+    ck_assert(val->data);
+    ck_assert(val->isExtensionObject);
+    ck_assert(val->data->type == DATATYPE_COMPLEX);
+    ck_assert(val->data->val.complexData.membersSize == 2);
+    ck_assert(!strcmp(val->data->val.complexData.members[0]->name, "Name"));
+    ck_assert(!strcmp(val->data->val.complexData.members[1]->name, "DataType"));
 }
 END_TEST
 
@@ -74,9 +84,12 @@ START_TEST(ListOfUInt32)
     Value_end(val, "UInt32", "130");
     Value_end(val, "ListOfUInt32", NULL);
     ck_assert(val);
+    ck_assert(!strcmp(val->type, "UInt32"));
     ck_assert(val->data->type == DATATYPE_COMPLEX);
-    ck_assert(val->data->val.complexData.membersSize==2);
-    ck_assert(!strcmp(val->data->val.complexData.members[0]->val.primitiveData.value, "120"));
+    ck_assert(!strcmp(val->data->name, "ListOfUInt32"));
+    ck_assert(val->data->val.complexData.membersSize == 2);
+    ck_assert(!strcmp(
+        val->data->val.complexData.members[0]->val.primitiveData.value, "120"));
     ck_assert(!strcmp(
         val->data->val.complexData.members[1]->val.primitiveData.value, "130"));
 }
@@ -122,7 +135,7 @@ xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"> <ExtensionObject>
 
     Value *val = Value_new(NULL);
     Value_start(val, "ListOfExtensionObject");
-    //obj1
+    // obj1
     Value_start(val, "ExtensionObject");
     Value_start(val, "TypeId");
     Value_start(val, "Identifier");
@@ -135,7 +148,7 @@ xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"> <ExtensionObject>
     Value_end(val, "Argument", NULL);
     Value_end(val, "Body", NULL);
     Value_end(val, "ExtensionObject", NULL);
-    //obj2
+    // obj2
     Value_start(val, "ExtensionObject");
     Value_start(val, "TypeId");
     Value_start(val, "Identifier");
@@ -150,9 +163,47 @@ xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"> <ExtensionObject>
     Value_end(val, "ExtensionObject", NULL);
     //
     Value_end(val, "ListOfExtensionObject", NULL);
+
+    ck_assert(val);
+    ck_assert(!strcmp(val->data->name, "ListOfExtensionObject"));
+    ck_assert(val->isArray);
+    ck_assert(val->isExtensionObject); //?
+    ck_assert(val->data->type = DATATYPE_COMPLEX);
+    ck_assert(val->data->val.complexData.membersSize == 2);
+    ck_assert(!strcmp(val->data->val.complexData.members[0]->name, "Argument"));
+    ck_assert(!strcmp(val->data->val.complexData.members[1]->name, "Argument"));
 }
 END_TEST
 
+START_TEST(LocalizedText)
+{
+    /*
+    <Value>
+      <LocalizedText>
+        <Locale>en</Locale>
+        <Text>someText@42</Text>
+      </LocalizedText>
+    </Value>
+    */
+
+    Value *val = Value_new(NULL);
+    Value_start(val, "LocalizedText");
+    Value_start(val, "Locale");
+    Value_end(val, "Locale", "en");
+    Value_start(val, "Text");
+    Value_end(val, "Text", "someText@42");
+    Value_end(val, "LocalizedText", NULL);
+    ck_assert(val);
+    ck_assert(val->data->type == DATATYPE_COMPLEX);
+    ck_assert(!strcmp(val->data->name, "LocalizedText"));
+    ck_assert(val->data->val.complexData.membersSize == 2);
+    ck_assert(!strcmp(
+        val->data->val.complexData.members[0]->val.primitiveData.value, "en"));
+    ck_assert(
+        !strcmp(val->data->val.complexData.members[1]->val.primitiveData.value,
+                "someText@42"));
+}
+END_TEST
 
 int main(void)
 {
@@ -162,6 +213,7 @@ int main(void)
     tcase_add_test(tc, ExtensionObject);
     tcase_add_test(tc, ListOfUInt32);
     tcase_add_test(tc, ListOfExtensionObject);
+    tcase_add_test(tc, LocalizedText);
     suite_add_tcase(s, tc);
 
     SRunner *sr = srunner_create(s);

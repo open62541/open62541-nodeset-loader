@@ -1,6 +1,6 @@
 #include "DataTypeImporter.h"
 #include "conversion.h"
-#include "value.h"
+#include "Value.h"
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
@@ -174,30 +174,32 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {
-        dims = (UA_UInt32)node->value->arrayCnt;
+        dims = (UA_UInt32)node->value->data->val.complexData.membersSize;
         attr.arrayDimensions = &dims;
         attr.arrayDimensionsSize = 1;
     }
     if (node->value)
     {
+        void*value = Value_getData((const TNode*)node, node->value);
+
+
+        const UA_DataType* dataType = UA_findDataType(&attr.dataType);
+
         if (node->value->isArray)
         {
-            UA_Variant_setArray(&attr.value, node->value->value,
-                                node->value->arrayCnt, node->value->datatype);
+            UA_Variant_setArray(&attr.value, value,
+                                node->value->data->val.complexData.membersSize, dataType);
         }
         else
         {
-            UA_Variant_setScalar(&attr.value, node->value->value,
-                                 node->value->datatype);
+            UA_Variant_setScalar(&attr.value, value,
+                                 dataType);
         }
     }
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
     UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
                               typeDefId, attr, NULL, NULL);
     UA_free(attr.arrayDimensions);
-
-    // value is copied in addVariableNode
-    BackendOpen62541_Value_delete(&((TVariableNode *)(uintptr_t)node)->value);
 }
 
 static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,

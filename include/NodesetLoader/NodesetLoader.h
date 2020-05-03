@@ -87,7 +87,50 @@ typedef struct
     char *valueRank;
 } TVariableTypeNode;
 
-struct Value;
+struct Data;
+typedef struct Data Data;
+enum DataType
+{
+    DATATYPE_PRIMITIVE,
+    DATATYPE_COMPLEX,
+};
+
+typedef enum DataType DataType;
+
+struct PrimitiveData
+{
+    const char *value;
+};
+typedef struct PrimitiveData PrimitiveData;
+struct ComplexData
+{
+    size_t membersSize;
+    Data **members;
+};
+typedef struct ComplexData ComplexData;
+
+struct Data
+{
+    DataType type;
+    const char *name;
+    union
+    {
+        PrimitiveData primitiveData;
+        ComplexData complexData;
+    } val;
+    Data *parent;
+};
+
+struct ParserCtx;
+struct Value
+{
+    struct ParserCtx *ctx;
+    bool isArray;
+    bool isExtensionObject;
+    const char *type;
+    TNodeId typeId;
+    Data *data;
+};
 typedef struct Value Value;
 typedef struct
 {

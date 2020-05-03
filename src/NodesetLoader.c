@@ -327,7 +327,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE))
         {
-            Value_finish(pctx->val);
+            //Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }

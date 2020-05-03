@@ -9,6 +9,32 @@ Value *Value_new(const TNode *node)
     return newValue;
 }
 
+static Data* newData(const char* name, DataType type)
+{
+    Data* newData = (Data *)calloc(1, sizeof(Data));
+    newData->type = type;
+    newData->name = name;
+    return newData;
+}
+
+static Data *addNewMember(Data *parent, const char *name) 
+{
+    parent->type = DATATYPE_COMPLEX;
+    parent->val.complexData.members = (Data **)realloc(
+        parent->val.complexData.members,
+        (parent->val.complexData.membersSize + 1) * sizeof(Data *));
+
+    Data *newData = (Data *)calloc(1, sizeof(Data));
+    parent->val.complexData
+        .members[parent->val.complexData.membersSize] = newData;
+
+    parent->val.complexData.membersSize++;
+    newData->type = DATATYPE_PRIMITIVE;
+    newData->name = name;
+    newData->parent = parent;
+    return newData;
+}
+
 void Value_start(Value *val, const char *name)
 {
     switch (val->ctx->state)
@@ -18,23 +44,21 @@ void Value_start(Value *val, const char *name)
         {
             val->ctx->state = PARSERSTATE_LISTOF;
             val->isArray= true;
-            val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-            val->ctx->currentData->type = DATATYPE_PRIMITIVE;
-            val->ctx->currentData->name = name;
+            val->data = newData(name, DATATYPE_COMPLEX);
+            val->ctx->currentData = val->data;
         }
         else if (!strcmp(name, "ExtensionObject"))
         {
             val->ctx->state = PARSERSTATE_EXTENSIONOBJECT;
+            val->isExtensionObject = true;
         }
         else
         {
-            val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-            val->ctx->currentData->type = DATATYPE_PRIMITIVE;
-            val->ctx->currentData->name = name;
-            val->data = val->ctx->currentData;
+            val->type = name;
+            val->data = newData(name, DATATYPE_PRIMITIVE);
+            val->ctx->currentData = val->data;
             val->ctx->state = PARSERSTATE_DATA;
-        }       
-        
+        }
         break;
 
     case PARSERSTATE_LISTOF:
@@ -42,37 +66,15 @@ void Value_start(Value *val, const char *name)
         {
             val->ctx->state = PARSERSTATE_EXTENSIONOBJECT;
             val->isExtensionObject = true;
-            val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-            val->ctx->currentData->type = DATATYPE_PRIMITIVE;
-            val->ctx->currentData->name = name;
             break;
         }
         val->ctx->state = PARSERSTATE_DATA;
-        if (!val->ctx->currentData)
         {
-            val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-            val->ctx->currentData->type = DATATYPE_PRIMITIVE;
-            val->ctx->currentData->name = name;
-        }
-        else
-        {
-            Data *currentData = val->ctx->currentData;
-            currentData->type = DATATYPE_COMPLEX;
-            currentData->val.complexData.members = (Data **)realloc(
-                currentData->val.complexData.members,
-                (currentData->val.complexData.membersSize + 1) *
-                    sizeof(Data *));
-
-            Data *newData = (Data *)calloc(1, sizeof(Data));
-            currentData->val.complexData
-                .members[currentData->val.complexData.membersSize] = newData;
-
-            currentData->val.complexData.membersSize++;
-            newData->type = DATATYPE_PRIMITIVE;
-            newData->name = name;
-            newData->parent = currentData;
+            val->type = name;
+            Data *newData = addNewMember(val->ctx->currentData, name);
             val->ctx->currentData = newData;
         }
+        
         break;
 
     case PARSERSTATE_EXTENSIONOBJECT:
@@ -88,10 +90,16 @@ void Value_start(Value *val, const char *name)
         break;
     case PARSERSTATE_EXTENSIONOBJECT_BODY:
         val->ctx->state = PARSERSTATE_DATA;
-        val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-        val->ctx->currentData->type = DATATYPE_COMPLEX;
-        val->ctx->currentData->name = name;
-        val->data = val->ctx->currentData;
+        if (!val->ctx->currentData)
+        {
+            val->data = newData(name, DATATYPE_COMPLEX);
+            val->ctx->currentData = val->data;
+        }
+        else
+        {
+            Data *newData = addNewMember(val->ctx->currentData, name);
+            val->ctx->currentData = newData;
+        }
         break;
 
     case PARSERSTATE_EXTENSIONOBJECT_TYPEID:
@@ -100,27 +108,12 @@ void Value_start(Value *val, const char *name)
     case PARSERSTATE_DATA:
         if (!val->ctx->currentData)
         {
-            val->ctx->currentData = (Data *)calloc(1, sizeof(Data));
-            val->ctx->currentData->type = DATATYPE_PRIMITIVE;
-            val->ctx->currentData->name = name;
+            val->data = newData(name, DATATYPE_PRIMITIVE);
+            val->ctx->currentData = val->data;
         }
         else
         {
-            Data *currentData = val->ctx->currentData;
-            currentData->type = DATATYPE_COMPLEX;
-            currentData->val.complexData.members = (Data **)realloc(
-                currentData->val.complexData.members,
-                (currentData->val.complexData.membersSize + 1) *
-                    sizeof(Data *));
-
-            Data *newData = (Data *)calloc(1, sizeof(Data));
-            currentData->val.complexData
-                .members[currentData->val.complexData.membersSize] = newData;
-            
-            currentData->val.complexData.membersSize++;
-            newData->type = DATATYPE_PRIMITIVE;
-            newData->name = name;
-            newData->parent = currentData;
+            Data *newData = addNewMember(val->ctx->currentData, name);
             val->ctx->currentData = newData;
         }
 
@@ -139,6 +132,11 @@ void Value_end(Value * val, const char *name, const char *value)
             break;
 
         case PARSERSTATE_EXTENSIONOBJECT_TYPEID:
+            if(!strcmp(name, "Identifier"))
+            {
+                val->type = value;
+                
+            }
             if(!strcmp(name, "TypeId"))
             {
                 val->ctx->state = PARSERSTATE_EXTENSIONOBJECT;
@@ -154,22 +152,30 @@ void Value_end(Value * val, const char *name, const char *value)
             break;
 
         case PARSERSTATE_DATA:
-            if(val->ctx->currentData->parent == NULL && !strcmp(name, val->ctx->currentData->name))
-            {
-                if(!val->isExtensionObject)
-                {
-                    val->ctx->state = PARSERSTATE_INIT;
-                }
-                else
-                {
-                    val->ctx->state = PARSERSTATE_EXTENSIONOBJECT_BODY;
-                }
+            if (strcmp(name, val->ctx->currentData->name))
+            {   
+                break;
             }
             if (val->ctx->currentData->type == DATATYPE_PRIMITIVE)
             {
                 val->ctx->currentData->val.primitiveData.value = value;
             }
             val->ctx->currentData = val->ctx->currentData->parent;
+            //exit conditions
+            if(!val->isExtensionObject && val->ctx->currentData == NULL)
+            {
+                val->ctx->state = PARSERSTATE_INIT;
+            }
+            //extensionsobject
+            if(val->isExtensionObject && !val->isArray && val->ctx->currentData == NULL)
+            {
+                val->ctx->state = PARSERSTATE_EXTENSIONOBJECT_BODY;
+            }
+            //listOfExtensionObject
+            if(val->isExtensionObject && val->isArray && val->ctx->currentData->parent == NULL)
+            {
+                val->ctx->state = PARSERSTATE_EXTENSIONOBJECT_BODY;
+            }
             break;
 
         case PARSERSTATE_EXTENSIONOBJECT_BODY:
