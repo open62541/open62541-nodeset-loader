@@ -1,7 +1,7 @@
 #include "Value.h"
 #include "conversion.h"
-#include <assert.h>
 #include <NodesetLoader/NodesetLoader.h>
+#include <assert.h>
 #include <open62541/types_generated.h>
 
 typedef struct TypeList TypeList;
@@ -73,8 +73,8 @@ static void setString(uintptr_t adr, const char *value)
 {
     UA_String *s = (UA_String *)adr;
     s->length = strlen(value);
-    //todo: check this for dangling pointers
-    s->data = (UA_Byte*)(uintptr_t)value;
+    // todo: check this for dangling pointers
+    s->data = (UA_Byte *)(uintptr_t)value;
 }
 
 static void setDateTime(uintptr_t adr, const char *value)
@@ -116,19 +116,17 @@ static void setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind,
     }
 }
 
-static RawData* RawData_new(void)
+static RawData *RawData_new(void)
 {
-    RawData* data = (RawData*)calloc(1, sizeof(RawData));
+    RawData *data = (RawData *)calloc(1, sizeof(RawData));
     assert(data);
     return data;
 }
 
-void RawData_delete(RawData* data)
-{
-    free(data);
-}
+void RawData_delete(RawData *data) { free(data); }
 
-static void setPrimitiveValue(RawData* data, const char* value, UA_DataTypeKind kind, size_t memSize)
+static void setPrimitiveValue(RawData *data, const char *value,
+                              UA_DataTypeKind kind, size_t memSize)
 {
     uintptr_t adr = (uintptr_t)data->mem + data->offset;
     setScalarValueWithAddress(adr, kind, value);
@@ -146,56 +144,88 @@ static void setQualifiedName(const Data *value, RawData *data)
         value->val.complexData.members[0]->val.primitiveData.value);
 
     setScalarValueWithAddress(
-        data->offset + (uintptr_t) &
-            ((UA_QualifiedName *)data->mem)->namespaceIndex,
+        data->offset + (uintptr_t) & ((UA_QualifiedName *)data->mem)->name,
         UA_DATATYPEKIND_STRING,
         value->val.complexData.members[1]->val.primitiveData.value);
 
     data->offset += sizeof(UA_QualifiedName);
 }
 
-static void setLocalizedText(const Data* value, RawData* data)
+static void setLocalizedText(const Data *value, RawData *data)
 {
     assert(value->val.complexData.membersSize == 2);
-    setPrimitiveValue(data, value->val.complexData.members[0]->val.primitiveData.value, UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
-    setPrimitiveValue(
-        data, value->val.complexData.members[1]->val.primitiveData.value,
-        UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
+    setScalarValueWithAddress(
+        data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->locale,
+        UA_DATATYPEKIND_STRING,
+        value->val.complexData.members[0]->val.primitiveData.value);
+
+    setScalarValueWithAddress(
+        data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->text,
+        UA_DATATYPEKIND_STRING,
+        value->val.complexData.members[0]->val.primitiveData.value);
+
+    data->offset += sizeof(UA_LocalizedText);
 }
 
-static void setScalar(const Data* value, const UA_DataType* type, RawData* data)
+static void setScalar(const Data *value, const UA_DataType *type,
+                      RawData *data);
+
+static void setStructure(const Data *value, const UA_DataType *type,
+                         RawData *data)
+{
+    assert(value->type == DATATYPE_COMPLEX);
+    assert(value->val.complexData.membersSize == type->membersSize);
+    size_t cnt = 0;
+    for (const UA_DataTypeMember *m = type->members;
+         m != type->members + type->membersSize; m++)
+    {
+        const UA_DataType *memberType = &UA_TYPES[m->memberTypeIndex];
+        setScalar(value->val.complexData.members[cnt], memberType, data);
+        data->offset += m->padding;
+        cnt++;
+    }
+}
+
+static void setScalar(const Data *value, const UA_DataType *type, RawData *data)
 {
     if (type->typeKind <= UA_DATATYPEKIND_STRING)
     {
         setPrimitiveValue(data, value->val.primitiveData.value,
-                          (UA_DataTypeKind) type->typeKind, type->memSize);
+                          (UA_DataTypeKind)type->typeKind, type->memSize);
     }
-    else if(type->typeKind == UA_DATATYPEKIND_QUALIFIEDNAME)
+    else if (type->typeKind == UA_DATATYPEKIND_QUALIFIEDNAME)
     {
         setQualifiedName(value, data);
     }
-    else if(type->typeKind == UA_DATATYPEKIND_LOCALIZEDTEXT)
+    else if (type->typeKind == UA_DATATYPEKIND_LOCALIZEDTEXT)
     {
         setLocalizedText(value, data);
     }
-    else
+    else if (type->typeKind == UA_DATATYPEKIND_DATETIME)
     {
-        //not implemented
+        data->offset+=sizeof(UA_Int64);
+    }
+    else if (type->typeKind == UA_DATATYPEKIND_ENUM)
+    {
+        setPrimitiveValue(data, value->val.primitiveData.value, UA_DATATYPEKIND_INT32, UA_TYPES[UA_TYPES_INT32].memSize);
+    }
+    else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
+    {
+        setStructure(value, type, data);
     }
 }
 
-static void setArray(const Value* value, const UA_DataType* type, RawData* data)
+static void setArray(const Value *value, const UA_DataType *type, RawData *data)
 {
-    for(size_t i=0; i < value->data->val.complexData.membersSize; i++)
+    for (size_t i = 0; i < value->data->val.complexData.membersSize; i++)
     {
         setScalar(value->data->val.complexData.members[i], type, data);
     }
 }
 
-
-static void setData(const Value* value, const UA_DataType* type, RawData* data)
+static void setData(const Value *value, const UA_DataType *type, RawData *data)
 {
-    if(value->isArray)
+    if (value->isArray)
     {
         setArray(value, type, data);
     }
@@ -203,30 +233,28 @@ static void setData(const Value* value, const UA_DataType* type, RawData* data)
     {
         setScalar(value->data, type, data);
     }
-    
-    
 }
 
-
-RawData *Value_getData(const TNode* node, const Value *value)
+RawData *Value_getData(const TNode *node, const Value *value)
 {
     UA_NodeId dataTypeId =
         getNodeIdFromChars(((const TVariableNode *)node)->datatype);
 
     // check for matching type ids
-    //UA_NodeId valueTypeId = getNodeIdFromChars(value->typeId);
+    // UA_NodeId valueTypeId = getNodeIdFromChars(value->typeId);
 
-    const UA_DataType* type = UA_findDataType(&dataTypeId);
+    const UA_DataType *type = UA_findDataType(&dataTypeId);
 
-    if(!type)
+    if (!type)
     {
         return NULL;
     }
 
-    RawData* data = RawData_new();
-    if(value->isArray)
+    RawData *data = RawData_new();
+    if (value->isArray)
     {
-        data->mem = calloc(value->data->val.complexData.membersSize, type->memSize);
+        data->mem =
+            calloc(value->data->val.complexData.membersSize, type->memSize);
     }
     else
     {
