@@ -180,19 +180,19 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     }
     if (node->value)
     {
-        void*value = Value_getData((const TNode*)node, node->value);
+        RawData* data= Value_getData((const TNode*)node, node->value);
 
 
         const UA_DataType* dataType = UA_findDataType(&attr.dataType);
 
         if (node->value->isArray)
         {
-            UA_Variant_setArray(&attr.value, value,
+            UA_Variant_setArray(&attr.value, data->mem,
                                 node->value->data->val.complexData.membersSize, dataType);
         }
         else
         {
-            UA_Variant_setScalar(&attr.value, value,
+            UA_Variant_setScalar(&attr.value, data->mem,
                                  dataType);
         }
     }

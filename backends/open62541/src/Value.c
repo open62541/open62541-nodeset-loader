@@ -73,7 +73,8 @@ static void setString(uintptr_t adr, const char *value)
 {
     UA_String *s = (UA_String *)adr;
     s->length = strlen(value);
-    memcpy(s->data, value, s->length);
+    //todo: check this for dangling pointers
+    s->data = (UA_Byte*)(uintptr_t)value;
 }
 
 static void setDateTime(uintptr_t adr, const char *value)
@@ -134,12 +135,41 @@ static void setPrimitiveValue(RawData* data, const char* value, UA_DataTypeKind 
     data->offset = data->offset + memSize;
 }
 
+static void setQualifiedName(const Data *value, RawData *data)
+{
+    assert(value->val.complexData.membersSize == 2);
+    setPrimitiveValue(
+        data, value->val.complexData.members[0]->val.primitiveData.value,
+        UA_DATATYPEKIND_UINT16, UA_TYPES[UA_TYPES_UINT16].memSize);
+    data->offset+=6;
+    setPrimitiveValue(
+        data, value->val.complexData.members[1]->val.primitiveData.value,
+        UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
+}
+
+static void setLocalizedText(const Data* value, RawData* data)
+{
+    assert(value->val.complexData.membersSize == 2);
+    setPrimitiveValue(data, value->val.complexData.members[0]->val.primitiveData.value, UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
+    setPrimitiveValue(
+        data, value->val.complexData.members[1]->val.primitiveData.value,
+        UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
+}
+
 static void setScalar(const Data* value, const UA_DataType* type, RawData* data)
 {
     if (type->typeKind <= UA_DATATYPEKIND_STRING)
     {
         setPrimitiveValue(data, value->val.primitiveData.value,
                           (UA_DataTypeKind) type->typeKind, type->memSize);
+    }
+    else if(type->typeKind == UA_DATATYPEKIND_QUALIFIEDNAME)
+    {
+        setQualifiedName(value, data);
+    }
+    else if(type->typeKind == UA_DATATYPEKIND_LOCALIZEDTEXT)
+    {
+        setLocalizedText(value, data);
     }
     else
     {
