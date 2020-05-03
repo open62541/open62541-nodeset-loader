@@ -138,13 +138,20 @@ static void setPrimitiveValue(RawData* data, const char* value, UA_DataTypeKind 
 static void setQualifiedName(const Data *value, RawData *data)
 {
     assert(value->val.complexData.membersSize == 2);
-    setPrimitiveValue(
-        data, value->val.complexData.members[0]->val.primitiveData.value,
-        UA_DATATYPEKIND_UINT16, UA_TYPES[UA_TYPES_UINT16].memSize);
-    data->offset+=6;
-    setPrimitiveValue(
-        data, value->val.complexData.members[1]->val.primitiveData.value,
-        UA_DATATYPEKIND_STRING, UA_TYPES[UA_TYPES_STRING].memSize);
+
+    setScalarValueWithAddress(
+        data->offset + (uintptr_t) &
+            ((UA_QualifiedName *)data->mem)->namespaceIndex,
+        UA_DATATYPEKIND_UINT16,
+        value->val.complexData.members[0]->val.primitiveData.value);
+
+    setScalarValueWithAddress(
+        data->offset + (uintptr_t) &
+            ((UA_QualifiedName *)data->mem)->namespaceIndex,
+        UA_DATATYPEKIND_STRING,
+        value->val.complexData.members[1]->val.primitiveData.value);
+
+    data->offset += sizeof(UA_QualifiedName);
 }
 
 static void setLocalizedText(const Data* value, RawData* data)
