@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/extendedStruct/Types.xsd" xmlns:s2="http://yourorganisation.org/baseStruct/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://yourorganisation.org/extendedStruct/</Uri>
+        <Uri>http://yourorganisation.org/baseStruct/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://yourorganisation.org/extendedStruct/" PublicationDate="2020-05-04T14:51:58Z" Version="1.0.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2019-09-09T00:00:00Z" Version="1.04.3"/>
+            <RequiredModel ModelUri="http://yourorganisation.org/baseStruct/" PublicationDate="2020-05-04T14:51:45Z" Version="1.0.0"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="Point">ns=2;i=3002</Alias>
+        <Alias Alias="PointWithOffset">ns=1;i=3002</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <ua:ModelInfo Tool="UaModeler" Hash="KOcVNo7CDKnJILRsjfekLw==" Version="1.6.3"/>
+        </Extension>
+    </Extensions>
+    <UADataType NodeId="ns=1;i=3002" BrowseName="1:PointWithOffset">
+        <DisplayName>PointWithOffset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">ns=2;i=3002</Reference>
+        </References>
+        <Definition Name="1:PointWithOffset">
+            <Field DataType="Point" Name="offset"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6005" BrowseName="1:PointWithOffset">
+        <DisplayName>PointWithOffset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6001</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5001</Reference>
+        </References>
+        <Value>
+            <uax:String>PointWithOffset</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6006" BrowseName="1:PointWithOffset">
+        <DisplayName>PointWithOffset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=6003</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=69</Reference>
+            <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
+        </References>
+        <Value>
+            <uax:String>//xs:element[@name='PointWithOffset']</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable SymbolicName="TypeDictionary_BinarySchema" DataType="ByteString" NodeId="ns=1;i=6001" BrowseName="1:TypeDictionary">
+        <DisplayName>TypeDictionary</DisplayName>
+        <Description>Collects the data type descriptions of http://yourorganisation.org/extendedStruct/</Description>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6005</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=93</Reference>
+        </References>
+        <Value>
+            <uax:ByteString>PG9wYzpUeXBlRGljdGlvbmFyeSB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZ
+        W1hLWluc3RhbmNlIiB4bWxuczp0bnM9Imh0dHA6Ly95b3Vyb3JnYW5pc2F0aW9uLm9yZy9le
+        HRlbmRlZFN0cnVjdC8iIERlZmF1bHRCeXRlT3JkZXI9IkxpdHRsZUVuZGlhbiIgeG1sbnM6b
+        3BjPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvQmluYXJ5U2NoZW1hLyIgeG1sbnM6bnMxP
+        SJodHRwOi8veW91cm9yZ2FuaXNhdGlvbi5vcmcvYmFzZVN0cnVjdC8iIHhtbG5zOnVhPSJod
+        HRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvIiBUYXJnZXROYW1lc3BhY2U9Imh0dHA6Ly95b
+        3Vyb3JnYW5pc2F0aW9uLm9yZy9leHRlbmRlZFN0cnVjdC8iPgogPG9wYzpJbXBvcnQgTmFtZ
+        XNwYWNlPSJodHRwOi8vb3BjZm91bmRhdGlvbi5vcmcvVUEvIi8+CiA8b3BjOkltcG9ydCBOY
+        W1lc3BhY2U9Imh0dHA6Ly95b3Vyb3JnYW5pc2F0aW9uLm9yZy9iYXNlU3RydWN0LyIvPgogP
+        G9wYzpTdHJ1Y3R1cmVkVHlwZSBCYXNlVHlwZT0ibnMxOlBvaW50IiBOYW1lPSJQb2ludFdpd
+        GhPZmZzZXQiPgogIDxvcGM6RmllbGQgU291cmNlVHlwZT0ibnMxOlBvaW50IiBUeXBlTmFtZ
+        T0ib3BjOkludDMyIiBOYW1lPSJ4Ii8+CiAgPG9wYzpGaWVsZCBTb3VyY2VUeXBlPSJuczE6U
+        G9pbnQiIFR5cGVOYW1lPSJvcGM6SW50MzIiIE5hbWU9InkiLz4KICA8b3BjOkZpZWxkIFNvd
+        XJjZVR5cGU9Im5zMTpQb2ludCIgVHlwZU5hbWU9Im9wYzpJbnQzMiIgTmFtZT0ieiIvPgogI
+        DxvcGM6RmllbGQgVHlwZU5hbWU9Im5zMTpQb2ludCIgTmFtZT0ib2Zmc2V0Ii8+CiA8L29wY
+        zpTdHJ1Y3R1cmVkVHlwZT4KPC9vcGM6VHlwZURpY3Rpb25hcnk+Cg==</uax:ByteString>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6001" NodeId="ns=1;i=6002" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6001</Reference>
+        </References>
+        <Value>
+            <uax:String>http://yourorganisation.org/extendedStruct/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable SymbolicName="TypeDictionary_XmlSchema" DataType="ByteString" NodeId="ns=1;i=6003" BrowseName="1:TypeDictionary">
+        <DisplayName>TypeDictionary</DisplayName>
+        <Description>Collects the data type descriptions of http://yourorganisation.org/extendedStruct/</Description>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=72</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=92</Reference>
+        </References>
+        <Value>
+            <uax:ByteString>PHhzOnNjaGVtYSBlbGVtZW50Rm9ybURlZmF1bHQ9InF1YWxpZmllZCIgdGFyZ2V0TmFtZXNwYWNlPSJod
+        HRwOi8veW91cm9yZ2FuaXNhdGlvbi5vcmcvZXh0ZW5kZWRTdHJ1Y3QvVHlwZXMueHNkIiB4b
+        Wxuczp0bnM9Imh0dHA6Ly95b3Vyb3JnYW5pc2F0aW9uLm9yZy9leHRlbmRlZFN0cnVjdC9Ue
+        XBlcy54c2QiIHhtbG5zOm5zMT0iaHR0cDovL3lvdXJvcmdhbmlzYXRpb24ub3JnL2Jhc2VTd
+        HJ1Y3QvVHlwZXMueHNkIiB4bWxuczp1YT0iaHR0cDovL29wY2ZvdW5kYXRpb24ub3JnL1VBL
+        zIwMDgvMDIvVHlwZXMueHNkIiB4bWxuczp4cz0iaHR0cDovL3d3dy53My5vcmcvMjAwMS9YT
+        UxTY2hlbWEiPgogPHhzOmltcG9ydCBuYW1lc3BhY2U9Imh0dHA6Ly9vcGNmb3VuZGF0aW9uL
+        m9yZy9VQS8yMDA4LzAyL1R5cGVzLnhzZCIvPgogPHhzOmltcG9ydCBuYW1lc3BhY2U9Imh0d
+        HA6Ly95b3Vyb3JnYW5pc2F0aW9uLm9yZy9iYXNlU3RydWN0L1R5cGVzLnhzZCIvPgogPHhzO
+        mNvbXBsZXhUeXBlIG5hbWU9IlBvaW50V2l0aE9mZnNldCI+CiAgPHhzOmNvbXBsZXhDb250Z
+        W50IG1peGVkPSJmYWxzZSI+CiAgIDx4czpleHRlbnNpb24gYmFzZT0ibnMxOlBvaW50Ij4KI
+        CAgIDx4czpzZXF1ZW5jZT4KICAgICA8eHM6ZWxlbWVudCBtaW5PY2N1cnM9IjAiIG1heE9jY
+        3Vycz0iMSIgdHlwZT0ibnMxOlBvaW50IiBuYW1lPSJvZmZzZXQiLz4KICAgIDwveHM6c2Vxd
+        WVuY2U+CiAgIDwveHM6ZXh0ZW5zaW9uPgogIDwveHM6Y29tcGxleENvbnRlbnQ+CiA8L3hzO
+        mNvbXBsZXhUeXBlPgogPHhzOmVsZW1lbnQgdHlwZT0idG5zOlBvaW50V2l0aE9mZnNldCIgb
+        mFtZT0iUG9pbnRXaXRoT2Zmc2V0Ii8+CiA8eHM6Y29tcGxleFR5cGUgbmFtZT0iTGlzdE9mU
+        G9pbnRXaXRoT2Zmc2V0Ij4KICA8eHM6c2VxdWVuY2U+CiAgIDx4czplbGVtZW50IG1pbk9jY
+        3Vycz0iMCIgbWF4T2NjdXJzPSJ1bmJvdW5kZWQiIHR5cGU9InRuczpQb2ludFdpdGhPZmZzZ
+        XQiIG5hbWU9IlBvaW50V2l0aE9mZnNldCIgbmlsbGFibGU9InRydWUiLz4KICA8L3hzOnNlc
+        XVlbmNlPgogPC94czpjb21wbGV4VHlwZT4KIDx4czplbGVtZW50IHR5cGU9InRuczpMaXN0T
+        2ZQb2ludFdpdGhPZmZzZXQiIG5hbWU9Ikxpc3RPZlBvaW50V2l0aE9mZnNldCIgbmlsbGFib
+        GU9InRydWUiLz4KPC94czpzY2hlbWE+Cg==</uax:ByteString>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=6003" NodeId="ns=1;i=6004" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=6003</Reference>
+        </References>
+        <Value>
+            <uax:String>http://yourorganisation.org/extendedStruct/Types.xsd</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="PointWithOffset" NodeId="ns=1;i=6015" BrowseName="1:PointA" AccessLevel="3">
+        <DisplayName>PointA</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <PointWithOffset xmlns="http://yourorganisation.org/extendedStruct/Types.xsd">
+                        <x xmlns="http://yourorganisation.org/baseStruct/Types.xsd">10</x>
+                        <y xmlns="http://yourorganisation.org/baseStruct/Types.xsd">20</y>
+                        <z xmlns="http://yourorganisation.org/baseStruct/Types.xsd">30</z>
+                        <offset>
+                            <x xmlns="http://yourorganisation.org/baseStruct/Types.xsd">-1</x>
+                            <y xmlns="http://yourorganisation.org/baseStruct/Types.xsd">-2</y>
+                            <z xmlns="http://yourorganisation.org/baseStruct/Types.xsd">-3</z>
+                        </offset>
+                    </PointWithOffset>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAObject SymbolicName="http___yourorganisation_org_extendedStruct_" NodeId="ns=1;i=5004" BrowseName="1:http://yourorganisation.org/extendedStruct/">
+        <DisplayName>http://yourorganisation.org/extendedStruct/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6008</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6009</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6010</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6011</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6013</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6007" BrowseName="IsNamespaceSubset">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="DateTime" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6008" BrowseName="NamespacePublicationDate">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2020-05-04T14:51:58Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6009" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>http://yourorganisation.org/extendedStruct/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6010" BrowseName="NamespaceVersion">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>1.0.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="IdType" ParentNodeId="ns=1;i=5004" ValueRank="1" NodeId="ns=1;i=6011" ArrayDimensions="0" BrowseName="StaticNodeIdTypes">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5004" ValueRank="1" NodeId="ns=1;i=6012" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5004" NodeId="ns=1;i=6013" BrowseName="StaticStringNodeIdPattern">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
+        </References>
+    </UAVariable>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6005</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasDescription">ns=1;i=6006</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>
