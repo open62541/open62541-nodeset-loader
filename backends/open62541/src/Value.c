@@ -119,11 +119,11 @@ static RawData *RawData_new(void)
 
 void RawData_delete(RawData *data)
 {
-    if(data)
+    if (data)
     {
         free(data->mem);
         free(data);
-    }    
+    }
 }
 
 static void setPrimitiveValue(RawData *data, const char *value,
@@ -198,10 +198,10 @@ static void setNodeId(const Data *value, RawData *data)
 }
 
 static void setScalar(const Data *value, const UA_DataType *type,
-                      RawData *data);
+                      RawData *data, const UA_DataType* customTypes);
 
 static void setStructure(const Data *value, const UA_DataType *type,
-                         RawData *data)
+                         RawData *data, const UA_DataType* customTypes)
 {
     assert(value->type == DATATYPE_COMPLEX);
     // there can be less members specified then the type requires
@@ -209,7 +209,16 @@ static void setStructure(const Data *value, const UA_DataType *type,
     for (const UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
-        const UA_DataType *memberType = &UA_TYPES[m->memberTypeIndex];
+        const UA_DataType *memberType = NULL;
+        if (m->namespaceZero)
+        {
+            memberType = &UA_TYPES[m->memberTypeIndex];
+        }
+        else
+        {
+            memberType = customTypes+m->memberTypeIndex;
+        }
+
         data->offset += m->padding;
         Data *memberData = lookupMember(value, m->memberName);
         if (m->isArray)
@@ -222,7 +231,7 @@ static void setStructure(const Data *value, const UA_DataType *type,
         {
             if (memberData)
             {
-                setScalar(memberData, memberType, data);
+                setScalar(memberData, memberType, data, customTypes);
             }
             else
             {
@@ -232,7 +241,7 @@ static void setStructure(const Data *value, const UA_DataType *type,
     }
 }
 
-static void setScalar(const Data *value, const UA_DataType *type, RawData *data)
+static void setScalar(const Data *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
 {
     if (type->typeKind <= UA_DATATYPEKIND_STRING)
     {
@@ -263,40 +272,32 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data)
     }
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
-        setStructure(value, type, data);
+        setStructure(value, type, data, customTypes);
     }
 }
 
-static void setArray(const Value *value, const UA_DataType *type, RawData *data)
+static void setArray(const Value *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
 {
     for (size_t i = 0; i < value->data->val.complexData.membersSize; i++)
     {
-        setScalar(value->data->val.complexData.members[i], type, data);
+        setScalar(value->data->val.complexData.members[i], type, data, customTypes);
     }
 }
 
-static void setData(const Value *value, const UA_DataType *type, RawData *data)
+static void setData(const Value *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
 {
     if (value->isArray)
     {
-        setArray(value, type, data);
+        setArray(value, type, data, customTypes);
     }
     else
     {
-        setScalar(value->data, type, data);
+        setScalar(value->data, type, data, customTypes);
     }
 }
 
-RawData *Value_getData(const TNode *node, const Value *value)
+RawData *Value_getData(const Value *value, const UA_DataType *type, const UA_DataType* customTypes)
 {
-    UA_NodeId dataTypeId =
-        getNodeIdFromChars(((const TVariableNode *)node)->datatype);
-
-    // check for matching type ids
-    // UA_NodeId valueTypeId = getNodeIdFromChars(value->typeId);
-
-    const UA_DataType *type = UA_findDataType(&dataTypeId);
-
     if (!type)
     {
         return NULL;
@@ -313,6 +314,6 @@ RawData *Value_getData(const TNode *node, const Value *value)
         data->mem = calloc(1, type->memSize);
     }
 
-    setData(value, type, data);
+    setData(value, type, data, customTypes);
     return data;
 }

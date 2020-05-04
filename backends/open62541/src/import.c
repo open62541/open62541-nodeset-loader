@@ -178,15 +178,23 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         attr.arrayDimensions = &dims;
         attr.arrayDimensionsSize = 1;
     }
-    RawData* data = NULL;
+    RawData *data = NULL;
     if (node->value)
     {
-        data = Value_getData((const TNode *)node, node->value);
+        const UA_DataType *dataType = UA_findDataType(&attr.dataType);
+        if (!dataType)
+        {
+            // try it with custom types
+            dataType = getCustomDataType(server, &attr.dataType);
+        }
+
+        UA_ServerConfig *config = UA_Server_getConfig(server);
+        const UA_DataTypeArray *types = config->customDataTypes;
+
+        data = Value_getData(node->value, dataType, types->types);
 
         if (data)
         {
-            const UA_DataType *dataType = UA_findDataType(&attr.dataType);
-
             if (node->value->isArray)
             {
                 UA_Variant_setArray(
@@ -198,7 +206,6 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
                 UA_Variant_setScalar(&attr.value, data->mem, dataType);
             }
         }
-        
     }
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
     UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
@@ -403,6 +410,36 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
             }
             logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                         "imported %zu DataTypes", cnt);
+
+            // add datatypes
+            DataTypeImporter *importer = DataTypeImporter_new(server);
+            cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
+            for (TNode **node = nodes; node != nodes + cnt; node++)
+            {
+                // add only the types
+                const BiDirectionalReference *hasEncodingRef =
+                    NodesetLoader_getBidirectionalRefs(loader);
+                while (hasEncodingRef)
+                {
+                    if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
+                    {
+                        Reference *ref =
+                            (Reference *)calloc(1, sizeof(Reference));
+                        ref->refType = hasEncodingRef->refType;
+                        ref->target = hasEncodingRef->target;
+
+                        Reference *lastRef = (*node)->nonHierachicalRefs;
+                        (*node)->nonHierachicalRefs = ref;
+                        ref->next = lastRef;
+                        break;
+                    }
+                    hasEncodingRef = hasEncodingRef->next;
+                }
+                DataTypeImporter_addCustomDataType(importer,
+                                                   (TDataTypeNode *)*node);
+            }
+            DataTypeImporter_initMembers(importer);
+            DataTypeImporter_delete(importer);
         }
 
         {
@@ -466,33 +503,6 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         }
     }
 
-    DataTypeImporter *importer = DataTypeImporter_new(server);
-    TNode **nodes = NULL;
-    size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
-    for (TNode **node = nodes; node != nodes + cnt; node++)
-    {
-        // add only the types
-        const BiDirectionalReference *hasEncodingRef =
-            NodesetLoader_getBidirectionalRefs(loader);
-        while (hasEncodingRef)
-        {
-            if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
-            {
-                Reference *ref = (Reference *)calloc(1, sizeof(Reference));
-                ref->refType = hasEncodingRef->refType;
-                ref->target = hasEncodingRef->target;
-
-                Reference *lastRef = (*node)->nonHierachicalRefs;
-                (*node)->nonHierachicalRefs = ref;
-                ref->next = lastRef;
-                break;
-            }
-            hasEncodingRef = hasEncodingRef->next;
-        }
-        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
-    }
-    DataTypeImporter_initMembers(importer);
-    DataTypeImporter_delete(importer);
     NodesetLoader_delete(loader);
     free(logger);
     return status;

@@ -119,8 +119,8 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             int align = getAlignment(memberType, ns0Types, customTypes);
             tm->padding = (UA_Byte)((align - (offset % align)) % align);
             offset = offset + tm->padding + memberType->memSize;
-            //padding after struct at end is needed
-            if(memberType->memSize>sizeof(size_t))
+            // padding after struct at end is needed
+            if (memberType->memSize > sizeof(size_t))
             {
                 endPadding = memberType->memSize % sizeof(size_t);
             }
@@ -211,8 +211,9 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
         {
             parentType = &importer->types->types[idx];
         }
-        // copy over parent members, if no members (abstract type), nothing is done
-        if(parentType->members)
+        // copy over parent members, if no members (abstract type), nothing is
+        // done
+        if (parentType->members)
         {
             UA_DataTypeMember *members = (UA_DataTypeMember *)calloc(
                 (size_t)(parentType->membersSize + type->membersSize),
@@ -220,17 +221,16 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
             memcpy(members, parentType->members,
                    parentType->membersSize * sizeof(UA_DataTypeMember));
 
-            size_t cnt =0;
-            for(UA_DataTypeMember* m=members; m!=members+parentType->membersSize;m++)
+            size_t cnt = 0;
+            for (UA_DataTypeMember *m = members;
+                 m != members + parentType->membersSize; m++)
             {
-                char *memberNameCopy = (char *)UA_calloc(
-                    strlen(m->memberName) + 1, sizeof(char));
-                memcpy(memberNameCopy, m->memberName,
-                       strlen(m->memberName));
+                char *memberNameCopy =
+                    (char *)UA_calloc(strlen(m->memberName) + 1, sizeof(char));
+                memcpy(memberNameCopy, m->memberName, strlen(m->memberName));
                 members[cnt].memberName = memberNameCopy;
                 cnt++;
             }
-            
 
             memcpy(members + parentType->membersSize, type->members,
                    type->membersSize * sizeof(UA_DataTypeMember));
@@ -313,20 +313,78 @@ static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
     enumType->memSize = sizeof(UA_Int32);
 }
 
+static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* customTypes)
+{
+    if (type->typeKind != UA_DATATYPEKIND_STRUCTURE)
+    {
+        return true;
+    }
+    if (type->membersSize == 0)
+    {
+        return true;
+    }
+    bool ready = true;
+    for (UA_DataTypeMember *m = type->members;
+         m != type->members + type->membersSize; m++)
+    {
+        if (m->namespaceZero)
+        {
+            continue;
+        }
+        if (customTypes[m->memberTypeIndex].memSize>0)
+        {
+            continue;
+        }
+        ready = false;
+        break;
+    }
+    return ready;
+}
+
+
+static void calcMemSize(DataTypeImporter *importer)
+{
+    bool allTypesFinished = false;
+    //TODO: possible an endless loop
+    //datatype nodes could be sorted upfront to detect cyclic dependencies
+    while(!allTypesFinished)
+    {
+        allTypesFinished = true;
+        for (UA_DataType *type =
+                 (UA_DataType *)(uintptr_t)importer->types->types +
+                 importer->firstNewDataType;
+             type != importer->types->types + importer->types->typesSize;
+             type++)
+        {
+            //we can calculate the memsize if the memsize of all membertypes is known
+            if (readyForMemsizeCalc(type, importer->types->types))
+            {
+                setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
+            }
+            else
+            {
+                allTypesFinished=false;
+            }
+        }
+    }
+}
+
 void DataTypeImporter_initMembers(DataTypeImporter *importer)
 {
 
     size_t cnt = 0;
-    for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types + importer->firstNewDataType;
+    for (UA_DataType *type = (UA_DataType *)(uintptr_t)importer->types->types +
+                             importer->firstNewDataType;
          type != importer->types->types + importer->types->typesSize; type++)
     {
         if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
         {
             setDataTypeMembersTypeIndex(importer, type, importer->nodes[cnt]);
-            setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
         }
         cnt++;
     }
+    //
+    calcMemSize(importer);
 }
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
@@ -338,6 +396,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
+    memset(type, 0, sizeof(UA_DataType));
     type->typeId = getNodeIdFromChars(node->id);
 
     if (node->definition && node->definition->isEnum)
@@ -364,16 +423,16 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
     assert(importer);
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
-    if(!config->customDataTypes)
+    if (!config->customDataTypes)
     {
-        //we append all types to customTypes array
+        // we append all types to customTypes array
         UA_DataTypeArray *newCustomTypes =
             (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
 
         newCustomTypes->next = config->customDataTypes;
         config->customDataTypes = newCustomTypes;
     }
-    importer->types = (UA_DataTypeArray*)(uintptr_t)config->customDataTypes;
+    importer->types = (UA_DataTypeArray *)(uintptr_t)config->customDataTypes;
     importer->firstNewDataType = importer->types->typesSize;
     return importer;
 }

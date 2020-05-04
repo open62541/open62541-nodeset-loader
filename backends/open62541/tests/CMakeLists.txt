@@ -10,6 +10,12 @@ add_test(NAME namespaceZeroValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND namespaceZeroValues ${CMAKE_CURRENT_SOURCE_DIR}/namespaceZeroValues.xml)
 
+add_executable(customTypesWithValues customTypesWithValues.c)
+target_link_libraries(customTypesWithValues PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME customTypesWithValues_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND customTypesWithValues ${CMAKE_CURRENT_SOURCE_DIR}/customTypesWithValues.xml)
+
 add_executable(valueRank valueRank.c)
 target_link_libraries(valueRank PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
 add_test(NAME valueRank_Test

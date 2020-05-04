@@ -11,6 +11,6 @@ struct RawData
 typedef struct RawData RawData;
 void RawData_delete(RawData *data);
 
-RawData *Value_getData(const TNode* node, const Value *value);
+RawData *Value_getData(const Value *value, const UA_DataType* type, const UA_DataType* customTypes);
 
 #endif
