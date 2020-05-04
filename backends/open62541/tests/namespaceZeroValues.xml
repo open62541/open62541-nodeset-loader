@@ -20,7 +20,6 @@
         <Alias Alias="LocalizedText">i=21</Alias>
         <Alias Alias="QualifiedName">i=20</Alias>
     </Aliases>
-    <!--
    <UAVariable NodeId="ns=1;i=1000" BrowseName="InputArguments" DataType="i=296" ValueRank="1" ArrayDimensions="0">
     <DisplayName>Arguments_Array</DisplayName>
     <References>
@@ -42,6 +41,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -68,6 +71,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -94,6 +101,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -109,12 +120,16 @@
                 </DataType>
                 <ValueRank>-1</ValueRank>
                 <ArrayDimensions />
+                <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
                 </Argument>
             </Body>
         </ExtensionObject>
       </ListOfExtensionObject>
     </Value>
-  </UAVariable>-->
+  </UAVariable>
   <UAVariable NodeId="ns=1;i=1003" BrowseName="Double" DataType="i=11" ValueRank="-1">
     <DisplayName>Double</DisplayName>
     <References>
@@ -173,7 +188,6 @@
             </uax:ExtensionObject>
         </Value>
     </UAVariable>
-    <!--
     <UAVariable DataType="ServerStatusDataType" NodeId="ns=1;i=1006" BrowseName="1:VarWithNestedStructArray" ValueRank="1">
         <DisplayName>VarWithNestedStructArray</DisplayName>
         <References>
@@ -234,7 +248,7 @@
               </uax:ExtensionObject>
             </ListOfExtensionObject>
         </Value>
-    </UAVariable>-->
+    </UAVariable>
     <UAVariable NodeId="ns=1;i=1007" BrowseName="Localized" DataType="LocalizedText" ValueRank="-1">
     <DisplayName>Localized</DisplayName>
     <References>

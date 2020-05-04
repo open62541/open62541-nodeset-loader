@@ -82,12 +82,6 @@ static void setDateTime(uintptr_t adr, const char *value)
     printf("DateTime: %s currently not handled\n", value);
 }
 
-static void setNodeId(uintptr_t adr, const char *value)
-{
-    // todo: namespaceIndex should be converted?
-    //*(UA_NodeId *)adr = extractNodeId(value); // getNodeIdFromChars(value);
-}
-
 static void setNotImplemented(uintptr_t adr, const char *value)
 {
     UA_assert(false && "not implemented");
@@ -100,7 +94,7 @@ static const ConversionFn conversionTable[UA_DATATYPEKINDS] = {
     setDateTime,       setNotImplemented,
     setString, // handle bytestring like string
     setString, // handle xmlElement like string
-    setNodeId,         setNotImplemented, setNotImplemented, setNotImplemented,
+    setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
     setNotImplemented, // special handling needed
     setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
     setNotImplemented,
@@ -162,9 +156,19 @@ static void setLocalizedText(const Data *value, RawData *data)
     setScalarValueWithAddress(
         data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->text,
         UA_DATATYPEKIND_STRING,
-        value->val.complexData.members[0]->val.primitiveData.value);
+        value->val.complexData.members[1]->val.primitiveData.value);
 
     data->offset += sizeof(UA_LocalizedText);
+}
+
+static void setNodeId(const Data *value, RawData *data)
+{
+    // TODO: translate namespaceIndex?
+    assert(value->val.complexData.membersSize == 1);
+    *(UA_NodeId *)((uintptr_t)data->mem+data->offset) =
+        extractNodeId((char *)(uintptr_t)value->val.complexData.members[0]
+                          ->val.primitiveData.value);
+    data->offset += sizeof(UA_NodeId);
 }
 
 static void setScalar(const Data *value, const UA_DataType *type,
@@ -180,8 +184,17 @@ static void setStructure(const Data *value, const UA_DataType *type,
          m != type->members + type->membersSize; m++)
     {
         const UA_DataType *memberType = &UA_TYPES[m->memberTypeIndex];
-        setScalar(value->val.complexData.members[cnt], memberType, data);
         data->offset += m->padding;
+        if(m->isArray)
+        {
+            //TODO: arrays not implemented in frontend
+            data->offset += sizeof(size_t);
+            data->offset += sizeof(void*);
+        }
+        else
+        {
+            setScalar(value->val.complexData.members[cnt], memberType, data);
+        }
         cnt++;
     }
 }
@@ -193,6 +206,10 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data)
         setPrimitiveValue(data, value->val.primitiveData.value,
                           (UA_DataTypeKind)type->typeKind, type->memSize);
     }
+    else if (type->typeKind == UA_DATATYPEKIND_NODEID)
+    {
+        setNodeId(value, data);
+    }
     else if (type->typeKind == UA_DATATYPEKIND_QUALIFIEDNAME)
     {
         setQualifiedName(value, data);
@@ -203,11 +220,13 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data)
     }
     else if (type->typeKind == UA_DATATYPEKIND_DATETIME)
     {
-        data->offset+=sizeof(UA_Int64);
+        data->offset += sizeof(UA_Int64);
     }
     else if (type->typeKind == UA_DATATYPEKIND_ENUM)
     {
-        setPrimitiveValue(data, value->val.primitiveData.value, UA_DATATYPEKIND_INT32, UA_TYPES[UA_TYPES_INT32].memSize);
+        setPrimitiveValue(data, value->val.primitiveData.value,
+                          UA_DATATYPEKIND_INT32,
+                          UA_TYPES[UA_TYPES_INT32].memSize);
     }
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
