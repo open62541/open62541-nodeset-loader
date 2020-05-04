@@ -9,7 +9,9 @@ Automated test environment for quality insurance is set up, but has to be improv
 MPL2.0 https://github.com/matkonnerth/nodesetLoader/blob/master/LICENSE
 
 ## Current status
-Support for loading values with DataType from namespace 0 was added. Showcase is https://github.com/matkonnerth/openWrapper
+
+#### Backend open62541
+Support for loading values with datatypes from namespace 0 or custom namespacesd
 Support parsing of extensions (via a callback interface)
 
 ## dependencies
