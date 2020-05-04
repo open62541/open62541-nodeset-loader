@@ -65,7 +65,7 @@ struct TParserCtx
     char *onCharacters;
     size_t onCharLength;
     Value *val;
-    Extension *ext;
+    void *extensionData;
     ExtensionInterface *extIf;
     Reference *ref;
     Nodeset *nodeset;
@@ -243,7 +243,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             if (pctx->extIf)
             {
-                pctx->ext = pctx->extIf->newExtension(pctx->node);
+                pctx->extensionData = pctx->extIf->newExtension(pctx->node);
             }
             pctx->state = PARSER_STATE_EXTENSION;
         }
@@ -255,7 +255,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_EXTENSION:
         if (pctx->extIf)
         {
-            pctx->extIf->start(pctx->ext, localname);
+            pctx->extIf->start(pctx->extensionData, localname);
         }
         break;
 
@@ -348,7 +348,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->finish(pctx->ext);
+                pctx->extIf->finish(pctx->extensionData);
             }
             pctx->state = PARSER_STATE_EXTENSIONS;
         }
@@ -356,7 +356,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+                pctx->extIf->end(pctx->extensionData, localname, pctx->onCharacters);
             }
         }
         break;

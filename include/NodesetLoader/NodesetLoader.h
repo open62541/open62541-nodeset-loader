@@ -1,9 +1,11 @@
-#pragma once
+#ifndef NODESETLOADER_NODESETLOADER_H
+#define NODESETLOADER_NODESETLOADER_H
+#include "Logger.h"
 #include "TNodeId.h"
+#include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
-#include "Logger.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,10 +48,10 @@ struct BiDirectionalReference
     TNodeId source;
     TNodeId target;
     TNodeId refType;
-    BiDirectionalReference* next;
+    BiDirectionalReference *next;
 };
 
-#define NODE_ATTRIBUTES                                                     \
+#define NODE_ATTRIBUTES                                                        \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
     TBrowseName browseName;                                                    \
@@ -183,14 +185,11 @@ typedef int (*addNamespaceCb)(void *userContext, const char *);
 
 
 
-struct Extension;
-typedef struct Extension Extension;
-
-typedef Extension *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(Extension *ext, const char *name);
-typedef void (*endExtensionCb)(Extension *val, const char *name,
+typedef void *(*newExtensionCb)(const TNode *);
+typedef void (*startExtensionCb)(void *extensionData, const char *name);
+typedef void (*endExtensionCb)(void *extensionData, const char *name,
                                char *value);
-typedef void (*finishExtensionCb)(Extension *val);
+typedef void (*finishExtensionCb)(void *extensionData);
 
 typedef struct
 {
@@ -212,15 +211,18 @@ typedef struct
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger* logger);
-bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const FileContext *fileContext);
-void NodesetLoader_delete(NodesetLoader *loader);
-size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                              TNode ***nodes);
-const BiDirectionalReference* NodesetLoader_getBidirectionalRefs(const NodesetLoader* loader);
-bool NodesetLoader_sort(NodesetLoader *loader);
+LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger);
+LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
+                                            const FileContext *fileContext);
+LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
+LOADER_EXPORT size_t NodesetLoader_getNodes(const NodesetLoader *loader,
+                                            TNodeClass nodeClass,
+                                            TNode ***nodes);
+LOADER_EXPORT const BiDirectionalReference *
+NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
+LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus
 }
+#endif
 #endif
