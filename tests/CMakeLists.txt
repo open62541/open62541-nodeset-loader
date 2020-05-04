@@ -8,6 +8,11 @@ target_include_directories(nodeId PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include
 target_link_libraries(nodeId PRIVATE ${CHECK_LIBRARIES} pthread)
 add_test(NAME nodeId_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeId ${CMAKE_CURRENT_LIST_DIR})
 
+add_executable(value ValueTest.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c)
+target_include_directories(value PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
+target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} pthread)
+add_test(NAME value_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND value ${CMAKE_CURRENT_LIST_DIR})
+
 #these tests are simple loading nodesets and dumping it to stdout
 add_test(NAME import_testNodeset WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/testNodeset100nodes.xml)
 add_test(NAME import_Nodeset2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml)

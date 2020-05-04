@@ -89,10 +89,51 @@ typedef struct
     char *valueRank;
 } TVariableTypeNode;
 
-/* Value Handling */
-struct Value;
-typedef struct Value Value;
+struct Data;
+typedef struct Data Data;
+enum DataType
+{
+    DATATYPE_PRIMITIVE,
+    DATATYPE_COMPLEX,
+};
 
+typedef enum DataType DataType;
+
+struct PrimitiveData
+{
+    const char *value;
+};
+typedef struct PrimitiveData PrimitiveData;
+struct ComplexData
+{
+    size_t membersSize;
+    Data **members;
+};
+typedef struct ComplexData ComplexData;
+
+struct Data
+{
+    DataType type;
+    const char *name;
+    union
+    {
+        PrimitiveData primitiveData;
+        ComplexData complexData;
+    } val;
+    Data *parent;
+};
+
+struct ParserCtx;
+struct Value
+{
+    struct ParserCtx *ctx;
+    bool isArray;
+    bool isExtensionObject;
+    const char *type;
+    TNodeId typeId;
+    Data *data;
+};
+typedef struct Value Value;
 typedef struct
 {
     NODE_ATTRIBUTES
@@ -142,27 +183,13 @@ typedef struct
 
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-typedef Value *(*newValueCb)(const TNode *node);
-typedef void (*startValueCb)(Value *val, const char *localname);
-typedef void (*endValueCb)(Value *val, const char *localname, char *value);
-typedef void (*finishValueCb)(Value *val);
-typedef void (*deleteValueCb)(Value **val);
+
 
 typedef void *(*newExtensionCb)(const TNode *);
 typedef void (*startExtensionCb)(void *extensionData, const char *name);
 typedef void (*endExtensionCb)(void *extensionData, const char *name,
                                char *value);
 typedef void (*finishExtensionCb)(void *extensionData);
-
-typedef struct
-{
-    void *userContext;
-    newValueCb newValue;
-    startValueCb start;
-    endValueCb end;
-    finishValueCb finish;
-    deleteValueCb deleteValue;
-} ValueInterface;
 
 typedef struct
 {
@@ -178,7 +205,6 @@ typedef struct
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    ValueInterface *valueHandling;
     ExtensionInterface *extensionHandling;
 } FileContext;
 
