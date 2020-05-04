@@ -1,6 +1,6 @@
 #include "DataTypeImporter.h"
-#include "conversion.h"
 #include "Value.h"
+#include "conversion.h"
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <dataTypes.h>
@@ -178,27 +178,32 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         attr.arrayDimensions = &dims;
         attr.arrayDimensionsSize = 1;
     }
+    RawData* data = NULL;
     if (node->value)
     {
-        RawData* data= Value_getData((const TNode*)node, node->value);
+        data = Value_getData((const TNode *)node, node->value);
 
-
-        const UA_DataType* dataType = UA_findDataType(&attr.dataType);
-
-        if (node->value->isArray)
+        if (data)
         {
-            UA_Variant_setArray(&attr.value, data->mem,
-                                node->value->data->val.complexData.membersSize, dataType);
+            const UA_DataType *dataType = UA_findDataType(&attr.dataType);
+
+            if (node->value->isArray)
+            {
+                UA_Variant_setArray(
+                    &attr.value, data->mem,
+                    node->value->data->val.complexData.membersSize, dataType);
+            }
+            else
+            {
+                UA_Variant_setScalar(&attr.value, data->mem, dataType);
+            }
         }
-        else
-        {
-            UA_Variant_setScalar(&attr.value, data->mem,
-                                 dataType);
-        }
+        
     }
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
     UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
                               typeDefId, attr, NULL, NULL);
+    RawData_delete(data);
     UA_free(attr.arrayDimensions);
 }
 
@@ -326,23 +331,24 @@ int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
     return idx;
 }
 
-static void logToOpen(void* context, enum NodesetLoader_LogLevel level, const char* message, ...)
+static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
+                      const char *message, ...)
 {
-    UA_Logger* logger = (UA_Logger*)context;
+    UA_Logger *logger = (UA_Logger *)context;
     va_list vl;
     va_start(vl, message);
     UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
-    switch(level)
+    switch (level)
     {
-        case NODESETLOADER_LOGLEVEL_DEBUG:
-            uaLevel = UA_LOGLEVEL_DEBUG;
-            break;
-        case NODESETLOADER_LOGLEVEL_ERROR:
-            uaLevel = UA_LOGLEVEL_ERROR;
-            break;
-        case NODESETLOADER_LOGLEVEL_WARNING:
-            uaLevel = UA_LOGLEVEL_WARNING;
-            break;
+    case NODESETLOADER_LOGLEVEL_DEBUG:
+        uaLevel = UA_LOGLEVEL_DEBUG;
+        break;
+    case NODESETLOADER_LOGLEVEL_ERROR:
+        uaLevel = UA_LOGLEVEL_ERROR;
+        break;
+    case NODESETLOADER_LOGLEVEL_WARNING:
+        uaLevel = UA_LOGLEVEL_WARNING;
+        break;
     }
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
 }
@@ -364,9 +370,9 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.file = path;
     handler.extensionHandling = NULL;
 
-
-    UA_ServerConfig* config = UA_Server_getConfig(server);
-    NodesetLoader_Logger* logger = (NodesetLoader_Logger*)calloc(1, sizeof(NodesetLoader_Logger));
+    UA_ServerConfig *config = UA_Server_getConfig(server);
+    NodesetLoader_Logger *logger =
+        (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
     logger->context = &config->logger;
     logger->log = &logToOpen;
 

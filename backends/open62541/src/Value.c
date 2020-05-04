@@ -117,7 +117,14 @@ static RawData *RawData_new(void)
     return data;
 }
 
-void RawData_delete(RawData *data) { free(data); }
+void RawData_delete(RawData *data)
+{
+    if(data)
+    {
+        free(data->mem);
+        free(data);
+    }    
+}
 
 static void setPrimitiveValue(RawData *data, const char *value,
                               UA_DataTypeKind kind, size_t memSize)
@@ -127,9 +134,21 @@ static void setPrimitiveValue(RawData *data, const char *value,
     data->offset = data->offset + memSize;
 }
 
+static Data *lookupMember(const Data *value, const char *name)
+{
+    // is there a better way?
+    for (size_t cnt = 0; cnt < value->val.complexData.membersSize; cnt++)
+    {
+        if (!strcmp(value->val.complexData.members[cnt]->name, name))
+        {
+            return value->val.complexData.members[cnt];
+        }
+    }
+    return NULL;
+}
+
 static void setQualifiedName(const Data *value, RawData *data)
 {
-    assert(value->val.complexData.membersSize == 2);
 
     setScalarValueWithAddress(
         data->offset + (uintptr_t) &
@@ -147,17 +166,24 @@ static void setQualifiedName(const Data *value, RawData *data)
 
 static void setLocalizedText(const Data *value, RawData *data)
 {
-    assert(value->val.complexData.membersSize == 2);
-    setScalarValueWithAddress(
-        data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->locale,
-        UA_DATATYPEKIND_STRING,
-        value->val.complexData.members[0]->val.primitiveData.value);
+    Data *localeData = lookupMember(value, "Locale");
 
-    setScalarValueWithAddress(
-        data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->text,
-        UA_DATATYPEKIND_STRING,
-        value->val.complexData.members[1]->val.primitiveData.value);
+    if (localeData)
+    {
+        setScalarValueWithAddress(data->offset + (uintptr_t) &
+                                      ((UA_LocalizedText *)data->mem)->locale,
+                                  UA_DATATYPEKIND_STRING,
+                                  localeData->val.primitiveData.value);
+    }
 
+    Data *textData = lookupMember(value, "Text");
+
+    if (textData)
+    {
+        setScalarValueWithAddress(
+            data->offset + (uintptr_t) & ((UA_LocalizedText *)data->mem)->text,
+            UA_DATATYPEKIND_STRING, textData->val.primitiveData.value);
+    }
     data->offset += sizeof(UA_LocalizedText);
 }
 
@@ -165,7 +191,7 @@ static void setNodeId(const Data *value, RawData *data)
 {
     // TODO: translate namespaceIndex?
     assert(value->val.complexData.membersSize == 1);
-    *(UA_NodeId *)((uintptr_t)data->mem+data->offset) =
+    *(UA_NodeId *)((uintptr_t)data->mem + data->offset) =
         extractNodeId((char *)(uintptr_t)value->val.complexData.members[0]
                           ->val.primitiveData.value);
     data->offset += sizeof(UA_NodeId);
@@ -178,24 +204,31 @@ static void setStructure(const Data *value, const UA_DataType *type,
                          RawData *data)
 {
     assert(value->type == DATATYPE_COMPLEX);
-    assert(value->val.complexData.membersSize == type->membersSize);
-    size_t cnt = 0;
+    // there can be less members specified then the type requires
+    // assert(value->val.complexData.membersSize == type->membersSize);
     for (const UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
         const UA_DataType *memberType = &UA_TYPES[m->memberTypeIndex];
         data->offset += m->padding;
-        if(m->isArray)
+        Data *memberData = lookupMember(value, m->memberName);
+        if (m->isArray)
         {
-            //TODO: arrays not implemented in frontend
+            // TODO: arrays not implemented in frontend
             data->offset += sizeof(size_t);
-            data->offset += sizeof(void*);
+            data->offset += sizeof(void *);
         }
         else
         {
-            setScalar(value->val.complexData.members[cnt], memberType, data);
+            if (memberData)
+            {
+                setScalar(memberData, memberType, data);
+            }
+            else
+            {
+                data->offset += memberType->memSize;
+            }
         }
-        cnt++;
     }
 }
 

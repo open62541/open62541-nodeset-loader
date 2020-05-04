@@ -13,6 +13,7 @@ START_TEST(simpleVal)
     ck_assert(!strcmp(val->data->val.primitiveData.value, "3.1415"));
     ck_assert(!strcmp(val->data->name, "Double"));
     ck_assert(!strcmp(val->type, "Double"));
+    Value_delete(val);
 }
 END_TEST
 
@@ -61,6 +62,7 @@ START_TEST(ExtensionObject)
     ck_assert(val->data->val.complexData.membersSize == 2);
     ck_assert(!strcmp(val->data->val.complexData.members[0]->name, "Name"));
     ck_assert(!strcmp(val->data->val.complexData.members[1]->name, "DataType"));
+    Value_delete(val);
 }
 END_TEST
 
@@ -92,6 +94,7 @@ START_TEST(ListOfUInt32)
         val->data->val.complexData.members[0]->val.primitiveData.value, "120"));
     ck_assert(!strcmp(
         val->data->val.complexData.members[1]->val.primitiveData.value, "130"));
+    Value_delete(val);
 }
 END_TEST
 
@@ -172,6 +175,7 @@ xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"> <ExtensionObject>
     ck_assert(val->data->val.complexData.membersSize == 2);
     ck_assert(!strcmp(val->data->val.complexData.members[0]->name, "Argument"));
     ck_assert(!strcmp(val->data->val.complexData.members[1]->name, "Argument"));
+    Value_delete(val);
 }
 END_TEST
 
@@ -202,6 +206,7 @@ START_TEST(LocalizedText)
     ck_assert(
         !strcmp(val->data->val.complexData.members[1]->val.primitiveData.value,
                 "someText@42"));
+    Value_delete(val);
 }
 END_TEST
 

@@ -7,13 +7,13 @@
 
 #include "InternalLogger.h"
 #include "Nodeset.h"
+#include "Value.h"
 #include <CharAllocator.h>
 #include <NodesetLoader/Logger.h>
 #include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <libxml/SAX.h>
 #include <string.h>
-#include "Value.h"
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -228,7 +228,14 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_VALUE:
-        Value_start(pctx->val, localname);
+        // copy the name
+        {
+            size_t len = strlen(localname);
+            char *localNameCopy =
+                CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
+            memcpy(localNameCopy, localname, len);
+            Value_start(pctx->val, localNameCopy);
+        }
         break;
 
     case PARSER_STATE_EXTENSIONS:
@@ -327,7 +334,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE))
         {
-            //Value_finish(pctx->val);
+            // Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }

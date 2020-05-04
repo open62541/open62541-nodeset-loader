@@ -186,3 +186,39 @@ void Value_end(Value * val, const char *name, const char *value)
             break;
     }
 }
+static void Data_clear(Data *data);
+
+static void PrimitiveData_clear(Data *data)
+{
+    //free(data);
+}
+
+static void ComplexData_clear(Data* data)
+{
+    for(size_t cnt=0; cnt < data->val.complexData.membersSize; cnt++)
+    {
+        Data_clear(data->val.complexData.members[cnt]);
+    }
+    free(data->val.complexData.members);
+}
+
+static void Data_clear(Data* data)
+{
+    if(data->type == DATATYPE_PRIMITIVE)
+    {
+        PrimitiveData_clear(data);
+    }
+    else
+    {
+        ComplexData_clear(data);
+    }
+    free(data);
+}
+
+
+void Value_delete(Value *val)
+{
+    Data_clear(val->data);
+    free(val->ctx);
+    free(val);
+}
