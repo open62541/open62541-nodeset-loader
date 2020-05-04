@@ -291,11 +291,8 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
-
-    // TODO: when is this true, when there are no arrays inside?
     type->pointerFree = true;
     addDataTypeMembers(importer->types->types, type, node);
-    // TODO: type->overlayable
     type->overlayable = false;
 
     // type->typeName = node->browseName.name;
@@ -383,7 +380,6 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
         }
         cnt++;
     }
-    //
     calcMemSize(importer);
 }
 
