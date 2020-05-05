@@ -89,8 +89,11 @@ static void handleObjectNode(const TObjectNode *node, UA_NodeId *id,
 
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
 
-    UA_Server_addObjectNode(server, *id, *parentId, *parentReferenceId, *qn,
-                            typeDefId, oAttr, NULL, NULL);
+    // addNode_begin is used, otherwise all mandatory childs from type are
+    // instantiated
+    UA_Server_addNode_begin(server, UA_NODECLASS_OBJECT, *id, *parentId,
+                            *parentReferenceId, *qn, typeDefId, &oAttr,
+                            &UA_TYPES[UA_TYPES_OBJECTATTRIBUTES], NULL, NULL);
 }
 
 static void handleMethodNode(const TMethodNode *node, UA_NodeId *id,
@@ -208,8 +211,10 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         }
     }
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
-    UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
-                              typeDefId, attr, NULL, NULL);
+
+    UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
+                            *parentReferenceId, *qn, typeDefId, &attr,
+                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL, NULL);
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
 }
@@ -267,8 +272,10 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
 
     UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
 
-    UA_Server_addVariableTypeNode(server, *id, *parentId, *parentReferenceId,
-                                  *qn, typeDefId, attr, NULL, NULL);
+    UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
+                            *parentReferenceId, *qn, typeDefId, &attr,
+                            &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES], NULL,
+                            NULL);
 }
 
 static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
