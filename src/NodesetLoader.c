@@ -183,6 +183,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME))
         {
+            Nodeset_setDisplayName(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
             pctx->state = PARSER_STATE_DISPLAYNAME;
         }
         else if (!strcmp(localname, REFERENCES))
@@ -192,6 +194,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, DESCRIPTION))
         {
             pctx->state = PARSER_STATE_DESCRIPTION;
+            Nodeset_setDescription(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
         }
         else if (!strcmp(localname, VALUE))
         {
@@ -318,7 +322,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_DISPLAYNAME:
-        pctx->node->displayName = pctx->onCharacters;
+        Nodeset_DisplayNameFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_REFERENCES:
@@ -356,7 +361,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->end(pctx->extensionData, localname, pctx->onCharacters);
+                pctx->extIf->end(pctx->extensionData, localname,
+                                 pctx->onCharacters);
             }
         }
         break;
@@ -364,6 +370,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DESCRIPTION:
+        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:

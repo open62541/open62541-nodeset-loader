@@ -71,13 +71,14 @@ const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", NULL};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
+const NodeAttribute attrLocale = {"Locale", NULL};
 
 TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=35"},
      {0, "Organizes"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -85,8 +86,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=36"},
      {0, "HasEventSource"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -94,8 +95,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=48"},
      {0, "HasNotifier"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -103,8 +104,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=44"},
      {0, "Aggregates"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -112,8 +113,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=45"},
      {0, "HasSubtype"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -121,8 +122,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=47"},
      {0, "HasComponent"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -130,8 +131,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=46"},
      {0, "HasProperty"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -139,8 +140,8 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {NODECLASS_REFERENCETYPE,
      {0, "i=47"},
      {0, "HasEncoding"},
-     NULL,
-     NULL,
+     {NULL, NULL},
+     {NULL, NULL},
      NULL,
      NULL,
      NULL,
@@ -268,10 +269,10 @@ void Nodeset_cleanup(Nodeset *nodeset)
     }
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
-    BiDirectionalReference* ref = nodeset->hasEncodingRefs;
-    while(ref)
+    BiDirectionalReference *ref = nodeset->hasEncodingRefs;
+    while (ref)
     {
-        BiDirectionalReference* tmp = ref->next;
+        BiDirectionalReference *tmp = ref->next;
         free(ref);
         ref = tmp;
     }
@@ -395,11 +396,6 @@ static void initNode(Nodeset *nodeset, const NamespaceList *namespaces,
                      const char **attributes)
 {
     node->nodeClass = nodeClass;
-    node->hierachicalRefs = NULL;
-    node->nonHierachicalRefs = NULL;
-    node->displayName = NULL;
-    node->description = NULL;
-    node->writeMask = NULL;
     extractAttributes(nodeset, namespaces, node, nb_attributes, attributes);
 }
 
@@ -521,11 +517,13 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
     ref->target = extractNodedId(nodeset->namespaces, targetId);
-    //handle hasEncoding in a special way
+    // handle hasEncoding in a special way
     TNodeId hasEncodingRef = {0, "i=38"};
-    if(!TNodeId_cmp(&ref->refType, &hasEncodingRef) && !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
+    if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&
+        !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
     {
-        BiDirectionalReference *newRef = (BiDirectionalReference *)calloc(1, sizeof(BiDirectionalReference));
+        BiDirectionalReference *newRef =
+            (BiDirectionalReference *)calloc(1, sizeof(BiDirectionalReference));
         newRef->source = ref->target;
         newRef->target = node->id;
         newRef->refType = ref->refType;
@@ -569,3 +567,26 @@ Nodeset_getBiDirectionalRefs(const Nodeset *nodeset)
     return nodeset->hasEncodingRefs;
 }
 
+void Nodeset_setDisplayName(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes)
+{
+    node->displayName.locale =
+        getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
+}
+
+void Nodeset_DisplayNameFinish(const Nodeset *nodeset, TNode *node, char *text)
+{
+    node->displayName.text = text;
+}
+
+void Nodeset_setDescription(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes)
+{
+    node->description.locale =
+        getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
+}
+
+void Nodeset_DescriptionFinish(const Nodeset *nodeset, TNode *node, char *text)
+{
+    node->description.text = text;
+}
