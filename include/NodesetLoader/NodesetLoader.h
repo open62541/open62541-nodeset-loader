@@ -51,12 +51,19 @@ struct BiDirectionalReference
     BiDirectionalReference *next;
 };
 
+struct TLocalizedText
+{
+    char* locale;
+    char* text;
+};
+typedef struct TLocalizedText TLocalizedText;
+
 #define NODE_ATTRIBUTES                                                        \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
     TBrowseName browseName;                                                    \
-    char *displayName;                                                         \
-    char *description;                                                         \
+    TLocalizedText displayName;                                                \
+    TLocalizedText description;                                                \
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
     Reference *nonHierachicalRefs;
