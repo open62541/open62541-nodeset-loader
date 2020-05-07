@@ -368,7 +368,7 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
 }
 
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            void *extensionHandling)
+                            ExtensionInterface *extensionHandling)
 {
     if (!server)
     {
@@ -382,7 +382,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.addNamespace = BackendOpen62541_addNamespace;
     handler.userContext = server;
     handler.file = path;
-    handler.extensionHandling = NULL;
+    handler.extensionHandling = extensionHandling;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     NodesetLoader_Logger *logger =

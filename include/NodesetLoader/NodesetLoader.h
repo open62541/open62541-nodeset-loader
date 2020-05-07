@@ -1,5 +1,6 @@
 #ifndef NODESETLOADER_NODESETLOADER_H
 #define NODESETLOADER_NODESETLOADER_H
+#include "Extension.h"
 #include "Logger.h"
 #include "TNodeId.h"
 #include "arch.h"
@@ -183,30 +184,14 @@ typedef struct
 
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-
-
-typedef void *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(void *extensionData, const char *name);
-typedef void (*endExtensionCb)(void *extensionData, const char *name,
-                               char *value);
-typedef void (*finishExtensionCb)(void *extensionData);
-
-typedef struct
-{
-    void *userContext;
-    newExtensionCb newExtension;
-    startExtensionCb start;
-    endExtensionCb end;
-    finishExtensionCb finish;
-} ExtensionInterface;
-
-typedef struct
+struct FileContext
 {
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
     ExtensionInterface *extensionHandling;
-} FileContext;
+};
+typedef struct FileContext FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;

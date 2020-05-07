@@ -9,6 +9,7 @@
 #define __BACKEND_H__
 #include <stdbool.h>
 #include <stdio.h>
+#include <NodesetLoader/Extension.h>
 
 #if __GNUC__ || __clang__
 #define LOADER_EXPORT __attribute__((visibility("default")))
@@ -23,7 +24,7 @@ extern "C" {
 struct UA_Server;
 
 LOADER_EXPORT bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
-                            void *extensionHandling);
+                            ExtensionInterface *extensionHandling);
 
 #ifdef __cplusplus
 }
