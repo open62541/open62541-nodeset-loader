@@ -33,7 +33,6 @@ echo "Start client: connect to reference server"
 "$CLIENT_BINARY_PATH" localhost 4840 "$TEST_OUTPUT_DIR/referenceServer.txt" > "$CLIENT_OUTPUT_FILE_PATH/clientLog_referenceServer.txt" 2>&1
 ClientResult=$?
 
-# kill the reference server
 echo "Kill reference server"
 kill -9 $ReferenceServerPID
 if [ $? -ne 0 ] ; then
@@ -55,9 +54,14 @@ fi
 
 echo ""
 echo "Start test server"
-"$TEST_SERVER_BINARY_PATH" "$NODESET_PATH_OPEN62541/DI/Opc.Ua.Di.NodeSet2.xml" \
-    "$NODESET_PATH_OPEN62541/PLCopen/Opc.Ua.Plc.NodeSet2.xml" > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
+"$TEST_SERVER_BINARY_PATH" \
+    "$NODESET_PATH_OPEN62541/DI/Opc.Ua.Di.NodeSet2.xml" \
+    "$NODESET_PATH_OPEN62541/PLCopen/Opc.Ua.Plc.NodeSet2.xml" \
+        > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
 TestServerPID=$!
+
+#    "$NODESET_PATH_BACKEND_TESTS/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml" \
+#    "$NODESET_PATH_BACKEND_TESTS/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml" \
 
 echo "Start client: connect to test server"
 "$CLIENT_BINARY_PATH" localhost 4841 "$TEST_OUTPUT_DIR/testServer.txt" > "$CLIENT_OUTPUT_FILE_PATH/clientLog_testServer.txt" 2>&1

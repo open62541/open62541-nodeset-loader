@@ -10,6 +10,7 @@
 
 #include "sort_utils.h"
 #include "utils.h"
+
 #include <open62541/client_config_default.h>
 #include <open62541/client_highlevel.h>
 

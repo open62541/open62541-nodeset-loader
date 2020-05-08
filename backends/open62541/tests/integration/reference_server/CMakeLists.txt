@@ -15,7 +15,7 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
-# generate PLCopen namespace which is using DI
+# generate PLCopen namespace (depends on DI)
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_plc"
     FILE_NS "${open62541_NODESET_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml" # PLCopen does not define custom types. Only generate the nodeset
@@ -23,9 +23,31 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
+# generate Euromap83 namespace (depends on DI)
+#ua_generate_nodeset_and_datatypes(
+#    NAME "integration_test_euromap_83"
+#    NAMESPACE_IDX 4
+#    FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
+#    FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
+#    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
+#    DEPENDS "integration_test_di"
+#    INTERNAL
+#)
+#
+## generate Euromap77 namespace (depends on Euromap83)
+#ua_generate_nodeset_and_datatypes(
+#    NAME "integration_test_euromap_77"
+#    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
+#    DEPENDS "integration_test_euromap_83"
+#    INTERNAL
+#)
+
+
 add_executable(referenceServer server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES}
     ${UA_NODESET_INTEGRATION_TEST_PLC_SOURCES} ${UA_TYPES_INTEGRATION_TEST_PLC_SOURCES})
+#    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_83_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_EUROMAP_83_SOURCES}
+#    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_77_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_EUROMAP_77_SOURCES})
 target_link_libraries(referenceServer PRIVATE open62541::open62541)
 target_include_directories(referenceServer PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
