@@ -288,6 +288,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
     attr.displayName = *lt;
     attr.description = *description;
+    attr.isAbstract = isTrue(node->isAbstract);
 
     UA_Server_addDataTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
                               attr, NULL, NULL);

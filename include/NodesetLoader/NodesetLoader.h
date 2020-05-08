@@ -174,6 +174,7 @@ typedef struct TDataTypeNode
 {
     NODE_ATTRIBUTES
     DataTypeDefinition *definition;
+    char* isAbstract;
 } TDataTypeNode;
 
 typedef struct
