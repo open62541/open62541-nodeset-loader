@@ -25,7 +25,7 @@ struct AliasList;
 struct SortContext;
 struct Nodeset
 {
-    struct CharArena *charArena;
+    CharArenaAllocator *charArena;
     struct AliasList *aliasList;
     struct NodeContainer *nodes[NODECLASS_COUNT];
     struct NamespaceList *namespaces;
