@@ -1,9 +1,11 @@
 #include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "sort_utils.h"
@@ -179,8 +181,20 @@ int main(int argc, char *argv[])
     UA_Client *client = UA_Client_new();
     UA_ClientConfig_setDefault(UA_Client_getConfig(client));
 
-    UA_StatusCode retval =
-        UA_Client_connect(client, ("opc.tcp://" + IP + ":" + Port).c_str());
+    // server may need some time to start
+    // try connection establishment multiple times
+    const size_t cNoOfReconnectTries = 10;
+    size_t i = 0;
+    UA_StatusCode retval = UA_STATUSCODE_BADNOTCONNECTED;
+    do
+    {
+        cout << "Try to connect ..." << endl;
+        retval =
+            UA_Client_connect(client, ("opc.tcp://" + IP + ":" + Port).c_str());
+        this_thread::sleep_for(std::chrono::seconds(1));
+        i++;
+    } while ((retval != UA_STATUSCODE_GOOD) && (i < cNoOfReconnectTries));
+
     if (retval != UA_STATUSCODE_GOOD)
     {
         cout << "Error: connection could not be established" << endl;

@@ -129,7 +129,7 @@ UA_Boolean PrintReferenceTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     {
         return UA_FALSE;
     }
-    out << "IsAbstract = " << ((isAbstract) ? "true" : "false") << " ";
+    out << "IsAbstract = " << ((isAbstract) ? "true" : "false") << endl;
 
     // M: IsSymmetric
     UA_Boolean isSymmetric = UA_FALSE;
@@ -138,7 +138,7 @@ UA_Boolean PrintReferenceTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     {
         return UA_FALSE;
     }
-    out << "IsSymmetric = " << ((isSymmetric) ? "true" : "false") << " ";
+    out << "IsSymmetric = " << ((isSymmetric) ? "true" : "false") << endl;
 
     // O: InverseName
     UA_LocalizedText inverseName;
@@ -148,7 +148,7 @@ UA_Boolean PrintReferenceTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     {
         return UA_FALSE;
     }
-    out << "InverseName = " << inverseName << " ";
+    out << "InverseName = " << inverseName << endl;
     UA_LocalizedText_clear(&inverseName);
 
     return UA_TRUE;
@@ -157,7 +157,7 @@ UA_Boolean PrintReferenceTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintReferenceTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
                                         ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
@@ -169,7 +169,7 @@ UA_Boolean PrintReferenceTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
 
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
 
             // check references type
             if (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
@@ -251,7 +251,7 @@ UA_Boolean PrintViewAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintViewReferences(UA_Client *pClient, const UA_NodeId &Id,
                                ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
@@ -303,7 +303,7 @@ UA_Boolean PrintObjectAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintObjectReferences(UA_Client *pClient, const UA_NodeId &Id,
                                  ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
@@ -312,7 +312,7 @@ UA_Boolean PrintObjectReferences(UA_Client *pClient, const UA_NodeId &Id,
         UA_UInt32 NoOfHasModellingRuleReferences = 0;
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
 
             if (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                 &HasTypeDefinitionId) == UA_TRUE)
@@ -369,14 +369,14 @@ UA_Boolean PrintObjectTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintObjectTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
                                      ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
     {
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
         }
         // objects may contain other references as well, so we do no more
         // additional checks here
@@ -498,7 +498,7 @@ UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintVariableReferences(UA_Client *pClient, const UA_NodeId &Id,
                                    ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
@@ -507,7 +507,7 @@ UA_Boolean PrintVariableReferences(UA_Client *pClient, const UA_NodeId &Id,
         UA_UInt32 NoOfHasModellingRuleReferences = 0;
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
 
             if (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                 &HasTypeDefinitionId) == UA_TRUE)
@@ -576,7 +576,7 @@ UA_Boolean PrintMethodAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintMethodReferences(UA_Client *pClient, const UA_NodeId &Id,
                                  ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
@@ -584,7 +584,7 @@ UA_Boolean PrintMethodReferences(UA_Client *pClient, const UA_NodeId &Id,
         UA_UInt32 NoOfHasModellingRuleReferences = 0;
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
 
             if (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                 &HasModellingRuleId) == UA_TRUE)
@@ -773,14 +773,14 @@ UA_Boolean PrintDataTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
 UA_Boolean PrintDataTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
                                    ofstream &out)
 {
-    out << "References: ";
+    out << "References: " << endl;
     TReferenceVec ReferencesVec;
     UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
     if (ret == UA_TRUE)
     {
         for (size_t i = 0; i < ReferencesVec.size(); i++)
         {
-            out << ReferencesVec[i];
+            out << "\t" << ReferencesVec[i] << endl;
 
             if ((UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                  &HasPropertyId) == UA_FALSE) ||
@@ -789,8 +789,8 @@ UA_Boolean PrintDataTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
                 (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                  &HasEncodingId) == UA_FALSE))
             {
-                cout << "Error PrintDataTypeReferences: DataType node has an "
-                        "invalid reference type"
+                cout << "Error PrintDataTypeReferences: Id = " << Id
+                     << " : DataType node has an invalid reference type"
                      << endl;
             }
         }
