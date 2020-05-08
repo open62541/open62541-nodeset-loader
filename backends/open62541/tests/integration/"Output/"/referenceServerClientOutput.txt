@@ -1,0 +1,1 @@
+/home/matzy/git/nodesetLoader/backends/open62541/tests/integration/start_test.sh: Zeile 28: /home/matzy/git/nodesetLoader/build/backends/open62541/tests/integration/"client/integrationClient": Datei oder Verzeichnis nicht gefunden
