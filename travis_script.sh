@@ -5,7 +5,7 @@ set -e
 if ! [ -z ${GCC_MEMCHECK+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON .. 
+    cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_DATATYPEIMPORT_TEST=ON .. 
     make -j
     make test
     ctest --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck

@@ -64,7 +64,9 @@ add_test(NAME nodeAttributes_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND nodeAttributes ${CMAKE_CURRENT_SOURCE_DIR}/nodeAttributes.xml)
 
-add_subdirectory(dataTypeImport)
+if(${ENABLE_DATATYPEIMPORT_TEST})
+    add_subdirectory(dataTypeImport)
+endif()
 
 if(${ENABLE_INTEGRATION_TEST})
     add_subdirectory(integration)

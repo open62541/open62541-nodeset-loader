@@ -10,6 +10,7 @@ enable_testing()
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 option(ENABLE_ASAN off "build with address sanitizer enabled")
 option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
+option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
 
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
