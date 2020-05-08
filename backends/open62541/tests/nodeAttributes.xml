@@ -14,6 +14,7 @@
         <Alias Alias="DateTime">i=13</Alias>
         <Alias Alias="Organizes">i=35</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
         <Alias Alias="HasProperty">i=46</Alias>
         <Alias Alias="HasComponent">i=47</Alias>
         <Alias Alias="IdType">i=256</Alias>
@@ -21,15 +22,28 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="bOL2gah/r1uH9uhTsR5YTw==" Version="1.6.3"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="XVWGXVcsExpA6+en3uW3NQ==" Version="1.6.3"/>
         </Extension>
     </Extensions>
+    <UAReferenceType NodeId="ns=1;i=4002" BrowseName="1:HasHeatingZone">
+        <DisplayName>HasHeatingZone</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=47</Reference>
+        </References>
+        <InverseName Locale="en">HeatingZoneOf</InverseName>
+    </UAReferenceType>
+    <UAReferenceType NodeId="ns=1;i=4003" BrowseName="1:HasCoWorker" Symmetric="true">
+        <DisplayName>HasCoWorker</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+        </References>
+    </UAReferenceType>
     <UAObject NodeId="ns=1;i=5003" BrowseName="1:ObjectWithDescription">
         <DisplayName>ObjectWithDescription</DisplayName>
         <Description Locale="de">Eine komplett unnötige Beschreibung, die nur Speicher braucht und sonst keine semantischen Infos mit sich bringt, der Standard will es aber so, darum machen wir es so ohne lange nachzudenken.</Description>
         <References>
-            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=58</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
         </References>
     </UAObject>
     <UAObject SymbolicName="http___yourorganisation_org_test_" NodeId="ns=1;i=5001" BrowseName="1:http://yourorganisation.org/test/">
