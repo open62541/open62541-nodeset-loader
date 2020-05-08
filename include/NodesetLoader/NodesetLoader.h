@@ -79,6 +79,7 @@ typedef struct
     NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *eventNotifier;
+    Reference *refToTypeDef;
 } TObjectNode;
 
 typedef struct
@@ -151,6 +152,7 @@ typedef struct
     char *accessLevel;
     char *userAccessLevel;
     Value *value;
+    Reference* refToTypeDef;
 } TVariableNode;
 
 typedef struct

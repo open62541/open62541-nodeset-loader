@@ -9,20 +9,6 @@
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
-static UA_NodeId getTypeDefinitionIdFromChars2(const TNode *node)
-{
-    Reference *ref = node->nonHierachicalRefs;
-    while (ref)
-    {
-        if (!strcmp("i=40", ref->refType.id))
-        {
-            return getNodeIdFromChars(ref->target);
-        }
-        ref = ref->next;
-    }
-    return UA_NODEID_NULL;
-}
-
 static UA_NodeId getReferenceTypeId(const Reference *ref)
 {
     if (!ref)
@@ -88,7 +74,7 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
     oAttr.displayName = *lt;
     oAttr.description = *description;
 
-    UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
+    UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
 
     // addNode_begin is used, otherwise all mandatory childs from type are
     // instantiated
@@ -215,7 +201,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
             }
         }
     }
-    UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
+    UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &attr,
@@ -283,10 +269,10 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
         }
     }
 
-    UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
+    //UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
-                            *parentReferenceId, *qn, typeDefId, &attr,
+                            *parentReferenceId, *qn, UA_NODEID_NULL, &attr,
                             &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES], NULL,
                             NULL);
 }

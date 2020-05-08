@@ -454,6 +454,19 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
 
     newRef->refType = alias2Id(nodeset, aliasIdString);
 
+    if (NODECLASS_VARIABLE == node->nodeClass &&
+        !strcmp("i=40", newRef->refType.id))
+    {
+        ((TVariableNode *)node)->refToTypeDef = newRef;
+        return newRef;
+    }
+
+    if(NODECLASS_OBJECT == node->nodeClass && !strcmp("i=40", newRef->refType.id))
+    {
+        ((TObjectNode*)node)->refToTypeDef = newRef;
+        return newRef;
+    }
+
     bool isKnownRef = isKnownReferenceType(nodeset, &newRef->refType);
     // TODO: we have to check later on, if it's really a hierachical reference
     // type, otherwise the reference should be marked as non hierachical
