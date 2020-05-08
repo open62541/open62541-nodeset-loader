@@ -185,6 +185,7 @@ typedef struct
 typedef struct
 {
     NODE_ATTRIBUTES
+    TLocalizedText inverseName;
     char *symmetric;
 } TReferenceTypeNode;
 

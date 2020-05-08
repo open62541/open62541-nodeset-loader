@@ -32,7 +32,7 @@ static void teardown(void)
 
 START_TEST(Server_ImportNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));    
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 }
 END_TEST
 
@@ -40,7 +40,8 @@ START_TEST(readDescription)
 {
     UA_LocalizedText description;
     UA_LocalizedText_init(&description);
-    UA_StatusCode retval = UA_Server_readDescription(server, UA_NODEID_NUMERIC(2, 5003), &description);
+    UA_StatusCode retval = UA_Server_readDescription(
+        server, UA_NODEID_NUMERIC(2, 5003), &description);
     ck_assert(retval == UA_STATUSCODE_GOOD);
     UA_String loc = UA_STRING("de");
     UA_String text = UA_STRING(
@@ -53,6 +54,32 @@ START_TEST(readDescription)
 }
 END_TEST
 
+START_TEST(referenceType)
+{
+    UA_LocalizedText inverseName;
+    UA_LocalizedText_init(&inverseName);
+    UA_StatusCode retval = UA_Server_readInverseName(
+        server, UA_NODEID_NUMERIC(2, 4002), &inverseName);
+    ck_assert(retval == UA_STATUSCODE_GOOD);
+    UA_String loc = UA_STRING("en");
+    UA_String text = UA_STRING("HeatingZoneOf");
+    ck_assert(UA_String_equal(&loc, &inverseName.locale));
+    ck_assert(UA_String_equal(&text, &inverseName.text));
+    UA_LocalizedText_clear(&inverseName);
+
+    UA_Boolean isSymmetric = UA_FALSE;
+    retval = UA_Server_readSymmetric(server, UA_NODEID_NUMERIC(2, 4003),
+                                     &isSymmetric);
+    ck_assert(retval == UA_STATUSCODE_GOOD);
+    ck_assert(isSymmetric == UA_TRUE);
+
+    retval = UA_Server_readSymmetric(server, UA_NODEID_NUMERIC(2, 4002),
+                                     &isSymmetric);
+    ck_assert(retval == UA_STATUSCODE_GOOD);
+    ck_assert(isSymmetric == UA_FALSE);
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("attributes");
@@ -60,6 +87,7 @@ static Suite *testSuite_Client(void)
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, Server_ImportNodeset);
     tcase_add_test(tc_server, readDescription);
+    tcase_add_test(tc_server, referenceType);
     suite_add_tcase(s, tc_server);
     return s;
 }

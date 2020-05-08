@@ -60,6 +60,9 @@ void Nodeset_DisplayNameFinish(const Nodeset *nodeset, TNode *node, char *text);
 void Nodeset_setDescription(Nodeset *nodeset, TNode *node, int attributeSize,
                             const char **attributes);
 void Nodeset_DescriptionFinish(const Nodeset *nodeset, TNode *node, char *text);
+void Nodeset_setInverseName(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes);
+void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text);
 const BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
 #endif

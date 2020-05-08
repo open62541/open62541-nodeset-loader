@@ -250,9 +250,10 @@ static void handleReferenceTypeNode(const TReferenceTypeNode *node,
                                     UA_Server *server)
 {
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
-    attr.symmetric = true;
+    attr.symmetric = isTrue(node->symmetric);
     attr.displayName = *lt;
     attr.description = *description;
+    attr.inverseName = UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
 
     UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
                                    *qn, attr, NULL, NULL);

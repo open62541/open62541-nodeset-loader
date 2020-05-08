@@ -82,6 +82,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=36"},
@@ -91,6 +92,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=48"},
@@ -100,6 +102,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=44"},
@@ -109,6 +112,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=45"},
@@ -118,6 +122,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=47"},
@@ -127,6 +132,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=46"},
@@ -136,6 +142,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
      {0, "i=47"},
@@ -145,6 +152,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     {NULL, NULL},
      NULL},
 };
 
@@ -589,4 +597,21 @@ void Nodeset_setDescription(Nodeset *nodeset, TNode *node, int attributeSize,
 void Nodeset_DescriptionFinish(const Nodeset *nodeset, TNode *node, char *text)
 {
     node->description.text = text;
+}
+
+void Nodeset_setInverseName(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes)
+{
+    if (node->nodeClass == NODECLASS_REFERENCETYPE)
+    {
+        ((TReferenceTypeNode *)node)->inverseName.locale =
+            getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
+    }
+}
+void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text)
+{
+    if (node->nodeClass == NODECLASS_REFERENCETYPE)
+    {
+        ((TReferenceTypeNode *)node)->inverseName.text = text;
+    }
 }

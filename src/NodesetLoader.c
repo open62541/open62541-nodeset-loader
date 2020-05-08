@@ -33,6 +33,7 @@
 #define VALUE "Value"
 #define EXTENSIONS "Extensions"
 #define EXTENSION "Extension"
+#define INVERSENAME "InverseName"
 
 typedef enum
 {
@@ -42,6 +43,7 @@ typedef enum
     PARSER_STATE_REFERENCES,
     PARSER_STATE_REFERENCE,
     PARSER_STATE_DESCRIPTION,
+    PARSER_STATE_INVERSENAME,
     PARSER_STATE_ALIAS,
     PARSER_STATE_UNKNOWN,
     PARSER_STATE_NAMESPACEURIS,
@@ -210,6 +212,11 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         }
+        else if (!strcmp(localname, INVERSENAME))
+        {
+            pctx->state = PARSER_STATE_INVERSENAME;
+            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes, attributes);
+        }
         else
         {
             enterUnknownState(pctx);
@@ -288,6 +295,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
         enterUnknownState(pctx);
         break;
     case PARSER_STATE_UNKNOWN:
+        pctx->unknown_depth++;
+        break;
+    case PARSER_STATE_INVERSENAME:
         pctx->unknown_depth++;
         break;
     }
@@ -371,6 +381,11 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         break;
     case PARSER_STATE_DESCRIPTION:
         Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
+        pctx->state = PARSER_STATE_NODE;
+        break;
+    case PARSER_STATE_INVERSENAME:
+        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node,
                                   pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
