@@ -380,7 +380,9 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     }
-    case NODECLASS_DATATYPE:;
+    case NODECLASS_DATATYPE:
+        ((TDataTypeNode *)node)->isAbstract = getAttributeValue(
+            nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     case NODECLASS_METHOD:
         ((TMethodNode *)node)->parentNodeId = extractNodedId(
