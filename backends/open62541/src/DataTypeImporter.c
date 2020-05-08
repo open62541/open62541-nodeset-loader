@@ -151,7 +151,8 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
 {
     if (id->namespaceIndex == 0)
     {
-        return (UA_UInt16)(id->identifier.numeric - 1);
+        const UA_DataType *ns0type = UA_findDataType(id);
+        return ns0type->typeIndex;
     }
     size_t idx = 0;
     bool found = false;
