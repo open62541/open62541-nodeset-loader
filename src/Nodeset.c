@@ -236,7 +236,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
 
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
-    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 20);
+    nodeset->charArena = CharArenaAllocator_new(1024 * 1024 * 1);
     nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000);
     nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000);
     nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(1000);
