@@ -37,5 +37,7 @@ build with cmake option ENABLE_BACKEND_OPEN62541
 There is an example in the open backend, can be started with
 backends/open62541/examples/server <pathToNodeset>
 
+Here's an example repo, consuming open62541 and NodesetLoader via cmake find_package:
+https://github.com/matkonnerth/nodesetLoader_usage
 
 
