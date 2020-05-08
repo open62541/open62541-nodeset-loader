@@ -33,6 +33,7 @@
 #define VALUE "Value"
 #define EXTENSIONS "Extensions"
 #define EXTENSION "Extension"
+#define INVERSENAME "InverseName"
 
 typedef enum
 {
@@ -42,6 +43,7 @@ typedef enum
     PARSER_STATE_REFERENCES,
     PARSER_STATE_REFERENCE,
     PARSER_STATE_DESCRIPTION,
+    PARSER_STATE_INVERSENAME,
     PARSER_STATE_ALIAS,
     PARSER_STATE_UNKNOWN,
     PARSER_STATE_NAMESPACEURIS,
@@ -183,6 +185,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME))
         {
+            Nodeset_setDisplayName(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
             pctx->state = PARSER_STATE_DISPLAYNAME;
         }
         else if (!strcmp(localname, REFERENCES))
@@ -192,6 +196,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, DESCRIPTION))
         {
             pctx->state = PARSER_STATE_DESCRIPTION;
+            Nodeset_setDescription(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
         }
         else if (!strcmp(localname, VALUE))
         {
@@ -205,6 +211,11 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, "Definition"))
         {
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+        }
+        else if (!strcmp(localname, INVERSENAME))
+        {
+            pctx->state = PARSER_STATE_INVERSENAME;
+            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes, attributes);
         }
         else
         {
@@ -286,6 +297,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_UNKNOWN:
         pctx->unknown_depth++;
         break;
+    case PARSER_STATE_INVERSENAME:
+        pctx->unknown_depth++;
+        break;
     }
     pctx->onCharacters = NULL;
     pctx->onCharLength = 0;
@@ -318,7 +332,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_DISPLAYNAME:
-        pctx->node->displayName = pctx->onCharacters;
+        Nodeset_DisplayNameFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_REFERENCES:
@@ -356,7 +371,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->end(pctx->extensionData, localname, pctx->onCharacters);
+                pctx->extIf->end(pctx->extensionData, localname,
+                                 pctx->onCharacters);
             }
         }
         break;
@@ -364,6 +380,13 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DESCRIPTION:
+        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
+        pctx->state = PARSER_STATE_NODE;
+        break;
+    case PARSER_STATE_INVERSENAME:
+        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:

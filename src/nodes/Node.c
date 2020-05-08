@@ -56,10 +56,16 @@ void Node_delete(TNode *node)
     if(node->nodeClass == NODECLASS_VARIABLE)
     {
         TVariableNode* varNode = (TVariableNode*)node;
+        free(varNode->refToTypeDef);
         if(varNode->value)
         {
             Value_delete(varNode->value);
         }
+    }
+    if(node->nodeClass==NODECLASS_OBJECT)
+    {
+        TObjectNode *objNode = (TObjectNode *)node;
+        free(objNode->refToTypeDef);
     }
     free(node);
 }
