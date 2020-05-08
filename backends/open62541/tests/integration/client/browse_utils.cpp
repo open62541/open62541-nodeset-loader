@@ -102,11 +102,49 @@ void FreeReferencesVec(TReferenceVec &References)
     References.clear();
 }
 
-UA_Boolean IsSubType(const UA_NodeId &BaseType, const UA_NodeId &SubType)
+UA_Boolean IsSubType(UA_Client *pClient, const UA_NodeId &BaseType,
+                     const UA_NodeId &SubType)
 {
-    // search up from subtype to base type
+    // search from subtype to basetype (browse inverse)
+    UA_Boolean bFoundBaseType = UA_FALSE;
 
-    // TODO: implement
-
-    return UA_FALSE;
+    UA_BrowseRequest bReq;
+    UA_BrowseRequest_init(&bReq);
+    bReq.requestedMaxReferencesPerNode = 0;
+    bReq.nodesToBrowseSize = 1;
+    bReq.nodesToBrowse = UA_BrowseDescription_new();
+    UA_NodeId_copy(&SubType, &(bReq.nodesToBrowse[0].nodeId));
+    bReq.nodesToBrowse[0].browseDirection = UA_BROWSEDIRECTION_INVERSE;
+    bReq.nodesToBrowse[0].includeSubtypes = UA_TRUE;
+    bReq.nodesToBrowse[0].referenceTypeId =
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE);
+    bReq.nodesToBrowse[0].resultMask = UA_BROWSERESULTMASK_ALL;
+    UA_BrowseResponse bResp = UA_Client_Service_browse(pClient, bReq);
+    if ((bResp.responseHeader.serviceResult == UA_STATUSCODE_GOOD) &&
+        (bResp.resultsSize == 1))
+    {
+        if ((bResp.results[0].statusCode == UA_STATUSCODE_GOOD) &&
+            (bResp.results[0].referencesSize == 1))
+        {
+            if (UA_NodeId_equal(&BaseType,
+                                &bResp.results[0].references[0].nodeId.nodeId))
+            {
+                bFoundBaseType = UA_TRUE; // found the base type
+            }
+            else
+            {
+                // continue inverse search for base type
+                bFoundBaseType =
+                    IsSubType(pClient, BaseType,
+                              bResp.results[0].references[0].nodeId.nodeId);
+            }
+        } // else: there are no more references to search
+    }
+    else
+    {
+        cout << "Error IsSubType(): BrowseRequest failed" << endl;
+    }
+    UA_BrowseRequest_deleteMembers(&bReq);
+    UA_BrowseResponse_deleteMembers(&bResp);
+    return bFoundBaseType;
 }

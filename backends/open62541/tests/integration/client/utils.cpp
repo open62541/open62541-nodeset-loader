@@ -27,18 +27,13 @@ static const UA_NodeId HasEncodingId =
 static const UA_NodeId StructureId = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
 static const UA_NodeId EnumerationId =
     UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
-
-bool NodeIdCompare(const UA_NodeId lhs, const UA_NodeId rhs)
-{
-
-    // References are always defined in namespace 0 ???
-    // always numeric id??
-    // lhs.
-
-    // ich bräuchte 1 Set für jeden namespace und für jeden Identifier ....
-}
-
-set<UA_NodeId> MySet();
+static const UA_NodeId OptionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+static const UA_NodeId OptionSetValuesId =
+    UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSETVALUES);
+static const UA_NodeId UnsignedIntegerId =
+    UA_NODEID_NUMERIC(0, UA_NS0ID_UINTEGER);
+static const UA_NodeId DataTypeDefinitionId =
+    UA_NODEID_NUMERIC(0, UA_NS0ID_DATATYPEDEFINITION);
 
 /*****************************************************************************/
 // print functions:
@@ -269,7 +264,7 @@ UA_Boolean PrintViewReferences(UA_Client *pClient, const UA_NodeId &Id,
             // of HierarchicalReference
             if ((UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                  &HasPropertyId) == UA_FALSE) ||
-                (IsSubType(HierarchicalReferenceId,
+                (IsSubType(pClient, HierarchicalReferenceId,
                            *ReferencesVec[i].pReferenceTypeId) == UA_FALSE))
             {
                 cout << "Error PrintViewReferences: ReferenceType "
@@ -389,14 +384,16 @@ UA_Boolean PrintObjectTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
 // Variable
 
 void PrintArrayDimensions(const size_t arrayDimSize,
-                          const UA_UInt32 *const pArrayDimensions, ostream &out)
+                          const UA_UInt32 *const pArrayDimensions,
+                          const UA_UInt32 Indentation, ostream &out)
 {
-    out << "ArrayDimensions = [";
+    string strIndent = string(Indentation, '\t');
+    out << strIndent << "ArrayDimensions = [";
     if (pArrayDimensions != 0)
     {
         for (size_t i = 0; i < arrayDimSize; i++)
         {
-            out << pArrayDimensions[i] << ",";
+            out << strIndent << "\t" << pArrayDimensions[i] << ",";
         }
     }
     out << "] " << endl;
@@ -450,7 +447,7 @@ UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
                                                &pArrayDimensions) ==
         UA_STATUSCODE_GOOD)
     {
-        PrintArrayDimensions(arrayDimSize, pArrayDimensions, out);
+        PrintArrayDimensions(arrayDimSize, pArrayDimensions, 0, out);
         UA_free(pArrayDimensions);
         pArrayDimensions = 0;
     }
@@ -613,78 +610,112 @@ UA_Boolean PrintMethodReferences(UA_Client *pClient, const UA_NodeId &Id,
 void PrintStructureDefinition(const UA_StructureDefinition &StructDefinition,
                               ofstream &out)
 {
-    out << "{ Structure: ";
+    out << "{ Structure: " << endl;
 
-    out << "BaseDataType = " << StructDefinition.baseDataType << " ";
-    out << "EncodingId = " << StructDefinition.defaultEncodingId << " ";
-    out << "StructureType = " << StructDefinition.structureType << " ";
-    out << "FieldsSize = " << StructDefinition.fieldsSize << " ";
+    out << "\tBaseDataType = " << StructDefinition.baseDataType << endl;
+    out << "\tEncodingId = " << StructDefinition.defaultEncodingId << endl;
+    out << "\tStructureType = " << StructDefinition.structureType << endl;
+    out << "\tFieldsSize = " << StructDefinition.fieldsSize << endl;
 
     UA_StructureField *pField = 0;
     for (size_t i = 0; i < StructDefinition.fieldsSize; i++)
     {
-        out << "[ ";
+        out << "\t[ " << endl;
         pField = &StructDefinition.fields[i];
-        out << "Name = " << pField->name << " ";
-        out << "Description = " << pField->description << " ";
-        out << "DataType = " << pField->dataType << " ";
-        out << "ValueRank = " << pField->valueRank << " ";
+        out << "\t\tName = " << pField->name << endl;
+        out << "\t\tDescription = " << pField->description << endl;
+        out << "\t\tDataType = " << pField->dataType << endl;
+        out << "\t\tValueRank = " << pField->valueRank << endl;
         PrintArrayDimensions(pField->arrayDimensionsSize,
-                             pField->arrayDimensions, out);
-        out << "MaxStringLength = " << pField->maxStringLength << " ";
-        out << "IsOptional = " << pField->isOptional << " ";
-        out << "] ";
+                             pField->arrayDimensions, 2, out);
+        out << "\t\tMaxStringLength = " << pField->maxStringLength << endl;
+        out << "\t\tIsOptional = " << pField->isOptional << endl;
+        out << "\t] " << endl;
     }
-    out << "} ";
+    out << "}" << endl;
 }
 
 void PrintEnumDefinition(const UA_EnumDefinition &EnumDefinition, ofstream &out)
 {
-    out << "{ Enum: ";
-    out << "FieldsSize = " << EnumDefinition.fieldsSize << " ";
+    out << "{ Enum: " << endl;
+    out << "\tFieldsSize = " << EnumDefinition.fieldsSize << endl;
 
     UA_EnumField *pField = 0;
     for (size_t i = 0; i < EnumDefinition.fieldsSize; i++)
     {
-        out << "[ ";
+        out << "\t[ ";
         pField = &EnumDefinition.fields[i];
-        out << "Name = " << pField->name << " ";
-        out << "Value = " << pField->value << " ";
-        out << "DisplayName = " << pField->displayName << " ";
-        out << "Description = " << pField->description << " ";
-        out << "] ";
+        out << "\t\tName = " << pField->name << endl;
+        out << "\t\tValue = " << pField->value << endl;
+        out << "\t\tDisplayName = " << pField->displayName << endl;
+        out << "\t\tDescription = " << pField->description << endl;
+        out << "\t]" << endl;
     }
-    out << "} ";
+    out << "}" << endl;
 }
 
 UA_Boolean PrintDataTypeDefinition(UA_Client *pClient, const UA_NodeId &Id,
                                    ofstream &out)
 {
-    out << "DataTypeDefinition = ";
-    UA_Boolean bRet = UA_TRUE;
     /*
-            The Attribute is mandatory for DataTypes derived from Structure and
-            Union. For such DataTypes, the Attribute contains a structure of the
-            DataType StructureDefinition. The StructureDefinition DataType is
-            defined in 8.49. It is a subtype of DataTypeDefinition.
-            Enumeration and OptionSet DataTypes
-            The Attribute is mandatory for DataTypes derived from Enumeration,
-            OptionSet and subtypes of UInteger representing an OptionSet. For
-            such DataTypes, the Attribute contains a structure of the DataType
-            EnumDefinition. The EnumDefinition DataType is defined in 8.50. It
-            is a subtype of DataTypeDefinition.
+    The Attribute is mandatory for DataTypes derived from Structure and
+    Union. For such DataTypes, the Attribute contains a structure of the
+    DataType StructureDefinition.
+
+    The Attribute is mandatory for DataTypes derived from Enumeration,
+    OptionSet and subtypes of UInteger representing an OptionSet. For
+    such DataTypes, the Attribute contains a structure of the DataType
+    EnumDefinition.
     */
 
-    UA_Boolean IsDerivedFromStructure = IsSubType(StructureId, Id);
-    UA_Boolean IsDerivedFromEnumeration = IsSubType(EnumerationId, Id);
+    if (UA_NodeId_equal(&Id, &DataTypeDefinitionId))
+    {
+        // TODO: node DataTypeDefinition (structure) does not have a
+        // DataTypeDefinition attribute ... Is it because it's abstract? But
+        // other abstract structures have a DataTypeDefinition ...
+        return UA_TRUE;
+    }
 
-    // TODO: OptionSet: check if DataType is a SubType of unsigned integer and
-    // HasProperty OptionSetValues
-    UA_Boolean IsRepresentingAnOptionSet = UA_FALSE;
+    UA_Boolean bRet = UA_TRUE;
+
+    UA_Boolean IsDerivedFromStructure = IsSubType(pClient, StructureId, Id);
+    UA_Boolean IsDerivedFromEnumeration = IsSubType(pClient, EnumerationId, Id);
+    UA_Boolean IsDerivedFromOptionSet = IsSubType(pClient, OptionSetId, Id);
+    UA_Boolean IsUIntegerOptionSet = UA_FALSE;
+    if (IsSubType(pClient, UnsignedIntegerId, Id))
+    {
+        // search for HasProperty OptionSetValues reference
+        TReferenceVec ReferenceVec;
+        if (BrowseReferences(pClient, Id, ReferenceVec) == UA_TRUE)
+        {
+            for (size_t i = 0; i < ReferenceVec.size(); i++)
+            {
+                if (UA_NodeId_equal(ReferenceVec[i].pReferenceTypeId,
+                                    &HasPropertyId))
+                {
+                    if (UA_NodeId_equal(ReferenceVec[i].pTargetId,
+                                        &OptionSetValuesId))
+                    {
+                        IsUIntegerOptionSet = UA_TRUE;
+                    }
+                }
+            }
+            FreeReferencesVec(ReferenceVec);
+        }
+        else
+        {
+            cout << "Error PrintDataTypeDefinition(): '" << Id
+                 << "' BrowseReferences failed" << endl;
+            return UA_FALSE;
+        }
+    }
 
     if (IsDerivedFromStructure || IsDerivedFromEnumeration ||
-        IsRepresentingAnOptionSet)
+        IsDerivedFromOptionSet || IsUIntegerOptionSet)
     {
+        // attribute DataTypeDefinition is mandatory
+        out << "DataTypeDefinition = ";
+
         UA_ReadRequest rReq;
         UA_ReadRequest_init(&rReq);
         rReq.nodesToReadSize = 1;
@@ -701,10 +732,19 @@ UA_Boolean PrintDataTypeDefinition(UA_Client *pClient, const UA_NodeId &Id,
             if ((rResp.resultsSize != 1) ||
                 (rResp.results[0].hasValue == UA_FALSE))
             {
-                cout << "Error PrintDataTypeDefinition: node has no "
-                        "DataTypeDefiniton attribute"
+                /* TODO: namespace 0:
+                    it seems that enumerations and optionsets do not comply to
+                    the standard, because they have no DataTypeDefinition
+                   attribute ... ???
+                */
+                /* TODO: namespace DI:
+                     there are structure datatypes without DataTypeDefinition
+                   attribute ...*/
+                cout << "Info PrintDataTypeDefinition: '" << Id
+                     << "' node has no "
+                        "DataTypeDefiniton attribute, although it should "
+                        "have ..."
                      << endl;
-                bRet = UA_FALSE;
             }
             else
             {
@@ -718,11 +758,11 @@ UA_Boolean PrintDataTypeDefinition(UA_Client *pClient, const UA_NodeId &Id,
                               .value.data),
                         out);
                 }
-                else if ((IsDerivedFromEnumeration ||
-                          IsRepresentingAnOptionSet) &&
-                         (UA_Variant_hasScalarType(
+                else if (IsDerivedFromEnumeration || IsDerivedFromOptionSet ||
+                         IsUIntegerOptionSet ||
+                         UA_Variant_hasScalarType(
                              &rResp.results[0].value,
-                             &UA_TYPES[UA_TYPES_ENUMDEFINITION])))
+                             &UA_TYPES[UA_TYPES_ENUMDEFINITION]))
                 {
                     PrintEnumDefinition(
                         *((UA_EnumDefinition *)rResp.results[0].value.data),
@@ -730,16 +770,18 @@ UA_Boolean PrintDataTypeDefinition(UA_Client *pClient, const UA_NodeId &Id,
                 }
                 else
                 {
-                    cout << "Error PrintDataTypeDefinition: datatypedefinition "
-                            "is invalid";
+                    cout << "Error PrintDataTypeDefinition: '" << Id
+                         << "' DataTypeDefiniton "
+                            "attribute is wrong"
+                         << endl;
                     bRet = UA_FALSE;
                 }
             }
         }
         else
         {
-            cout << "Error PrintDataTypeDefinition: service result is bad"
-                 << endl;
+            cout << "Error PrintDataTypeDefinition:  '" << Id
+                 << "' read service result is bad" << endl;
             bRet = UA_FALSE;
         }
         UA_ReadRequest_clear(&rReq);
@@ -759,7 +801,7 @@ UA_Boolean PrintDataTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     {
         return UA_FALSE;
     }
-    out << "IsAbstract = " << isAbstract << endl;
+    out << "IsAbstract = " << ((isAbstract) ? "true" : "false") << endl;
 
     // O: DataTypeDefinition
     if (PrintDataTypeDefinition(pClient, Id, out) == UA_FALSE)
@@ -783,15 +825,16 @@ UA_Boolean PrintDataTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
             out << "\t" << ReferencesVec[i] << endl;
 
             if ((UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
-                                 &HasPropertyId) == UA_FALSE) ||
+                                 &HasPropertyId) == UA_FALSE) &&
                 (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
-                                 &HasSubtypeId) == UA_FALSE) ||
+                                 &HasSubtypeId) == UA_FALSE) &&
                 (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                  &HasEncodingId) == UA_FALSE))
             {
-                cout << "Error PrintDataTypeReferences: Id = " << Id
-                     << " : DataType node has an invalid reference type"
-                     << endl;
+                cout << "Error PrintDataTypeReferences: Id = '" << Id
+                     << "' : DataType node has an invalid reference type '"
+                     << *ReferencesVec[i].pReferenceTypeId << "'" << endl;
+                ret = UA_FALSE;
             }
         }
     }
@@ -838,7 +881,7 @@ UA_Boolean PrintNode(UA_Client *pClient, const UA_NodeId &Id, ofstream &out)
         break;
     case UA_NODECLASS_VIEW:
         ret &= PrintViewAttributes(pClient, Id, out);
-        ret &= PrintViewReferences(pClient, Id, out);
+        // ret &= PrintViewReferences(pClient, Id, out);
         break;
     case UA_NODECLASS_METHOD:
         ret &= PrintMethodAttributes(pClient, Id, out);
