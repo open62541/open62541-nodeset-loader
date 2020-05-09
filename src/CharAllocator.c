@@ -41,11 +41,21 @@ CharArenaAllocator *CharArenaAllocator_new(size_t initialSize)
     return arena;
 }
 
+static size_t getRegionSize(size_t requested, size_t initialArenaSize)
+{
+    size_t regionSize = initialArenaSize;
+    if (requested > initialArenaSize)
+    {
+        regionSize = requested * 2;
+    }
+    return regionSize;
+}
+
 char *CharArenaAllocator_malloc(CharArenaAllocator *arena, size_t size)
 {
     if ((arena->current->size + size) > arena->current->capacity)
-    {
-        struct Region *newRegion = Region_new(arena->initialSize);
+    {        
+        struct Region *newRegion = Region_new(getRegionSize(size, arena->initialSize));
         if (!newRegion)
         {
             return NULL;
@@ -63,7 +73,9 @@ char *CharArenaAllocator_realloc(CharArenaAllocator *arena, size_t size)
 {
     if ((arena->current->size + size) > arena->current->capacity)
     {
-        struct Region *newRegion = Region_new(arena->initialSize);
+        // we also have to consider the size we have to transfer
+        struct Region *newRegion =
+            Region_new(getRegionSize(size + arena->current->userSize*2, arena->initialSize));
         if (!newRegion)
         {
             return NULL;

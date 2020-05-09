@@ -44,6 +44,15 @@ START_TEST(simpleRealloc2)
 }
 END_TEST
 
+START_TEST(overcommit)
+{
+    CharArenaAllocator *a = (CharArenaAllocator *)CharArenaAllocator_new(100);
+    char *val = CharArenaAllocator_malloc(a, 200);
+    memset(val, 0, 200);
+    CharArenaAllocator_delete(a);
+}
+END_TEST
+
 int main(void)
 {
     Suite *s = suite_create("Sort tests");
@@ -52,6 +61,7 @@ int main(void)
     tcase_add_test(tc, simpleMalloc2);
     tcase_add_test(tc, simpleRealloc);
     tcase_add_test(tc, simpleRealloc2);
+    tcase_add_test(tc, overcommit);
     suite_add_tcase(s, tc);
 
     SRunner *sr = srunner_create(s);
