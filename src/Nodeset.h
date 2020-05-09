@@ -33,9 +33,10 @@ struct Nodeset
     TReferenceTypeNode *hierachicalRefs;
     struct SortContext *sortCtx;
     BiDirectionalReference *hasEncodingRefs;
+    NodesetLoader_Logger* logger;
 };
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback);
+Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes);
