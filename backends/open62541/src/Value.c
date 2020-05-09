@@ -73,7 +73,6 @@ static void setString(uintptr_t adr, const char *value)
 {
     UA_String *s = (UA_String *)adr;
     s->length = strlen(value);
-    // todo: check this for dangling pointers
     s->data = (UA_Byte *)(uintptr_t)value;
 }
 
