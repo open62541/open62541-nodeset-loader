@@ -84,6 +84,8 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
         return alignof(UA_NodeId);
     case UA_DATATYPEKIND_DIAGNOSTICINFO:
         return alignof(UA_DiagnosticInfo);
+    case UA_DATATYPEKIND_VARIANT:
+        return alignof(UA_Variant);
     case UA_DATATYPEKIND_ENUM:
         return alignof(UA_Int32);
     case UA_DATATYPEKIND_STRUCTURE:
