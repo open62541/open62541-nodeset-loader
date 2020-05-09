@@ -25,7 +25,7 @@ START_TEST(singleNode) {
     a.id.id = "nodeA";
 
     Sort_addNode(ctx, &a);
-    Sort_start(ctx, NULL, sortCallback);
+    Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 1);
     Sort_cleanup(ctx);
 }
@@ -52,7 +52,7 @@ START_TEST(sortNodes) {
     Sort_addNode(ctx, &a);
     Sort_addNode(ctx, &b);
     Sort_addNode(ctx, &c);
-    Sort_start(ctx, NULL, sortCallback);
+    Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==3);
     Sort_cleanup(ctx);
 }
@@ -83,7 +83,7 @@ START_TEST(nodeWithRefs_1) {
 
     Sort_addNode(ctx, &b);
     Sort_addNode(ctx, &a);
-    Sort_start(ctx, NULL, sortCallback);
+    Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
     ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
@@ -116,7 +116,7 @@ START_TEST(nodeWithRefs_2) {
 
     Sort_addNode(ctx, &a);
     Sort_addNode(ctx, &b);
-    Sort_start(ctx, NULL, sortCallback);
+    Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
     ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
@@ -155,7 +155,7 @@ START_TEST(cycleDetect) {
 
     Sort_addNode(ctx, &b);
     Sort_addNode(ctx, &a);
-    ck_assert(!Sort_start(ctx, NULL, sortCallback));
+    ck_assert(!Sort_start(ctx, NULL, sortCallback, NULL));
     Sort_cleanup(ctx);
 }
 END_TEST
@@ -163,7 +163,7 @@ END_TEST
 START_TEST(empty)
 {
     SortContext *ctx = Sort_init();
-    Sort_start(ctx, NULL, sortCallback);
+    Sort_start(ctx, NULL, sortCallback, NULL);
     Sort_cleanup(ctx);
 }
 END_TEST

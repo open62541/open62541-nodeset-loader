@@ -230,7 +230,7 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
     return *alias;
 }
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback)
+Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
 
@@ -248,6 +248,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback)
     nodeset->hierachicalRefs = hierachicalRefs;
     nodeset->hierachicalRefsSize = 8;
     nodeset->sortCtx = Sort_init();
+    nodeset->logger = logger;
     return nodeset;
 }
 
@@ -258,7 +259,7 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 
 bool Nodeset_sort(Nodeset *nodeset)
 {
-    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode);
+    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode, nodeset->logger);
 }
 
 size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes)
