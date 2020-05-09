@@ -69,7 +69,7 @@ const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
 const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 const NodeAttribute dataTypeField_Name = {"Name", NULL};
-const NodeAttribute dataTypeField_DataType = {"DataType", NULL};
+const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute attrLocale = {"Locale", NULL};
 

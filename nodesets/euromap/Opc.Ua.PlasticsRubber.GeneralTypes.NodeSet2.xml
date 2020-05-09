@@ -2074,9 +2074,9 @@ In semi-automatic mode also during waiting time (e.g. for manual loading/unloadi
             <Field DataType="LocalizedText" Name="Description">
                 <Description>Description of the parameter</Description>
             </Field>
-            <!--<Field Name="DefaultValue">
+            <Field Name="DefaultValue">
                 <Description>Default value of the parameter</Description>
-            </Field>-->
+            </Field>
             <Field DataType="EUInformation" Name="Unit">
                 <Description>Engineering unit of the parameter. If the Type of Defaultvalue is not a Number, then the Unit shall be empty</Description>
             </Field>
