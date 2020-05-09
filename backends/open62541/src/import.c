@@ -3,7 +3,7 @@
 #include "conversion.h"
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
-#include <dataTypes.h>
+#include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
 
@@ -239,7 +239,8 @@ static void handleReferenceTypeNode(const TReferenceTypeNode *node,
     attr.symmetric = isTrue(node->symmetric);
     attr.displayName = *lt;
     attr.description = *description;
-    attr.inverseName = UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
+    attr.inverseName =
+        UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
 
     UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
                                    *qn, attr, NULL, NULL);
@@ -269,7 +270,7 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
         }
     }
 
-    //UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
+    // UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
                             *parentReferenceId, *qn, UA_NODEID_NULL, &attr,
@@ -299,7 +300,8 @@ static void addNode(UA_Server *server, const TNode *node)
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
-    UA_LocalizedText lt = UA_LOCALIZEDTEXT(node->displayName.locale, node->displayName.text);
+    UA_LocalizedText lt =
+        UA_LOCALIZEDTEXT(node->displayName.locale, node->displayName.text);
     UA_QualifiedName qn =
         UA_QUALIFIEDNAME(node->browseName.nsIdx, node->browseName.name);
     UA_LocalizedText description =
@@ -374,201 +376,86 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
 }
 
-static void addNodes(NodesetLoader* loader, UA_Server* server, NodesetLoader_Logger* logger)
+static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
+    // add datatypes
+    DataTypeImporter *importer = DataTypeImporter_new(server);
+    TNode **nodes;
+    size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
+    for (TNode **node = nodes; node != nodes + cnt; node++)
     {
-        TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
+        // add only the types
+        const BiDirectionalReference *hasEncodingRef =
+            NodesetLoader_getBidirectionalRefs(loader);
+        while (hasEncodingRef)
         {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu ReferenceTypes", cnt);
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu DataTypes", cnt);
-
-        // add datatypes
-        DataTypeImporter *importer = DataTypeImporter_new(server);
-        cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            // add only the types
-            const BiDirectionalReference *hasEncodingRef =
-                NodesetLoader_getBidirectionalRefs(loader);
-            while (hasEncodingRef)
+            if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
             {
-                if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
-                {
-                    Reference *ref = (Reference *)calloc(1, sizeof(Reference));
-                    ref->refType = hasEncodingRef->refType;
-                    ref->target = hasEncodingRef->target;
+                Reference *ref = (Reference *)calloc(1, sizeof(Reference));
+                ref->refType = hasEncodingRef->refType;
+                ref->target = hasEncodingRef->target;
 
-                    Reference *lastRef = (*node)->nonHierachicalRefs;
-                    (*node)->nonHierachicalRefs = ref;
-                    ref->next = lastRef;
-                    break;
-                }
-                hasEncodingRef = hasEncodingRef->next;
+                Reference *lastRef = (*node)->nonHierachicalRefs;
+                (*node)->nonHierachicalRefs = ref;
+                ref->next = lastRef;
+                break;
             }
-            DataTypeImporter_addCustomDataType(importer,
-                                               (TDataTypeNode *)*node);
+            hasEncodingRef = hasEncodingRef->next;
         }
-        DataTypeImporter_initMembers(importer);
-        DataTypeImporter_delete(importer);
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
     }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu ObjectTypes", cnt);
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECT, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu Objects", cnt);
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_METHOD, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu Methods", cnt);
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu VariableTypes", cnt);
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %zu Variables", cnt);
-    }
+    DataTypeImporter_initMembers(importer);
+    DataTypeImporter_delete(importer);
 }
 
-static void addNonHierachicalRefs(TNode* node, UA_Server* server)
+static void addNonHierachicalRefs(TNode *node, UA_Server *server)
 {
-    Reference* ref = node->nonHierachicalRefs;
-    while(ref)
+    Reference *ref = node->nonHierachicalRefs;
+    while (ref)
     {
 
         UA_NodeId src = getNodeIdFromChars(node->id);
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
         target.nodeId = getNodeIdFromChars(ref->target);
-        UA_NodeId refType = getNodeIdFromChars(ref->refType);        
+        UA_NodeId refType = getNodeIdFromChars(ref->refType);
         UA_Server_addReference(server, src, refType, target, ref->isForward);
         ref = ref->next;
     }
 }
 
-static void handleNonHierachicalRefs(NodesetLoader *loader, UA_Server *server,
+static void addNodes(NodesetLoader *loader, UA_Server *server,
                      NodesetLoader_Logger *logger)
 {
-    
+    const TNodeClass order[NODECLASS_COUNT] = {
+        NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
+        NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
+        NODECLASS_VARIABLE};
+    const char *classNames[NODECLASS_COUNT] = {
+        "ReferenceType", "DataType",     "ObjectType", "Object",
+        "Method",        "VariableType", "Variable"};
+
+    for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
+        const TNodeClass classToImport = order[i];
         TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_REFERENCETYPE, &nodes);
+        size_t cnt = NodesetLoader_getNodes(loader, classToImport, &nodes);
         for (TNode **node = nodes; node != nodes + cnt; node++)
         {
-            addNonHierachicalRefs(*node, server);
+            addNode(server, *node);
         }
-    }
-
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
+        if (classToImport == NODECLASS_DATATYPE)
         {
-            addNonHierachicalRefs(*node, server);
+            importDataTypes(loader, server);
         }
+        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                    "imported %ss: %zu", classNames[i], cnt);
     }
 
+    for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
+        const TNodeClass classToImport = order[i];
         TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_OBJECTTYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNonHierachicalRefs(*node, server);
-        }
-    }
-    
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_OBJECT, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNonHierachicalRefs(*node, server);
-        }
-    }
-
-    
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_METHOD, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNonHierachicalRefs(*node, server);
-        }
-    }
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt =
-            NodesetLoader_getNodes(loader, NODECLASS_VARIABLETYPE, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNonHierachicalRefs(*node, server);
-        }
-    }
-    
-
-    {
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_VARIABLE, &nodes);
+        size_t cnt = NodesetLoader_getNodes(loader, classToImport, &nodes);
         for (TNode **node = nodes; node != nodes + cnt; node++)
         {
             addNonHierachicalRefs(*node, server);
@@ -600,39 +487,24 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     logger->log = &logToOpen;
 
     NodesetLoader *loader = NodesetLoader_new(logger);
-    bool status = NodesetLoader_importFile(loader, &handler);
-    NodesetLoader_sort(loader);
-    if (status)
+    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                "Start import nodeset: %s", path);
+    bool importStatus = NodesetLoader_importFile(loader, &handler);
+    bool sortStatus = NodesetLoader_sort(loader);
+    bool status = importStatus && sortStatus;
+    if (status && sortStatus)
     {
         addNodes(loader, server, logger);
-        handleNonHierachicalRefs(loader, server, logger);
     }
+    else
+    {
+        logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                    "importing the nodeset failed, nodes were not added");
+    }
+
     NodesetLoader_delete(loader);
     free(logger);
     return status;
 }
 
-const struct UA_DataType *getCustomDataType(struct UA_Server *server,
-                                            const UA_NodeId *typeId)
-{
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    const UA_DataTypeArray *types = config->customDataTypes;
-    while (types)
-    {
-        const UA_DataTypeArray *next = types->next;
-        if (types->types)
-        {
-            for (const UA_DataType *type = types->types;
-                 type != types->types + types->typesSize; type++)
-            {
-                if (UA_NodeId_equal(&type->typeId, typeId))
-                {
-                    return type;
-                }
-            }
-        }
 
-        types = next;
-    }
-    return NULL;
-}

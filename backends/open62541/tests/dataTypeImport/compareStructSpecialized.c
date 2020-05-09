@@ -14,7 +14,7 @@
 #include "open62541/types_specializedStruct_generated.h"
 #include "open62541/types_struct_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <dataTypes.h>
+#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodeset1 = NULL;

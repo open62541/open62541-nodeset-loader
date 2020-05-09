@@ -11,9 +11,9 @@
 #include "unistd.h"
 
 #include "../testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
-#include <dataTypes.h>
 #include "open62541/types_structExtended_generated.h"
+#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
