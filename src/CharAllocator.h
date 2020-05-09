@@ -2,10 +2,12 @@
 #define CHARALLOCATOR_H
 #include <stddef.h>
 
-struct CharArena;
+struct CharArenaAllocator;
+typedef struct CharArenaAllocator CharArenaAllocator;
 
-struct CharArena *CharArenaAllocator_new(size_t initialSize);
-char *CharArenaAllocator_malloc(struct CharArena *arena, size_t size);
-void CharArenaAllocator_delete(struct CharArena *arena);
+CharArenaAllocator *CharArenaAllocator_new(size_t initialSize);
+char *CharArenaAllocator_malloc(struct CharArenaAllocator *arena, size_t size);
+char *CharArenaAllocator_realloc(struct CharArenaAllocator *arena, size_t size);
+void CharArenaAllocator_delete(struct CharArenaAllocator *arena);
 
 #endif
