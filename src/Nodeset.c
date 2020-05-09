@@ -233,7 +233,10 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
 Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
-
+    if(!nodeset)
+    {
+        return NULL;
+    }
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024);
