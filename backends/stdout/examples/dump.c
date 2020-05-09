@@ -56,9 +56,3 @@ void dumpNode(void *userContext, const TNode *node)
         nonHierRef = nonHierRef->next;
     }
 }
-
-struct Value *Value_new(const TNode *node) { return NULL; }
-void Value_start(Value *val, const char *localname) {}
-void Value_end(Value *val, const char *localname, char *value) {}
-void Value_finish(Value *val) {}
-void Value_delete(Value **val) {}

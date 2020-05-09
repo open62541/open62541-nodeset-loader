@@ -11,9 +11,9 @@
 #include "unistd.h"
 
 #include "../testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
-#include <dataTypes.h>
 #include "open62541/types_structExtended_generated.h"
+#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -42,16 +42,6 @@ START_TEST(compareDI)
     ck_assert(config->customDataTypes);
 
     ck_assert(config->customDataTypes->typesSize == UA_TYPES_STRUCTEXTENDED_COUNT);
-
-    printf("sizeof Point %d\n", sizeof(UA_Point));
-    printf("sizeof specialVector %d\n", sizeof(UA_SpecialVectorOfPoints));
-
-    struct test2
-    {
-        size_t test;
-        UA_Point p2;
-    };
-    printf("sizeof test2 %d\n", sizeof(struct test2));
 
     for (const UA_DataType *generatedType = UA_TYPES_STRUCTEXTENDED;
          generatedType != UA_TYPES_STRUCTEXTENDED +

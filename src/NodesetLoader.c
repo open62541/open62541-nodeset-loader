@@ -5,12 +5,14 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
+#include "InternalLogger.h"
 #include "Nodeset.h"
+#include "Value.h"
 #include <CharAllocator.h>
+#include <NodesetLoader/Logger.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <libxml/SAX.h>
-#include <NodesetLoader/NodesetLoader.h>
-#include <stdio.h>
 #include <string.h>
 
 #define OBJECT "UAObject"
@@ -31,6 +33,7 @@
 #define VALUE "Value"
 #define EXTENSIONS "Extensions"
 #define EXTENSION "Extension"
+#define INVERSENAME "InverseName"
 
 typedef enum
 {
@@ -40,6 +43,7 @@ typedef enum
     PARSER_STATE_REFERENCES,
     PARSER_STATE_REFERENCE,
     PARSER_STATE_DESCRIPTION,
+    PARSER_STATE_INVERSENAME,
     PARSER_STATE_ALIAS,
     PARSER_STATE_UNKNOWN,
     PARSER_STATE_NAMESPACEURIS,
@@ -63,8 +67,7 @@ struct TParserCtx
     char *onCharacters;
     size_t onCharLength;
     Value *val;
-    Extension *ext;
-    ValueInterface *valIf;
+    void *extensionData;
     ExtensionInterface *extIf;
     Reference *ref;
     Nodeset *nodeset;
@@ -73,6 +76,8 @@ struct TParserCtx
 struct NodesetLoader
 {
     Nodeset *nodeset;
+    NodesetLoader_Logger *logger;
+    bool internalLogger;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -180,6 +185,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME))
         {
+            Nodeset_setDisplayName(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
             pctx->state = PARSER_STATE_DISPLAYNAME;
         }
         else if (!strcmp(localname, REFERENCES))
@@ -189,10 +196,12 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, DESCRIPTION))
         {
             pctx->state = PARSER_STATE_DESCRIPTION;
+            Nodeset_setDescription(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
         }
         else if (!strcmp(localname, VALUE))
         {
-            pctx->val = pctx->valIf->newValue(pctx->node);
+            pctx->val = Value_new(pctx->node);
             pctx->state = PARSER_STATE_VALUE;
         }
         else if (!strcmp(localname, EXTENSIONS))
@@ -202,6 +211,11 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, "Definition"))
         {
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+        }
+        else if (!strcmp(localname, INVERSENAME))
+        {
+            pctx->state = PARSER_STATE_INVERSENAME;
+            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes, attributes);
         }
         else
         {
@@ -225,7 +239,14 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_VALUE:
-        pctx->valIf->start(pctx->val, localname);
+        // copy the name
+        {
+            size_t len = strlen(localname);
+            char *localNameCopy =
+                CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
+            memcpy(localNameCopy, localname, len);
+            Value_start(pctx->val, localNameCopy);
+        }
         break;
 
     case PARSER_STATE_EXTENSIONS:
@@ -233,7 +254,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             if (pctx->extIf)
             {
-                pctx->ext = pctx->extIf->newExtension(pctx->node);
+                pctx->extensionData = pctx->extIf->newExtension(pctx->node);
             }
             pctx->state = PARSER_STATE_EXTENSION;
         }
@@ -245,7 +266,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_EXTENSION:
         if (pctx->extIf)
         {
-            pctx->extIf->start(pctx->ext, localname);
+            pctx->extIf->start(pctx->extensionData, localname);
         }
         break;
 
@@ -274,6 +295,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
         enterUnknownState(pctx);
         break;
     case PARSER_STATE_UNKNOWN:
+        pctx->unknown_depth++;
+        break;
+    case PARSER_STATE_INVERSENAME:
         pctx->unknown_depth++;
         break;
     }
@@ -308,7 +332,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_DISPLAYNAME:
-        pctx->node->displayName = pctx->onCharacters;
+        Nodeset_DisplayNameFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_REFERENCES:
@@ -324,13 +349,13 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE))
         {
-            pctx->valIf->finish(pctx->val);
+            // Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }
         else
         {
-            pctx->valIf->end(pctx->val, localname, pctx->onCharacters);
+            Value_end(pctx->val, localname, pctx->onCharacters);
         }
         break;
     case PARSER_STATE_EXTENSION:
@@ -338,7 +363,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->finish(pctx->ext);
+                pctx->extIf->finish(pctx->extensionData);
             }
             pctx->state = PARSER_STATE_EXTENSIONS;
         }
@@ -346,7 +371,8 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         {
             if (pctx->extIf)
             {
-                pctx->extIf->end(pctx->ext, localname, pctx->onCharacters);
+                pctx->extIf->end(pctx->extensionData, localname,
+                                 pctx->onCharacters);
             }
         }
         break;
@@ -354,6 +380,13 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DESCRIPTION:
+        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
+        pctx->state = PARSER_STATE_NODE;
+        break;
+    case PARSER_STATE_INVERSENAME:
+        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node,
+                                  pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
@@ -384,7 +417,7 @@ static void OnCharacters(void *ctx, const char *ch, int len)
     }
     else
     {
-        CharArenaAllocator_malloc(pctx->nodeset->charArena, (size_t)len + 1);
+        pctx->onCharacters = CharArenaAllocator_realloc(pctx->nodeset->charArena, (size_t)len + 1);
     }
     memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
     pctx->onCharLength += (size_t)len;
@@ -435,12 +468,16 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 {
     if (fileHandler == NULL)
     {
-        printf("no filehandler - return\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: no filehandler - abort");
         return false;
     }
     if (fileHandler->addNamespace == NULL)
     {
-        printf("no fileHandler->addNamespace - return\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
     bool status = true;
@@ -454,7 +491,9 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if (!f)
     {
-        printf("file open error\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR,
+                            "NodesetLoader: file open error");
         status = false;
         goto cleanup;
     }
@@ -472,12 +511,12 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     ctx->onCharacters = NULL;
     ctx->onCharLength = 0;
     ctx->userContext = fileHandler->userContext;
-    ctx->valIf = fileHandler->valueHandling;
     ctx->extIf = fileHandler->extensionHandling;
 
     if (read_xmlfile(f, ctx))
     {
-        printf("xml read error\n");
+        loader->logger->log(loader->logger->context,
+                            NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
         status = false;
     }
 
@@ -495,9 +534,18 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new()
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
+    if (!logger)
+    {
+        loader->logger = InternalLogger_new();
+        loader->internalLogger = true;
+    }
+    else
+    {
+        loader->logger = logger;
+    }
     assert(loader);
     return loader;
 }
@@ -505,6 +553,10 @@ NodesetLoader *NodesetLoader_new()
 void NodesetLoader_delete(NodesetLoader *loader)
 {
     Nodeset_cleanup(loader->nodeset);
+    if (loader->internalLogger)
+    {
+        free(loader->logger);
+    }
     free(loader);
 }
 

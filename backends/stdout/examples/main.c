@@ -21,16 +21,8 @@ int main(int argc, char *argv[])
     FileContext handler;
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
-    ValueInterface valIf;
-    valIf.userContext = NULL;
-    valIf.newValue = Value_new;
-    valIf.start = Value_start;
-    valIf.end = Value_end;
-    valIf.finish = Value_finish;
-    valIf.deleteValue = Value_delete;
-    handler.valueHandling = &valIf;
 
-    NodesetLoader *loader = NodesetLoader_new();
+    NodesetLoader *loader = NodesetLoader_new(NULL);
 
     for (int cnt = 1; cnt < argc; cnt++)
     {

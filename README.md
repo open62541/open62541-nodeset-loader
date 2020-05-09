@@ -9,7 +9,9 @@ Automated test environment for quality insurance is set up, but has to be improv
 MPL2.0 https://github.com/matkonnerth/nodesetLoader/blob/master/LICENSE
 
 ## Current status
-Support for loading values with DataType from namespace 0 was added. Showcase is https://github.com/matkonnerth/openWrapper
+
+#### Backend open62541
+Support for loading values with datatypes from namespace 0 or custom namespacesd
 Support parsing of extensions (via a callback interface)
 
 ## dependencies
@@ -35,5 +37,7 @@ build with cmake option ENABLE_BACKEND_OPEN62541
 There is an example in the open backend, can be started with
 backends/open62541/examples/server <pathToNodeset>
 
+Here's an example repo, consuming open62541 and NodesetLoader via cmake find_package:
+https://github.com/matkonnerth/nodesetLoader_usage
 
 

@@ -1,5 +1,8 @@
-#pragma once
+#ifndef NODESETLOADER_NODESETLOADER_H
+#define NODESETLOADER_NODESETLOADER_H
+#include "Logger.h"
 #include "TNodeId.h"
+#include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -45,54 +48,103 @@ struct BiDirectionalReference
     TNodeId source;
     TNodeId target;
     TNodeId refType;
-    BiDirectionalReference* next;
+    BiDirectionalReference *next;
 };
 
-#define UA_NODE_ATTRIBUTES                                                     \
+struct TLocalizedText
+{
+    char* locale;
+    char* text;
+};
+typedef struct TLocalizedText TLocalizedText;
+
+#define NODE_ATTRIBUTES                                                        \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
     TBrowseName browseName;                                                    \
-    char *displayName;                                                         \
-    char *description;                                                         \
+    TLocalizedText displayName;                                                \
+    TLocalizedText description;                                                \
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
     Reference *nonHierachicalRefs;
 
 struct TNode
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
 };
 typedef struct TNode TNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *eventNotifier;
+    Reference *refToTypeDef;
 } TObjectNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     char *isAbstract;
 } TObjectTypeNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     char *isAbstract;
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
 } TVariableTypeNode;
 
-/* Value Handling */
-struct Value;
-typedef struct Value Value;
+struct Data;
+typedef struct Data Data;
+enum DataType
+{
+    DATATYPE_PRIMITIVE,
+    DATATYPE_COMPLEX,
+};
 
+typedef enum DataType DataType;
+
+struct PrimitiveData
+{
+    const char *value;
+};
+typedef struct PrimitiveData PrimitiveData;
+struct ComplexData
+{
+    size_t membersSize;
+    Data **members;
+};
+typedef struct ComplexData ComplexData;
+
+struct Data
+{
+    DataType type;
+    const char *name;
+    union
+    {
+        PrimitiveData primitiveData;
+        ComplexData complexData;
+    } val;
+    Data *parent;
+};
+
+struct ParserCtx;
+struct Value
+{
+    struct ParserCtx *ctx;
+    bool isArray;
+    bool isExtensionObject;
+    const char *type;
+    TNodeId typeId;
+    Data *data;
+};
+typedef struct Value Value;
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     TNodeId datatype;
     char *arrayDimensions;
@@ -100,6 +152,7 @@ typedef struct
     char *accessLevel;
     char *userAccessLevel;
     Value *value;
+    Reference* refToTypeDef;
 } TVariableNode;
 
 typedef struct
@@ -119,13 +172,14 @@ typedef struct
 
 typedef struct TDataTypeNode
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     DataTypeDefinition *definition;
+    char* isAbstract;
 } TDataTypeNode;
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *executable;
     char *userExecutable;
@@ -133,37 +187,20 @@ typedef struct
 
 typedef struct
 {
-    UA_NODE_ATTRIBUTES
+    NODE_ATTRIBUTES
+    TLocalizedText inverseName;
     char *symmetric;
 } TReferenceTypeNode;
 
-typedef void (*addNodeCb)(void *userContext, const TNode *);
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-typedef Value *(*newValueCb)(const TNode *node);
-typedef void (*startValueCb)(Value *val, const char *localname);
-typedef void (*endValueCb)(Value *val, const char *localname, char *value);
-typedef void (*finishValueCb)(Value *val);
-typedef void (*deleteValueCb)(Value **val);
 
-struct Extension;
-typedef struct Extension Extension;
 
-typedef Extension *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(Extension *ext, const char *localname);
-typedef void (*endExtensionCb)(Extension *val, const char *localname,
+typedef void *(*newExtensionCb)(const TNode *);
+typedef void (*startExtensionCb)(void *extensionData, const char *name);
+typedef void (*endExtensionCb)(void *extensionData, const char *name,
                                char *value);
-typedef void (*finishExtensionCb)(Extension *val);
-
-typedef struct
-{
-    void *userContext;
-    newValueCb newValue;
-    startValueCb start;
-    endValueCb end;
-    finishValueCb finish;
-    deleteValueCb deleteValue;
-} ValueInterface;
+typedef void (*finishExtensionCb)(void *extensionData);
 
 typedef struct
 {
@@ -179,22 +216,24 @@ typedef struct
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    ValueInterface *valueHandling;
     ExtensionInterface *extensionHandling;
 } FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-NodesetLoader *NodesetLoader_new(void);
-bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const FileContext *fileContext);
-void NodesetLoader_delete(NodesetLoader *loader);
-size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                              TNode ***nodes);
-const BiDirectionalReference* NodesetLoader_getBidirectionalRefs(const NodesetLoader* loader);
-bool NodesetLoader_sort(NodesetLoader *loader);
+LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger);
+LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
+                                            const FileContext *fileContext);
+LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
+LOADER_EXPORT size_t NodesetLoader_getNodes(const NodesetLoader *loader,
+                                            TNodeClass nodeClass,
+                                            TNode ***nodes);
+LOADER_EXPORT const BiDirectionalReference *
+NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
+LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
 
 #ifdef __cplusplus
 }
+#endif
 #endif

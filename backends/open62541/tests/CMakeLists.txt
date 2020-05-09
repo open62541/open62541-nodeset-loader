@@ -10,6 +10,12 @@ add_test(NAME namespaceZeroValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND namespaceZeroValues ${CMAKE_CURRENT_SOURCE_DIR}/namespaceZeroValues.xml)
 
+add_executable(customTypesWithValues customTypesWithValues.c)
+target_link_libraries(customTypesWithValues PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME customTypesWithValues_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND customTypesWithValues ${CMAKE_CURRENT_SOURCE_DIR}/customTypesWithValues.xml)
+
 add_executable(valueRank valueRank.c)
 target_link_libraries(valueRank PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
 add_test(NAME valueRank_Test
@@ -46,4 +52,22 @@ add_test(NAME multipleNamespaces_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND multipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/multipleNamespaces.xml)
 
-add_subdirectory(dataTypeImport)
+add_executable(structMultipleNamespaces structMultipleNamespaces.c)
+target_link_libraries(structMultipleNamespaces PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME structMultipleNamespaces_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND structMultipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/basestruct.xml ${CMAKE_CURRENT_SOURCE_DIR}/extendedstruct.xml)
+
+add_executable(nodeAttributes nodeAttributes.c)
+target_link_libraries(nodeAttributes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME nodeAttributes_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND nodeAttributes ${CMAKE_CURRENT_SOURCE_DIR}/nodeAttributes.xml)
+
+if(${ENABLE_DATATYPEIMPORT_TEST})
+    add_subdirectory(dataTypeImport)
+endif()
+
+if(${ENABLE_INTEGRATION_TEST})
+    add_subdirectory(integration)
+endif()

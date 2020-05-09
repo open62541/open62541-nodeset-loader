@@ -9,6 +9,8 @@ enable_testing()
 
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 option(ENABLE_ASAN off "build with address sanitizer enabled")
+option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
+option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
 
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
@@ -49,32 +51,39 @@ add_library(NodesetLoader SHARED
     src/nodes/Node.c
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c
-    src/TNodeId.c)
+    src/TNodeId.c
+    src/PrintfLogger.c
+    src/Value.c)
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
 target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
-target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
+target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
 
 add_subdirectory(tests)
 add_subdirectory(backends)
 
 #install
 set(NODESETLOADER_PUBLIC_HEADER 
-    include/NodesetLoader/NodesetLoader.h
-    include/NodesetLoader/TNodeId.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
 )
 
 if(${ENABLE_BACKEND_OPEN62541})
-    list(APPEND ${NODESETLOADER_PUBLIC_HEADER} "backends/open62541/include/NodesetLoader/backendOpen62541.h")
-    message(warning "add backendOpen")
+    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
 endif()
-message(warning ${NODESETLOADER_PUBLIC_HEADER})
+
 set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
 
 install(TARGETS NodesetLoader
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
+        EXPORT NodesetLoader
+        LIBRARY DESTINATION lib/NodesetLoader
+        ARCHIVE DESTINATION lib/NodesetLoader
         PUBLIC_HEADER DESTINATION include/NodesetLoader)
+install(FILES nodesetloader-config.cmake DESTINATION lib/NodesetLoader)
+
+install(EXPORT NodesetLoader DESTINATION lib/NodesetLoader)

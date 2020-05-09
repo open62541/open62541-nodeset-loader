@@ -2,6 +2,7 @@
 #include "DataTypeNode.h"
 #include <assert.h>
 #include <stdlib.h>
+#include "../Value.h"
 
 TNode *Node_new(TNodeClass nodeClass)
 {
@@ -51,6 +52,20 @@ void Node_delete(TNode *node)
     if (node->nodeClass == NODECLASS_DATATYPE)
     {
         DataTypeNode_clear((TDataTypeNode *)node);
+    }
+    if(node->nodeClass == NODECLASS_VARIABLE)
+    {
+        TVariableNode* varNode = (TVariableNode*)node;
+        free(varNode->refToTypeDef);
+        if(varNode->value)
+        {
+            Value_delete(varNode->value);
+        }
+    }
+    if(node->nodeClass==NODECLASS_OBJECT)
+    {
+        TObjectNode *objNode = (TObjectNode *)node;
+        free(objNode->refToTypeDef);
     }
     free(node);
 }

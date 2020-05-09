@@ -57,3 +57,22 @@ target_include_directories(compareStructExtended PRIVATE ${CMAKE_BINARY_DIR}/src
 add_test(NAME compareStructExtended_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareStructExtended "${CMAKE_CURRENT_SOURCE_DIR}/structExtended.xml")
+
+ua_generate_nodeset_and_datatypes(
+    NAME "specializedStruct"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.bsd"
+    NAMESPACE_IDX 3
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.xml"
+    DEPENDS "struct"
+    INTERNAL
+)
+
+add_executable(compareStructSpecialized compareStructSpecialized.c ${UA_TYPES_SPECIALIZEDSTRUCT_SOURCES} ${UA_TYPES_STRUCT_SOURCES})
+add_dependencies(compareStructSpecialized open62541-generator-ns-specializedStruct)
+target_link_libraries(compareStructSpecialized PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+target_include_directories(compareStructSpecialized PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+
+add_test(NAME compareStructSpecialized_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareStructSpecialized "${CMAKE_CURRENT_SOURCE_DIR}/struct.xml" "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.xml")

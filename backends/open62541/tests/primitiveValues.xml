@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/test/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://open62541.com/nodesetimport/tests/namespaceZeroValues</Uri>
+    </NamespaceUris>
+    <Aliases>
+        <Alias Alias="Int32">i=6</Alias>
+        <Alias Alias="UInt32">i=7</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="Argument">i=296</Alias>
+        <Alias Alias="HasDescription">i=39</Alias>
+        <Alias Alias="ServerStatusDataType">i=862</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="QualifiedName">i=20</Alias>
+    </Aliases>
+  <UAVariable NodeId="ns=1;i=1003" BrowseName="Double" DataType="i=11" ValueRank="-1">
+    <DisplayName>Double</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
+    </References>
+    <Value>
+      <Double>3.1415</Double>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=1004" BrowseName="UInt32Array" DataType="UInt32" ValueRank="1" ArrayDimensions="0">
+    <DisplayName>UInt32Array</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
+    </References>
+    <Value>
+      <ListOfUInt32>
+        <UInt32>120</UInt32>
+        <UInt32>130</UInt32>
+        <UInt32>140</UInt32>
+      </ListOfUInt32>
+    </Value>
+  </UAVariable>
+    <UAVariable NodeId="ns=1;i=1007" BrowseName="Localized" DataType="LocalizedText" ValueRank="-1">
+    <DisplayName>Localized</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
+    </References>
+    <Value>
+      <LocalizedText>
+        <Locale>en</Locale>
+        <Text>someText@42</Text>
+      </LocalizedText>
+    </Value>
+  </UAVariable>
+  <UAVariable NodeId="ns=1;i=1009" BrowseName="QualifiedName" DataType="QualifiedName" ValueRank="-1">
+    <DisplayName>QualifiedName</DisplayName>
+    <References>
+      <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+      <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
+    </References>
+    <Value>
+      <QualifiedName>
+        <NamespaceIndex>2</NamespaceIndex>
+        <Name>qualifiedName</Name>
+      </QualifiedName>
+    </Value>
+  </UAVariable>
+</UANodeSet>

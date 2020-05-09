@@ -25,14 +25,14 @@ struct AliasList;
 struct SortContext;
 struct Nodeset
 {
-    struct CharArena *charArena;
+    CharArenaAllocator *charArena;
     struct AliasList *aliasList;
     struct NodeContainer *nodes[NODECLASS_COUNT];
     struct NamespaceList *namespaces;
     size_t hierachicalRefsSize;
     TReferenceTypeNode *hierachicalRefs;
     struct SortContext *sortCtx;
-    BiDirectionalReference* hasEncodingRefs;
+    BiDirectionalReference *hasEncodingRefs;
 };
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback);
@@ -54,5 +54,15 @@ void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes);
-const BiDirectionalReference* Nodeset_getBiDirectionalRefs(const Nodeset* nodeset);
+void Nodeset_setDisplayName(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes);
+void Nodeset_DisplayNameFinish(const Nodeset *nodeset, TNode *node, char *text);
+void Nodeset_setDescription(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes);
+void Nodeset_DescriptionFinish(const Nodeset *nodeset, TNode *node, char *text);
+void Nodeset_setInverseName(Nodeset *nodeset, TNode *node, int attributeSize,
+                            const char **attributes);
+void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text);
+const BiDirectionalReference *
+Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
 #endif

@@ -41,6 +41,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -67,6 +71,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -93,6 +101,10 @@
               </DataType>
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
+              <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
             </Argument>
           </Body>
         </ExtensionObject>
@@ -108,6 +120,10 @@
                 </DataType>
                 <ValueRank>-1</ValueRank>
                 <ArrayDimensions />
+                <Description>
+                            <Locale>de</Locale>
+                            <Text>Argument1</Text>
+                        </Description>
                 </Argument>
             </Body>
         </ExtensionObject>

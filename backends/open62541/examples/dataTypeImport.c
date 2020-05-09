@@ -1,6 +1,6 @@
 #include <NodesetLoader/backendOpen62541.h>
 #include <assert.h>
-#include <dataTypes.h>
+#include <NodesetLoader/dataTypes.h>
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
@@ -55,8 +55,6 @@ void addStructWithArray(UA_Server *server)
         size_t size;
         UA_Int32 *data;
     };
-
-    printf("sizeo f structWithArray %d", sizeof(struct StructWithArray));
 
     UA_Int32 data[3] = {1, 2, 3};
     struct StructWithArray s;
