@@ -306,7 +306,7 @@ void Sort_addNode(SortContext *ctx, TNode *data)
 }
 
 bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
-                Sort_SortedNodeCallback callback)
+                Sort_SortedNodeCallback callback, NodesetLoader_Logger* logger)
 {
     walk_tree(ctx, ctx->root1, count_items);
 
@@ -340,7 +340,11 @@ bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
         }
         if (ctx->keyCnt > 0)
         {
-            printf("graph contains a loop\n");
+            if(logger)
+            {
+                logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                            "graph contains a loop, abort");
+            }            
             return false;
         }
     }
