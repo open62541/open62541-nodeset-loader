@@ -18,9 +18,9 @@ add_test(NAME import_testNodeset WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND p
 add_test(NAME import_Nodeset2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml)
 add_test(NAME import_DI WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Di.NodeSet2.xml)
-add_test(NAME import_PLCOpen WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml 
-                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Di.NodeSet2.xml
-                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Plc.NodeSet2.xml)
+#add_test(NAME import_PLCOpen WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml 
+#                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Di.NodeSet2.xml
+#                                ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.Plc.NodeSet2.xml)
 
 add_executable(allocator allocator.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/CharAllocator.c)
 target_include_directories(allocator PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../src)
