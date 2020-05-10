@@ -66,7 +66,8 @@ typedef struct TLocalizedText TLocalizedText;
     TLocalizedText description;                                                \
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
-    Reference *nonHierachicalRefs;
+    Reference *nonHierachicalRefs;                                             \
+    Reference *unknownRefs;
 
 struct TNode
 {
