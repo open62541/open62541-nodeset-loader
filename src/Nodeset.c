@@ -74,21 +74,25 @@ const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute attrLocale = {"Locale", NULL};
 
 TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
-    {NODECLASS_REFERENCETYPE,
-     {0, "i=35"},
-     {0, "Organizes"},
-     {NULL, NULL},
-     {NULL, NULL},
-     NULL,
-     NULL,
-     NULL,
-     {NULL, NULL},
-     NULL},
+    {
+        NODECLASS_REFERENCETYPE,
+        {0, "i=35"},
+        {0, "Organizes"},
+        {NULL, NULL},
+        {NULL, NULL},
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        {NULL, NULL},
+        NULL,
+    },
     {NODECLASS_REFERENCETYPE,
      {0, "i=36"},
      {0, "HasEventSource"},
      {NULL, NULL},
      {NULL, NULL},
+     NULL,
      NULL,
      NULL,
      NULL,
@@ -102,6 +106,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     NULL,
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
@@ -109,6 +114,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {0, "Aggregates"},
      {NULL, NULL},
      {NULL, NULL},
+     NULL,
      NULL,
      NULL,
      NULL,
@@ -122,6 +128,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     NULL,
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
@@ -129,6 +136,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {0, "HasComponent"},
      {NULL, NULL},
      {NULL, NULL},
+     NULL,
      NULL,
      NULL,
      NULL,
@@ -142,6 +150,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL,
      NULL,
      NULL,
+     NULL,
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
@@ -149,6 +158,18 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {0, "HasEncoding"},
      {NULL, NULL},
      {NULL, NULL},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     {NULL, NULL},
+     NULL},
+    {NODECLASS_REFERENCETYPE,
+     {0, "i=33"},
+     {0, "HasEncoding"},
+     {NULL, NULL},
+     {NULL, NULL},
+     NULL,
      NULL,
      NULL,
      NULL,
@@ -230,29 +251,89 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
     return *alias;
 }
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger)
+Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
-    if(!nodeset)
+    if (!nodeset)
     {
         return NULL;
     }
     nodeset->aliasList = AliasList_new();
     nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024);
-    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000);
-    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000);
-    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(1000);
-    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(100);
-    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(100);
-    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(100);
-    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100);
+    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000, true);
+    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000, true);
+    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(1000, true);
+    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(100, true);
+    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(100, true);
+    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(100, true);
+    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100, true);
+    nodeset->nodesWithUnknownRefs = NodeContainer_new(100, false);
+    nodeset->refTypesWithUnknownRefs = NodeContainer_new(100, false);
+    nodeset->nonHierachicalRefs = NodeContainer_new(100, false);
     // known hierachical refs
     nodeset->hierachicalRefs = hierachicalRefs;
-    nodeset->hierachicalRefsSize = 8;
+    nodeset->hierachicalRefsSize = 9;
     nodeset->sortCtx = Sort_init();
     nodeset->logger = logger;
     return nodeset;
+}
+
+static void addToRefTypes(Nodeset *nodeset, TNode *node)
+{
+    Reference *ref = node->hierachicalRefs;
+    bool isHierachical = false;
+    while (ref)
+    {
+        if (!ref->isForward)
+        {
+            for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
+            {
+                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id, &ref->target))
+                {
+                    nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
+                        *(TReferenceTypeNode *)node;
+                    isHierachical = true;
+                    break;
+                }
+            }
+        }
+        ref = ref->next;
+    }
+    if (!isHierachical)
+    {
+        NodeContainer_add(nodeset->nonHierachicalRefs, node);
+    }
+}
+static bool isNonHierachicalRef(Nodeset *nodeset, const Reference *ref)
+{
+    // TODO: nonHierachicalrefs should also be imported first
+    // we state that we know all references from namespace 0
+    if (ref->refType.nsIdx == 0)
+    {
+        return true;
+    }
+    for (size_t i = 0; i < nodeset->nonHierachicalRefs->size; i++)
+    {
+        if (!TNodeId_cmp(&ref->refType,
+                         &nodeset->nonHierachicalRefs->nodes[i]->id))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
+{
+    for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
+    {
+        if (!TNodeId_cmp(&ref->refType, &nodeset->hierachicalRefs[i].id))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
@@ -260,9 +341,65 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
     NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
+static bool lookupUnknownReferences(Nodeset *nodeset, TNode *node)
+{
+    while (node->unknownRefs)
+    {
+        Reference *next = node->unknownRefs->next;
+        if (isHierachicalReference(nodeset, node->unknownRefs))
+        {
+            node->unknownRefs->next = node->hierachicalRefs;
+            node->hierachicalRefs = node->unknownRefs;
+            node->unknownRefs = next;
+            continue;
+        }
+        if (isNonHierachicalRef(nodeset, node->unknownRefs))
+        {
+            node->unknownRefs->next = node->nonHierachicalRefs;
+            node->nonHierachicalRefs = node->unknownRefs;
+            node->unknownRefs = next;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+
+static void lookupReferenceTypes(Nodeset *nodeset)
+{
+    bool allRefTypesKnown = false;
+    while (!allRefTypesKnown)
+    {
+        allRefTypesKnown = true;
+        for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++)
+        {
+            allRefTypesKnown = lookupUnknownReferences(
+                nodeset, nodeset->refTypesWithUnknownRefs->nodes[i]);
+        }
+    }
+
+    for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++)
+    {
+        Sort_addNode(nodeset->sortCtx,
+                     nodeset->refTypesWithUnknownRefs->nodes[i]);
+    }
+}
+
 bool Nodeset_sort(Nodeset *nodeset)
 {
-    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode, nodeset->logger);
+    // first we have to figure out, if there are reference types, for which we
+    // cannot state if they are hierachical or nonhierachical
+    lookupReferenceTypes(nodeset);
+    // all hierachical should be known at this point
+    for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++)
+    {
+        assert(lookupUnknownReferences(
+            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]));
+        Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
+    }
+
+    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode,
+                      nodeset->logger);
 }
 
 size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes)
@@ -279,6 +416,9 @@ void Nodeset_cleanup(Nodeset *nodeset)
     {
         NodeContainer_delete(nodeset->nodes[cnt]);
     }
+    NodeContainer_delete(nodeset->nodesWithUnknownRefs);
+    NodeContainer_delete(nodeset->nonHierachicalRefs);
+    NodeContainer_delete(nodeset->refTypesWithUnknownRefs);
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
     BiDirectionalReference *ref = nodeset->hasEncodingRefs;
@@ -289,18 +429,6 @@ void Nodeset_cleanup(Nodeset *nodeset)
         ref = tmp;
     }
     free(nodeset);
-}
-
-static bool isHierachicalReference(Nodeset *nodeset, const Reference *ref)
-{
-    for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
-    {
-        if (!TNodeId_cmp(&ref->refType, &nodeset->hierachicalRefs[i].id))
-        {
-            return true;
-        }
-    }
-    return false;
 }
 
 static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
@@ -422,25 +550,6 @@ TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
     return node;
 }
 
-static bool isKnownReferenceType(Nodeset *nodeset, const TNodeId *refTypeId)
-{
-    // we state that we know all references from namespace 0
-    if (refTypeId->nsIdx == 0)
-    {
-        return true;
-    }
-    for (size_t i = 0; i < nodeset->nodes[NODECLASS_REFERENCETYPE]->size; i++)
-    {
-        if (!TNodeId_cmp(
-                refTypeId,
-                &nodeset->nodes[NODECLASS_REFERENCETYPE]->nodes[i]->id))
-        {
-            return true;
-        }
-    }
-    return false;
-}
-
 Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
                                 int attributeSize, const char **attributes)
 {
@@ -454,7 +563,6 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     {
         newRef->isForward = false;
     }
-    // TODO: should we check if its an alias
     char *aliasIdString = getAttributeValue(nodeset, &attrReferenceType,
                                             attributes, attributeSize);
 
@@ -467,27 +575,28 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         return newRef;
     }
 
-    if(NODECLASS_OBJECT == node->nodeClass && !strcmp("i=40", newRef->refType.id))
+    if (NODECLASS_OBJECT == node->nodeClass &&
+        !strcmp("i=40", newRef->refType.id))
     {
-        ((TObjectNode*)node)->refToTypeDef = newRef;
+        ((TObjectNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
-    bool isKnownRef = isKnownReferenceType(nodeset, &newRef->refType);
-    // TODO: we have to check later on, if it's really a hierachical reference
-    // type, otherwise the reference should be marked as non hierachical
-    if (isHierachicalReference(nodeset, newRef) || !isKnownRef)
+    if (isHierachicalReference(nodeset, newRef))
     {
-        Reference *lastRef = node->hierachicalRefs;
+        newRef->next = node->hierachicalRefs;
         node->hierachicalRefs = newRef;
-        newRef->next = lastRef;
+        return newRef;
     }
-    else
+    if (isNonHierachicalRef(nodeset, newRef))
     {
-        Reference *lastRef = node->nonHierachicalRefs;
+        newRef->next = node->nonHierachicalRefs;
         node->nonHierachicalRefs = newRef;
-        newRef->next = lastRef;
+        return newRef;
     }
+
+    newRef->next = node->unknownRefs;
+    node->unknownRefs = newRef;
     return newRef;
 }
 
@@ -510,33 +619,26 @@ void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
     NamespaceList_newNamespace(nodeset->namespaces, userContext, namespaceUri);
 }
 
-static void addIfHierachicalReferenceType(Nodeset *nodeset, TNode *node)
-{
-    Reference *ref = node->hierachicalRefs;
-    while (ref)
-    {
-        if (!ref->isForward)
-        {
-            for (size_t i = 0; i < nodeset->hierachicalRefsSize; i++)
-            {
-                if (!TNodeId_cmp(&nodeset->hierachicalRefs[i].id, &ref->target))
-                {
-                    nodeset->hierachicalRefs[nodeset->hierachicalRefsSize++] =
-                        *(TReferenceTypeNode *)node;
-                    break;
-                }
-            }
-        }
-        ref = ref->next;
-    }
-}
-
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 {
-    Sort_addNode(nodeset->sortCtx, node);
-    if (node->nodeClass == NODECLASS_REFERENCETYPE)
+    if (!node->unknownRefs)
     {
-        addIfHierachicalReferenceType(nodeset, node);
+        Sort_addNode(nodeset->sortCtx, node);
+        if (node->nodeClass == NODECLASS_REFERENCETYPE)
+        {
+            addToRefTypes(nodeset, node);
+        }
+    }
+    else
+    {
+        if (node->nodeClass == NODECLASS_REFERENCETYPE)
+        {
+            NodeContainer_add(nodeset->refTypesWithUnknownRefs, node);
+        }
+        else
+        {
+            NodeContainer_add(nodeset->nodesWithUnknownRefs, node);
+        }
     }
 }
 

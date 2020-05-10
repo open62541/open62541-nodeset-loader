@@ -34,6 +34,9 @@ struct Nodeset
     struct SortContext *sortCtx;
     BiDirectionalReference *hasEncodingRefs;
     NodesetLoader_Logger* logger;
+    struct NodeContainer *nodesWithUnknownRefs;
+    struct NodeContainer *refTypesWithUnknownRefs;
+    struct NodeContainer *nonHierachicalRefs;
 };
 
 Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger);
