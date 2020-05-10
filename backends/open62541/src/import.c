@@ -97,17 +97,6 @@ handleMethodNode(const TMethodNode *node, UA_NodeId *id,
 
     UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn,
                             attr, NULL, 0, NULL, 0, NULL, NULL, NULL);
-    Reference *ref = node->nonHierachicalRefs;
-    while (ref)
-    {
-        UA_NodeId refId = getReferenceTypeId(ref);
-        UA_ExpandedNodeId eid;
-        eid.nodeId = getReferenceTarget(ref);
-        eid.namespaceUri = UA_STRING_NULL;
-        eid.serverIndex = 0;
-        UA_Server_addReference(server, *id, refId, eid, ref->isForward);
-        ref = ref->next;
-    }
 }
 
 static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
