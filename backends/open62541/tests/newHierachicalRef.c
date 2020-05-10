@@ -31,21 +31,37 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-START_TEST(import_ValueRank)
+START_TEST(loadNodeset)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+}
+END_TEST
 
-    UA_NodeClass refTypeClass = UA_NODECLASS_DATATYPE;
-    UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 4002), &refTypeClass);
-    ck_assert(UA_NODECLASS_REFERENCETYPE == refTypeClass);
+START_TEST(newHierachicalRef)
+{
+    ck_assert(UA_NODECLASS_REFERENCETYPE ==
+              getNodeClass(server, UA_NODEID_NUMERIC(2, 4002)));
 
-    UA_Server_readNodeClass(server, UA_NODEID_NUMERIC(2, 5002), &refTypeClass);
-    ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
+    ck_assert(UA_NODECLASS_OBJECT == getNodeClass(server, UA_NODEID_NUMERIC(2, 5002)));
 
-    UA_StatusCode status = UA_Server_readNodeClass(
-        server, UA_NODEID_NUMERIC(2, 5003), &refTypeClass);
-    ck_assert(UA_STATUSCODE_GOOD == status);
-    ck_assert(UA_NODECLASS_OBJECT == refTypeClass);
+    ck_assert(UA_NODECLASS_OBJECT ==
+              getNodeClass(server, UA_NODEID_NUMERIC(2, 5004)));
+
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5004),
+                           UA_NODEID_NUMERIC(2, 5002),
+                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_INVERSE));
+
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5002),
+                           UA_NODEID_NUMERIC(2, 5004),
+                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
+// check if node is also added, if there's no hierachical reference on it
+START_TEST(noHierachicalRef)
+{
+    ck_assert(UA_NODECLASS_OBJECT ==
+              getNodeClass(server, UA_NODEID_NUMERIC(2, 5003)));
 }
 END_TEST
 
@@ -54,7 +70,9 @@ static Suite *testSuite_Client(void)
     Suite *s = suite_create("newHierachicalReference");
     TCase *tc_server = tcase_create("newHierachicalReference");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, import_ValueRank);
+    tcase_add_test(tc_server, loadNodeset);
+    tcase_add_test(tc_server, newHierachicalRef);
+    tcase_add_test(tc_server, noHierachicalRef);
     suite_add_tcase(s, tc_server);
     return s;
 }
