@@ -9,8 +9,16 @@
 #define LOADER_EXPORT /* fallback to default */
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 struct UA_Server;
-LOADER_EXPORT const struct UA_DataType *getCustomDataType(struct UA_Server *server,
-                                            const UA_NodeId *typeId);
+LOADER_EXPORT const struct UA_DataType *
+getCustomDataType(struct UA_Server *server, const UA_NodeId *typeId);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
