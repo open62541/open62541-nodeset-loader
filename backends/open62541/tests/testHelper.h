@@ -47,3 +47,48 @@ void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2)
         cnt++;
     }
 }
+
+UA_NodeClass getNodeClass(UA_Server* server, const UA_NodeId id)
+{
+    UA_NodeClass nodeClass = UA_NODECLASS_UNSPECIFIED;
+    UA_StatusCode status =
+        UA_Server_readNodeClass(server, id, &nodeClass);
+    ck_assert(UA_STATUSCODE_GOOD == status);
+    return nodeClass;
+}
+
+UA_Boolean hasReference(UA_Server* server, const UA_NodeId src, const UA_NodeId target, const UA_NodeId refType, UA_BrowseDirection dir)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.referenceTypeId = refType;
+    bd.browseDirection = dir;
+    bd.resultMask = UA_BROWSERESULTMASK_ALL;
+    bd.nodeId = src;
+    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
+    ck_assert(br.statusCode == UA_STATUSCODE_GOOD);
+    ck_assert(br.referencesSize == 1);
+    UA_Boolean targetMatches = UA_NodeId_equal(&target, &br.references[0].nodeId.nodeId);
+    UA_BrowseResult_clear(&br);
+    return targetMatches;
+}
+
+
+UA_NodeId getTypeDefinitionId(UA_Server *s, const UA_NodeId targetId)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.browseDirection = UA_BROWSEDIRECTION_FORWARD;
+    bd.includeSubtypes = UA_FALSE;
+    bd.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
+    bd.nodeId = targetId;
+    bd.resultMask = UA_BROWSERESULTMASK_TYPEDEFINITION;
+    UA_BrowseResult br = UA_Server_browse(s, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
+    {
+        return UA_NODEID_NULL;
+    }
+    UA_NodeId id = br.references->nodeId.nodeId;
+    UA_BrowseResult_clear(&br);
+    return id;
+}
