@@ -6,6 +6,8 @@
 #include <stdlib.h>
 
 #include "open62541/namespace_integration_test_di_generated.h"
+#include "open62541/namespace_integration_test_euromap_77_generated.h"
+#include "open62541/namespace_integration_test_euromap_83_generated.h"
 #include "open62541/namespace_integration_test_plc_generated.h"
 
 using namespace std;
@@ -45,6 +47,25 @@ int main()
         UA_Server_delete(server);
         return EXIT_FAILURE;
     }
+    retval |= namespace_integration_test_euromap_83_generated(server);
+    if (retval != UA_STATUSCODE_GOOD)
+    {
+        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                     "Adding the Euromap83 namespace failed. Please check "
+                     "previous error output.");
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+    retval |= namespace_integration_test_euromap_77_generated(server);
+    if (retval != UA_STATUSCODE_GOOD)
+    {
+        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                     "Adding the Euromap77 namespace failed. Please check "
+                     "previous error output.");
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+
     retval = UA_Server_run(server, &running);
 
     UA_Server_delete(server);

@@ -1,4 +1,5 @@
 #include "browse_utils.h"
+#include "operator_ov.h"
 #include "sort_utils.h"
 #include <algorithm>
 #include <cassert>
@@ -79,7 +80,7 @@ UA_Boolean BrowseReferences(UA_Client *pClient, const UA_NodeId &Id,
     }
     else
     {
-        cout << "Error BrowseReferences failed" << endl;
+        cout << "Error BrowseReferences failed. Id = " << Id << endl;
         ret = UA_FALSE;
     }
 

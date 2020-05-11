@@ -23,9 +23,36 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
+# generate euromap83 namespace which is using DI
+ua_generate_nodeset_and_datatypes(
+    NAME "integration_test_euromap_83"
+    FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
+    FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
+    IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
+    NAMESPACE_IDX 4
+    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
+    DEPENDS "integration_test_di"
+    INTERNAL
+)
+
+# generate euromap77 namespace which is using euromap83
+ua_generate_nodeset_and_datatypes(
+    NAME "integration_test_euromap_77"
+    FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.csv"
+    FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.bsd"
+    IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
+    NAMESPACE_IDX 5
+    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
+    DEPENDS "integration_test_euromap_83"
+    INTERNAL
+)
+
+
 add_executable(referenceServer server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES}
-    ${UA_NODESET_INTEGRATION_TEST_PLC_SOURCES} ${UA_TYPES_INTEGRATION_TEST_PLC_SOURCES})
+    ${UA_NODESET_INTEGRATION_TEST_PLC_SOURCES} ${UA_TYPES_INTEGRATION_TEST_PLC_SOURCES}
+    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_83_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_83_SOURCES}
+    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_77_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_77_SOURCES})
 target_link_libraries(referenceServer PRIVATE open62541::open62541)
 target_include_directories(referenceServer PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 

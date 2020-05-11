@@ -55,8 +55,12 @@ fi
 
 echo ""
 echo "Start test server"
-"$TEST_SERVER_BINARY_PATH" "$NODESET_PATH_OPEN62541/DI/Opc.Ua.Di.NodeSet2.xml" \
-    "$NODESET_PATH_OPEN62541/PLCopen/Opc.Ua.Plc.NodeSet2.xml" > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
+"$TEST_SERVER_BINARY_PATH" \
+    "$NODESET_PATH_OPEN62541/DI/Opc.Ua.Di.NodeSet2.xml" \
+    "$NODESET_PATH_OPEN62541/PLCopen/Opc.Ua.Plc.NodeSet2.xml" \
+    "$NODESET_PATH_BACKEND_TESTS/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml" \
+    "$NODESET_PATH_BACKEND_TESTS/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml" \
+    > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
 TestServerPID=$!
 
 echo "Start client: connect to test server"
