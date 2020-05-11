@@ -48,7 +48,7 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="JVbBNRVE0HveC+/MKqts0w==" Version="1.6.3"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="OSD/clpTcS8PZcm/YPrT9A==" Version="1.6.3"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3004" BrowseName="1:IMMMessageClassificationEnumeration">
@@ -851,8 +851,8 @@
         <DisplayName>InjectionUnits</DisplayName>
         <Description>Container for the injection units</Description>
         <References>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1007</Reference>
             <Reference ReferenceType="HasTypeDefinition">ns=1;i=1016</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1007</Reference>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6056</Reference>
         </References>
@@ -903,11 +903,11 @@
             <Reference ReferenceType="HasProperty">ns=1;i=6087</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6088</Reference>
             <Reference ReferenceType="GeneratesEvent">ns=2;i=1025</Reference>
-            <Reference ReferenceType="HasComponent">ns=1;i=7019</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=7019</Reference>
         </References>
     </UAObject>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6035" BrowseName="2:ContinueAtJobEnd" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6035" BrowseName="2:ContinueAtJobEnd" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ContinueAtJobEnd</DisplayName>
         <Description>Indication if the machine continues the production even if the nominal output has been reached</Description>
         <References>
@@ -931,13 +931,13 @@
             <uax:String></uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="Duration" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6175" BrowseName="2:ExpectedCycleTime" AccessLevel="3">
+    <UAVariable DataType="Duration" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6175" BrowseName="2:ExpectedCycleTime" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ExpectedCycleTime</DisplayName>
         <Description>Calculated cycle time for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -985,27 +985,27 @@
         <DisplayName>MouldId</DisplayName>
         <Description>Id of the Mould used for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6177" BrowseName="2:NominalBoxParts" AccessLevel="3">
+    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6177" BrowseName="2:NominalBoxParts" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>NominalBoxParts</DisplayName>
         <Description>Number of parts that shall be put into one box</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
         </Value>
     </UAVariable>
-    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6003" BrowseName="2:NominalParts" AccessLevel="3">
+    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5002" NodeId="ns=1;i=6003" BrowseName="2:NominalParts" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>NominalParts</DisplayName>
         <Description>Total number (sum of all cavities) of parts that shall be produced by the job</Description>
         <References>
@@ -1022,9 +1022,9 @@
         <DisplayName>NumCavities</DisplayName>
         <Description>Number of cavities in the Mould used for production</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:UInt32>0</uax:UInt32>
@@ -1364,9 +1364,9 @@
         <DisplayName>AverageCycleTime</DisplayName>
         <Description>Average cycle time</Description>
         <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -1377,8 +1377,8 @@
         <Description>Number of bad parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1389,8 +1389,8 @@
         <Description>Number of finished cycles for the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1401,20 +1401,20 @@
         <Description>Number of good parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5013" NodeId="ns=1;i=6196" BrowseName="2:BoxId" AccessLevel="3">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5013" NodeId="ns=1;i=6196" BrowseName="2:BoxId" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>BoxId</DisplayName>
         <Description>Id of the box in which the current production is put in</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
@@ -1425,8 +1425,8 @@
         <Description>Total number of parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1437,14 +1437,14 @@
         <Description>Number of test sample parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5013" NodeId="ns=1;i=6133" BrowseName="2:CurrentLotName" AccessLevel="3">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5013" NodeId="ns=1;i=6133" BrowseName="2:CurrentLotName" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>CurrentLotName</DisplayName>
         <Description>Name of the current production lot</Description>
         <References>
@@ -1561,8 +1561,8 @@
         <Description>Id(s) of the parts produced in the recently finished cycle</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:ListOfString>
@@ -1575,8 +1575,8 @@
         <Description>Number of finished cycles in the machine life time</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1647,7 +1647,7 @@
             <Reference ReferenceType="HasComponent">ns=1;i=7026</Reference>
         </References>
     </UAObject>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6096" BrowseName="2:ContinueAtJobEnd" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6096" BrowseName="2:ContinueAtJobEnd" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ContinueAtJobEnd</DisplayName>
         <Description>Indication if the machine continues the production even if the nominal output has been reached</Description>
         <References>
@@ -1671,13 +1671,13 @@
             <uax:String></uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="Duration" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6202" BrowseName="2:ExpectedCycleTime" AccessLevel="3">
+    <UAVariable DataType="Duration" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6202" BrowseName="2:ExpectedCycleTime" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ExpectedCycleTime</DisplayName>
         <Description>Calculated cycle time for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -1725,27 +1725,27 @@
         <DisplayName>MouldId</DisplayName>
         <Description>Id of the Mould used for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6204" BrowseName="2:NominalBoxParts" AccessLevel="3">
+    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6204" BrowseName="2:NominalBoxParts" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>NominalBoxParts</DisplayName>
         <Description>Number of parts that shall be put into one box</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
         </Value>
     </UAVariable>
-    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6094" BrowseName="2:NominalParts" AccessLevel="3">
+    <UAVariable DataType="UInt64" ParentNodeId="ns=1;i=5019" NodeId="ns=1;i=6094" BrowseName="2:NominalParts" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>NominalParts</DisplayName>
         <Description>Total number (sum of all cavities) of parts that shall be produced by the job</Description>
         <References>
@@ -1762,9 +1762,9 @@
         <DisplayName>NumCavities</DisplayName>
         <Description>Number of cavities in the Mould used for production</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:UInt32>0</uax:UInt32>
@@ -2252,7 +2252,7 @@
             </uax:ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6029" BrowseName="2:LocationName" AccessLevel="3">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6029" BrowseName="2:LocationName" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>LocationName</DisplayName>
         <Description>Description of the location of the machine given by the machine operator or OPC client</Description>
         <References>
@@ -2326,7 +2326,7 @@
             </uax:ListOfExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable DataType="TimeZoneDataType" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6033" BrowseName="2:TimeZoneOffset" AccessLevel="3">
+    <UAVariable DataType="TimeZoneDataType" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6033" BrowseName="2:TimeZoneOffset" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>TimeZoneOffset</DisplayName>
         <Description>Difference of the local time to Coordinated Universal Time (UTC) given by the machine operator or OPC client</Description>
         <References>
@@ -2348,7 +2348,7 @@
             </uax:ExtensionObject>
         </Value>
     </UAVariable>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6034" BrowseName="2:UserMachineName" AccessLevel="3">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5005" NodeId="ns=1;i=6034" BrowseName="2:UserMachineName" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>UserMachineName</DisplayName>
         <Description>Description of the machine given by the machine operator or OPC client</Description>
         <References>
@@ -2534,7 +2534,7 @@
             <Reference ReferenceType="HasProperty">ns=1;i=6044</Reference>
         </References>
     </UAObject>
-    <UAVariable DataType="String" ParentNodeId="ns=1;i=5009" NodeId="ns=1;i=6085" BrowseName="2:MESUrl" AccessLevel="3">
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5009" NodeId="ns=1;i=6085" BrowseName="2:MESUrl" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>MESUrl</DisplayName>
         <Description>URL to display a webpage generated by the MES in a web browser integrated in the machine</Description>
         <References>
@@ -2546,7 +2546,7 @@
             <uax:String>0</uax:String>
         </Value>
     </UAVariable>
-    <UAVariable DataType="StandstillReasonType" ParentNodeId="ns=1;i=5009" ValueRank="1" NodeId="ns=1;i=6043" BrowseName="2:StandstillReasons" AccessLevel="3">
+    <UAVariable DataType="StandstillReasonType" ParentNodeId="ns=1;i=5009" ValueRank="1" NodeId="ns=1;i=6043" BrowseName="2:StandstillReasons" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>StandstillReasons</DisplayName>
         <Description>List of the standstill reasons from which one is selected by the operator in the case of a standstill</Description>
         <References>
@@ -2555,7 +2555,7 @@
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5009</Reference>
         </References>
     </UAVariable>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5009" NodeId="ns=1;i=6044" BrowseName="2:StandstillReasonsLockedByMES" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5009" NodeId="ns=1;i=6044" BrowseName="2:StandstillReasonsLockedByMES" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>StandstillReasonsLockedByMES</DisplayName>
         <Description>Indication if the list StandstillReasons has been modified by the MES and may not be changed by the machine</Description>
         <References>
@@ -2687,7 +2687,7 @@
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
         </References>
     </UAMethod>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5015" NodeId="ns=1;i=6207" BrowseName="2:ProductionOnlyWithMES" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5015" NodeId="ns=1;i=6207" BrowseName="2:ProductionOnlyWithMES" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ProductionOnlyWithMES</DisplayName>
         <Description>Indication if production with the machine is only allowed when the MES is active</Description>
         <References>
@@ -2699,7 +2699,7 @@
             <uax:Boolean>false</uax:Boolean>
         </Value>
     </UAVariable>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5015" NodeId="ns=1;i=6046" BrowseName="2:ProductionReleasedByMES" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5015" NodeId="ns=1;i=6046" BrowseName="2:ProductionReleasedByMES" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>ProductionReleasedByMES</DisplayName>
         <Description>Indication if ProductionStatus may have the value PRODUCTION_4</Description>
         <References>
@@ -2752,8 +2752,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7027</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7027</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3062,12 +3062,12 @@
             <Reference ReferenceType="HasComponent">ns=1;i=7031</Reference>
         </References>
     </UAObject>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5007" NodeId="ns=1;i=6212" BrowseName="2:Frozen" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5007" NodeId="ns=1;i=6212" BrowseName="2:Frozen" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>Frozen</DisplayName>
         <Description>Indication if changes on the machine in the production dataset are allowed</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3116,16 +3116,16 @@
         <Description>Loads a production dataset from the file system of the machine to the control of the machine</Description>
         <References>
             <Reference ReferenceType="HasProperty">ns=1;i=6213</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAMethod>
     <UAVariable DataType="Argument" ParentNodeId="ns=1;i=7028" ValueRank="1" NodeId="ns=1;i=6213" ArrayDimensions="2" BrowseName="InputArguments">
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7028</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7028</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3168,8 +3168,8 @@
         <DisplayName>Modified</DisplayName>
         <Description>Indication if the production dataset has been changed after the last storage</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3189,8 +3189,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7031</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7031</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3293,12 +3293,12 @@
             <Reference ReferenceType="HasComponent">ns=1;i=7033</Reference>
         </References>
     </UAObject>
-    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5014" NodeId="ns=1;i=6217" BrowseName="2:Frozen" AccessLevel="3">
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5014" NodeId="ns=1;i=6217" BrowseName="2:Frozen" UserAccessLevel="3" AccessLevel="3">
         <DisplayName>Frozen</DisplayName>
         <Description>Indication if changes on the machine in the production dataset are allowed</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3347,16 +3347,16 @@
         <Description>Loads a production dataset from the file system of the machine to the control of the machine</Description>
         <References>
             <Reference ReferenceType="HasProperty">ns=1;i=6218</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAMethod>
     <UAVariable DataType="Argument" ParentNodeId="ns=1;i=7032" ValueRank="1" NodeId="ns=1;i=6218" ArrayDimensions="2" BrowseName="InputArguments">
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7032</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7032</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3399,8 +3399,8 @@
         <DisplayName>Modified</DisplayName>
         <Description>Indication if the production dataset has been changed after the last storage</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3420,8 +3420,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7033</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7033</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -5212,10 +5212,10 @@
     <UAObject SymbolicName="InjectionUnit__Nr_" ParentNodeId="ns=1;i=1016" NodeId="ns=1;i=5027" BrowseName="1:InjectionUnit_&lt;Nr>">
         <DisplayName>InjectionUnit_&lt;Nr></DisplayName>
         <References>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1028</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6018</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6157</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=1016</Reference>
-            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1028</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6178</Reference>
             <Reference ReferenceType="HasProperty">ns=1;i=6179</Reference>
             <Reference ReferenceType="HasComponent">ns=1;i=6180</Reference>
@@ -5715,6 +5715,11 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5021</Reference>
         </References>
+        <Value>
+            <uax:ListOfInt32>
+                <uax:Int32>0</uax:Int32>
+            </uax:ListOfInt32>
+        </Value>
     </UAVariable>
     <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5021" ValueRank="1" NodeId="ns=1;i=6158" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
         <DisplayName>StaticNumericNodeIdRange</DisplayName>
