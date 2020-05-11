@@ -1,36 +1,37 @@
 #!/bin/bash
 
 echo "START: backend integration test: open62541"
-
-if [[ $# -ne 6 ]] ; then
-    echo "Error: 6 script arguments needed: 'path to reference server' | 'path to test server' | 'path to open62541 nodesets' | 'path to local test nodesets' | path to client'"
+NoOfMandatoryArgs=4
+if [[ $# -lt $NoOfMandatoryArgs ]] ; then
+    echo "Error: At least " $NoOfMandatoryArgs " script arguments needed: 'path to client' 'client output path' 'path to reference server' 'path to test server'"
+    echo "Any additional arguments must be paths to nodesets for test server"
     exit 1
 fi
 
-REFERENCE_SERVER_BINARY_PATH="$1"
-TEST_SERVER_BINARY_PATH="$2"
-NODESET_PATH_OPEN62541="$3"
-NODESET_PATH_BACKEND_TESTS="$4"
-CLIENT_BINARY_PATH="$5"
-TEST_OUTPUT_DIR="$6"
+argv=("$@")
+argc=$#
+CLIENT_BINARY_PATH="${argv[0]}"
+TEST_OUTPUT_DIR="${argv[1]}"
+REFERENCE_SERVER_BINARY_PATH="${argv[2]}"
+TEST_SERVER_BINARY_PATH="${argv[3]}"
 
 mkdir -p "$TEST_OUTPUT_DIR"
-CLIENT_OUTPUT_FILE_PATH="$TEST_OUTPUT_DIR"
 
-echo "Path to reference server = " $REFERENCE_SERVER_BINARY_PATH
-echo "Path to test server = " $TEST_SERVER_BINARY_PATH
-echo "Nodeset path open62541 = " $NODESET_PATH_OPEN62541
-echo "Nodeset path backend tests = " $NODESET_PATH_BACKEND_TESTS
 echo "Path to client = " $CLIENT_BINARY_PATH
 echo "Path to test output = " $TEST_OUTPUT_DIR
+echo "Path to reference server = " $REFERENCE_SERVER_BINARY_PATH
+echo "Path to test server = " $TEST_SERVER_BINARY_PATH
 echo ""
 
+##################################################################
+# Reference server:
 echo "Start reference server"
 "$REFERENCE_SERVER_BINARY_PATH" > "$TEST_OUTPUT_DIR/referenceServerLog.txt" 2>&1 & disown
 ReferenceServerPID=$!
 
 echo "Start client: connect to reference server"
-"$CLIENT_BINARY_PATH" localhost 4840 "$TEST_OUTPUT_DIR/referenceServer.txt" > "$CLIENT_OUTPUT_FILE_PATH/clientLog_referenceServer.txt" 2>&1
+CLIENT_OUTPUT_FILE="$TEST_OUTPUT_DIR/clientLog_referenceServer.txt"
+"$CLIENT_BINARY_PATH" localhost 4840 "$TEST_OUTPUT_DIR/referenceServer.txt" > "$CLIENT_OUTPUT_FILE" 2>&1
 ClientResult=$?
 
 # kill the reference server
@@ -47,20 +48,29 @@ if [ $ClientResult -ne 0 ] ; then
     exit 1
 else
     # search for error messages within client log
-    if [ $(grep -riq error "$CLIENT_OUTPUT_FILE_PATH") ] ; then
-        echo "Errors have occurred while browsing the addressspace"
+    if [ $(grep -riq error "$CLIENT_OUTPUT_FILE") ] ; then
+        echo "Error: Browsing the addressspace failed"
         exit 1
     fi
 fi
 
+
+##################################################################
+# Test server:
 echo ""
-echo "Start test server"
-"$TEST_SERVER_BINARY_PATH" "$NODESET_PATH_OPEN62541/DI/Opc.Ua.Di.NodeSet2.xml" \
-    "$NODESET_PATH_OPEN62541/PLCopen/Opc.Ua.Plc.NodeSet2.xml" > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
+# get paths to nodesets (additional program arguments)
+NodeSetsToLoad=
+if [ $argc -gt $NoOfMandatoryArgs ] ; then 
+    NodeSetsToLoad=${argv[@]:$NoOfMandatoryArgs}
+fi
+
+echo "Start test server with nodesets: " $NodeSetsToLoad
+"$TEST_SERVER_BINARY_PATH" $NodeSetsToLoad > "$TEST_OUTPUT_DIR/testServerLog.txt" 2>&1 & disown
 TestServerPID=$!
 
 echo "Start client: connect to test server"
-"$CLIENT_BINARY_PATH" localhost 4841 "$TEST_OUTPUT_DIR/testServer.txt" > "$CLIENT_OUTPUT_FILE_PATH/clientLog_testServer.txt" 2>&1
+CLIENT_OUTPUT_FILE="$TEST_OUTPUT_DIR/clientLog_testServer.txt"
+"$CLIENT_BINARY_PATH" localhost 4841 "$TEST_OUTPUT_DIR/testServer.txt" > "$CLIENT_OUTPUT_FILE" 2>&1
 ClientResult=$?
 echo "Result of client:" $ClientResult
 
@@ -76,18 +86,20 @@ if [ $ClientResult -ne 0 ] ; then
     exit 1
 else
     # search for error messages within client log
-    if [ $(grep -riq error "$CLIENT_OUTPUT_FILE_PATH") ] ; then
-        echo "Errors have occurred while browsing the addressspace"
+    if [ $(grep -riq error "$CLIENT_OUTPUT_FILE") ] ; then
+        echo "Error: Browsing the addressspace failed"
         exit 1
     fi
 fi
 
+
+##################################################################
 echo "Compare results"
 diff "$TEST_OUTPUT_DIR/referenceServer.txt" "$TEST_OUTPUT_DIR/testServer.txt" > /dev/null
 if [ $? -ne 0 ] ; then
-    echo "Error: The address spaces of the servers do not match"
+    echo "Error: The addressspaces of the servers do not match"
     exit 1
 fi
 
-echo "Successful test!"
+echo "END: backend integration test: open62541: success"
 exit 0
