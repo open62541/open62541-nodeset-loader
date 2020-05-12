@@ -343,11 +343,14 @@ static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 
 static bool lookupUnknownReferences(Nodeset *nodeset, TNode *node)
 {
+    printf("in lookup UnknownReferences 1\n");
     while (node->unknownRefs)
     {
+        printf("in lookup UnknownReferences 2\n");
         Reference *next = node->unknownRefs->next;
         if (isHierachicalReference(nodeset, node->unknownRefs))
         {
+            printf("add to hierachical ref\n");
             node->unknownRefs->next = node->hierachicalRefs;
             node->hierachicalRefs = node->unknownRefs;
             node->unknownRefs = next;
@@ -367,6 +370,7 @@ static bool lookupUnknownReferences(Nodeset *nodeset, TNode *node)
 
 static void lookupReferenceTypes(Nodeset *nodeset)
 {
+    printf("in lookupReferenceTypes\n");
     bool allRefTypesKnown = false;
     while (!allRefTypesKnown)
     {
@@ -393,8 +397,13 @@ bool Nodeset_sort(Nodeset *nodeset)
     // all hierachical should be known at this point
     for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++)
     {
-        assert(lookupUnknownReferences(
-            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]));
+        bool result = lookupUnknownReferences(
+            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
+        if(!result)
+        {
+            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "node with unresolved reference");
+        }
+        assert(result);
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
     }
 
