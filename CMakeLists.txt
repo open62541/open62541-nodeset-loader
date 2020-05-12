@@ -61,6 +61,9 @@ target_include_directories(NodesetLoader
 target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
+if(${ENABLE_ASAN})
+    target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
+endif()
 
 add_subdirectory(tests)
 add_subdirectory(backends)
