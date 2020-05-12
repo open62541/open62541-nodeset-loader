@@ -393,8 +393,13 @@ bool Nodeset_sort(Nodeset *nodeset)
     // all hierachical should be known at this point
     for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++)
     {
-        assert(lookupUnknownReferences(
-            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]));
+        bool result = lookupUnknownReferences(
+            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
+        if(!result)
+        {
+            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "node with unresolved reference");
+        }
+        assert(result);
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
     }
 
