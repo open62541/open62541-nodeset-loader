@@ -390,9 +390,12 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node)
 {
-    importer->types->types = (UA_DataType *)realloc(
-        (void *)(uintptr_t)importer->types->types,
-        (importer->types->typesSize + 1) * sizeof(UA_DataType));
+    //TODO: can we to this in a more clever way?
+    if(!importer->types->types)
+    {
+        importer->types->types=(UA_DataType*)calloc(100, sizeof(UA_DataType));
+    }
+    assert(importer->types->typesSize<100);
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];

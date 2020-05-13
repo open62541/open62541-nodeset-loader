@@ -4,9 +4,9 @@
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
+#include <assert.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
-#include <assert.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -176,7 +176,6 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         const UA_DataTypeArray *types = config->customDataTypes;
 
         data = Value_getData(node->value, dataType, types->types);
-        
 
         if (data)
         {
@@ -187,7 +186,9 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
             printf("\t %p\n", data->mem);
             if (node->value->isArray)
             {
-                assert(data->offset == dataType->memSize * node->value->data->val.complexData.membersSize);
+                assert(data->offset ==
+                       dataType->memSize *
+                           node->value->data->val.complexData.membersSize);
                 UA_Variant_setArray(
                     &attr.value, data->mem,
                     node->value->data->val.complexData.membersSize, dataType);
@@ -195,19 +196,24 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
             else
             {
                 assert(data->offset <= dataType->memSize);
-                if(data->offset != dataType->memSize)
+                if (data->offset != dataType->memSize)
                 {
-                    printf("memsize mismatch %d, %d\n", dataType->typeId.namespaceIndex, dataType->typeId.identifier.numeric);
+                    printf("memsize mismatch %d, %d\n",
+                           dataType->typeId.namespaceIndex,
+                           dataType->typeId.identifier.numeric);
                 }
                 UA_Variant_setScalar(&attr.value, data->mem, dataType);
             }
         }
     }
     UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
-
-    UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
-                            *parentReferenceId, *qn, typeDefId, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL, NULL);
+    UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
+                              typeDefId, attr, NULL, NULL);
+    // UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id,
+    // *parentId,
+    //                        *parentReferenceId, *qn, typeDefId, &attr,
+    //                        &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL,
+    //                        NULL);
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
 }
@@ -508,5 +514,3 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     free(logger);
     return status;
 }
-
-

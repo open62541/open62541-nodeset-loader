@@ -279,6 +279,12 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
     {
         setStructure(value, type, data, customTypes);
     }
+    else
+    {
+        printf("typeKind: %d not handled\n", type->typeKind);
+        assert(false);
+    }
+    
 }
 
 static void setArray(const Value *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
