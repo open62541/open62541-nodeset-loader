@@ -144,6 +144,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
     attr.description = *description;
+    attr.historizing = isTrue(node->historizing);
 
     // euromap work around?
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
