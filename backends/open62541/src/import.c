@@ -6,6 +6,7 @@
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
+#include <assert.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -175,17 +176,29 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         const UA_DataTypeArray *types = config->customDataTypes;
 
         data = Value_getData(node->value, dataType, types->types);
+        
 
         if (data)
         {
+            UA_String s;
+            UA_String_init(&s);
+            UA_NodeId_print(id, &s);
+            printf("nodeId: %.*s", (int)s.length, s.data);
+            printf("\t %p\n", data->mem);
             if (node->value->isArray)
             {
+                assert(data->offset == dataType->memSize * node->value->data->val.complexData.membersSize);
                 UA_Variant_setArray(
                     &attr.value, data->mem,
                     node->value->data->val.complexData.membersSize, dataType);
             }
             else
             {
+                assert(data->offset <= dataType->memSize);
+                if(data->offset != dataType->memSize)
+                {
+                    printf("memsize mismatch %d, %d\n", dataType->typeId.namespaceIndex, dataType->typeId.identifier.numeric);
+                }
                 UA_Variant_setScalar(&attr.value, data->mem, dataType);
             }
         }

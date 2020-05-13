@@ -247,6 +247,12 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
         setPrimitiveValue(data, value->val.primitiveData.value,
                           (UA_DataTypeKind)type->typeKind, type->memSize);
     }
+    else if(type->typeKind == UA_DATATYPEKIND_BYTESTRING)
+    {
+        //handle like string
+        setPrimitiveValue(data, value->val.primitiveData.value,
+                          (UA_DataTypeKind)type->typeKind, type->memSize);
+    }
     else if (type->typeKind == UA_DATATYPEKIND_NODEID)
     {
         setNodeId(value, data);

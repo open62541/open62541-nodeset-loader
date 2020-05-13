@@ -37,6 +37,28 @@ int main(int argc, const char *argv[])
     }
 
     UA_StatusCode retval = UA_Server_run(server, &running);
+
+    // print the custom dataTypes
+    const UA_DataTypeArray *customTypesArray = pConfig->customDataTypes;
+    while (customTypesArray)
+    {
+        printf("typesStart: %p typesEnd: %p typesSize: %zu\n",
+               customTypesArray->types,
+               customTypesArray->types + customTypesArray->typesSize,
+               customTypesArray->typesSize);
+        for (const UA_DataType *type = customTypesArray->types;
+             type != customTypesArray->types + customTypesArray->typesSize;
+             type++)
+        {
+            UA_String s;
+            UA_String_init(&s);
+            UA_NodeId_print(&type->typeId, &s);
+            printf("type: %p typeId: %.*s ", type, (int)s.length, s.data);
+            printf("typeIndex: %d \n", type->typeIndex);
+        }
+        customTypesArray = customTypesArray->next;
+    }
+
     UA_Server_delete(server);
 
     return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
