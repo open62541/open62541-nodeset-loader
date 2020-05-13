@@ -301,9 +301,10 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     // type->typeName = node->browseName.name;
 }
 
-static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
+static void EnumDataType_init(const DataTypeImporter *importer,
+                              UA_DataType *enumType, const TDataTypeNode *node)
 {
-    enumType->typeIndex = UA_TYPES_INT32;
+    enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
     enumType->binaryEncodingId = 0;
     enumType->pointerFree = true;
@@ -389,9 +390,12 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node)
 {
-    importer->types->types = (UA_DataType *)realloc(
-        (void *)(uintptr_t)importer->types->types,
-        (importer->types->typesSize + 1) * sizeof(UA_DataType));
+    //TODO: can we to this in a more clever way?
+    if(!importer->types->types)
+    {
+        importer->types->types=(UA_DataType*)calloc(100, sizeof(UA_DataType));
+    }
+    assert(importer->types->typesSize<100);
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
@@ -400,7 +404,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
 
     if (node->definition && node->definition->isEnum)
     {
-        EnumDataType_init(type, node);
+        EnumDataType_init(importer, type, node);
     }
     else
     {
