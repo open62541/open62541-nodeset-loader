@@ -152,6 +152,7 @@ typedef struct
     char *valueRank;
     char *accessLevel;
     char *userAccessLevel;
+    char* historizing;
     Value *value;
     Reference* refToTypeDef;
 } TVariableNode;

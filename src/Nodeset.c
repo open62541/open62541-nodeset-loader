@@ -36,6 +36,7 @@ TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define ATTRIBUTE_DATATYPE "DataType"
 #define ATTRIBUTE_VALUERANK "ValueRank"
 #define ATTRIBUTE_ARRAYDIMENSIONS "ArrayDimensions"
+#define ATTRIBUTE_HISTORIZING "Historizing"
 // UAObject
 #define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
 // UAObjectType
@@ -72,6 +73,7 @@ const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute attrLocale = {"Locale", NULL};
+const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 
 TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {
@@ -501,6 +503,8 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
             nodeset, &attrAccessLevel, attributes, attributeSize);
         ((TVariableNode *)node)->userAccessLevel = getAttributeValue(
             nodeset, &attrUserAccessLevel, attributes, attributeSize);
+        ((TVariableNode *)node)->historizing = getAttributeValue(
+            nodeset, &attrHistorizing, attributes, attributeSize);
         break;
     }
     case NODECLASS_VARIABLETYPE:
