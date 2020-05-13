@@ -179,41 +179,22 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
 
         if (data)
         {
-            UA_String s;
-            UA_String_init(&s);
-            UA_NodeId_print(id, &s);
-            printf("nodeId: %.*s", (int)s.length, s.data);
-            printf("\t %p\n", data->mem);
             if (node->value->isArray)
             {
-                assert(data->offset ==
-                       dataType->memSize *
-                           node->value->data->val.complexData.membersSize);
                 UA_Variant_setArray(
                     &attr.value, data->mem,
                     node->value->data->val.complexData.membersSize, dataType);
             }
             else
             {
-                assert(data->offset <= dataType->memSize);
-                if (data->offset != dataType->memSize)
-                {
-                    printf("memsize mismatch %d, %d\n",
-                           dataType->typeId.namespaceIndex,
-                           dataType->typeId.identifier.numeric);
-                }
                 UA_Variant_setScalar(&attr.value, data->mem, dataType);
             }
         }
     }
     UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
-    UA_Server_addVariableNode(server, *id, *parentId, *parentReferenceId, *qn,
-                              typeDefId, attr, NULL, NULL);
-    // UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id,
-    // *parentId,
-    //                        *parentReferenceId, *qn, typeDefId, &attr,
-    //                        &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL,
-    //                        NULL);
+    UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
+                            *parentReferenceId, *qn, typeDefId, &attr,
+                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL, NULL);
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
 }
