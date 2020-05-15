@@ -73,6 +73,7 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
     UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
     oAttr.displayName = *lt;
     oAttr.description = *description;
+    oAttr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
 
     UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
 
