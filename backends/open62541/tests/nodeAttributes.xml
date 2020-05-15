@@ -141,7 +141,7 @@
             <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
         </References>
     </UAReferenceType>
-    <UAObject NodeId="ns=1;i=5003" BrowseName="1:ObjectWithDescription">
+    <UAObject NodeId="ns=1;i=5003" BrowseName="1:ObjectWithDescription" EventNotifier="1">
         <DisplayName>ObjectWithDescription</DisplayName>
         <Description Locale="de">Eine komplett unnötige Beschreibung, die nur Speicher braucht und sonst keine semantischen Infos mit sich bringt, der Standard will es aber so, darum machen wir es so ohne lange nachzudenken.</Description>
         <References>
