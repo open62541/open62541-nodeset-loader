@@ -304,6 +304,7 @@ START_TEST(EnumValueType)
     ck_assert(!strcmp(val->data->val.complexData.members[1]
                   ->val.complexData.members[1]
                   ->val.complexData.members[0]->name, "Text"));
+    Value_delete(val);
 }
 END_TEST
 
