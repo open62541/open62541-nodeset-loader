@@ -27,10 +27,11 @@ static void setup(void)
 
 static void teardown(void)
 {
-
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes; 
     UA_Server_delete(server);
+    cleanupCustomTypes(customTypes);
 }
 
 START_TEST(SubTypeOfInt32)
