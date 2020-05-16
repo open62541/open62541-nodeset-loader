@@ -103,11 +103,29 @@ START_TEST(Server_LoadNS0Values) {
 }
 END_TEST
 
+START_TEST(EnumValues)
+{
+    UA_Variant var;
+    // QualifiedName
+    UA_StatusCode retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 1010), &var);
+    ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
+    ck_assert(var.type->typeIndex == UA_TYPES_ENUMVALUETYPE);
+    UA_EnumValueType* enumVal = (UA_EnumValueType*)var.data;
+    ck_assert(enumVal[0].value==0);
+    ck_assert(enumVal[1].value==1);
+    ck_assert(!strncmp(enumVal[0].displayName.text.data, "LOG_ON", enumVal[0].displayName.text.length));
+    ck_assert(!strncmp(enumVal[1].displayName.text.data, "LOG_OFF",
+                       enumVal[1].displayName.text.length));
+    UA_Variant_clear(&var);
+}
+END_TEST
+
 static Suite *testSuite_Client(void) {
     Suite *s = suite_create("server nodeset import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, Server_LoadNS0Values);
+    tcase_add_test(tc_server, EnumValues);
     suite_add_tcase(s, tc_server);
     return s;
 }
