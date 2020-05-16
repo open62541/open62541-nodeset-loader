@@ -46,7 +46,7 @@ struct SortContext
 
 static node *new_node(const TNodeId *id)
 {
-    node *k = (node *)malloc(sizeof *k);
+    node *k = (node *)calloc(1, sizeof(node));
 
     k->id = id;
     k->left = k->right = NULL;

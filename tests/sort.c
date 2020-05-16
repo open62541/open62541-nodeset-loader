@@ -15,16 +15,21 @@ static void sortCallback(struct Nodeset* nodeset, TNode *node)
     sortedNodesCnt++;
 }
 
+static void initNode(TVariableNode* n)
+{
+    memset(n, 0, sizeof(TVariableNode));
+}
+
 START_TEST(singleNode) {
     sortedNodesCnt = 0;
     SortContext* ctx = Sort_init();
 
-    TNode a;
-    a.hierachicalRefs = NULL;
-    a.id.nsIdx = 0;
+    TVariableNode a;
+    initNode(&a);
     a.id.id = "nodeA";
+    a.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, &a);
+    Sort_addNode(ctx, (TNode *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 1);
     Sort_cleanup(ctx);
@@ -36,22 +41,22 @@ START_TEST(sortNodes) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TNode a;
-    a.hierachicalRefs = NULL;
-    a.id.nsIdx =0;
+    TVariableNode a;
+    initNode(&a);
     a.id.id = "nodeA";
-    TNode b;
-    b.hierachicalRefs = NULL;
-    b.id.nsIdx = 0;
+    a.nodeClass = NODECLASS_VARIABLE;
+    TVariableNode b;
+    initNode(&b);
     b.id.id = "nodeB";
-    TNode c;
-    c.hierachicalRefs = NULL;
-    c.id.nsIdx = 0;
+    b.nodeClass = NODECLASS_VARIABLE;
+    TVariableNode c;
+    initNode(&c);
     c.id.id = "nodeC";
+    c.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, &a);
-    Sort_addNode(ctx, &b);
-    Sort_addNode(ctx, &c);
+    Sort_addNode(ctx, (TNode*)&a);
+    Sort_addNode(ctx, (TNode *)&b);
+    Sort_addNode(ctx, (TNode *)&c);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==3);
     Sort_cleanup(ctx);
@@ -65,24 +70,24 @@ START_TEST(nodeWithRefs_1) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TNode a;
-
-    a.hierachicalRefs = NULL;
-    a.id.nsIdx=0;
+    TVariableNode a;
+    initNode(&a);
     a.id.id = "nodeA";
+    a.nodeClass = NODECLASS_VARIABLE;
 
     Reference ref;
     ref.isForward = false;
     ref.target = a.id;
     ref.next = NULL;
 
-    TNode b;
+    TVariableNode b;
+    initNode(&b);
     b.hierachicalRefs = &ref;
-    b.id.nsIdx = 0;
     b.id.id = "nodeB";
+    b.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, &b);
-    Sort_addNode(ctx, &a);
+    Sort_addNode(ctx, (TNode *)&b);
+    Sort_addNode(ctx, (TNode *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
@@ -98,10 +103,8 @@ START_TEST(nodeWithRefs_2) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TNode a;
-
-    a.hierachicalRefs = NULL;
-    a.id.nsIdx=0;
+    TVariableNode a;
+    initNode(&a);
     a.id.id = "nodeA";
 
     Reference ref;
@@ -109,13 +112,14 @@ START_TEST(nodeWithRefs_2) {
     ref.target = a.id;
     ref.next = NULL;
 
-    TNode b;
+    TVariableNode b;
+    initNode(&b);
     b.hierachicalRefs = &ref;
     b.id.nsIdx=0;
     b.id.id = "nodeB";
 
-    Sort_addNode(ctx, &a);
-    Sort_addNode(ctx, &b);
+    Sort_addNode(ctx, (TNode *)&a);
+    Sort_addNode(ctx, (TNode *)&b);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
@@ -131,11 +135,13 @@ START_TEST(cycleDetect) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TNode a;
+    TVariableNode a;
+    initNode(&a);
     a.id.nsIdx = 1;
     a.id.id = "nodeA";
 
-    TNode b;
+    TVariableNode b;
+    initNode(&b);
     b.id.id = "nodeB";
     b.id.nsIdx = 1;
 
@@ -153,8 +159,8 @@ START_TEST(cycleDetect) {
 
     b.hierachicalRefs = &ref_BToA;
 
-    Sort_addNode(ctx, &b);
-    Sort_addNode(ctx, &a);
+    Sort_addNode(ctx, (TNode *)&b);
+    Sort_addNode(ctx, (TNode *)&a);
     ck_assert(!Sort_start(ctx, NULL, sortCallback, NULL));
     Sort_cleanup(ctx);
 }
