@@ -95,7 +95,8 @@ fi
 
 ##################################################################
 echo "Compare results"
-diff "$TEST_OUTPUT_DIR/referenceServer.txt" "$TEST_OUTPUT_DIR/testServer.txt" > /dev/null
+#ignore spaces because of Euromap tests
+diff --ignore-trailing-space "$TEST_OUTPUT_DIR/referenceServer.txt" "$TEST_OUTPUT_DIR/testServer.txt" > /dev/null
 if [ $? -ne 0 ] ; then
     echo "Error: The addressspaces of the servers do not match"
     exit 1
