@@ -106,7 +106,6 @@ END_TEST
 START_TEST(EnumValues)
 {
     UA_Variant var;
-    // QualifiedName
     UA_StatusCode retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 1010), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type->typeIndex == UA_TYPES_ENUMVALUETYPE);
