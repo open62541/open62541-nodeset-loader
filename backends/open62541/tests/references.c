@@ -55,6 +55,32 @@ START_TEST(forwardReferences)
 }
 END_TEST
 
+START_TEST(forwardReferences_otherWayRound)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7002)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7003)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 7002), UA_NODEID_NUMERIC(2, 7003),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
+START_TEST(forwardReferences_EURange)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7002)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7005)) ==
+              UA_NODECLASS_VARIABLE);
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 7002), UA_NODEID_NUMERIC(2, 7005),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("newHierachicalReference");
@@ -62,6 +88,8 @@ static Suite *testSuite_Client(void)
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, references_typeDefinitionId);
     tcase_add_test(tc_server, forwardReferences);
+    tcase_add_test(tc_server, forwardReferences_otherWayRound);
+    tcase_add_test(tc_server, forwardReferences_EURange);
     suite_add_tcase(s, tc_server);
     return s;
 }
