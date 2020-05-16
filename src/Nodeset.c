@@ -654,7 +654,7 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
 void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
                                 char *targetId)
 {
-    ref->target = extractNodedId(nodeset->namespaces, targetId);
+    ref->target = alias2Id(nodeset, targetId);
     // handle hasEncoding in a special way
     TNodeId hasEncodingRef = {0, "i=38"};
     if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&

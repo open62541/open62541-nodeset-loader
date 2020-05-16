@@ -412,6 +412,17 @@ static void addNonHierachicalRefs(TNode *node, UA_Server *server)
         UA_Server_addReference(server, src, refType, target, ref->isForward);
         ref = ref->next;
     }
+    // brute force, maybe not the best way to do this
+    ref = node->hierachicalRefs;
+    while (ref)
+    {
+        UA_NodeId src = getNodeIdFromChars(node->id);
+        UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
+        target.nodeId = getNodeIdFromChars(ref->target);
+        UA_NodeId refType = getNodeIdFromChars(ref->refType);
+        UA_Server_addReference(server, src, refType, target, ref->isForward);
+        ref = ref->next;
+    }
 }
 
 static void addNodes(NodesetLoader *loader, UA_Server *server,

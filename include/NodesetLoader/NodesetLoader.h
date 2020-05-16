@@ -20,7 +20,7 @@ typedef enum
     NODECLASS_DATATYPE = 3,
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
-    NODECLASS_VARIABLETYPE = 6
+    NODECLASS_VARIABLETYPE = 6,
     // eventtype is handled like a object type
 } TNodeClass;
 
