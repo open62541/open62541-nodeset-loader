@@ -71,12 +71,12 @@ END_TEST
 START_TEST(forwardReferences_EURange)
 {
     // both nodes are there
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7002)) ==
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7006)) ==
               UA_NODECLASS_OBJECT);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7005)) ==
               UA_NODECLASS_VARIABLE);
     ck_assert(hasReference(
-        server, UA_NODEID_NUMERIC(2, 7002), UA_NODEID_NUMERIC(2, 7005),
+        server, UA_NODEID_NUMERIC(2, 7006), UA_NODEID_NUMERIC(2, 7005),
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_BROWSEDIRECTION_FORWARD));
 }
 END_TEST
