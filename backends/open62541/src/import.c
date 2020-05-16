@@ -367,6 +367,36 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
 }
 
+static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.nodeId = id;
+    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
+    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
+
+    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
+    {
+        return UA_NODEID_NULL;
+    }
+    UA_NodeId parentId = br.references[0].nodeId.nodeId;
+    UA_BrowseResult_clear(&br);
+    return parentId;
+}
+
+static const UA_DataType *getParentType(UA_Server *server,
+                                        const UA_NodeId dataTypeId)
+{
+    const UA_DataType *parentType = NULL;
+    UA_NodeId current = dataTypeId;
+    while (!parentType)
+    {
+        current = getParentDataType(server, current);
+        parentType = UA_findDataType(&current);
+    }
+    return parentType;
+}
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
@@ -393,7 +423,9 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
             }
             hasEncodingRef = hasEncodingRef->next;
         }
-        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
+        const UA_DataType* parent = getParentType(server, getNodeIdFromChars((*node)->id));
+        assert(parent);
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node, parent);
     }
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
@@ -508,5 +540,3 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     free(logger);
     return status;
 }
-
-

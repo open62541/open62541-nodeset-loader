@@ -314,6 +314,14 @@ static void EnumDataType_init(const DataTypeImporter *importer,
     enumType->memSize = sizeof(UA_Int32);
 }
 
+static void SubtypeOfBase_init(const DataTypeImporter *importer,
+                              UA_DataType *type, const TDataTypeNode *node, const UA_DataType* parent)
+{
+    *type = *parent;
+    type->typeIndex = (UA_UInt16)importer->types->typesSize;
+    type->typeId = getNodeIdFromChars(node->id);
+}
+
 static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* customTypes)
 {
     if (type->typeKind != UA_DATATYPEKIND_STRUCTURE)
@@ -388,7 +396,7 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 }
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
-                                        const TDataTypeNode *node)
+                                        const TDataTypeNode *node, const struct UA_DataType* parent)
 {
     //TODO: can we to this in a more clever way?
     if(!importer->types->types)
@@ -406,10 +414,15 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     {
         EnumDataType_init(importer, type, node);
     }
-    else
+    else if(parent->typeKind == UA_DATATYPEKIND_STRUCTURE || parent->typeKind==UA_DATATYPEKIND_EXTENSIONOBJECT)
     {
         StructureDataType_init(importer, type, node);
     }
+    else
+    {
+        SubtypeOfBase_init(importer, type, node, parent);
+    }
+    
 
     importer->nodes = (const TDataTypeNode **)realloc(
         importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
