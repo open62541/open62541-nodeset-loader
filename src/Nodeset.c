@@ -401,7 +401,7 @@ bool Nodeset_sort(Nodeset *nodeset)
         {
             nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "node with unresolved reference");
         }
-        //assert(result);
+        assert(result);
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
     }
 
