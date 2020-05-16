@@ -6,6 +6,7 @@
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
+#include <assert.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
