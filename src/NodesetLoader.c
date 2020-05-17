@@ -490,7 +490,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     if (!loader->nodeset)
     {
         loader->nodeset =
-            Nodeset_new(fileHandler->addNamespace, loader->logger);
+            Nodeset_new(fileHandler->addNamespace, loader->logger, loader->refService);
     }
 
     TParserCtx *ctx = NULL;

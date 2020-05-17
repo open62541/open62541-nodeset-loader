@@ -60,7 +60,7 @@ add_library(NodesetLoader SHARED
     src/TNodeId.c
     src/PrintfLogger.c
     src/Value.c
-    src/InternalRefService.h)
+    src/InternalRefService.c)
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>

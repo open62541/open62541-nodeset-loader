@@ -76,28 +76,31 @@ struct TNode
 };
 typedef struct TNode TNode;
 
-typedef struct
+struct TObjectNode
 {
     NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *eventNotifier;
     Reference *refToTypeDef;
-} TObjectNode;
+};
+typedef struct TObjectNode TObjectNode;
 
-typedef struct
+struct TObjectTypeNode
 {
     NODE_ATTRIBUTES
     char *isAbstract;
-} TObjectTypeNode;
+};
+typedef struct TObjectTypeNode TObjectTypeNode;
 
-typedef struct
+struct TVariableTypeNode
 {
     NODE_ATTRIBUTES
     char *isAbstract;
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
-} TVariableTypeNode;
+};
+typedef struct TVariableTypeNode TVariableTypeNode;
 
 struct Data;
 typedef struct Data Data;
@@ -144,7 +147,7 @@ struct Value
     Data *data;
 };
 typedef struct Value Value;
-typedef struct
+struct TVariableNode
 {
     NODE_ATTRIBUTES
     TNodeId parentNodeId;
@@ -156,7 +159,8 @@ typedef struct
     char* historizing;
     Value *value;
     Reference* refToTypeDef;
-} TVariableNode;
+};
+typedef struct TVariableNode TVariableNode;
 
 typedef struct
 {
@@ -173,27 +177,30 @@ typedef struct
     bool isEnum;
 } DataTypeDefinition;
 
-typedef struct TDataTypeNode
+struct TDataTypeNode
 {
     NODE_ATTRIBUTES
     DataTypeDefinition *definition;
     char* isAbstract;
-} TDataTypeNode;
+};
+typedef struct TDataTypeNode TDataTypeNode;
 
-typedef struct
+struct TMethodNode
 {
     NODE_ATTRIBUTES
     TNodeId parentNodeId;
     char *executable;
     char *userExecutable;
-} TMethodNode;
+};
+typedef struct TMethodNode TMethodNode;
 
-typedef struct
+struct TReferenceTypeNode
 {
     NODE_ATTRIBUTES
     TLocalizedText inverseName;
     char *symmetric;
-} TReferenceTypeNode;
+};
+typedef struct TReferenceTypeNode TReferenceTypeNode;
 
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
