@@ -8,7 +8,7 @@ static void cleanupCustomTypes(const UA_DataTypeArray *types)
             for (const UA_DataType *type = types->types;
                  type != types->types + types->typesSize; type++)
             {
-                // free(type->typeName);
+                free((void*)(uintptr_t)type->typeName);
                 for (UA_DataTypeMember *m = type->members;
                      m != type->members + type->membersSize; m++)
                 {
@@ -24,15 +24,23 @@ static void cleanupCustomTypes(const UA_DataTypeArray *types)
     }
 }
 
-static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMember* m2)
+UA_NodeId getTypeId(UA_UInt16 typeIndex, UA_Boolean isNamespaceZero, const UA_DataType* customTypes)
+{
+    const UA_DataType* types[2] = {&UA_TYPES[0], customTypes};
+    return types[!isNamespaceZero][typeIndex].typeId;
+}
+
+static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMember* m2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
     ck_assert(m1->isArray == m2->isArray);
     ck_assert(m1->namespaceZero == m2->namespaceZero);
     ck_assert(m1->padding == m2->padding);
-    //todo: membertype should be checked
+    UA_NodeId m1Id = getTypeId(m1->memberTypeIndex, m1->namespaceZero, generatedTypes);
+    UA_NodeId m2Id = getTypeId(m2->memberTypeIndex, m2->namespaceZero, customTypes);
+    ck_assert(UA_NodeId_equal(&m1Id, &m2Id));
 }
 
-void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2)
+void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
     ck_assert(t1->binaryEncodingId == t2->binaryEncodingId);
     ck_assert(t1->membersSize == t2->membersSize);
@@ -40,10 +48,11 @@ void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2)
     ck_assert(t1->overlayable == t2->overlayable);
     ck_assert(t1->pointerFree == t2->pointerFree);
     ck_assert(t1->typeKind == t2->typeKind);
+    ck_assert(!strcmp(t1->typeName, t2->typeName));
     size_t cnt =0;
     for(const UA_DataTypeMember* m = t1->members; m!=t1->members+t1->membersSize; m++)
     {
-        memberTypeMatching(m, &t2->members[cnt]);
+        memberTypeMatching(m, &t2->members[cnt], generatedTypes, customTypes);
         cnt++;
     }
 }
