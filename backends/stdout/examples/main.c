@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
 
-    NodesetLoader *loader = NodesetLoader_new(NULL);
+    NodesetLoader *loader = NodesetLoader_new(NULL, NULL);
 
     for (int cnt = 1; cnt < argc; cnt++)
     {

@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <libxml/SAX.h>
 #include <string.h>
+#include "InternalRefService.h"
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -78,6 +79,8 @@ struct NodesetLoader
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
     bool internalLogger;
+    RefService* refService;
+    bool internalRefService;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -488,7 +491,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     if (!loader->nodeset)
     {
         loader->nodeset =
-            Nodeset_new(fileHandler->addNamespace, loader->logger);
+            Nodeset_new(fileHandler->addNamespace, loader->logger, loader->refService);
     }
 
     TParserCtx *ctx = NULL;
@@ -539,7 +542,7 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if (!logger)
@@ -551,6 +554,15 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
     {
         loader->logger = logger;
     }
+    if(!refService)
+    {
+        loader->refService = InternalRefService_new();
+        loader->internalRefService = true;
+    }
+    else
+    {
+        loader->refService = refService;
+    }
     assert(loader);
     return loader;
 }
@@ -561,6 +573,10 @@ void NodesetLoader_delete(NodesetLoader *loader)
     if (loader->internalLogger)
     {
         free(loader->logger);
+    }
+    if(loader->internalRefService)
+    {
+        InternalRefService_delete(loader->refService);
     }
     free(loader);
 }

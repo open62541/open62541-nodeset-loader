@@ -29,17 +29,15 @@ struct Nodeset
     struct AliasList *aliasList;
     struct NodeContainer *nodes[NODECLASS_COUNT];
     struct NamespaceList *namespaces;
-    size_t hierachicalRefsSize;
-    TReferenceTypeNode *hierachicalRefs;
     struct SortContext *sortCtx;
     BiDirectionalReference *hasEncodingRefs;
     NodesetLoader_Logger* logger;
     struct NodeContainer *nodesWithUnknownRefs;
     struct NodeContainer *refTypesWithUnknownRefs;
-    struct NodeContainer *nonHierachicalRefs;
+    RefService* refService;
 };
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger);
+Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger, RefService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes);

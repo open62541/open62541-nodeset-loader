@@ -7,6 +7,7 @@
 #include <open62541/server.h>
 #include <open62541/server_config.h>
 #include <assert.h>
+#include <RefServiceImpl.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -521,7 +522,13 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     logger->context = &config->logger;
     logger->log = &logToOpen;
 
-    NodesetLoader *loader = NodesetLoader_new(logger);
+    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                "getRefs start");
+    RefService* refService = RefServiceImpl_new(server);
+    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+                "getRefs end");
+
+    NodesetLoader *loader = NodesetLoader_new(logger, refService);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
     bool importStatus = NodesetLoader_importFile(loader, &handler);
@@ -536,7 +543,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
                     "importing the nodeset failed, nodes were not added");
     }
-
+    RefServiceImpl_delete(refService);
     NodesetLoader_delete(loader);
     free(logger);
     return status;

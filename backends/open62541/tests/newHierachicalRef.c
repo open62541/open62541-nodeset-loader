@@ -14,11 +14,11 @@
 #include <NodesetLoader/backendOpen62541.h>
 
 UA_Server *server;
-char *nodesetPath = NULL;
+char *nodesetPath1 = NULL;
+char *nodesetPath2 = NULL;
 
 static void setup(void)
 {
-    printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
@@ -33,7 +33,8 @@ static void teardown(void)
 
 START_TEST(loadNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath1, NULL));
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath2, NULL));
 }
 END_TEST
 
@@ -65,6 +66,13 @@ START_TEST(noHierachicalRef)
 }
 END_TEST
 
+START_TEST(otherNamespace)
+{
+    ck_assert(UA_NODECLASS_OBJECT ==
+              getNodeClass(server, UA_NODEID_NUMERIC(3, 5002)));
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("newHierachicalReference");
@@ -73,6 +81,7 @@ static Suite *testSuite_Client(void)
     tcase_add_test(tc_server, loadNodeset);
     tcase_add_test(tc_server, newHierachicalRef);
     tcase_add_test(tc_server, noHierachicalRef);
+    tcase_add_test(tc_server, otherNamespace);
     suite_add_tcase(s, tc_server);
     return s;
 }
@@ -82,7 +91,8 @@ int main(int argc, char *argv[])
     printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
-    nodesetPath = argv[1];
+    nodesetPath1 = argv[1];
+    nodesetPath2 = argv[2];
     Suite *s = testSuite_Client();
     SRunner *sr = srunner_create(s);
     srunner_set_fork_status(sr, CK_NOFORK);
