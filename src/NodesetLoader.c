@@ -557,6 +557,10 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refSe
     {
         loader->refService = InternalRefService_new();
     }
+    else
+    {
+        loader->refService = refService;
+    }
     assert(loader);
     return loader;
 }
