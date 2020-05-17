@@ -6,6 +6,7 @@
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
+#include <assert.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -73,6 +74,7 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
     UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
     oAttr.displayName = *lt;
     oAttr.description = *description;
+    oAttr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
 
     UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
 
@@ -97,17 +99,6 @@ handleMethodNode(const TMethodNode *node, UA_NodeId *id,
 
     UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn,
                             attr, NULL, 0, NULL, 0, NULL, NULL, NULL);
-    Reference *ref = node->nonHierachicalRefs;
-    while (ref)
-    {
-        UA_NodeId refId = getReferenceTypeId(ref);
-        UA_ExpandedNodeId eid;
-        eid.nodeId = getReferenceTarget(ref);
-        eid.namespaceUri = UA_STRING_NULL;
-        eid.serverIndex = 0;
-        UA_Server_addReference(server, *id, refId, eid, ref->isForward);
-        ref = ref->next;
-    }
 }
 
 static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
@@ -155,6 +146,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
     attr.description = *description;
+    attr.historizing = isTrue(node->historizing);
 
     // euromap work around?
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
@@ -376,6 +368,36 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
 }
 
+static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.nodeId = id;
+    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
+    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
+
+    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
+    {
+        return UA_NODEID_NULL;
+    }
+    UA_NodeId parentId = br.references[0].nodeId.nodeId;
+    UA_BrowseResult_clear(&br);
+    return parentId;
+}
+
+static const UA_DataType *getParentType(UA_Server *server,
+                                        const UA_NodeId dataTypeId)
+{
+    const UA_DataType *parentType = NULL;
+    UA_NodeId current = dataTypeId;
+    while (!parentType)
+    {
+        current = getParentDataType(server, current);
+        parentType = UA_findDataType(&current);
+    }
+    return parentType;
+}
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
@@ -402,7 +424,9 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
             }
             hasEncodingRef = hasEncodingRef->next;
         }
-        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node);
+        const UA_DataType* parent = getParentType(server, getNodeIdFromChars((*node)->id));
+        assert(parent);
+        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node, parent);
     }
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
@@ -414,6 +438,17 @@ static void addNonHierachicalRefs(TNode *node, UA_Server *server)
     while (ref)
     {
 
+        UA_NodeId src = getNodeIdFromChars(node->id);
+        UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
+        target.nodeId = getNodeIdFromChars(ref->target);
+        UA_NodeId refType = getNodeIdFromChars(ref->refType);
+        UA_Server_addReference(server, src, refType, target, ref->isForward);
+        ref = ref->next;
+    }
+    // brute force, maybe not the best way to do this
+    ref = node->hierachicalRefs;
+    while (ref)
+    {
         UA_NodeId src = getNodeIdFromChars(node->id);
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
         target.nodeId = getNodeIdFromChars(ref->target);
@@ -506,5 +541,3 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     free(logger);
     return status;
 }
-
-

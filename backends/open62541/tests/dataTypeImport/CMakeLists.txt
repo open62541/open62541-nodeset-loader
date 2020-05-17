@@ -4,6 +4,12 @@ add_test(NAME enum_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND enum ${CMAKE_CURRENT_SOURCE_DIR}/enum.xml)
 
+add_executable(subDataType subDataType.c)
+target_link_libraries(subDataType PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME subDataType_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND subDataType ${CMAKE_CURRENT_SOURCE_DIR}/subDataType.xml)
+
 ua_generate_nodeset_and_datatypes(
     NAME "di"
     FILE_CSV "${open62541_NODESET_DIR}/DI/OpcUaDiModel.csv"

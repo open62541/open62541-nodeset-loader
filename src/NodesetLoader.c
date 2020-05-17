@@ -215,7 +215,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, INVERSENAME))
         {
             pctx->state = PARSER_STATE_INVERSENAME;
-            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes, attributes);
+            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes,
+                                   attributes);
         }
         else
         {
@@ -246,6 +247,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
                 CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
             memcpy(localNameCopy, localname, len);
             Value_start(pctx->val, localNameCopy);
+            pctx->unknown_depth++;
         }
         break;
 
@@ -347,7 +349,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     }
     break;
     case PARSER_STATE_VALUE:
-        if (!strcmp(localname, VALUE))
+        if (!strcmp(localname, VALUE) && pctx->unknown_depth == 0)
         {
             // Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
@@ -356,6 +358,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         else
         {
             Value_end(pctx->val, localname, pctx->onCharacters);
+            pctx->unknown_depth--;
         }
         break;
     case PARSER_STATE_EXTENSION:
@@ -417,7 +420,8 @@ static void OnCharacters(void *ctx, const char *ch, int len)
     }
     else
     {
-        pctx->onCharacters = CharArenaAllocator_realloc(pctx->nodeset->charArena, (size_t)len + 1);
+        pctx->onCharacters = CharArenaAllocator_realloc(
+            pctx->nodeset->charArena, (size_t)len + 1);
     }
     memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
     pctx->onCharLength += (size_t)len;
@@ -483,7 +487,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     bool status = true;
     if (!loader->nodeset)
     {
-        loader->nodeset = Nodeset_new(fileHandler->addNamespace);
+        loader->nodeset =
+            Nodeset_new(fileHandler->addNamespace, loader->logger);
     }
 
     TParserCtx *ctx = NULL;

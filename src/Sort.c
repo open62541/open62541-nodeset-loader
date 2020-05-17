@@ -6,9 +6,9 @@
  */
 
 #include "Sort.h"
+#include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <error.h>
-#include <NodesetLoader/NodesetLoader.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,7 +46,7 @@ struct SortContext
 
 static node *new_node(const TNodeId *id)
 {
-    node *k = (node *)malloc(sizeof *k);
+    node *k = (node *)calloc(1, sizeof(node));
 
     k->id = id;
     k->left = k->right = NULL;
@@ -293,20 +293,86 @@ void Sort_addNode(SortContext *ctx, TNode *data)
     j = search_node(ctx->root1, &data->id);
     j->data = data;
     Reference *hierachicalRef = data->hierachicalRefs;
-    while (hierachicalRef)
+    if (hierachicalRef)
     {
-        if (!hierachicalRef->isForward)
+        while (hierachicalRef)
         {
+            if (!hierachicalRef->isForward)
+            {
 
-            node *k = search_node(ctx->root1, &hierachicalRef->target);
-            record_relation(k, j);
+                node *k = search_node(ctx->root1, &hierachicalRef->target);
+                record_relation(k, j);
+            }
+            else
+            {
+                node *k = search_node(ctx->root1, &hierachicalRef->target);
+                record_relation(j, k);
+            }
+
+            hierachicalRef = hierachicalRef->next;
         }
-        hierachicalRef = hierachicalRef->next;
+    }
+    else
+    {
+        // there are no hierachical refs on it, can we find the nodes
+        // referencing it? -> try it with parentNodeId
+        if (data->nodeClass == NODECLASS_VARIABLE)
+        {
+            TVariableNode *varnode = (TVariableNode *)data;
+            if (varnode->parentNodeId.id != NULL)
+            {
+                node *k = search_node(ctx->root1, &varnode->parentNodeId);
+                if (k->data)
+                {
+                    Reference *r = k->data->hierachicalRefs;
+                    while (r)
+                    {
+                        if (!TNodeId_cmp(&r->target, &data->id))
+                        {
+                            Reference *newRef =
+                                (Reference *)calloc(1, sizeof(Reference));
+                            newRef->isForward = !r->isForward;
+                            newRef->target = k->data->id;
+                            newRef->refType = r->refType;
+                            data->hierachicalRefs = newRef;
+                            break;
+                        }
+                        r = r->next;
+                    }
+                }
+            }
+            else if (data->nodeClass == NODECLASS_OBJECT)
+            {
+                TObjectNode *objnode = (TObjectNode *)data;
+                if (objnode->parentNodeId.id != NULL)
+                {
+                    node *k = search_node(ctx->root1, &objnode->parentNodeId);
+                    if (k->data)
+                    {
+                        Reference *r = k->data->hierachicalRefs;
+                        while (r)
+                        {
+                            if (!TNodeId_cmp(&r->target, &data->id))
+                            {
+                                Reference *newRef =
+                                    (Reference *)calloc(1, sizeof(Reference));
+                                newRef->isForward = !r->isForward;
+                                newRef->target = k->data->id;
+                                newRef->refType = r->refType;
+                                data->hierachicalRefs = newRef;
+                                break;
+                            }
+                            r = r->next;
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
 bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
-                Sort_SortedNodeCallback callback)
+                Sort_SortedNodeCallback callback, NodesetLoader_Logger *logger)
 {
     walk_tree(ctx, ctx->root1, count_items);
 
@@ -340,7 +406,11 @@ bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
         }
         if (ctx->keyCnt > 0)
         {
-            printf("graph contains a loop\n");
+            if (logger)
+            {
+                logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                            "graph contains a loop, abort");
+            }
             return false;
         }
     }

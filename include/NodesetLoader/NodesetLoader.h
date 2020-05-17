@@ -20,7 +20,7 @@ typedef enum
     NODECLASS_DATATYPE = 3,
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
-    NODECLASS_VARIABLETYPE = 6
+    NODECLASS_VARIABLETYPE = 6,
     // eventtype is handled like a object type
 } TNodeClass;
 
@@ -66,7 +66,8 @@ typedef struct TLocalizedText TLocalizedText;
     TLocalizedText description;                                                \
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
-    Reference *nonHierachicalRefs;
+    Reference *nonHierachicalRefs;                                             \
+    Reference *unknownRefs;
 
 struct TNode
 {
@@ -151,6 +152,7 @@ typedef struct
     char *valueRank;
     char *accessLevel;
     char *userAccessLevel;
+    char* historizing;
     Value *value;
     Reference* refToTypeDef;
 } TVariableNode;

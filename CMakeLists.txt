@@ -11,6 +11,12 @@ option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 option(ENABLE_ASAN off "build with address sanitizer enabled")
 option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
 option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
+option(CALC_COVERAGE off "calculate code coverage")
+
+if(CALC_COVERAGE)
+    set(COMPILER_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+    set(LIB_GCOV gcov)
+endif()
 
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
                     -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
@@ -58,9 +64,12 @@ target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
-target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
+target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
+if(${ENABLE_ASAN})
+    target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
+endif()
 
 add_subdirectory(tests)
 add_subdirectory(backends)

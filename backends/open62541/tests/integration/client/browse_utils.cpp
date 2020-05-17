@@ -1,4 +1,5 @@
 #include "browse_utils.h"
+#include "operator_ov.h"
 #include "sort_utils.h"
 #include <algorithm>
 #include <cassert>
@@ -60,15 +61,15 @@ UA_Boolean BrowseReferences(UA_Client *pClient, const UA_NodeId &Id,
                 CopyReference.pReferenceTypeId = UA_NodeId_new();
                 assert(CopyReference.pReferenceTypeId !=
                        0); // TODO: proper check
-                assert(UA_NodeId_copy(&ref->referenceTypeId,
-                                      CopyReference.pReferenceTypeId) ==
-                       UA_STATUSCODE_GOOD);
+                UA_StatusCode status = UA_NodeId_copy(
+                    &ref->referenceTypeId, CopyReference.pReferenceTypeId);
+                assert(UA_STATUSCODE_GOOD == status);
 
                 CopyReference.pTargetId = UA_NodeId_new();
                 assert(CopyReference.pTargetId != 0); // TODO: proper check
-                assert(UA_NodeId_copy(&ref->nodeId.nodeId,
-                                      CopyReference.pTargetId) ==
-                       UA_STATUSCODE_GOOD);
+                status = UA_NodeId_copy(&ref->nodeId.nodeId,
+                                        CopyReference.pTargetId);
+                assert(status == UA_STATUSCODE_GOOD);
 
                 oReferences.push_back(CopyReference);
             }
@@ -79,7 +80,7 @@ UA_Boolean BrowseReferences(UA_Client *pClient, const UA_NodeId &Id,
     }
     else
     {
-        cout << "Error BrowseReferences failed" << endl;
+        cout << "Error BrowseReferences failed. Id = " << Id << endl;
         ret = UA_FALSE;
     }
 

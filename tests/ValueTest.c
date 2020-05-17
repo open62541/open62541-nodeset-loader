@@ -210,6 +210,104 @@ START_TEST(LocalizedText)
 }
 END_TEST
 
+START_TEST(EnumValueType)
+{
+/*
+<uax:ListOfExtensionObject>
+    <uax:ExtensionObject>
+        <uax:TypeId>
+            <uax:Identifier>i=7616</uax:Identifier>
+        </uax:TypeId>
+        <uax:Body>
+            <uax:EnumValueType>
+                <uax:Value>0</uax:Value>
+                <uax:DisplayName>
+                    <uax:Text>LOG_ON</uax:Text>
+                </uax:DisplayName>
+                <uax:Description>
+                    <uax:Text>The user has logged on the machine</uax:Text>
+                </uax:Description>
+            </uax:EnumValueType>
+        </uax:Body>
+    </uax:ExtensionObject>
+    <uax:ExtensionObject>
+        <uax:TypeId>
+            <uax:Identifier>i=7616</uax:Identifier>
+        </uax:TypeId>
+        <uax:Body>
+            <uax:EnumValueType>
+                <uax:Value>1</uax:Value>
+                <uax:DisplayName>
+                    <uax:Text>LOG_OFF</uax:Text>
+                </uax:DisplayName>
+                <uax:Description>
+                    <uax:Text>The user has logged off the machine</uax:Text>
+                </uax:Description>
+            </uax:EnumValueType>
+        </uax:Body>
+    </uax:ExtensionObject>
+</uax:ListOfExtensionObject>
+*/
+    Value *val = Value_new(NULL);
+    Value_start(val, "ListOfExtensionObject");
+    // obj1
+    Value_start(val, "ExtensionObject");
+    Value_start(val, "TypeId");
+    Value_start(val, "Identifier");
+    Value_end(val, "Identifier", "i=7616");
+    Value_end(val, "TypeId", NULL);
+    Value_start(val, "Body");
+    Value_start(val, "EnumValueType");
+    Value_start(val, "Value");
+    Value_end(val, "Value", "0");
+    Value_start(val, "DisplayName");
+    Value_start(val, "Text");
+    Value_end(val, "Text", "LOG_ON");
+    Value_end(val, "DisplayName", NULL);
+    Value_end(val, "EnumValueType", NULL);
+    Value_end(val, "Body", NULL);
+    Value_end(val, "ExtensionObject", NULL);
+    // obj2
+    Value_start(val, "ExtensionObject");
+    Value_start(val, "TypeId");
+    Value_start(val, "Identifier");
+    Value_end(val, "Identifier", "i=7616");
+    Value_end(val, "TypeId", NULL);
+    Value_start(val, "Body");
+    Value_start(val, "EnumValueType");
+    Value_start(val, "Value");
+    Value_end(val, "Value", "1");
+    Value_start(val, "DisplayName");
+    Value_start(val, "Text");
+    Value_end(val, "Text", "LOG_ON");
+    Value_end(val, "DisplayName", NULL);
+    Value_end(val, "EnumValueType", NULL);
+    Value_end(val, "Body", NULL);
+    Value_end(val, "ExtensionObject", NULL);
+    //
+    Value_end(val, "ListOfExtensionObject", NULL);
+
+    ck_assert(val);
+    ck_assert(!strcmp(val->data->name, "ListOfExtensionObject"));
+    ck_assert(val->isArray);
+    ck_assert(val->isExtensionObject); //?
+    ck_assert(val->data->type = DATATYPE_COMPLEX);
+    ck_assert(val->data->val.complexData.membersSize == 2);
+    ck_assert(!strcmp(val->data->val.complexData.members[0]->name, "EnumValueType"));
+    ck_assert(!strcmp(val->data->val.complexData.members[1]->name, "EnumValueType"));
+    ck_assert(val->data->val.complexData.members[1]->type == DATATYPE_COMPLEX);
+    ck_assert(val->data->val.complexData.members[1]->val.complexData.membersSize == 2);
+    ck_assert(
+        val->data->val.complexData.members[1]->val.complexData.members[1]->type = DATATYPE_COMPLEX);
+    ck_assert(val->data->val.complexData.members[1]
+                  ->val.complexData.members[1]->val.complexData.membersSize==1);
+    ck_assert(!strcmp(val->data->val.complexData.members[1]
+                  ->val.complexData.members[1]
+                  ->val.complexData.members[0]->name, "Text"));
+    Value_delete(val);
+}
+END_TEST
+
 int main(void)
 {
     Suite *s = suite_create("Sort tests");
@@ -219,6 +317,7 @@ int main(void)
     tcase_add_test(tc, ListOfUInt32);
     tcase_add_test(tc, ListOfExtensionObject);
     tcase_add_test(tc, LocalizedText);
+    tcase_add_test(tc, EnumValueType);
     suite_add_tcase(s, tc);
 
     SRunner *sr = srunner_create(s);

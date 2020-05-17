@@ -15,7 +15,7 @@ fi
 if ! [ -z ${CLANG_RELEASE+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON ..
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_ASAN=ON ..
     make
     make test
 fi
@@ -24,7 +24,7 @@ fi
 if ! [ -z ${INTEGRATION_TEST+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_INTEGRATION_TEST=OFF ..
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_INTEGRATION_TEST=ON -DENABLE_ASAN=ON ..
     make
     make test
 fi

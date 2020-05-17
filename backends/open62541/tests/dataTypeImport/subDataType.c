@@ -1,17 +1,18 @@
-#include <check.h>
 /* This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <open62541/server.h>
+#include <open62541/server_config.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
 #include "check.h"
 #include "unistd.h"
 
-#include "testHelper.h"
+#include "../testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -27,52 +28,33 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes; 
     UA_Server_delete(server);
+    cleanupCustomTypes(customTypes);
 }
 
-START_TEST(loadNodeset)
+START_TEST(SubTypeOfInt32)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-}
-END_TEST
-
-START_TEST(newHierachicalRef)
-{
-    ck_assert(UA_NODECLASS_REFERENCETYPE ==
-              getNodeClass(server, UA_NODEID_NUMERIC(2, 4002)));
-
-    ck_assert(UA_NODECLASS_OBJECT == getNodeClass(server, UA_NODEID_NUMERIC(2, 5002)));
-
-    ck_assert(UA_NODECLASS_OBJECT ==
-              getNodeClass(server, UA_NODEID_NUMERIC(2, 5004)));
-
-    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5004),
-                           UA_NODEID_NUMERIC(2, 5002),
-                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_INVERSE));
-
-    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5002),
-                           UA_NODEID_NUMERIC(2, 5004),
-                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_FORWARD));
-}
-END_TEST
-
-// check if node is also added, if there's no hierachical reference on it
-START_TEST(noHierachicalRef)
-{
-    ck_assert(UA_NODECLASS_OBJECT ==
-              getNodeClass(server, UA_NODEID_NUMERIC(2, 5003)));
+    UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
+    const UA_DataType *type = getCustomDataType(server, &typeId);
+    ck_assert(type);
+    ck_assert(type->typeKind == UA_DATATYPEKIND_INT32);
+    UA_Variant var;
+    UA_StatusCode status = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var);
+    ck_assert(UA_STATUSCODE_GOOD==status);
+    ck_assert(*(UA_Int32*)var.data==12);
+    UA_Variant_clear(&var);
 }
 END_TEST
 
 static Suite *testSuite_Client(void)
 {
-    Suite *s = suite_create("newHierachicalReference");
-    TCase *tc_server = tcase_create("newHierachicalReference");
+    Suite *s = suite_create("datatype Import");
+    TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, loadNodeset);
-    tcase_add_test(tc_server, newHierachicalRef);
-    tcase_add_test(tc_server, noHierachicalRef);
+    tcase_add_test(tc_server, SubTypeOfInt32);
     suite_add_tcase(s, tc_server);
     return s;
 }

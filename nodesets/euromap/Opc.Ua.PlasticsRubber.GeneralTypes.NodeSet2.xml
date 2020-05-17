@@ -62,7 +62,7 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="ZaOg2G04qyjK/iXR7I5Z/Q==" Version="1.6.3"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="9xOB9Ool/lUkza2rqbwjGA==" Version="1.6.3"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3020" BrowseName="1:CavityCycleQualityEnumeration">
@@ -2272,7 +2272,7 @@ In semi-automatic mode also during waiting time (e.g. for manual loading/unloadi
         </References>
         <Definition Name="1:ParameterSettingType">
             <Field DataType="UInt32" Name="Id"/>
-            <!--<Field Name="Value"/>-->
+            <Field Name="Value"/>
         </Definition>
     </UADataType>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6002" NodeId="ns=1;i=6302" BrowseName="1:ParameterSettingType">
@@ -13702,6 +13702,11 @@ In semi-automatic mode also during waiting time (e.g. for manual loading/unloadi
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5061</Reference>
         </References>
+        <Value>
+            <uax:ListOfInt32>
+                <uax:Int32>0</uax:Int32>
+            </uax:ListOfInt32>
+        </Value>
     </UAVariable>
     <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5061" ValueRank="1" NodeId="ns=1;i=6565" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
         <DisplayName>StaticNumericNodeIdRange</DisplayName>

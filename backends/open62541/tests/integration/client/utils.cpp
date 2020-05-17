@@ -783,9 +783,9 @@ UA_Boolean PrintDataTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
             out << "\t" << ReferencesVec[i] << endl;
 
             if ((UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
-                                 &HasPropertyId) == UA_FALSE) ||
+                                 &HasPropertyId) == UA_FALSE) &&
                 (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
-                                 &HasSubtypeId) == UA_FALSE) ||
+                                 &HasSubtypeId) == UA_FALSE) &&
                 (UA_NodeId_equal(ReferencesVec[i].pReferenceTypeId,
                                  &HasEncodingId) == UA_FALSE))
             {

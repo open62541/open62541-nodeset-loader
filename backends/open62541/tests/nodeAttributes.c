@@ -90,6 +90,26 @@ START_TEST(dataType)
 }
 END_TEST
 
+START_TEST(variableHistorizing)
+{
+    UA_Boolean historizing = UA_FALSE;
+    UA_StatusCode retval = UA_Server_readHistorizing(
+        server, UA_NODEID_NUMERIC(2, 6011), &historizing);
+    ck_assert(retval == UA_STATUSCODE_GOOD);
+    ck_assert(historizing == UA_TRUE);
+}
+END_TEST
+
+START_TEST(eventNotifier)
+{
+    UA_Byte val = 0;
+    UA_StatusCode retval = UA_Server_readEventNotifier(
+        server, UA_NODEID_NUMERIC(2, 5003), &val);
+    ck_assert(retval == UA_STATUSCODE_GOOD);
+    ck_assert(val == 1);
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("attributes");
@@ -99,6 +119,8 @@ static Suite *testSuite_Client(void)
     tcase_add_test(tc_server, readDescription);
     tcase_add_test(tc_server, referenceType);
     tcase_add_test(tc_server, dataType);
+    tcase_add_test(tc_server, variableHistorizing);
+    tcase_add_test(tc_server, eventNotifier);
     suite_add_tcase(s, tc_server);
     return s;
 }

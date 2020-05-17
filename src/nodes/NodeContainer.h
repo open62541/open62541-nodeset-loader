@@ -8,10 +8,11 @@ struct NodeContainer
     size_t size;
     size_t capacity;
     size_t incrementSize;
+    bool owner;
 };
 typedef struct NodeContainer NodeContainer;
 
-NodeContainer *NodeContainer_new(size_t initialSize);
+NodeContainer *NodeContainer_new(size_t initialSize, bool owner);
 void NodeContainer_delete(NodeContainer *container);
 void NodeContainer_add(NodeContainer *container, TNode *node);
 

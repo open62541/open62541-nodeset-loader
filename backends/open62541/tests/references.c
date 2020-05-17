@@ -30,26 +30,6 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
-static UA_NodeId getTypeDefinitionId(UA_Server *s,
-                                     const UA_NodeId targetId)
-{
-    UA_BrowseDescription bd;
-    UA_BrowseDescription_init(&bd);
-    bd.browseDirection = UA_BROWSEDIRECTION_FORWARD;
-    bd.includeSubtypes = UA_FALSE;
-    bd.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
-    bd.nodeId = targetId;
-    bd.resultMask = UA_BROWSERESULTMASK_TYPEDEFINITION;
-    UA_BrowseResult br = UA_Server_browse(s, 10, &bd);
-    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
-    {
-        return UA_NODEID_NULL;
-    }
-    UA_NodeId id = br.references->nodeId.nodeId;
-    UA_BrowseResult_clear(&br);
-    return id;
-}
-
 START_TEST(references_typeDefinitionId)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
@@ -65,12 +45,51 @@ START_TEST(references_typeDefinitionId)
 }
 END_TEST
 
+START_TEST(forwardReferences)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)) == UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6003)) == UA_NODECLASS_OBJECT);
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 6002), UA_NODEID_NUMERIC(2, 6003), 
+        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
+START_TEST(forwardReferences_otherWayRound)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7002)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7003)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 7002), UA_NODEID_NUMERIC(2, 7003),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
+START_TEST(forwardReferences_EURange)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7006)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7005)) ==
+              UA_NODECLASS_VARIABLE);
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 7006), UA_NODEID_NUMERIC(2, 7005),
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("newHierachicalReference");
     TCase *tc_server = tcase_create("newHierachicalReference");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, references_typeDefinitionId);
+    tcase_add_test(tc_server, forwardReferences);
+    tcase_add_test(tc_server, forwardReferences_otherWayRound);
+    tcase_add_test(tc_server, forwardReferences_EURange);
     suite_add_tcase(s, tc_server);
     return s;
 }

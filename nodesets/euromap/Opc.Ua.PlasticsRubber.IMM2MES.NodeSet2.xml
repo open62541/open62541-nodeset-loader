@@ -48,7 +48,7 @@
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="JVbBNRVE0HveC+/MKqts0w==" Version="1.6.3"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="yD/2qWgUNirW7w7dgmx5yg==" Version="1.6.3"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3004" BrowseName="1:IMMMessageClassificationEnumeration">
@@ -935,9 +935,9 @@
         <DisplayName>ExpectedCycleTime</DisplayName>
         <Description>Calculated cycle time for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -985,9 +985,9 @@
         <DisplayName>MouldId</DisplayName>
         <Description>Id of the Mould used for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
@@ -997,9 +997,9 @@
         <DisplayName>NominalBoxParts</DisplayName>
         <Description>Number of parts that shall be put into one box</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1022,9 +1022,9 @@
         <DisplayName>NumCavities</DisplayName>
         <Description>Number of cavities in the Mould used for production</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
             <uax:UInt32>0</uax:UInt32>
@@ -1364,9 +1364,9 @@
         <DisplayName>AverageCycleTime</DisplayName>
         <Description>Average cycle time</Description>
         <References>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -1377,8 +1377,8 @@
         <Description>Number of bad parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1389,8 +1389,8 @@
         <Description>Number of finished cycles for the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1401,8 +1401,8 @@
         <Description>Number of good parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1412,9 +1412,9 @@
         <DisplayName>BoxId</DisplayName>
         <Description>Id of the box in which the current production is put in</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5013</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
@@ -1425,8 +1425,8 @@
         <Description>Total number of parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1437,8 +1437,8 @@
         <Description>Number of test sample parts produced in the current box</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1561,8 +1561,8 @@
         <Description>Id(s) of the parts produced in the recently finished cycle</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:ListOfString>
@@ -1575,8 +1575,8 @@
         <Description>Number of finished cycles in the machine life time</Description>
         <References>
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1675,9 +1675,9 @@
         <DisplayName>ExpectedCycleTime</DisplayName>
         <Description>Calculated cycle time for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:Double>0</uax:Double>
@@ -1725,9 +1725,9 @@
         <DisplayName>MouldId</DisplayName>
         <Description>Id of the Mould used for the job</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:String></uax:String>
@@ -1737,9 +1737,9 @@
         <DisplayName>NominalBoxParts</DisplayName>
         <Description>Number of parts that shall be put into one box</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:UInt64>0</uax:UInt64>
@@ -1762,9 +1762,9 @@
         <DisplayName>NumCavities</DisplayName>
         <Description>Number of cavities in the Mould used for production</Description>
         <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
             <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5019</Reference>
         </References>
         <Value>
             <uax:UInt32>0</uax:UInt32>
@@ -2752,8 +2752,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7027</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7027</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3066,8 +3066,8 @@
         <DisplayName>Frozen</DisplayName>
         <Description>Indication if changes on the machine in the production dataset are allowed</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3116,16 +3116,16 @@
         <Description>Loads a production dataset from the file system of the machine to the control of the machine</Description>
         <References>
             <Reference ReferenceType="HasProperty">ns=1;i=6213</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAMethod>
     <UAVariable DataType="Argument" ParentNodeId="ns=1;i=7028" ValueRank="1" NodeId="ns=1;i=6213" ArrayDimensions="2" BrowseName="InputArguments">
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7028</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7028</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3168,8 +3168,8 @@
         <DisplayName>Modified</DisplayName>
         <Description>Indication if the production dataset has been changed after the last storage</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3189,8 +3189,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7031</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7031</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3297,8 +3297,8 @@
         <DisplayName>Frozen</DisplayName>
         <Description>Indication if changes on the machine in the production dataset are allowed</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3347,16 +3347,16 @@
         <Description>Loads a production dataset from the file system of the machine to the control of the machine</Description>
         <References>
             <Reference ReferenceType="HasProperty">ns=1;i=6218</Reference>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
         </References>
     </UAMethod>
     <UAVariable DataType="Argument" ParentNodeId="ns=1;i=7032" ValueRank="1" NodeId="ns=1;i=6218" ArrayDimensions="2" BrowseName="InputArguments">
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7032</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7032</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -3399,8 +3399,8 @@
         <DisplayName>Modified</DisplayName>
         <Description>Indication if the production dataset has been changed after the last storage</Description>
         <References>
-            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasModellingRule">i=80</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
         </References>
         <Value>
@@ -3420,8 +3420,8 @@
         <DisplayName>InputArguments</DisplayName>
         <References>
             <Reference ReferenceType="HasModellingRule">i=78</Reference>
-            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7033</Reference>
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=7033</Reference>
         </References>
         <Value>
             <uax:ListOfExtensionObject>
@@ -5715,6 +5715,11 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5021</Reference>
         </References>
+        <Value>
+            <uax:ListOfInt32>
+                <uax:Int32>0</uax:Int32>
+            </uax:ListOfInt32>
+        </Value>
     </UAVariable>
     <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5021" ValueRank="1" NodeId="ns=1;i=6158" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
         <DisplayName>StaticNumericNodeIdRange</DisplayName>

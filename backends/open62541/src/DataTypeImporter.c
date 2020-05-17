@@ -297,13 +297,12 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->pointerFree = true;
     addDataTypeMembers(importer->types->types, type, node);
     type->overlayable = false;
-
-    // type->typeName = node->browseName.name;
 }
 
-static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
+static void EnumDataType_init(const DataTypeImporter *importer,
+                              UA_DataType *enumType, const TDataTypeNode *node)
 {
-    enumType->typeIndex = UA_TYPES_INT32;
+    enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
     enumType->binaryEncodingId = 0;
     enumType->pointerFree = true;
@@ -313,7 +312,22 @@ static void EnumDataType_init(UA_DataType *enumType, const TDataTypeNode *node)
     enumType->memSize = sizeof(UA_Int32);
 }
 
-static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* customTypes)
+static void SubtypeOfBase_init(const DataTypeImporter *importer,
+                               UA_DataType *type, const TDataTypeNode *node,
+                               const UA_DataType *parent)
+{
+    type->typeIndex = (UA_UInt16)importer->types->typesSize;
+    type->binaryEncodingId = parent->binaryEncodingId;
+    type->members = NULL;
+    type->membersSize = 0;
+    type->memSize = parent->memSize;
+    type->overlayable = parent->overlayable;
+    type->pointerFree = parent->pointerFree;
+    type->typeKind = parent->typeKind;
+}
+
+static bool readyForMemsizeCalc(const UA_DataType *type,
+                                const UA_DataType *customTypes)
 {
     if (type->typeKind != UA_DATATYPEKIND_STRUCTURE)
     {
@@ -331,7 +345,7 @@ static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* cust
         {
             continue;
         }
-        if (customTypes[m->memberTypeIndex].memSize>0)
+        if (customTypes[m->memberTypeIndex].memSize > 0)
         {
             continue;
         }
@@ -341,13 +355,12 @@ static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* cust
     return ready;
 }
 
-
 static void calcMemSize(DataTypeImporter *importer)
 {
     bool allTypesFinished = false;
-    //TODO: possible an endless loop
-    //datatype nodes could be sorted upfront to detect cyclic dependencies
-    while(!allTypesFinished)
+    // TODO: possible an endless loop
+    // datatype nodes could be sorted upfront to detect cyclic dependencies
+    while (!allTypesFinished)
     {
         allTypesFinished = true;
         for (UA_DataType *type =
@@ -356,14 +369,15 @@ static void calcMemSize(DataTypeImporter *importer)
              type != importer->types->types + importer->types->typesSize;
              type++)
         {
-            //we can calculate the memsize if the memsize of all membertypes is known
+            // we can calculate the memsize if the memsize of all membertypes is
+            // known
             if (readyForMemsizeCalc(type, importer->types->types))
             {
                 setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
             }
             else
             {
-                allTypesFinished=false;
+                allTypesFinished = false;
             }
         }
     }
@@ -387,24 +401,42 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 }
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
-                                        const TDataTypeNode *node)
+                                        const TDataTypeNode *node,
+                                        const struct UA_DataType *parent)
 {
-    importer->types->types = (UA_DataType *)realloc(
-        (void *)(uintptr_t)importer->types->types,
-        (importer->types->typesSize + 1) * sizeof(UA_DataType));
+    // TODO: can we to this in a more clever way?
+    // the user of the library should provide the memory for the custom
+    // dataTypes, then it is clear that he has to clean it up
+    if (!importer->types->types)
+    {
+        importer->types->types =
+            (UA_DataType *)calloc(100, sizeof(UA_DataType));
+    }
+    assert(importer->types->typesSize < 100);
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
     memset(type, 0, sizeof(UA_DataType));
     type->typeId = getNodeIdFromChars(node->id);
+    if (node->browseName.name)
+    {
+        size_t len = strlen(node->browseName.name);
+        type->typeName = (char *)calloc(len + 1, sizeof(char));
+        memcpy((void *)(uintptr_t)type->typeName, node->browseName.name, len);
+    }
 
     if (node->definition && node->definition->isEnum)
     {
-        EnumDataType_init(type, node);
+        EnumDataType_init(importer, type, node);
+    }
+    else if (parent->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+             parent->typeKind == UA_DATATYPEKIND_EXTENSIONOBJECT)
+    {
+        StructureDataType_init(importer, type, node);
     }
     else
     {
-        StructureDataType_init(importer, type, node);
+        SubtypeOfBase_init(importer, type, node, parent);
     }
 
     importer->nodes = (const TDataTypeNode **)realloc(
