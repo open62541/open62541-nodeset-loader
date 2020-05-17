@@ -80,6 +80,7 @@ struct NodesetLoader
     NodesetLoader_Logger *logger;
     bool internalLogger;
     RefService* refService;
+    bool internalRefService;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -556,6 +557,7 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refSe
     if(!refService)
     {
         loader->refService = InternalRefService_new();
+        loader->internalRefService = true;
     }
     else
     {
@@ -571,6 +573,10 @@ void NodesetLoader_delete(NodesetLoader *loader)
     if (loader->internalLogger)
     {
         free(loader->logger);
+    }
+    if(loader->internalRefService)
+    {
+        InternalRefService_delete(loader->refService);
     }
     free(loader);
 }

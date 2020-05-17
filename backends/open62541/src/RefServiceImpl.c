@@ -17,9 +17,9 @@ struct RefServiceImpl
     RefContainer nonHierachicalRefs;
 };
 
-static void RefContainer_clear(RefContainer* c)
+static void RefContainer_clear(RefContainer *c)
 {
-    for(TNodeId* id = c->ids; id!=c->ids+c->size; id++)
+    for (TNodeId *id = c->ids; id != c->ids + c->size; id++)
     {
         free(id->id);
     }
@@ -55,9 +55,10 @@ static void iterate(UA_Server *server, const UA_NodeId *startId, browseFnc fnc,
     UA_BrowseResult_clear(&br);
 }
 
-static void addTNodeIdToRefs(RefContainer* refs, const TNodeId id)
+static void addTNodeIdToRefs(RefContainer *refs, const TNodeId id)
 {
-    refs->ids = (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
+    refs->ids =
+        (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
     TNodeId *newId = refs->ids + refs->size;
     newId->nsIdx = id.nsIdx;
     size_t len = strlen(id.id);
@@ -66,9 +67,10 @@ static void addTNodeIdToRefs(RefContainer* refs, const TNodeId id)
     refs->size++;
 }
 
-static void addToRefs(RefContainer* refs, const UA_NodeId id)
+static void addToRefs(RefContainer *refs, const UA_NodeId id)
 {
-    refs->ids = (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
+    refs->ids =
+        (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
     TNodeId *newId = refs->ids + refs->size;
     newId->nsIdx = id.namespaceIndex;
     if (id.identifierType == UA_NODEIDTYPE_NUMERIC)
@@ -184,7 +186,7 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
 
 void RefServiceImpl_delete(RefService *service)
 {
-    RefServiceImpl* impl = (RefServiceImpl*)service->context;
+    RefServiceImpl *impl = (RefServiceImpl *)service->context;
     RefContainer_clear(&impl->hierachicalRefs);
     RefContainer_clear(&impl->nonHierachicalRefs);
     free(impl);
