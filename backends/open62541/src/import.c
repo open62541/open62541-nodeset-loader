@@ -521,7 +521,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     logger->context = &config->logger;
     logger->log = &logToOpen;
 
-    NodesetLoader *loader = NodesetLoader_new(logger);
+    NodesetLoader *loader = NodesetLoader_new(logger, NULL);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
     bool importStatus = NodesetLoader_importFile(loader, &handler);

@@ -14,6 +14,7 @@
 #include <assert.h>
 #include <libxml/SAX.h>
 #include <string.h>
+#include "InternalRefService.h"
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -78,6 +79,7 @@ struct NodesetLoader
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
     bool internalLogger;
+    RefService* refService;
 };
 
 static void enterUnknownState(TParserCtx *ctx)
@@ -539,7 +541,7 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if (!logger)
@@ -550,6 +552,10 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger)
     else
     {
         loader->logger = logger;
+    }
+    if(!refService)
+    {
+        loader->refService = InternalRefService_new();
     }
     assert(loader);
     return loader;

@@ -3,6 +3,7 @@
 #include "Logger.h"
 #include "TNodeId.h"
 #include "arch.h"
+#include "ReferenceService.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -224,7 +225,7 @@ typedef struct
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger);
+LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, struct RefService* refService);
 LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
                                             const FileContext *fileContext);
 LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
