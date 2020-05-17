@@ -297,8 +297,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->pointerFree = true;
     addDataTypeMembers(importer->types->types, type, node);
     type->overlayable = false;
-
-    // type->typeName = node->browseName.name;
+    
 }
 
 static void EnumDataType_init(const DataTypeImporter *importer,
@@ -317,9 +316,14 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 static void SubtypeOfBase_init(const DataTypeImporter *importer,
                               UA_DataType *type, const TDataTypeNode *node, const UA_DataType* parent)
 {
-    *type = *parent;
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
-    type->typeId = getNodeIdFromChars(node->id);
+    type->binaryEncodingId = parent->binaryEncodingId;
+    type->members = NULL;
+    type->membersSize = 0;
+    type->memSize = parent->memSize;
+    type->overlayable = parent->overlayable;
+    type->pointerFree = parent->pointerFree;
+    type->typeKind = parent->typeKind;
 }
 
 static bool readyForMemsizeCalc(const UA_DataType *type, const UA_DataType* customTypes)
@@ -409,6 +413,13 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                             ->types[importer->types->typesSize];
     memset(type, 0, sizeof(UA_DataType));
     type->typeId = getNodeIdFromChars(node->id);
+    if(node->browseName.name)
+    {
+        size_t len = strlen(node->browseName.name);
+        type->typeName =
+            (char *)calloc(len+1, sizeof(char));
+        memcpy((void*)(uintptr_t)type->typeName, node->browseName.name, len);
+    }
 
     if (node->definition && node->definition->isEnum)
     {

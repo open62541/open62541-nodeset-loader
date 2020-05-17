@@ -56,7 +56,9 @@ START_TEST(compareSpecializedStruct)
         const UA_DataType *importedType =
             getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType);
+        typesAreMatching(generatedType, importedType,
+                         &UA_TYPES_SPECIALIZEDSTRUCT[0],
+                         config->customDataTypes->types);
     }
 }
 END_TEST
