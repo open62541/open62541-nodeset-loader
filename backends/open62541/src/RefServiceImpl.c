@@ -3,6 +3,7 @@
 #include <NodesetLoader/TNodeId.h>
 #include <open62541/server.h>
 #include <stdlib.h>
+#include <assert.h>
 
 struct RefContainer
 {
