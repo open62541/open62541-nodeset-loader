@@ -32,53 +32,33 @@ static void stopHandler(int sign)
     running = false;
 }
 
-UA_Boolean AddDataTypeArray(UA_DataTypeArray **ppDataTypeArray,
-                            UA_UInt32 &ioDataTypeArraySize,
-                            const UA_DataType *pNewDataTypes,
-                            const size_t NewDataTypesSize)
+static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
+                                   const UA_DataType *pNewDataTypes,
+                                   const size_t newDataTypesSize)
 {
-    if ((ppDataTypeArray == 0) || (pNewDataTypes == 0))
+    if ((pDataTypeArray == nullptr) || (pNewDataTypes == nullptr))
     {
         UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
                      "Error AddDataTypeArray(): null pointer param");
         return UA_FALSE;
     }
-    // allocate additional memory for DataTypeArray
-    *ppDataTypeArray = (UA_DataTypeArray *)UA_realloc(
-        (void *)*ppDataTypeArray,
-        (ioDataTypeArraySize + 1) * sizeof(UA_DataTypeArray));
-    if (*ppDataTypeArray == 0)
-    {
-        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
-                     "Error AddDataTypeArray(): Out of memory");
-        return UA_FALSE;
-    }
-    (*ppDataTypeArray)[ioDataTypeArraySize].next = 0;
-    (*ppDataTypeArray)[ioDataTypeArraySize].types = pNewDataTypes;
-    /* TODO: why has UA_DataTypeArray struct definition const qualifiers?
-    it makes an allocation on heap cumbersome ...
-    or is there any better way than casting const away? */
-    *(const_cast<size_t *>(&(
-        (*ppDataTypeArray)[ioDataTypeArraySize].typesSize))) = NewDataTypesSize;
+    // copy the new types to the end of the array
+    UA_DataType *newTypes = (UA_DataType *)realloc(
+        const_cast<UA_DataType *>(pDataTypeArray->types),
+        sizeof(UA_DataType) * (newDataTypesSize + pDataTypeArray->typesSize));
+    assert(newTypes);
+    memcpy(newTypes+pDataTypeArray->typesSize, pNewDataTypes, newDataTypesSize * sizeof(UA_DataType));
+    // ugly
+    size_t *typesSize = const_cast<size_t *>(&pDataTypeArray->typesSize);
+    *typesSize += newDataTypesSize;
 
-    // if there was a previous DataTypeArray, we have to make the link to the
-    // new node
-    if (ioDataTypeArraySize > 0)
-    {
-        ppDataTypeArray[ioDataTypeArraySize - 1]->next =
-            &(*ppDataTypeArray)[ioDataTypeArraySize];
-    }
-    ioDataTypeArraySize++;
+    pDataTypeArray->types = newTypes;
     return UA_TRUE;
 }
 
 void FreeDataTypeArray(UA_DataTypeArray *pDataTypeArray)
 {
-    if (pDataTypeArray != 0)
-    {
-        UA_free(pDataTypeArray);
-        pDataTypeArray = 0;
-    }
+    UA_free(pDataTypeArray);
 }
 
 #ifdef USE_DI
@@ -134,12 +114,13 @@ int main()
     signal(SIGTERM, stopHandler);
 
     UA_Server *server = UA_Server_new();
+    UA_ServerConfig_setDefault(UA_Server_getConfig(server));
     UA_ServerConfig *pCfg = UA_Server_getConfig(server);
-    UA_ServerConfig_setDefault(pCfg);
 
     // prepare custom datatype arrays
-    UA_DataTypeArray *pDataTypeArray = 0;
-    UA_UInt32 NoOfDataTypeArrays = 0;
+    UA_DataTypeArray *pDataTypeArray =
+        (UA_DataTypeArray *)calloc(1, sizeof(UA_DataTypeArray));
+    assert(pDataTypeArray);
 
     /* create nodes from nodeset */
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
@@ -157,8 +138,7 @@ int main()
         return EXIT_FAILURE;
     }
 
-    if (AddDataTypeArray(&pDataTypeArray, NoOfDataTypeArrays,
-                         UA_TYPES_INTEGRATION_TEST_DI,
+    if (addDataTypeArray(pDataTypeArray, UA_TYPES_INTEGRATION_TEST_DI,
                          UA_TYPES_INTEGRATION_TEST_DI_COUNT) == UA_FALSE)
     {
         UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
@@ -208,8 +188,7 @@ int main()
         UA_Server_delete(server);
         return EXIT_FAILURE;
     }
-    if (AddDataTypeArray(&pDataTypeArray, NoOfDataTypeArrays,
-                         UA_TYPES_INTEGRATION_TEST_EUROMAP_83,
+    if (addDataTypeArray(pDataTypeArray, UA_TYPES_INTEGRATION_TEST_EUROMAP_83,
                          UA_TYPES_INTEGRATION_TEST_EUROMAP_83_COUNT) ==
         UA_FALSE)
     {
@@ -234,8 +213,7 @@ int main()
         UA_Server_delete(server);
         return EXIT_FAILURE;
     }
-    if (AddDataTypeArray(&pDataTypeArray, NoOfDataTypeArrays,
-                         UA_TYPES_INTEGRATION_TEST_EUROMAP_77,
+    if (addDataTypeArray(pDataTypeArray, UA_TYPES_INTEGRATION_TEST_EUROMAP_77,
                          UA_TYPES_INTEGRATION_TEST_EUROMAP_77_COUNT) ==
         UA_FALSE)
     {
