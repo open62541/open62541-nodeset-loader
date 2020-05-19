@@ -16,6 +16,7 @@ struct RefServiceImpl
 {
     RefContainer hierachicalRefs;
     RefContainer nonHierachicalRefs;
+    RefContainer hasTypeDefRefs;
 };
 
 static void RefContainer_clear(RefContainer *c)
@@ -98,17 +99,14 @@ static void addToNonHierachicalRefs(RefServiceImpl *impl, const UA_NodeId id)
     addToRefs(&impl->nonHierachicalRefs, id);
 }
 
-static void getHierachicalRefs(UA_Server *server, RefServiceImpl *impl)
+static void addToHasTypeDefRefs(RefServiceImpl *impl, const UA_NodeId id)
 {
-    UA_NodeId startId = UA_NODEID_NUMERIC(0, UA_NS0ID_HIERARCHICALREFERENCES);
-    iterate(server, &startId, addToHierachicalRefs, impl);
+    addToRefs(&impl->hasTypeDefRefs, id);
 }
 
-static void getNonHierachicalRefs(UA_Server *server, RefServiceImpl *impl)
-{
-    UA_NodeId startId =
-        UA_NODEID_NUMERIC(0, UA_NS0ID_NONHIERARCHICALREFERENCES);
-    iterate(server, &startId, addToNonHierachicalRefs, impl);
+static void getRefs(UA_Server *server, RefServiceImpl *impl, const UA_NodeId startId, browseFnc fn)
+{    
+    iterate(server, &startId, fn, impl);
 }
 
 static bool isInContainer(const RefContainer c, const Reference *ref)
@@ -135,6 +133,12 @@ static bool isHierachicalReference(const RefServiceImpl *service,
     return isInContainer(service->hierachicalRefs, ref);
 }
 
+static bool isTypeDefRef(const RefServiceImpl *service,
+                                   const Reference *ref)
+{
+    return isInContainer(service->hasTypeDefRefs, ref);
+}
+
 static void addnewRefType(RefServiceImpl *service, TReferenceTypeNode *node)
 {
     Reference *ref = node->hierachicalRefs;
@@ -150,7 +154,13 @@ static void addnewRefType(RefServiceImpl *service, TReferenceTypeNode *node)
                 {
                     addTNodeIdToRefs(&service->hierachicalRefs, node->id);
                     isHierachical = true;
-                    break;
+                }
+            }
+            for (size_t i = 0; i < service->hasTypeDefRefs.size; i++)
+            {
+                if (!TNodeId_cmp(&service->hasTypeDefRefs.ids[i], &ref->target))
+                {
+                    addTNodeIdToRefs(&service->hasTypeDefRefs, node->id);
                 }
             }
         }
@@ -159,6 +169,7 @@ static void addnewRefType(RefServiceImpl *service, TReferenceTypeNode *node)
     if (!isHierachical)
     {
         addTNodeIdToRefs(&service->nonHierachicalRefs, node->id);
+        
     }
 }
 
@@ -169,12 +180,17 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
     {
         return NULL;
     }
-    TNodeId hierachicalRoot = {0, "i=33"};
-    addTNodeIdToRefs(&impl->hierachicalRefs, hierachicalRoot);
-    TNodeId nonhierachicalRoot = {0, "i=32"};
-    addTNodeIdToRefs(&impl->nonHierachicalRefs, nonhierachicalRoot);
-    getHierachicalRefs(server, impl);
-    getNonHierachicalRefs(server, impl);
+    UA_NodeId hierachicalRoot =
+        UA_NODEID_NUMERIC(0, UA_NS0ID_HIERARCHICALREFERENCES);
+    UA_NodeId nonHierachicalRoot =
+        UA_NODEID_NUMERIC(0, UA_NS0ID_NONHIERARCHICALREFERENCES);
+    UA_NodeId hasTypeDefRoot = UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
+    addToRefs(&impl->hierachicalRefs, hierachicalRoot);    
+    addToRefs(&impl->nonHierachicalRefs, nonHierachicalRoot);
+    addToRefs(&impl->hasTypeDefRefs, hasTypeDefRoot);
+    getRefs(server, impl, hierachicalRoot, addToHierachicalRefs);
+    getRefs(server, impl, nonHierachicalRoot, addToNonHierachicalRefs);
+    getRefs(server, impl, hasTypeDefRoot, addToHasTypeDefRefs);
 
     RefService *refService = (RefService *)calloc(1, sizeof(RefService));
     if(!refService)
@@ -191,6 +207,7 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
         (RefService_isHierachicalRef)isHierachicalReference;
     refService->isNonHierachicalRef =
         (RefService_isNonHierachicalRef)isNonHierachicalRef;
+    refService->isHasTypeDefRef = (RefService_isHasTypeDefRef)isTypeDefRef;
     return refService;
 }
 

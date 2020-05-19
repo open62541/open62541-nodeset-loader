@@ -150,6 +150,12 @@ static bool isHierachicalReference(const InternalRefService *service,
     return false;
 }
 
+static bool isTypeDefRef(const InternalRefService* service, const Reference* ref)
+{
+    TNodeId hasTypeDefId = {0, "i=40"};
+    return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
+}
+
 static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
 {
     Reference *ref = node->hierachicalRefs;
@@ -202,6 +208,7 @@ RefService *InternalRefService_new()
         (RefService_isHierachicalRef)isHierachicalReference;
     refService->isNonHierachicalRef =
         (RefService_isNonHierachicalRef)isNonHierachicalRef;
+    refService->isHasTypeDefRef = (RefService_isHasTypeDefRef)isTypeDefRef;
     return refService;
 }
 

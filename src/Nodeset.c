@@ -418,14 +418,14 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     newRef->refType = alias2Id(nodeset, aliasIdString);
 
     if (NODECLASS_VARIABLE == node->nodeClass &&
-        !strcmp("i=40", newRef->refType.id))
+        nodeset->refService->isHasTypeDefRef(nodeset->refService->context, newRef))
     {
         ((TVariableNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
     if (NODECLASS_OBJECT == node->nodeClass &&
-        !strcmp("i=40", newRef->refType.id))
+        nodeset->refService->isHasTypeDefRef(nodeset->refService->context, newRef))
     {
         ((TObjectNode *)node)->refToTypeDef = newRef;
         return newRef;
