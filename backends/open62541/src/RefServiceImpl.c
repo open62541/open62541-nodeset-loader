@@ -197,6 +197,7 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
     {
         RefContainer_clear(&impl->hierachicalRefs);
         RefContainer_clear(&impl->nonHierachicalRefs);
+        RefContainer_clear(&impl->hasTypeDefRefs);
         free(impl);
         return NULL;
     }
@@ -216,6 +217,7 @@ void RefServiceImpl_delete(RefService *service)
     RefServiceImpl *impl = (RefServiceImpl *)service->context;
     RefContainer_clear(&impl->hierachicalRefs);
     RefContainer_clear(&impl->nonHierachicalRefs);
+    RefContainer_clear(&impl->hasTypeDefRefs);
     free(impl);
     free(service);
 }
