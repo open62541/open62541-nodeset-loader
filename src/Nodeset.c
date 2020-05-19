@@ -71,6 +71,7 @@ const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
+const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
 const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 
@@ -536,6 +537,8 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                                        attributes, attributeSize));
         newField->valueRank = atoi(getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize));
+        char* isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional, attributes, attributeSize);
+        newField->isOptional = !strcmp("true", isOptional);
     }
 }
 

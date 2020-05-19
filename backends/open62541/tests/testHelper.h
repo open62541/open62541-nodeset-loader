@@ -35,6 +35,7 @@ static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMem
     ck_assert(m1->isArray == m2->isArray);
     ck_assert(m1->namespaceZero == m2->namespaceZero);
     ck_assert(m1->padding == m2->padding);
+    ck_assert(m1->isOptional == m2->isOptional);
     UA_NodeId m1Id = getTypeId(m1->memberTypeIndex, m1->namespaceZero, generatedTypes);
     UA_NodeId m2Id = getTypeId(m2->memberTypeIndex, m2->namespaceZero, customTypes);
     ck_assert(UA_NodeId_equal(&m1Id, &m2Id));
