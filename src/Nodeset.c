@@ -12,7 +12,6 @@
 #include "nodes/DataTypeNode.h"
 #include "nodes/Node.h"
 #include "nodes/NodeContainer.h"
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -242,8 +241,8 @@ bool Nodeset_sort(Nodeset *nodeset)
         if(!result)
         {
             nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "node with unresolved reference");
+            return false;
         }
-        assert(result);
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
     }
 

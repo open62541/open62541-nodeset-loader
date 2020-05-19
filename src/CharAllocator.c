@@ -1,5 +1,4 @@
 #include <CharAllocator.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -24,7 +23,16 @@ struct CharArenaAllocator
 static struct Region *Region_new(size_t capacity)
 {
     struct Region *region = (struct Region *)calloc(1, sizeof(struct Region));
+    if(!region)
+    {
+        return NULL;
+    }
     region->mem = (char *)calloc(capacity, sizeof(char));
+    if(!region->mem)
+    {
+        free(region);
+        return NULL;
+    }
     region->capacity = capacity;
     region->userPtr = region->mem;
     return region;
@@ -34,10 +42,12 @@ CharArenaAllocator *CharArenaAllocator_new(size_t initialSize)
 {
     CharArenaAllocator *arena =
         (CharArenaAllocator *)calloc(1, sizeof(CharArenaAllocator));
+    if(!arena)
+    {
+        return NULL;
+    }
     arena->initialSize = initialSize;
-    assert(arena);
     arena->current = Region_new(arena->initialSize);
-    assert(arena->current);
     return arena;
 }
 

@@ -1,5 +1,4 @@
 #include "AliasList.h"
-#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -14,15 +13,25 @@ struct AliasList
 AliasList *AliasList_new()
 {
     struct AliasList *list = (AliasList *)calloc(1, sizeof(*list));
-    assert(list);
+    if(!list)
+    {
+        return NULL;
+    }
     list->data = (Alias *)calloc(MAX_ALIAS, sizeof(Alias));
-    assert(list->data);
+    if(!list->data)
+    {
+        free(list);
+        return NULL;
+    }
     return list;
 }
 
 Alias *AliasList_newAlias(AliasList *list, char *name)
 {
-    assert(list->size < MAX_ALIAS);
+    if(list->size >= MAX_ALIAS)
+    {
+        return NULL;
+    }
     list->data[list->size].name = name;
     list->data[list->size].id.id = NULL;
     list->data[list->size].id.nsIdx = 0;

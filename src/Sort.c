@@ -47,6 +47,10 @@ struct SortContext
 static node *new_node(const TNodeId *id)
 {
     node *k = (node *)calloc(1, sizeof(node));
+    if(!k)
+    {
+        return NULL;
+    }
 
     k->id = id;
     k->left = k->right = NULL;
@@ -61,9 +65,11 @@ static node *new_node(const TNodeId *id)
 
 static node *search_node(node *rootNode, const TNodeId *nodeId)
 {
+    if(!rootNode)
+    {
+        return NULL;
+    }
     node *p, *q, *r, *s, *t;
-
-    assert(rootNode);
 
     if (rootNode->right == NULL)
         return (rootNode->right = new_node(nodeId));
@@ -187,12 +193,15 @@ static node *search_node(node *rootNode, const TNodeId *nodeId)
 
 static void record_relation(node *from, node *to)
 {
-    struct edge *e;
-
     if (TNodeId_cmp(from->id, to->id))
     {
         to->edgeCount++;
-        e = (edge *)malloc(sizeof(edge));
+        struct edge *e;
+        e = (edge *)calloc(1, sizeof(edge));
+        if(!e)
+        {
+            return;
+        }
         e->dest = to;
         e->next = from->edges;
         from->edges = e;

@@ -1,16 +1,22 @@
 #include "NodeContainer.h"
 #include "Node.h"
-#include <assert.h>
 #include <stdlib.h>
 
 NodeContainer *NodeContainer_new(size_t initialSize, bool owner)
 {
     NodeContainer *container =
         (NodeContainer *)calloc(1, sizeof(NodeContainer));
-    assert(container);
+    if(!container)
+    {
+        return NULL;
+    }
     container->nodes =
         (TNode **)calloc(initialSize, sizeof(void *) * initialSize);
-    assert(container->nodes);
+    if(!container->nodes)
+    {
+        free(container);
+        return NULL;
+    }
     container->size = 0;
     container->capacity = initialSize;
     container->incrementSize = initialSize;
@@ -25,7 +31,10 @@ void NodeContainer_add(NodeContainer *container, TNode *node)
         container->nodes = (TNode **)realloc(
             container->nodes,
             (container->size + container->incrementSize) * sizeof(void *));
-        assert(container->nodes);
+        if(!container->nodes)
+        {
+            return;
+        }
         container->capacity += container->incrementSize;
     }
     container->nodes[container->size] = node;

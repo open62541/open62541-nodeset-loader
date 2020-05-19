@@ -11,7 +11,6 @@
 #include <CharAllocator.h>
 #include <NodesetLoader/Logger.h>
 #include <NodesetLoader/NodesetLoader.h>
-#include <assert.h>
 #include <libxml/SAX.h>
 #include <string.h>
 #include "InternalRefService.h"
@@ -545,6 +544,10 @@ bool NodesetLoader_sort(NodesetLoader *loader)
 NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
+    if(!loader)
+    {
+        return NULL;
+    }
     if (!logger)
     {
         loader->logger = InternalLogger_new();
@@ -563,7 +566,6 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refSe
     {
         loader->refService = refService;
     }
-    assert(loader);
     return loader;
 }
 
