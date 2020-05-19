@@ -124,18 +124,8 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
         const UA_DataType *memberType = getTypeFromLists(
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
         type->pointerFree = type->pointerFree && memberType->pointerFree;
-        if (!tm->isArray)
-        {
-            int align = getAlignment(memberType, ns0Types, customTypes);
-            tm->padding = getPadding(align, offset);
-            offset = offset + tm->padding + memberType->memSize;
-            // padding after struct at end is needed
-            if (memberType->memSize > sizeof(size_t))
-            {
-                endPadding = memberType->memSize % sizeof(size_t);
-            }
-        }
-        else
+
+        if(tm->isArray)
         {
             // for arrays we have to take the size_t for the arraySize into
             // account if the open changes the implementation of array
@@ -151,6 +141,24 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             offset = offset + padding2 + (UA_Byte)sizeof(void *);
             // datatype is not pointerfree
             type->pointerFree = false;
+        }
+        else if (tm->isOptional)
+        {
+            int align = alignof(void*);
+            tm->padding = getPadding(align, offset);
+            offset = offset + tm->padding + (UA_Byte)sizeof(void *);
+            type->pointerFree = false;
+        }
+        else
+        {
+            int align = getAlignment(memberType, ns0Types, customTypes);
+            tm->padding = getPadding(align, offset);
+            offset = offset + tm->padding + memberType->memSize;
+            // padding after struct at end is needed
+            if (memberType->memSize > sizeof(size_t))
+            {
+                endPadding = memberType->memSize % sizeof(size_t);
+            }
         }
     }
     type->memSize = (UA_UInt16)(offset + endPadding);
