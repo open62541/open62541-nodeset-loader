@@ -13,7 +13,6 @@
 
 struct Parser
 {
-
     void *context;
 };
 
