@@ -165,7 +165,10 @@ static void addnewRefType(RefServiceImpl *service, TReferenceTypeNode *node)
 RefService *RefServiceImpl_new(struct UA_Server *server)
 {
     RefServiceImpl *impl = (RefServiceImpl *)calloc(1, sizeof(RefServiceImpl));
-    assert(impl);
+    if(!impl)
+    {
+        return NULL;
+    }
     TNodeId hierachicalRoot = {0, "i=33"};
     addTNodeIdToRefs(&impl->hierachicalRefs, hierachicalRoot);
     TNodeId nonhierachicalRoot = {0, "i=32"};
@@ -174,7 +177,13 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
     getNonHierachicalRefs(server, impl);
 
     RefService *refService = (RefService *)calloc(1, sizeof(RefService));
-    assert(refService);
+    if(!refService)
+    {
+        RefContainer_clear(&impl->hierachicalRefs);
+        RefContainer_clear(&impl->nonHierachicalRefs);
+        free(impl);
+        return NULL;
+    }
     refService->context = impl;
     refService->addNewReferenceType =
         (RefService_addNewReferenceType)addnewRefType;
