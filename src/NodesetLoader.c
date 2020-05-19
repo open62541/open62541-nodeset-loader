@@ -6,14 +6,16 @@
  */
 
 #include "InternalLogger.h"
+#include "InternalRefService.h"
 #include "Nodeset.h"
+#include "Parser.h"
 #include "Value.h"
 #include <CharAllocator.h>
 #include <NodesetLoader/Logger.h>
 #include <NodesetLoader/NodesetLoader.h>
-#include <libxml/SAX.h>
+#include <assert.h>
+#include <stdlib.h>
 #include <string.h>
-#include "InternalRefService.h"
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -78,7 +80,7 @@ struct NodesetLoader
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
     bool internalLogger;
-    RefService* refService;
+    RefService *refService;
     bool internalRefService;
 };
 
@@ -353,7 +355,6 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE) && pctx->unknown_depth == 0)
         {
-            // Value_finish(pctx->val);
             ((TVariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }
@@ -429,46 +430,6 @@ static void OnCharacters(void *ctx, const char *ch, int len)
     pctx->onCharLength += (size_t)len;
 }
 
-static xmlSAXHandler make_sax_handler(void)
-{
-    xmlSAXHandler SAXHandler;
-    memset(&SAXHandler, 0, sizeof(xmlSAXHandler));
-    SAXHandler.initialized = XML_SAX2_MAGIC;
-    // nodesets are encoded with UTF-8
-    // this code does no transformation on the encoded text or interprets it
-    // so it should be safe to cast xmlChar* to char*
-    SAXHandler.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
-    SAXHandler.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
-    SAXHandler.characters = (charactersSAXFunc)OnCharacters;
-    return SAXHandler;
-}
-
-static int read_xmlfile(FILE *f, TParserCtx *parserCtxt)
-{
-    char chars[1024];
-    int res = (int)fread(chars, 1, 4, f);
-    if (res <= 0)
-    {
-        return 1;
-    }
-
-    xmlSAXHandler SAXHander = make_sax_handler();
-    xmlParserCtxtPtr ctxt =
-        xmlCreatePushParserCtxt(&SAXHander, parserCtxt, chars, res, NULL);
-    while ((res = (int)fread(chars, 1, sizeof(chars), f)) > 0)
-    {
-        if (xmlParseChunk(ctxt, chars, res, 0))
-        {
-            xmlParserError(ctxt, "xmlParseChunk");
-            return 1;
-        }
-    }
-    xmlParseChunk(ctxt, chars, 0, 1);
-    xmlFreeParserCtxt(ctxt);
-    xmlCleanupParser();
-    return 0;
-}
-
 bool NodesetLoader_importFile(NodesetLoader *loader,
                               const FileContext *fileHandler)
 {
@@ -489,8 +450,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     bool status = true;
     if (!loader->nodeset)
     {
-        loader->nodeset =
-            Nodeset_new(fileHandler->addNamespace, loader->logger, loader->refService);
+        loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger,
+                                      loader->refService);
     }
 
     TParserCtx *ctx = NULL;
@@ -520,12 +481,14 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     ctx->userContext = fileHandler->userContext;
     ctx->extIf = fileHandler->extensionHandling;
 
-    if (read_xmlfile(f, ctx))
+    Parser *parser = Parser_new(ctx);
+    if (Parser_run(parser, f, OnStartElementNs, OnEndElementNs, OnCharacters))
     {
         loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR, "xml read error");
+                            NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
         status = false;
     }
+    Parser_delete(parser);
 
 cleanup:
     free(ctx);
@@ -541,7 +504,8 @@ bool NodesetLoader_sort(NodesetLoader *loader)
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refService)
+NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
+                                 RefService *refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
@@ -557,7 +521,7 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger, RefService* refSe
     {
         loader->logger = logger;
     }
-    if(!refService)
+    if (!refService)
     {
         loader->refService = InternalRefService_new();
         loader->internalRefService = true;
@@ -576,7 +540,7 @@ void NodesetLoader_delete(NodesetLoader *loader)
     {
         free(loader->logger);
     }
-    if(loader->internalRefService)
+    if (loader->internalRefService)
     {
         InternalRefService_delete(loader->refService);
     }
