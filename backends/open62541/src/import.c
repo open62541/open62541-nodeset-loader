@@ -433,7 +433,7 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
             hasEncodingRef = hasEncodingRef->next;
         }
         const UA_DataType* parent = getParentType(server, getNodeIdFromChars((*node)->id));
-        assert(parent);
+        assert(parent && "DataType node has no parent");
         DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node, parent);
     }
     DataTypeImporter_initMembers(importer);

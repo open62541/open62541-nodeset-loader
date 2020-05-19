@@ -105,7 +105,7 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
         return getAlignment(memberType, ns0Types, customTypes);
     }
 
-    assert(false && "typeIndex invalid");
+    assert(false && "typeKind not handled");
     return 0;
 }
 static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
@@ -176,7 +176,7 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
         }
         idx++;
     }
-    assert(found);
+    assert(found && "DataTypeIndex not found");
     if (found)
     {
         return (UA_UInt16)idx;
@@ -458,7 +458,10 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
 {
     DataTypeImporter *importer =
         (DataTypeImporter *)calloc(1, sizeof(DataTypeImporter));
-    assert(importer);
+    if (!importer)
+    {
+        return NULL;
+    }
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     if (!config->customDataTypes)
@@ -466,7 +469,10 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
         // we append all types to customTypes array
         UA_DataTypeArray *newCustomTypes =
             (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
-
+        if(!newCustomTypes)
+        {
+            return importer;
+        }
         newCustomTypes->next = config->customDataTypes;
         config->customDataTypes = newCustomTypes;
     }

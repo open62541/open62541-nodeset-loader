@@ -7,7 +7,6 @@
 
 #include "Node.h"
 #include "DataTypeNode.h"
-#include <assert.h>
 #include <stdlib.h>
 #include "../Value.h"
 
@@ -38,7 +37,10 @@ TNode *Node_new(TNodeClass nodeClass)
         node = (TNode *)calloc(1, sizeof(TMethodNode));
         break;
     }
-    assert(node);
+    if(!node)
+    {
+        return NULL;
+    }
     return node;
 }
 

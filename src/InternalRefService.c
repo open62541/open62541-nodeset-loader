@@ -8,7 +8,6 @@
 #include "InternalRefService.h"
 #include "nodes/NodeContainer.h"
 #include <NodesetLoader/NodesetLoader.h>
-#include <assert.h>
 #include <stdlib.h>
 
 struct InternalRefService
@@ -189,13 +188,20 @@ RefService *InternalRefService_new()
 {
     InternalRefService *service =
         (InternalRefService *)calloc(1, sizeof(InternalRefService));
-    assert(service);
+    if(!service)
+    {
+        return NULL;
+    }
     service->hierachicalRefs = hierachicalRefs;
     service->hierachicalRefsSize = 9;
     service->nonHierachicalRefs = NodeContainer_new(100, false);
 
     RefService *refService = (RefService *)calloc(1, sizeof(RefService));
-    assert(refService);
+    if(!refService)
+    {
+        free(service);
+        return NULL;
+    }
     refService->context = service;
     refService->addNewReferenceType =
         (RefService_addNewReferenceType)addnewRefType;

@@ -119,7 +119,10 @@ static void setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind,
 static RawData *RawData_new(void)
 {
     RawData *data = (RawData *)calloc(1, sizeof(RawData));
-    assert(data);
+    if(!data)
+    {
+        return NULL;
+    }
     return data;
 }
 
@@ -211,7 +214,6 @@ static void setStructure(const Data *value, const UA_DataType *type,
 {
     assert(value->type == DATATYPE_COMPLEX);
     // there can be less members specified then the type requires
-    // assert(value->val.complexData.membersSize == type->membersSize);
     for (const UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {

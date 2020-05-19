@@ -6,7 +6,6 @@
  */
 
 #include "DataTypeNode.h"
-#include <assert.h>
 #include <stdlib.h>
 
 static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
@@ -15,6 +14,10 @@ static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
     definition->fields = (DataTypeDefinitionField *)realloc(
         definition->fields,
         definition->fieldCnt * sizeof(DataTypeDefinitionField));
+    if(!definition->fields)
+    {
+        return NULL;
+    }
     return &definition->fields[definition->fieldCnt - 1];
 }
 
@@ -24,9 +27,11 @@ DataTypeDefinitionField *DataTypeNode_addDefinitionField(TDataTypeNode *node)
     {
         node->definition =
             (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
-        assert(node->definition);
+        if(!node->definition)
+        {
+            return NULL;
+        }
     }
-
     return getNewField(node->definition);
 }
 

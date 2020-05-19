@@ -508,6 +508,10 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
                                  RefService *refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
+    if(!loader)
+    {
+        return NULL;
+    }
     if (!logger)
     {
         loader->logger = InternalLogger_new();
@@ -526,7 +530,6 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
     {
         loader->refService = refService;
     }
-    assert(loader);
     return loader;
 }
 
