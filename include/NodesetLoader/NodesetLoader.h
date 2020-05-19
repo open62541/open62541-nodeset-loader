@@ -175,6 +175,7 @@ typedef struct
     TNodeId dataType;
     int valueRank;
     int value;
+    bool isOptional;
 } DataTypeDefinitionField;
 
 typedef struct

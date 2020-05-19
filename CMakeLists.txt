@@ -61,6 +61,7 @@ add_library(NodesetLoader SHARED
     src/Value.c
     src/InternalRefService.c
     src/Parser.c)
+
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
@@ -76,6 +77,7 @@ endif()
 
 add_subdirectory(tests)
 add_subdirectory(backends)
+
 
 #install
 set(NODESETLOADER_PUBLIC_HEADER 

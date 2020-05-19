@@ -124,18 +124,8 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
         const UA_DataType *memberType = getTypeFromLists(
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
         type->pointerFree = type->pointerFree && memberType->pointerFree;
-        if (!tm->isArray)
-        {
-            int align = getAlignment(memberType, ns0Types, customTypes);
-            tm->padding = getPadding(align, offset);
-            offset = offset + tm->padding + memberType->memSize;
-            // padding after struct at end is needed
-            if (memberType->memSize > sizeof(size_t))
-            {
-                endPadding = memberType->memSize % sizeof(size_t);
-            }
-        }
-        else
+
+        if(tm->isArray)
         {
             // for arrays we have to take the size_t for the arraySize into
             // account if the open changes the implementation of array
@@ -151,6 +141,24 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             offset = offset + padding2 + (UA_Byte)sizeof(void *);
             // datatype is not pointerfree
             type->pointerFree = false;
+        }
+        else if (tm->isOptional)
+        {
+            int align = alignof(void*);
+            tm->padding = getPadding(align, offset);
+            offset = offset + tm->padding + (UA_Byte)sizeof(void *);
+            type->pointerFree = false;
+        }
+        else
+        {
+            int align = getAlignment(memberType, ns0Types, customTypes);
+            tm->padding = getPadding(align, offset);
+            offset = offset + tm->padding + memberType->memSize;
+            // padding after struct at end is needed
+            if (memberType->memSize > sizeof(size_t))
+            {
+                endPadding = memberType->memSize % sizeof(size_t);
+            }
         }
     }
     type->memSize = (UA_UInt16)(offset + endPadding);
@@ -292,6 +300,12 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
         memcpy(memberNameCopy, node->definition->fields[i].name,
                strlen(node->definition->fields[i].name));
         member->memberName = memberNameCopy;
+        member->isOptional = node->definition->fields[i].isOptional;
+        if(member->isOptional)
+        {
+            type->pointerFree = false;
+            type->typeKind = UA_DATATYPEKIND_OPTSTRUCT;
+        }
     }
 }
 
@@ -337,7 +351,7 @@ static void SubtypeOfBase_init(const DataTypeImporter *importer,
 static bool readyForMemsizeCalc(const UA_DataType *type,
                                 const UA_DataType *customTypes)
 {
-    if (type->typeKind != UA_DATATYPEKIND_STRUCTURE)
+    if (type->typeKind != UA_DATATYPEKIND_STRUCTURE && type->typeKind != UA_DATATYPEKIND_OPTSTRUCT)
     {
         return true;
     }
@@ -399,7 +413,7 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
                              importer->firstNewDataType;
          type != importer->types->types + importer->types->typesSize; type++)
     {
-        if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
+        if (type->typeKind == UA_DATATYPEKIND_STRUCTURE || type->typeKind == UA_DATATYPEKIND_OPTSTRUCT)
         {
             setDataTypeMembersTypeIndex(importer, type, importer->nodes[cnt]);
         }
@@ -438,6 +452,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
         EnumDataType_init(importer, type, node);
     }
     else if (parent->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+             parent->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
              parent->typeKind == UA_DATATYPEKIND_EXTENSIONOBJECT)
     {
         StructureDataType_init(importer, type, node);

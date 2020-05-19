@@ -88,3 +88,22 @@ target_include_directories(compareStructSpecialized PRIVATE ${CMAKE_BINARY_DIR}/
 add_test(NAME compareStructSpecialized_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareStructSpecialized "${CMAKE_CURRENT_SOURCE_DIR}/struct.xml" "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.xml")
+
+
+ua_generate_nodeset_and_datatypes(
+    NAME "optionalstruct"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.bsd"
+    NAMESPACE_IDX 2
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml"
+    INTERNAL
+)
+
+add_executable(compareOptionalStruct optionalStruct.c ${UA_TYPES_OPTIONALSTRUCT_SOURCES})
+add_dependencies(compareOptionalStruct open62541-generator-ns-optionalstruct)
+target_link_libraries(compareOptionalStruct PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+target_include_directories(compareOptionalStruct PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+
+add_test(NAME compareOptionalStruct_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareOptionalStruct "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml")
