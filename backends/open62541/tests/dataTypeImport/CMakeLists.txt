@@ -88,3 +88,13 @@ target_include_directories(compareStructSpecialized PRIVATE ${CMAKE_BINARY_DIR}/
 add_test(NAME compareStructSpecialized_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareStructSpecialized "${CMAKE_CURRENT_SOURCE_DIR}/struct.xml" "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.xml")
+
+
+ua_generate_nodeset_and_datatypes(
+    NAME "structWithOptField"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.bsd"
+    NAMESPACE_IDX 2
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml"
+    INTERNAL
+)
