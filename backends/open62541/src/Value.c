@@ -10,6 +10,7 @@
 #include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <open62541/types_generated.h>
+#include <time.h>
 
 typedef struct TypeList TypeList;
 struct TypeList
@@ -83,11 +84,6 @@ static void setString(uintptr_t adr, const char *value)
     s->data = (UA_Byte *)(uintptr_t)value;
 }
 
-static void setDateTime(uintptr_t adr, const char *value)
-{
-    printf("DateTime: %s currently not handled\n", value);
-}
-
 static void setNotImplemented(uintptr_t adr, const char *value)
 {
     UA_assert(false && "not implemented");
@@ -97,7 +93,7 @@ static const ConversionFn conversionTable[UA_DATATYPEKINDS] = {
     setBoolean,        setSByte,          setByte,           setInt16,
     setUInt16,         setInt32,          setUInt32,         setInt64,
     setUInt64,         setFloat,          setDouble,         setString,
-    setDateTime,       setNotImplemented,
+    setNotImplemented,       setNotImplemented,
     setString, // handle bytestring like string
     setString, // handle xmlElement like string
     setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
@@ -154,6 +150,18 @@ static Data *lookupMember(const Data *value, const char *name)
         }
     }
     return NULL;
+}
+
+static void setDateTime(const Data* value, RawData* data)
+{
+    uintptr_t adr = (uintptr_t)data->mem + data->offset;
+    struct tm dateTime;
+    memset(&dateTime, 0, sizeof(struct tm));
+    strptime(value->val.primitiveData.value, "%Y-%m-%d %H:%M:%S%T", &dateTime);
+    time_t rawTime = mktime(&dateTime);
+    UA_DateTime *val = (UA_DateTime *)adr;
+    *val = (UA_DateTime)(rawTime * UA_DATETIME_SEC + UA_DATETIME_UNIX_EPOCH);
+    data->offset = data->offset+sizeof(UA_DateTime);
 }
 
 static void setQualifiedName(const Data *value, RawData *data)
@@ -270,7 +278,7 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
     }
     else if (type->typeKind == UA_DATATYPEKIND_DATETIME)
     {
-        data->offset += sizeof(UA_Int64);
+        setDateTime(value, data);
     }
     else if (type->typeKind == UA_DATATYPEKIND_ENUM)
     {
