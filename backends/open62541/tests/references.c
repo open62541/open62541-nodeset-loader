@@ -81,6 +81,20 @@ START_TEST(forwardReferences_EURange)
 }
 END_TEST
 
+START_TEST(forwardReferences_EURange_newTypeDefRef)
+{
+    // both nodes are there
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 8002)) ==
+              UA_NODECLASS_REFERENCETYPE);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 8003)) ==
+              UA_NODECLASS_VARIABLE);
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(0, 85),
+                           UA_NODEID_NUMERIC(2, 8003),
+                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
+                           UA_BROWSEDIRECTION_FORWARD));
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("newHierachicalReference");
@@ -90,6 +104,7 @@ static Suite *testSuite_Client(void)
     tcase_add_test(tc_server, forwardReferences);
     tcase_add_test(tc_server, forwardReferences_otherWayRound);
     tcase_add_test(tc_server, forwardReferences_EURange);
+    tcase_add_test(tc_server, forwardReferences_EURange_newTypeDefRef);
     suite_add_tcase(s, tc_server);
     return s;
 }

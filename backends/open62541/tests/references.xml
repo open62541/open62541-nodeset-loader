@@ -16,6 +16,7 @@
         <Alias Alias="UtcTime">i=294</Alias>
         <Alias Alias="Range">i=884</Alias>
         <Alias Alias="PropertyType">i=68</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
     </Aliases>
     <Extensions>
         <Extension>
@@ -82,4 +83,19 @@
             <Reference ReferenceType="HasProperty">ns=1;i=7005</Reference>
         </References>
     </UAObject>
+    <!--new HasTypeDef ref-->
+    <UAReferenceType NodeId="ns=1;i=8002" BrowseName="1:HasTypeDefinition2">
+        <DisplayName>HasTypeDefinition2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=40</Reference>
+        </References>
+        <InverseName>isSubComponentOf</InverseName>
+    </UAReferenceType>
+    <UAVariable DataType="Range" NodeId="ns=1;i=8003" BrowseName="0:EURange2">
+        <DisplayName>EURange2</DisplayName>
+        <References>
+            <Reference ReferenceType="ns=1;i=8002" IsForward="true">PropertyType</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">i=85</Reference>
+        </References>
+    </UAVariable>
 </UANodeSet>
