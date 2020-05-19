@@ -10,6 +10,7 @@
 #include <assert.h>
 #include <open62541/server_config.h>
 #include <open62541/types.h>
+#include "padding.h"
 
 #define alignof(type) offsetof(struct {char c; type d;}, d)
 
@@ -126,7 +127,7 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
         if (!tm->isArray)
         {
             int align = getAlignment(memberType, ns0Types, customTypes);
-            tm->padding = (UA_Byte)((align - (offset % align)) % align);
+            tm->padding = getPadding(align, offset);
             offset = offset + tm->padding + memberType->memSize;
             // padding after struct at end is needed
             if (memberType->memSize > sizeof(size_t))
@@ -141,12 +142,12 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             // serialization, we have a serious problem
             // we rely here that its an size_t
             int align = alignof(size_t);
-            tm->padding = (UA_Byte)((align - (offset % align)) % align);
+            tm->padding = getPadding(align, offset);
             offset = offset + tm->padding + (UA_Byte)sizeof(size_t);
             // the void* for data
             align = alignof(void *);
             int padding2 = 0;
-            padding2 = (UA_Byte)((align - (offset % align)) % align);
+            padding2 = getPadding(align, offset);
             offset = offset + padding2 + (UA_Byte)sizeof(void *);
             // datatype is not pointerfree
             type->pointerFree = false;

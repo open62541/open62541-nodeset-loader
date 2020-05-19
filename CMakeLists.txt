@@ -14,8 +14,7 @@ option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
 option(CALC_COVERAGE off "calculate code coverage")
 
 if(CALC_COVERAGE)
-    set(COMPILER_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
-    set(LIB_GCOV gcov)
+    set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
 endif()
 
 set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
@@ -69,6 +68,8 @@ target_include_directories(NodesetLoader
 target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
+target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
+target_link_libraries(NodesetLoader PRIVATE gcov)
 if(${ENABLE_ASAN})
     target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
 endif()
