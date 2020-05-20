@@ -47,7 +47,26 @@ static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
         const_cast<UA_DataType *>(pDataTypeArray->types),
         sizeof(UA_DataType) * (newDataTypesSize + pDataTypeArray->typesSize));
     assert(newTypes);
-    memcpy(newTypes+pDataTypeArray->typesSize, pNewDataTypes, newDataTypesSize * sizeof(UA_DataType));
+    memcpy(newTypes + pDataTypeArray->typesSize, pNewDataTypes,
+           newDataTypesSize * sizeof(UA_DataType));
+    // increment the typeIndex of the members
+    // ATTENTION: this is only working because there are no dependencies between
+    // typeMembers between non namespace nodesets
+    for (UA_DataType *type = newTypes + pDataTypeArray->typesSize;
+         type != newTypes + pDataTypeArray->typesSize + newDataTypesSize;
+         type++)
+    {
+        
+        for (UA_DataTypeMember *m = type->members;
+             m != type->members + type->membersSize; m++)
+        {
+            if (!m->namespaceZero)
+            {
+                m->memberTypeIndex += (UA_UInt16)pDataTypeArray->typesSize;
+            }
+        }
+    }
+
     // ugly
     size_t *typesSize = const_cast<size_t *>(&pDataTypeArray->typesSize);
     *typesSize += newDataTypesSize;
@@ -224,6 +243,16 @@ int main()
         return EXIT_FAILURE;
     }
 #endif
+
+    //assign new typeIndizes
+    UA_UInt16 idx=0;
+    for (UA_DataType *type = (UA_DataType *)(uintptr_t)pDataTypeArray->types;
+         type != pDataTypeArray->types + pDataTypeArray->typesSize; type++)
+    {
+
+        type->typeIndex = idx;
+        idx++;
+    }
 
     pCfg->customDataTypes = pDataTypeArray;
 
