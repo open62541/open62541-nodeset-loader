@@ -394,18 +394,36 @@ static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
     return parentId;
 }
 
-static const UA_DataType *getParentType(UA_Server *server,
+static bool isKnownParent(const UA_NodeId typeId)
+{
+    UA_NodeId int32Id = UA_NODEID_NUMERIC(0, UA_NS0ID_INT32);
+    UA_NodeId structure = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
+    UA_NodeId enumeration = UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
+
+    const size_t cnt = 3;
+    UA_NodeId knownIds[3] = {int32Id, structure, enumeration};
+
+    for(size_t i=0; i< cnt; i++)
+    {
+        if(UA_NodeId_equal(&knownIds[i], &typeId))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+static UA_NodeId getParentType(UA_Server *server,
                                         const UA_NodeId dataTypeId)
 {
-    const UA_DataType *parentType = NULL;
     UA_NodeId current = dataTypeId;
-    while (!parentType)
+    while (!isKnownParent(current))
     {
         current = getParentDataType(server, current);
-        parentType = UA_findDataType(&current);
     }
-    return parentType;
+    return current;
 }
+
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
@@ -432,8 +450,7 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
             }
             hasEncodingRef = hasEncodingRef->next;
         }
-        const UA_DataType* parent = getParentType(server, getNodeIdFromChars((*node)->id));
-        assert(parent && "DataType node has no parent");
+        const UA_NodeId parent = getParentType(server, getNodeIdFromChars((*node)->id));
         DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node, parent);
     }
     DataTypeImporter_initMembers(importer);

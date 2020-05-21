@@ -348,7 +348,7 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
 }
 
 static void StructureDataType_init(const DataTypeImporter *importer,
-                                   UA_DataType *type, const TDataTypeNode *node)
+                                   UA_DataType *type, const TDataTypeNode *node, bool isOptionSet)
 {
     if (node->definition && node->definition->isUnion)
     {
@@ -361,7 +361,10 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
     type->pointerFree = true;
-    addDataTypeMembers(importer->types->types, type, node);
+    if(!isOptionSet)
+    {
+        addDataTypeMembers(importer->types->types, type, node);
+    }    
     type->overlayable = false;
 }
 
@@ -380,16 +383,20 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 
 static void SubtypeOfBase_init(const DataTypeImporter *importer,
                                UA_DataType *type, const TDataTypeNode *node,
-                               const UA_DataType *parent)
+                               const UA_NodeId parent)
 {
+    const UA_DataType* parentType = UA_findDataType(&parent);
+
+    assert(parentType);
+
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
-    type->binaryEncodingId = parent->binaryEncodingId;
+    type->binaryEncodingId = parentType->binaryEncodingId;
     type->members = NULL;
     type->membersSize = 0;
-    type->memSize = parent->memSize;
-    type->overlayable = parent->overlayable;
-    type->pointerFree = parent->pointerFree;
-    type->typeKind = parent->typeKind;
+    type->memSize = parentType->memSize;
+    type->overlayable = parentType->overlayable;
+    type->pointerFree = parentType->pointerFree;
+    type->typeKind = parentType->typeKind;
 }
 
 static bool readyForMemsizeCalc(const UA_DataType *type,
@@ -471,7 +478,7 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node,
-                                        const struct UA_DataType *parent)
+                                        const UA_NodeId parent)
 {
     // TODO: can we to this in a more clever way?
     // the user of the library should provide the memory for the custom
@@ -494,21 +501,22 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
         memcpy((void *)(uintptr_t)type->typeName, node->browseName.name, len);
     }
 
-    if (node->definition && node->definition->isEnum)
+    UA_NodeId enumeration = UA_NODEID_NUMERIC(0,UA_NS0ID_ENUMERATION);
+    UA_NodeId structure = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
+    UA_NodeId optionset = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+    if (UA_NodeId_equal(&parent, &enumeration))
     {
         EnumDataType_init(importer, type, node);
     }
-    else if (node->definition && node->definition->isOptionSet)
+    else if (UA_NodeId_equal(&parent, &optionset))
     {
         //treat optionset like a struct
-        StructureDataType_init(importer, type, node);
+        StructureDataType_init(importer, type, node, true);
     }
     
-    else if (parent->typeKind == UA_DATATYPEKIND_STRUCTURE ||
-             parent->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
-             parent->typeKind == UA_DATATYPEKIND_EXTENSIONOBJECT)
+    else if (UA_NodeId_equal(&parent, &structure))
     {
-        StructureDataType_init(importer, type, node);
+        StructureDataType_init(importer, type, node, false);
     }
     else
     {
