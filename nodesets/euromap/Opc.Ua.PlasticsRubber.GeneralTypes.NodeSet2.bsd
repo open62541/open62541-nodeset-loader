@@ -10,7 +10,7 @@
   <opc:Field TypeName="opc:UInt32" Name="Id"/>
   <opc:Field TypeName="ua:LocalizedText" Name="Description"/>
   <opc:Field TypeName="ua:Variant" Name="DefaultValue"/>
-  <opc:Field TypeName="ua:EUInformation" Name="Unit"/>
+  <!--have to skip this because of nodesetcompiler issues <opc:Field TypeName="ua:EUInformation" Name="Unit"/>-->
  </opc:StructuredType>
  <opc:StructuredType BaseType="ua:ExtensionObject" Name="JobListElementType">
   <opc:Documentation>Description of a job in a job list</opc:Documentation>
@@ -28,7 +28,7 @@
   <opc:Field LengthField="NoOfProductDescription" TypeName="opc:CharArray" Name="ProductDescription"/>
   <opc:Field TypeName="opc:CharArray" Name="JobPriority"/>
   <opc:Field TypeName="opc:DateTime" Name="PlannedStart"/>
-  <opc:Field TypeName="opc:Duration" Name="PlannedProductionTime"/>
+  <opc:Field TypeName="opc:Double" Name="PlannedProductionTime"/>
   <opc:Field TypeName="opc:DateTime" Name="LatestEnd"/>
  </opc:StructuredType>
  <opc:StructuredType BaseType="tns:JobListElementType" Name="CyclicJobListElementType">
@@ -47,11 +47,11 @@
   <opc:Field LengthField="NoOfProductDescription" SourceType="tns:JobListElementType" TypeName="opc:CharArray" Name="ProductDescription"/>
   <opc:Field SourceType="tns:JobListElementType" TypeName="opc:CharArray" Name="JobPriority"/>
   <opc:Field SourceType="tns:JobListElementType" TypeName="opc:DateTime" Name="PlannedStart"/>
-  <opc:Field SourceType="tns:JobListElementType" TypeName="opc:Duration" Name="PlannedProductionTime"/>
+  <opc:Field SourceType="tns:JobListElementType" TypeName="opc:Double" Name="PlannedProductionTime"/>
   <opc:Field SourceType="tns:JobListElementType" TypeName="opc:DateTime" Name="LatestEnd"/>
   <opc:Field TypeName="opc:UInt64" Name="NominalParts"/>
   <opc:Field TypeName="opc:UInt64" Name="NominalBoxParts"/>
-  <opc:Field TypeName="opc:Duration" Name="ExpectedCycleTime"/>
+  <opc:Field TypeName="opc:Double" Name="ExpectedCycleTime"/>
   <opc:Field TypeName="opc:CharArray" Name="MouldId"/>
   <opc:Field TypeName="opc:UInt32" Name="NumCavities"/>
  </opc:StructuredType>
