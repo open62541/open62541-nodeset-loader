@@ -32,6 +32,16 @@ make
 ./parserDemo pathToNodesetFile1 pathToNodesetFile2
   
 ## Integration with open62541
+
+### status
+- [x] import of multiple nodeset files
+- [x] nodesetLoader uses the logger from the server configuration
+- [x] DataType import: custom datatypes
+- [x] DataType import: optionset, union, structs with optional members supported
+- [x] Value import: for variables with datatypes from namespace 0 and custom data types
+
+### build
+
 build with cmake option ENABLE_BACKEND_OPEN62541
 
 There is an example in the open backend, can be started with
