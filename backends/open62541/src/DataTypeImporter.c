@@ -242,6 +242,7 @@ static TNodeId getParentNode(const TDataTypeNode *node)
         {
             return ref->target;
         }
+        ref=ref->next;
     }
     TNodeId nullId = {0, NULL};
     return nullId;
@@ -497,6 +498,12 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     {
         EnumDataType_init(importer, type, node);
     }
+    else if (node->definition && node->definition->isOptionSet)
+    {
+        //treat optionset like a struct
+        StructureDataType_init(importer, type, node);
+    }
+    
     else if (parent->typeKind == UA_DATATYPEKIND_STRUCTURE ||
              parent->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
              parent->typeKind == UA_DATATYPEKIND_EXTENSIONOBJECT)
