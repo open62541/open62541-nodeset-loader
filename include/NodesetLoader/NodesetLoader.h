@@ -182,7 +182,6 @@ typedef struct
 {
     DataTypeDefinitionField *fields;
     size_t fieldCnt;
-    bool isEnum;
     bool isUnion;
     bool isOptionSet;
 } DataTypeDefinition;
