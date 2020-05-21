@@ -125,3 +125,21 @@ target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generate
 add_test(NAME compareUnion_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
+
+ua_generate_nodeset_and_datatypes(
+    NAME "optionset2"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionset.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionset.bsd"
+    NAMESPACE_IDX 2
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml"
+    INTERNAL
+)
+
+add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
+add_dependencies(compareOptionset open62541-generator-ns-optionset2)
+target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+
+add_test(NAME compareOptionset_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareOptionset "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml")

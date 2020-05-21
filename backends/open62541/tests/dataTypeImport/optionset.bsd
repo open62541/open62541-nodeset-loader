@@ -1,0 +1,7 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://yourorganisation.org/optionSet/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://yourorganisation.org/optionSet/">
+ <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+ <opc:StructuredType BaseType="ua:ExtensionObject" Name="DriveState">
+  <opc:Field TypeName="opc:ByteString" Name="Value"/>
+  <opc:Field TypeName="opc:ByteString" Name="ValidBits"/>
+ </opc:StructuredType>
+</opc:TypeDictionary>

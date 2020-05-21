@@ -184,6 +184,7 @@ typedef struct
     size_t fieldCnt;
     bool isEnum;
     bool isUnion;
+    bool isOptionSet;
 } DataTypeDefinition;
 
 struct TDataTypeNode
