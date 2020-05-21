@@ -158,6 +158,13 @@ int main(int argc, char *argv[])
     string IP = string(argv[1]);
     string Port = string(argv[2]);
     string FilePath = string(argv[3]);
+
+    /* Visual Studio code debugging with arguments does not work ...
+    string IP = "localhost";
+    string Port = "4840";
+    string FilePath = "Output.txt";
+    */
+
     cout << "Test output file path = '" << FilePath << "'" << endl;
 
     UA_NodeId StartId = UA_NODEID_NUMERIC(0, UA_NS0ID_ROOTFOLDER); // default
