@@ -46,7 +46,10 @@ static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
     UA_DataType *newTypes = (UA_DataType *)realloc(
         const_cast<UA_DataType *>(pDataTypeArray->types),
         sizeof(UA_DataType) * (newDataTypesSize + pDataTypeArray->typesSize));
-    assert(newTypes);
+    if(!newTypes)
+    {
+        return UA_FALSE;
+    }
     memcpy(newTypes + pDataTypeArray->typesSize, pNewDataTypes,
            newDataTypesSize * sizeof(UA_DataType));
     // increment the typeIndex of the members
@@ -139,7 +142,10 @@ int main()
     // prepare custom datatype arrays
     UA_DataTypeArray *pDataTypeArray =
         (UA_DataTypeArray *)calloc(1, sizeof(UA_DataTypeArray));
-    assert(pDataTypeArray);
+    if(!pDataTypeArray)
+    {
+        return EXIT_FAILURE;
+    }
 
     /* create nodes from nodeset */
     UA_StatusCode retval = UA_STATUSCODE_GOOD;
