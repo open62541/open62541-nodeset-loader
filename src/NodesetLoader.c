@@ -214,6 +214,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         else if (!strcmp(localname, "Definition"))
         {
+            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node, nb_attributes,
+                                     attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         }
         else if (!strcmp(localname, INVERSENAME))

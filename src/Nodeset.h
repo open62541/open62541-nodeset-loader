@@ -54,6 +54,8 @@ void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias,
                             char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, TNode *node, int attributeSize,
+                              const char **attributes);
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes);
 void Nodeset_setDisplayName(Nodeset *nodeset, TNode *node, int attributeSize,

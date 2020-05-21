@@ -107,3 +107,21 @@ target_include_directories(compareOptionalStruct PRIVATE ${CMAKE_BINARY_DIR}/src
 add_test(NAME compareOptionalStruct_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareOptionalStruct "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml")
+
+ua_generate_nodeset_and_datatypes(
+    NAME "union2"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/union.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/union.bsd"
+    NAMESPACE_IDX 2
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/union.xml"
+    INTERNAL
+)
+
+add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
+add_dependencies(compareUnion open62541-generator-ns-union2)
+target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+
+add_test(NAME compareUnion_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")

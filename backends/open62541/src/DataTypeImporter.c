@@ -7,10 +7,10 @@
 
 #include "DataTypeImporter.h"
 #include "conversion.h"
+#include "padding.h"
 #include <assert.h>
 #include <open62541/server_config.h>
 #include <open62541/types.h>
-#include "padding.h"
 
 #define alignof(type) offsetof(struct {char c; type d;}, d)
 
@@ -118,6 +118,9 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
     }
     int offset = 0;
     int endPadding = 0;
+
+    UA_UInt16 biggestMemberSize = 0;
+
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
@@ -125,7 +128,7 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
         type->pointerFree = type->pointerFree && memberType->pointerFree;
 
-        if(tm->isArray)
+        if (tm->isArray)
         {
             // for arrays we have to take the size_t for the arraySize into
             // account if the open changes the implementation of array
@@ -141,27 +144,61 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             offset = offset + padding2 + (UA_Byte)sizeof(void *);
             // datatype is not pointerfree
             type->pointerFree = false;
+
+            if (sizeof(void *) > biggestMemberSize)
+            {
+                biggestMemberSize = sizeof(void *);
+            }
         }
         else if (tm->isOptional)
         {
-            int align = alignof(void*);
+            int align = alignof(void *);
             tm->padding = getPadding(align, offset);
             offset = offset + tm->padding + (UA_Byte)sizeof(void *);
             type->pointerFree = false;
+            if (sizeof(void *) > biggestMemberSize)
+            {
+                biggestMemberSize = sizeof(void *);
+            }
         }
         else
         {
-            int align = getAlignment(memberType, ns0Types, customTypes);
-            tm->padding = getPadding(align, offset);
-            offset = offset + tm->padding + memberType->memSize;
-            // padding after struct at end is needed
-            if (memberType->memSize > sizeof(size_t))
+            if(type->typeKind == UA_DATATYPEKIND_UNION && tm>type->members)
             {
-                endPadding = memberType->memSize % sizeof(size_t);
+                tm->padding = sizeof(UA_UInt32);
+            }
+            else
+            {
+                int align = getAlignment(memberType, ns0Types, customTypes);
+                tm->padding = getPadding(align, offset);
+                offset = offset + tm->padding + memberType->memSize;
+                // padding after struct at end is needed
+                if (memberType->memSize > sizeof(size_t))
+                {
+                    endPadding = memberType->memSize % sizeof(size_t);
+                }
+                if (memberType->memSize > biggestMemberSize)
+                {
+                    biggestMemberSize = memberType->memSize;
+                }
             }
         }
     }
-    type->memSize = (UA_UInt16)(offset + endPadding);
+    if (type->typeKind == UA_DATATYPEKIND_UNION)
+    {
+        // add the switch field
+        type->memSize = sizeof(UA_Int32);
+        int padding = getPadding(alignof(UA_Int32), 0);
+        type->memSize = (UA_UInt16)(type->memSize + padding);
+        type->memSize = (UA_UInt16)(type->memSize + biggestMemberSize);
+        endPadding = getPadding(alignof(size_t), type->memSize);
+        type->memSize = (UA_UInt16)(type->memSize + endPadding);
+        type->membersSize++;
+    }
+    else
+    {
+        type->memSize = (UA_UInt16)(offset + endPadding);
+    }
 }
 
 static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
@@ -301,7 +338,7 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
                strlen(node->definition->fields[i].name));
         member->memberName = memberNameCopy;
         member->isOptional = node->definition->fields[i].isOptional;
-        if(member->isOptional)
+        if (member->isOptional)
         {
             type->pointerFree = false;
             type->typeKind = UA_DATATYPEKIND_OPTSTRUCT;
@@ -312,8 +349,14 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
 static void StructureDataType_init(const DataTypeImporter *importer,
                                    UA_DataType *type, const TDataTypeNode *node)
 {
-    // TODO: there can be more options (OPSTRUCT)?
-    type->typeKind = UA_DATATYPEKIND_STRUCTURE;
+    if (node->definition && node->definition->isUnion)
+    {
+        type->typeKind = UA_DATATYPEKIND_UNION;
+    }
+    else
+    {
+        type->typeKind = UA_DATATYPEKIND_STRUCTURE;
+    }
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
     type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
     type->pointerFree = true;
@@ -351,7 +394,8 @@ static void SubtypeOfBase_init(const DataTypeImporter *importer,
 static bool readyForMemsizeCalc(const UA_DataType *type,
                                 const UA_DataType *customTypes)
 {
-    if (type->typeKind != UA_DATATYPEKIND_STRUCTURE && type->typeKind != UA_DATATYPEKIND_OPTSTRUCT)
+    if (type->typeKind != UA_DATATYPEKIND_STRUCTURE &&
+        type->typeKind != UA_DATATYPEKIND_OPTSTRUCT)
     {
         return true;
     }
@@ -413,7 +457,9 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
                              importer->firstNewDataType;
          type != importer->types->types + importer->types->typesSize; type++)
     {
-        if (type->typeKind == UA_DATATYPEKIND_STRUCTURE || type->typeKind == UA_DATATYPEKIND_OPTSTRUCT)
+        if (type->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+            type->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
+            type->typeKind == UA_DATATYPEKIND_UNION)
         {
             setDataTypeMembersTypeIndex(importer, type, importer->nodes[cnt]);
         }
@@ -485,7 +531,7 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
         // we append all types to customTypes array
         UA_DataTypeArray *newCustomTypes =
             (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
-        if(!newCustomTypes)
+        if (!newCustomTypes)
         {
             return importer;
         }
