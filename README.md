@@ -34,11 +34,11 @@ make
 ## Integration with open62541
 
 ### status
-- [x] import of multiple nodeset files
-- [x] nodesetLoader uses the logger from the server configuration
-- [x] DataType import: custom datatypes
-- [x] DataType import: optionset, union, structs with optional members supported
-- [x] Value import: for variables with datatypes from namespace 0 and custom data types
+* :heavy_check_mark: import of multiple nodeset files
+* :heavy_check_mark: nodesetLoader uses the logger from the server configuration
+* :heavy_check_mark: DataType import: custom datatypes
+* :heavy_check_mark: DataType import: optionset, union, structs with optional members supported
+* :heavy_check_mark: Value import: for variables with datatypes from namespace 0 and custom data types
 
 ### build
 
