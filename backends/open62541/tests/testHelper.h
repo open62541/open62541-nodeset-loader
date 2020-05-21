@@ -9,8 +9,16 @@ static void cleanupCustomTypes(const UA_DataTypeArray *types)
                  type != types->types + types->typesSize; type++)
             {
                 free((void*)(uintptr_t)type->typeName);
+                UA_UInt32 mSize =
+                    type->membersSize;
+                if(type->typeKind == UA_DATATYPEKIND_UNION)
+                {
+                    mSize--;
+                }
                 for (UA_DataTypeMember *m = type->members;
-                     m != type->members + type->membersSize; m++)
+                                           m !=
+                                           type->members + mSize;
+                                           m++)
                 {
                     free((void *)m->memberName);
                     m->memberName = NULL;
