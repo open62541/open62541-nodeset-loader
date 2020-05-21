@@ -68,6 +68,7 @@ const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
 const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
 const NodeAttribute attrSymmetric = {"Symmetric", "false"};
+const NodeAttribute dataTypeDefinition_IsUnion = {"IsUnion", "false"};
 const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
@@ -513,13 +514,21 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
     }
 }
 
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, TNode *node,
+                                   int attributeSize, const char **attributes)
+{
+    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    DataTypeDefinition* def = DataTypeDefinition_new(dataTypeNode);
+    def->isUnion = !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion, attributes, attributeSize));
+}
+
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
 
     DataTypeDefinitionField *newField =
-        DataTypeNode_addDefinitionField(dataTypeNode);
+        DataTypeNode_addDefinitionField(dataTypeNode->definition);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
 

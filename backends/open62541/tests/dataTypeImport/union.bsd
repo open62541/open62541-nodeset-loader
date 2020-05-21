@@ -1,0 +1,8 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://yourorganisation.org/union/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://yourorganisation.org/union/">
+ <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+ <opc:StructuredType BaseType="ua:Union" Name="MyUnion">
+  <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+  <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="1" Name="x"/>
+  <opc:Field SwitchField="SwitchField" TypeName="opc:Int16" SwitchValue="2" Name="y"/>
+ </opc:StructuredType>
+</opc:TypeDictionary>

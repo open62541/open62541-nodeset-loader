@@ -21,18 +21,20 @@ static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
     return &definition->fields[definition->fieldCnt - 1];
 }
 
-DataTypeDefinitionField *DataTypeNode_addDefinitionField(TDataTypeNode *node)
+DataTypeDefinition* DataTypeDefinition_new(TDataTypeNode* node)
 {
+    node->definition =
+        (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
     if (!node->definition)
     {
-        node->definition =
-            (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
-        if(!node->definition)
-        {
-            return NULL;
-        }
+        return NULL;
     }
-    return getNewField(node->definition);
+    return node->definition;
+}
+
+DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def)
+{
+    return getNewField(def);
 }
 
 void DataTypeNode_clear(TDataTypeNode *node)

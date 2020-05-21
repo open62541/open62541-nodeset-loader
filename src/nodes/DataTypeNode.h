@@ -10,5 +10,6 @@
 #include <NodesetLoader/NodesetLoader.h>
 
 void DataTypeNode_clear(TDataTypeNode *node);
-DataTypeDefinitionField *DataTypeNode_addDefinitionField(TDataTypeNode *node);
+DataTypeDefinition *DataTypeDefinition_new(TDataTypeNode *node);
+DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def);
 #endif

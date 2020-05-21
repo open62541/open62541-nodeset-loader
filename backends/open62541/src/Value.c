@@ -157,7 +157,7 @@ static void setDateTime(const Data* value, RawData* data)
     uintptr_t adr = (uintptr_t)data->mem + data->offset;
     struct tm dateTime;
     memset(&dateTime, 0, sizeof(struct tm));
-    strptime(value->val.primitiveData.value, "%Y-%m-%d %H:%M:%S%T", &dateTime);
+    strptime(value->val.primitiveData.value, "%Y-%m-%d %H:%M:%S%Z", &dateTime);
     time_t rawTime = mktime(&dateTime);
     UA_DateTime *val = (UA_DateTime *)adr;
     *val = (UA_DateTime)(rawTime * UA_DATETIME_SEC + UA_DATETIME_UNIX_EPOCH);

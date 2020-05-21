@@ -20,6 +20,17 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
+# standard-defined data types
+ua_generate_datatypes(
+    INTERNAL
+    IMPORT_BSD "UA_TYPES#/home/matzy/git/open62541/deps/ua-nodeset/Schema/Opc.Ua.Types.bsd"
+    NAME "types83"
+    TARGET_SUFFIX "types83"
+    NAMESPACE_IDX 3
+    FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
+    FILES_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
+)
+
 # generate euromap83 namespace which is using DI
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_euromap_83"
