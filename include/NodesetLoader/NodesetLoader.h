@@ -32,6 +32,8 @@ typedef enum
     // eventtype is handled like a object type
 } TNodeClass;
 
+LOADER_EXPORT extern const char *NODECLASS_NAME[NODECLASS_COUNT];
+
 typedef struct
 {
     uint16_t nsIdx;
