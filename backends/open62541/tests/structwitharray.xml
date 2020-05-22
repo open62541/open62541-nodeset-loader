@@ -163,6 +163,7 @@
                             <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">1</Int32>
                             <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">2</Int32>
                             <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">3</Int32>
+                            <Int32 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">23</Int32>
                         </scaleFactors>
                     </StructWithArray>
                 </uax:Body>

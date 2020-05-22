@@ -432,7 +432,6 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
 static void calcMemSize(DataTypeImporter *importer)
 {
     bool allTypesFinished = false;
-    // TODO: possible an endless loop
     // datatype nodes could be sorted upfront to detect cyclic dependencies
     while (!allTypesFinished)
     {
