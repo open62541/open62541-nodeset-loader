@@ -486,9 +486,9 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     if (!importer->types->types)
     {
         importer->types->types =
-            (UA_DataType *)calloc(100, sizeof(UA_DataType));
+            (UA_DataType *)calloc(1000, sizeof(UA_DataType));
     }
-    assert(importer->types->typesSize < 100);
+    assert(importer->types->typesSize < 1000);
 
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
