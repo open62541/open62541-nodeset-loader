@@ -37,6 +37,10 @@
 #define EXTENSION "Extension"
 #define INVERSENAME "InverseName"
 
+const char *NODECLASS_NAME[NODECLASS_COUNT] = {
+    "Object", "ObjectType",    "Variable",    "DataType",
+    "Method", "ReferenceType", "VariableType"};
+
 typedef enum
 {
     PARSER_STATE_INIT,
