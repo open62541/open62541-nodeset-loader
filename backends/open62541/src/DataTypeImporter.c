@@ -432,7 +432,6 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
 static void calcMemSize(DataTypeImporter *importer)
 {
     bool allTypesFinished = false;
-    // TODO: possible an endless loop
     // datatype nodes could be sorted upfront to detect cyclic dependencies
     while (!allTypesFinished)
     {
@@ -480,7 +479,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                                         const TDataTypeNode *node,
                                         const UA_NodeId parent)
 {
-    // TODO: can we to this in a more clever way?
+    // there is an open issue for that
     // the user of the library should provide the memory for the custom
     // dataTypes, then it is clear that he has to clean it up
     if (!importer->types->types)

@@ -10,10 +10,12 @@
 #include <open62541/types.h>
 #include <NodesetLoader/NodesetLoader.h>
 
+struct RawData;
 struct RawData
 {
     void *mem;
     size_t offset;
+    struct RawData* next;
 };
 typedef struct RawData RawData;
 void RawData_delete(RawData *data);

@@ -93,7 +93,7 @@ static const ConversionFn conversionTable[UA_DATATYPEKINDS] = {
     setBoolean,        setSByte,          setByte,           setInt16,
     setUInt16,         setInt32,          setUInt32,         setInt64,
     setUInt64,         setFloat,          setDouble,         setString,
-    setNotImplemented,       setNotImplemented,
+    setNotImplemented, setNotImplemented,
     setString, // handle bytestring like string
     setString, // handle xmlElement like string
     setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
@@ -112,22 +112,33 @@ static void setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind,
     }
 }
 
-static RawData *RawData_new(void)
+static RawData *RawData_new(RawData* old)
 {
     RawData *data = (RawData *)calloc(1, sizeof(RawData));
-    if(!data)
+    if (!data)
     {
         return NULL;
     }
+    if(old)
+    {
+        while (old->next)
+        {
+            old = old->next;
+        }
+        old->next = data;
+    }
+    
     return data;
 }
 
 void RawData_delete(RawData *data)
 {
-    if (data)
+    while(data)
     {
-        free(data->mem);
-        free(data);
+        RawData* tmp = data;
+        data=data->next;
+        free(tmp->mem);
+        free(tmp);
     }
 }
 
@@ -152,7 +163,7 @@ static Data *lookupMember(const Data *value, const char *name)
     return NULL;
 }
 
-static void setDateTime(const Data* value, RawData* data)
+static void setDateTime(const Data *value, RawData *data)
 {
     uintptr_t adr = (uintptr_t)data->mem + data->offset;
     struct tm dateTime;
@@ -161,7 +172,7 @@ static void setDateTime(const Data* value, RawData* data)
     time_t rawTime = mktime(&dateTime);
     UA_DateTime *val = (UA_DateTime *)adr;
     *val = (UA_DateTime)(rawTime * UA_DATETIME_SEC + UA_DATETIME_UNIX_EPOCH);
-    data->offset = data->offset+sizeof(UA_DateTime);
+    data->offset = data->offset + sizeof(UA_DateTime);
 }
 
 static void setQualifiedName(const Data *value, RawData *data)
@@ -214,11 +225,13 @@ static void setNodeId(const Data *value, RawData *data)
     data->offset += sizeof(UA_NodeId);
 }
 
-static void setScalar(const Data *value, const UA_DataType *type,
-                      RawData *data, const UA_DataType* customTypes);
+static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
+                      const UA_DataType *customTypes);
+static void setArray(const Data *value, const UA_DataType *type, RawData *data,
+                     const UA_DataType *customTypes);
 
 static void setStructure(const Data *value, const UA_DataType *type,
-                         RawData *data, const UA_DataType* customTypes)
+                         RawData *data, const UA_DataType *customTypes)
 {
     assert(value->type == DATATYPE_COMPLEX);
     // there can be less members specified then the type requires
@@ -232,32 +245,38 @@ static void setStructure(const Data *value, const UA_DataType *type,
         }
         else
         {
-            memberType = customTypes+m->memberTypeIndex;
+            memberType = customTypes + m->memberTypeIndex;
         }
 
         data->offset += m->padding;
         Data *memberData = lookupMember(value, m->memberName);
+        if (!memberData)
+        {
+            data->offset += memberType->memSize;
+            return;
+        }
         if (m->isArray)
         {
-            // TODO: arrays not implemented in frontend
+            RawData *rawdata = RawData_new(data);
+            rawdata->mem = calloc(memberData->val.complexData.membersSize,
+                                  memberType->memSize);
+            setArray(memberData, memberType, rawdata, customTypes);
+            size_t *size = (size_t *)((uintptr_t)data->mem + data->offset);
+            *size = memberData->val.complexData.membersSize;
             data->offset += sizeof(size_t);
+            void **d = (void **)((uintptr_t)data->mem + data->offset);
+            *d = rawdata->mem;
             data->offset += sizeof(void *);
         }
         else
         {
-            if (memberData)
-            {
-                setScalar(memberData, memberType, data, customTypes);
-            }
-            else
-            {
-                data->offset += memberType->memSize;
-            }
+            setScalar(memberData, memberType, data, customTypes);
         }
     }
 }
 
-static void setScalar(const Data *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
+static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
+                      const UA_DataType *customTypes)
 {
     if (type->typeKind <= UA_DATATYPEKIND_STRING)
     {
@@ -292,44 +311,35 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
     }
 }
 
-static void setArray(const Value *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
+static void setArray(const Data *value, const UA_DataType *type, RawData *data,
+                     const UA_DataType *customTypes)
 {
-    for (size_t i = 0; i < value->data->val.complexData.membersSize; i++)
+    for (size_t i = 0; i < value->val.complexData.membersSize; i++)
     {
-        setScalar(value->data->val.complexData.members[i], type, data, customTypes);
+        setScalar(value->val.complexData.members[i], type, data, customTypes);
     }
 }
 
-static void setData(const Value *value, const UA_DataType *type, RawData *data, const UA_DataType* customTypes)
-{
-    if (value->isArray)
-    {
-        setArray(value, type, data, customTypes);
-    }
-    else
-    {
-        setScalar(value->data, type, data, customTypes);
-    }
-}
-
-RawData *Value_getData(const Value *value, const UA_DataType *type, const UA_DataType* customTypes)
+RawData *Value_getData(const Value *value, const UA_DataType *type,
+                       const UA_DataType *customTypes)
 {
     if (!type)
     {
         return NULL;
     }
 
-    RawData *data = RawData_new();
+    RawData *data = RawData_new(NULL);
     if (value->isArray)
     {
         data->mem =
             calloc(value->data->val.complexData.membersSize, type->memSize);
+        setArray(value->data, type, data, customTypes);
     }
     else
     {
         data->mem = calloc(1, type->memSize);
+        setScalar(value->data, type, data, customTypes);
     }
 
-    setData(value, type, data, customTypes);
     return data;
 }

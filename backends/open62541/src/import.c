@@ -164,7 +164,6 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         *attr.arrayDimensions = 0;
     }
 
-    // todo: is this really necessary??
     UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {
@@ -269,8 +268,6 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
             attr.arrayDimensions = &arrayDimensions[0];
         }
     }
-
-    // UA_NodeId typeDefId = getTypeDefinitionIdFromChars2((const TNode *)node);
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
                             *parentReferenceId, *qn, UA_NODEID_NULL, &attr,
@@ -396,19 +393,9 @@ static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 
 static bool isKnownParent(const UA_NodeId typeId)
 {
-    UA_NodeId int32Id = UA_NODEID_NUMERIC(0, UA_NS0ID_INT32);
-    UA_NodeId structure = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
-    UA_NodeId enumeration = UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
-
-    const size_t cnt = 3;
-    UA_NodeId knownIds[3] = {int32Id, structure, enumeration};
-
-    for(size_t i=0; i< cnt; i++)
+    if(typeId.namespaceIndex==0 && typeId.identifierType==UA_NODEIDTYPE_NUMERIC && typeId.identifier.numeric <=30)
     {
-        if(UA_NodeId_equal(&knownIds[i], &typeId))
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }
@@ -490,9 +477,6 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
         NODECLASS_VARIABLE};
-    const char *classNames[NODECLASS_COUNT] = {
-        "ReferenceType", "DataType",     "ObjectType", "Object",
-        "Method",        "VariableType", "Variable"};
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
@@ -508,7 +492,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
             importDataTypes(loader, server);
         }
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %ss: %zu", classNames[i], cnt);
+                    "imported %ss: %zu", NODECLASS_NAME[i], cnt);
     }
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
