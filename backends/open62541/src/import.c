@@ -164,7 +164,6 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         *attr.arrayDimensions = 0;
     }
 
-    // todo: is this really necessary??
     UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {

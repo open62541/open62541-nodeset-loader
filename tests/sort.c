@@ -128,7 +128,6 @@ START_TEST(nodeWithRefs_2) {
 }
 END_TEST
 
-//todo: fix this test, memleak in sort nodes
 // cycle nodeB -> nodeA and NodeA -> NodeB
 // expect: cycle detection
 START_TEST(cycleDetect) {
