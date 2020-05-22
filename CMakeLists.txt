@@ -85,6 +85,7 @@ set(NODESETLOADER_PUBLIC_HEADER
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
 )
 
 if(${ENABLE_BACKEND_OPEN62541})
