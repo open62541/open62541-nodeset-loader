@@ -148,31 +148,35 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
 
     for (charNo = 0; charNo <= len - 4 - pad; charNo += 4)
     {
-        int A = unb64[safeAsciiPtr[charNo]];
-        int B = unb64[safeAsciiPtr[charNo + 1]];
-        int C = unb64[safeAsciiPtr[charNo + 2]];
-        int D = unb64[safeAsciiPtr[charNo + 3]];
+        //skip LF, CR
+        if(safeAsciiPtr[charNo]==0xa) charNo++;
+        if(safeAsciiPtr[charNo]==0xd) charNo++;
 
-        bin[cb++] = (unsigned char)((A << 2) | (B >> 4));
-        bin[cb++] = (unsigned char)((B << 4) | (C >> 2));
-        bin[cb++] = (unsigned char)((C << 6) | (D));
+        unsigned char A = unb64[safeAsciiPtr[charNo]];
+        unsigned char B = unb64[safeAsciiPtr[charNo + 1]];
+        unsigned char C = unb64[safeAsciiPtr[charNo + 2]];
+        unsigned char D = unb64[safeAsciiPtr[charNo + 3]];
+
+        bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
+        bin[cb++] = (unsigned char)(B << 4) | (C >> 2);
+        bin[cb++] = (unsigned char)(C << 6) | (D);
     }
 
     if (pad == 1)
     {
-        int A = unb64[safeAsciiPtr[charNo]];
-        int B = unb64[safeAsciiPtr[charNo + 1]];
-        int C = unb64[safeAsciiPtr[charNo + 2]];
+        unsigned char A = unb64[safeAsciiPtr[charNo]];
+        unsigned char B = unb64[safeAsciiPtr[charNo + 1]];
+        unsigned char C = unb64[safeAsciiPtr[charNo + 2]];
 
-        bin[cb++] = (unsigned char)((A << 2) | (B >> 4));
-        bin[cb++] = (unsigned char)((B << 4) | (C >> 2));
+        bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
+        bin[cb++] = (unsigned char)(B << 4) | (C >> 2);
     }
     else if (pad == 2)
     {
-        int A = unb64[safeAsciiPtr[charNo]];
-        int B = unb64[safeAsciiPtr[charNo + 1]];
+        unsigned char A = (unsigned char)unb64[safeAsciiPtr[charNo]];
+        unsigned char B = (unsigned char)unb64[safeAsciiPtr[charNo + 1]];
 
-        bin[cb++] = (unsigned char)((A << 2) | (B >> 4));
+        bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
     }
 
     return bin;
