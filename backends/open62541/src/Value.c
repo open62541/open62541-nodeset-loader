@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <open62541/types_generated.h>
 #include <time.h>
+#include "base64.h"
 
 typedef struct TypeList TypeList;
 struct TypeList
@@ -84,27 +85,13 @@ static void setString(uintptr_t adr, const char *value)
     s->data = (UA_Byte *)(uintptr_t)value;
 }
 
-static void setNotImplemented(uintptr_t adr, const char *value)
-{
-    UA_assert(false && "not implemented");
-}
+#define CONVERSION_TABLE_SIZE 12
+static const ConversionFn conversionTable[CONVERSION_TABLE_SIZE] =
+    {setBoolean, setSByte, setByte,   setInt16, setUInt16, setInt32,
+     setUInt32,  setInt64, setUInt64, setFloat, setDouble, setString};
 
-static const ConversionFn conversionTable[UA_DATATYPEKINDS] = {
-    setBoolean,        setSByte,          setByte,           setInt16,
-    setUInt16,         setInt32,          setUInt32,         setInt64,
-    setUInt64,         setFloat,          setDouble,         setString,
-    setNotImplemented, setNotImplemented,
-    setString, // handle bytestring like string
-    setString, // handle xmlElement like string
-    setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
-    setNotImplemented, // special handling needed
-    setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented,
-    setNotImplemented,
-    setInt32, // handle enum the same way like int32
-    setNotImplemented, setNotImplemented, setNotImplemented, setNotImplemented};
-
-static void setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind,
-                                      const char *value)
+static void
+setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind, const char *value)
 {
     if (value)
     {
@@ -138,6 +125,7 @@ void RawData_delete(RawData *data)
         RawData* tmp = data;
         data=data->next;
         free(tmp->mem);
+        free(tmp->additionalMem);
         free(tmp);
     }
 }
@@ -225,6 +213,18 @@ static void setNodeId(const Data *value, RawData *data)
     data->offset += sizeof(UA_NodeId);
 }
 
+static void setByteString(const Data* value, RawData*data)
+{
+    UA_ByteString *s = (UA_ByteString *)((uintptr_t)data->mem+data->offset);
+    int len = 0;
+    unsigned char *val =
+        unbase64(value->val.primitiveData.value,
+                 (int)strlen(value->val.primitiveData.value), &len);
+    s->length = (size_t)len;
+    s->data = (UA_Byte *)val;
+    data->additionalMem = val;
+}
+
 static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes);
 static void setArray(const Data *value, const UA_DataType *type, RawData *data,
@@ -278,10 +278,14 @@ static void setStructure(const Data *value, const UA_DataType *type,
 static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes)
 {
-    if (type->typeKind <= UA_DATATYPEKIND_STRING)
+    if (type->typeKind < CONVERSION_TABLE_SIZE)
     {
         setPrimitiveValue(data, value->val.primitiveData.value,
                           (UA_DataTypeKind)type->typeKind, type->memSize);
+    }
+    else if(type->typeKind == UA_DATATYPEKIND_BYTESTRING)
+    {
+        setByteString(value, data);
     }
     else if (type->typeKind == UA_DATATYPEKIND_NODEID)
     {
@@ -308,6 +312,10 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
         setStructure(value, type, data, customTypes);
+    }
+    else
+    {
+        assert(false && "conversion not implemented");
     }
 }
 
