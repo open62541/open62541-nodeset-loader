@@ -16,6 +16,8 @@ struct RawData
     void *mem;
     size_t offset;
     struct RawData* next;
+    //e.g. for ByteString
+    void* additionalMem;
 };
 typedef struct RawData RawData;
 void RawData_delete(RawData *data);

@@ -16,6 +16,12 @@ add_test(NAME customTypesWithValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND customTypesWithValues ${CMAKE_CURRENT_SOURCE_DIR}/customTypesWithValues.xml)
 
+add_executable(subDataTypes subDataTypes.c)
+target_link_libraries(subDataTypes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
+add_test(NAME subDataTypes_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND subDataTypes ${CMAKE_CURRENT_SOURCE_DIR}/subDataTypes.xml)
+
 add_executable(valueRank valueRank.c)
 target_link_libraries(valueRank PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES})
 add_test(NAME valueRank_Test
