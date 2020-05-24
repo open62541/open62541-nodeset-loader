@@ -16,15 +16,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-
 static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
 static TNodeId alias2Id(const Nodeset *nodeset, char *name);
 static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
 static TBrowseName translateBrowseName(const NamespaceList *namespaces,
                                        TBrowseName id);
 TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
-
-
 
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
@@ -76,8 +73,6 @@ const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
 const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
-
-
 
 TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
 {
@@ -153,7 +148,8 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
     return *alias;
 }
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger, RefService* refService)
+Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger,
+                     RefService *refService)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if (!nodeset)
@@ -172,14 +168,11 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger, Re
     nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100, true);
     nodeset->nodesWithUnknownRefs = NodeContainer_new(100, false);
     nodeset->refTypesWithUnknownRefs = NodeContainer_new(100, false);
-    nodeset->refService = refService;    
+    nodeset->refService = refService;
     nodeset->sortCtx = Sort_init();
     nodeset->logger = logger;
     return nodeset;
 }
-
-
-
 
 static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
 {
@@ -191,15 +184,16 @@ static bool lookupUnknownReferences(Nodeset *nodeset, TNode *node)
     while (node->unknownRefs)
     {
         Reference *next = node->unknownRefs->next;
-        if (nodeset->refService->isHierachicalRef(
-                nodeset->refService->context, node->unknownRefs))
+        if (nodeset->refService->isHierachicalRef(nodeset->refService->context,
+                                                  node->unknownRefs))
         {
             node->unknownRefs->next = node->hierachicalRefs;
             node->hierachicalRefs = node->unknownRefs;
             node->unknownRefs = next;
             continue;
         }
-        if (nodeset->refService->isNonHierachicalRef(nodeset->refService->context, node->unknownRefs))
+        if (nodeset->refService->isNonHierachicalRef(
+                nodeset->refService->context, node->unknownRefs))
         {
             node->unknownRefs->next = node->nonHierachicalRefs;
             node->nonHierachicalRefs = node->unknownRefs;
@@ -241,9 +235,11 @@ bool Nodeset_sort(Nodeset *nodeset)
     {
         bool result = lookupUnknownReferences(
             nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
-        if(!result)
+        if (!result)
         {
-            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR, "node with unresolved reference");
+            nodeset->logger->log(nodeset->logger->context,
+                                 NODESETLOADER_LOGLEVEL_ERROR,
+                                 "node with unresolved reference");
             return false;
         }
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
@@ -251,12 +247,6 @@ bool Nodeset_sort(Nodeset *nodeset)
 
     return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode,
                       nodeset->logger);
-}
-
-size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes)
-{
-    *nodes = nodeset->nodes[nodeClass]->nodes;
-    return nodeset->nodes[nodeClass]->size;
 }
 
 void Nodeset_cleanup(Nodeset *nodeset)
@@ -421,26 +411,30 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
     newRef->refType = alias2Id(nodeset, aliasIdString);
 
     if (NODECLASS_VARIABLE == node->nodeClass &&
-        nodeset->refService->isHasTypeDefRef(nodeset->refService->context, newRef))
+        nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
+                                             newRef))
     {
         ((TVariableNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
     if (NODECLASS_OBJECT == node->nodeClass &&
-        nodeset->refService->isHasTypeDefRef(nodeset->refService->context, newRef))
+        nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
+                                             newRef))
     {
         ((TObjectNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
-    if (nodeset->refService->isHierachicalRef(nodeset->refService->context, newRef))
+    if (nodeset->refService->isHierachicalRef(nodeset->refService->context,
+                                              newRef))
     {
         newRef->next = node->hierachicalRefs;
         node->hierachicalRefs = newRef;
         return newRef;
     }
-    if (nodeset->refService->isNonHierachicalRef(nodeset->refService->context, newRef))
+    if (nodeset->refService->isNonHierachicalRef(nodeset->refService->context,
+                                                 newRef))
     {
         newRef->next = node->nonHierachicalRefs;
         node->nonHierachicalRefs = newRef;
@@ -478,7 +472,8 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
         Sort_addNode(nodeset->sortCtx, node);
         if (node->nodeClass == NODECLASS_REFERENCETYPE)
         {
-            nodeset->refService->addNewReferenceType(nodeset->refService->context, (TReferenceTypeNode*)node);
+            nodeset->refService->addNewReferenceType(
+                nodeset->refService->context, (TReferenceTypeNode *)node);
         }
     }
     else
@@ -519,18 +514,20 @@ void Nodeset_addDataTypeDefinition(Nodeset *nodeset, TNode *node,
                                    int attributeSize, const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
-    DataTypeDefinition* def = DataTypeDefinition_new(dataTypeNode);
-    def->isUnion = !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion, attributes, attributeSize));
-    def->isOptionSet =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
+    DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
+    def->isUnion =
+        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
                                           attributes, attributeSize));
+    def->isOptionSet = !strcmp(
+        "true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
+                                  attributes, attributeSize));
 }
 
 void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                               const char **attributes)
 {
     TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
-    if(dataTypeNode->definition->isOptionSet)
+    if (dataTypeNode->definition->isOptionSet)
     {
         return;
     }
@@ -545,7 +542,8 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
     if (value)
     {
         newField->value = atoi(value);
-        dataTypeNode->definition->isEnum = !dataTypeNode->definition->isOptionSet;
+        dataTypeNode->definition->isEnum =
+            !dataTypeNode->definition->isOptionSet;
     }
     else
     {
@@ -554,7 +552,8 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
                                        attributes, attributeSize));
         newField->valueRank = atoi(getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize));
-        char* isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional, attributes, attributeSize);
+        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
+                                             attributes, attributeSize);
         newField->isOptional = !strcmp("true", isOptional);
     }
 }
@@ -604,4 +603,15 @@ void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text)
     {
         ((TReferenceTypeNode *)node)->inverseName.text = text;
     }
+}
+
+size_t Nodeset_forEachNode(Nodeset *nodeset, TNodeClass nodeClass,
+                           void *context, NodesetLoader_forEachNode_Func fn)
+{
+    NodeContainer *c = nodeset->nodes[nodeClass];
+    for (TNode **node = c->nodes; node != c->nodes + c->size; node++)
+    {
+        fn(context, *node);
+    }
+    return c->size;
 }
