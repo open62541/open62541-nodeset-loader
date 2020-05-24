@@ -553,14 +553,15 @@ void NodesetLoader_delete(NodesetLoader *loader)
     free(loader);
 }
 
-size_t NodesetLoader_getNodes(const NodesetLoader *loader, TNodeClass nodeClass,
-                              TNode ***nodes)
-{
-    return Nodeset_getNodes(loader->nodeset, nodeClass, nodes);
-}
-
 const BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
 {
     return Nodeset_getBiDirectionalRefs(loader->nodeset);
+}
+
+size_t NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
+                               void *context,
+                               NodesetLoader_forEachNode_Func fn)
+{
+    return Nodeset_forEachNode(loader->nodeset, nodeClass, context, fn);
 }

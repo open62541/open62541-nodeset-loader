@@ -40,7 +40,6 @@ struct Nodeset
 Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger, RefService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
-size_t Nodeset_getNodes(Nodeset *nodeset, TNodeClass nodeClass, TNode ***nodes);
 TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
                        int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node);
@@ -69,4 +68,6 @@ void Nodeset_setInverseName(Nodeset *nodeset, TNode *node, int attributeSize,
 void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text);
 const BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
+size_t Nodeset_forEachNode(Nodeset *nodeset, TNodeClass nodeClass,
+                           void *context, NodesetLoader_forEachNode_Func fn);
 #endif

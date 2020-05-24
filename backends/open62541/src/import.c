@@ -11,10 +11,10 @@
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
+#include <RefServiceImpl.h>
+#include <assert.h>
 #include <open62541/server.h>
 #include <open62541/server_config.h>
-#include <assert.h>
-#include <RefServiceImpl.h>
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -393,15 +393,21 @@ static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 
 static bool isKnownParent(const UA_NodeId typeId)
 {
-    if(typeId.namespaceIndex==0 && typeId.identifierType==UA_NODEIDTYPE_NUMERIC && typeId.identifier.numeric <=30)
+    if (typeId.namespaceIndex == 0 &&
+        typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
+        typeId.identifier.numeric <= 30)
+    {
+        return true;
+    }
+    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+    if(UA_NodeId_equal(&typeId, &optionSetId))
     {
         return true;
     }
     return false;
 }
 
-static UA_NodeId getParentType(UA_Server *server,
-                                        const UA_NodeId dataTypeId)
+static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
 {
     UA_NodeId current = dataTypeId;
     while (!isKnownParent(current))
@@ -411,40 +417,56 @@ static UA_NodeId getParentType(UA_Server *server,
     return current;
 }
 
+struct DataTypeImportCtx
+{
+    DataTypeImporter *importer;
+    const BiDirectionalReference *hasEncodingRef;
+    UA_Server *server;
+};
+
+static void addDataType(struct DataTypeImportCtx *ctx, TNode *node)
+{
+    // add only the types
+    const BiDirectionalReference* r = ctx->hasEncodingRef;
+    while (r)
+    {
+        if (!TNodeId_cmp(&r->source, &node->id))
+        {
+            Reference *ref = (Reference *)calloc(1, sizeof(Reference));
+            ref->refType = r->refType;
+            ref->target = r->target;
+
+            Reference *lastRef = node->nonHierachicalRefs;
+            node->nonHierachicalRefs = ref;
+            ref->next = lastRef;
+            break;
+        }
+        r = r->next;
+    }
+    const UA_NodeId parent =
+        getParentType(ctx->server, getNodeIdFromChars(node->id));
+    DataTypeImporter_addCustomDataType(ctx->importer, (TDataTypeNode *)node,
+                                       parent);
+}
+
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
+    const BiDirectionalReference *hasEncodingRef =
+        NodesetLoader_getBidirectionalRefs(loader);
     DataTypeImporter *importer = DataTypeImporter_new(server);
-    TNode **nodes;
-    size_t cnt = NodesetLoader_getNodes(loader, NODECLASS_DATATYPE, &nodes);
-    for (TNode **node = nodes; node != nodes + cnt; node++)
-    {
-        // add only the types
-        const BiDirectionalReference *hasEncodingRef =
-            NodesetLoader_getBidirectionalRefs(loader);
-        while (hasEncodingRef)
-        {
-            if (!TNodeId_cmp(&hasEncodingRef->source, &(*node)->id))
-            {
-                Reference *ref = (Reference *)calloc(1, sizeof(Reference));
-                ref->refType = hasEncodingRef->refType;
-                ref->target = hasEncodingRef->target;
+    struct DataTypeImportCtx ctx;
+    ctx.hasEncodingRef = hasEncodingRef;
+    ctx.server = server;
+    ctx.importer = importer;
+    NodesetLoader_forEachNode(loader, NODECLASS_DATATYPE, &ctx,
+                              (NodesetLoader_forEachNode_Func)addDataType);
 
-                Reference *lastRef = (*node)->nonHierachicalRefs;
-                (*node)->nonHierachicalRefs = ref;
-                ref->next = lastRef;
-                break;
-            }
-            hasEncodingRef = hasEncodingRef->next;
-        }
-        const UA_NodeId parent = getParentType(server, getNodeIdFromChars((*node)->id));
-        DataTypeImporter_addCustomDataType(importer, (TDataTypeNode *)*node, parent);
-    }
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
 }
 
-static void addNonHierachicalRefs(TNode *node, UA_Server *server)
+static void addNonHierachicalRefs(UA_Server *server, TNode *node)
 {
     Reference *ref = node->nonHierachicalRefs;
     while (ref)
@@ -481,29 +503,23 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
         const TNodeClass classToImport = order[i];
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, classToImport, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNode(server, *node);
-        }
+        size_t cnt =
+            NodesetLoader_forEachNode(loader, classToImport, server,
+                                      (NodesetLoader_forEachNode_Func)addNode);
         if (classToImport == NODECLASS_DATATYPE)
         {
             importDataTypes(loader, server);
         }
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %ss: %zu", NODECLASS_NAME[i], cnt);
+                    "imported %ss: %zu", NODECLASS_NAME[classToImport], cnt);
     }
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
         const TNodeClass classToImport = order[i];
-        TNode **nodes = NULL;
-        size_t cnt = NodesetLoader_getNodes(loader, classToImport, &nodes);
-        for (TNode **node = nodes; node != nodes + cnt; node++)
-        {
-            addNonHierachicalRefs(*node, server);
-        }
+        NodesetLoader_forEachNode(
+            loader, classToImport, server,
+            (NodesetLoader_forEachNode_Func)addNonHierachicalRefs);
     }
 }
 
@@ -529,12 +545,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
     logger->context = &config->logger;
     logger->log = &logToOpen;
-
-    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                "getRefs start");
-    RefService* refService = RefServiceImpl_new(server);
-    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                "getRefs end");
+    RefService *refService = RefServiceImpl_new(server);
 
     NodesetLoader *loader = NodesetLoader_new(logger, refService);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
