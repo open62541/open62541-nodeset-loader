@@ -399,6 +399,11 @@ static bool isKnownParent(const UA_NodeId typeId)
     {
         return true;
     }
+    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+    if(UA_NodeId_equal(&typeId, &optionSetId))
+    {
+        return true;
+    }
     return false;
 }
 
