@@ -17,6 +17,7 @@ static void logStdOut(void *context, enum NodesetLoader_LogLevel level,
 {
     va_list vl;
     va_start(vl, message);
+    va_end(vl);
     printf("NODESETLOADER: %s : %s\n", logLevel[level], message);
 }
 
