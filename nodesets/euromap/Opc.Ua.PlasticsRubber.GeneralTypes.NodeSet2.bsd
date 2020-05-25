@@ -10,7 +10,7 @@
   <opc:Field TypeName="opc:UInt32" Name="Id"/>
   <opc:Field TypeName="ua:LocalizedText" Name="Description"/>
   <opc:Field TypeName="ua:Variant" Name="DefaultValue"/>
-  <opc:Field TypeName="ua:EUInformation" Name="Unit"/>
+  <!--have to skip this because of nodesetcompiler issues <opc:Field TypeName="ua:EUInformation" Name="Unit"/>-->
  </opc:StructuredType>
  <opc:StructuredType BaseType="ua:ExtensionObject" Name="JobListElementType">
   <opc:Documentation>Description of a job in a job list</opc:Documentation>
