@@ -18,6 +18,7 @@ UA_Boolean BrowseReferences(UA_Client *pClient, const UA_NodeId &Id,
 
 void FreeReferencesVec(TReferenceVec &References);
 
-UA_Boolean IsSubType(const UA_NodeId &BaseType, const UA_NodeId &SubType);
+UA_Boolean IsSubType(UA_Client *pClient, const UA_NodeId &BaseType,
+                     const UA_NodeId &SubType);
 
 #endif // _BROWSE_UTILS_H
