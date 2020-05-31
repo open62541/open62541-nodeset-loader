@@ -42,10 +42,6 @@ find_package(LibXml2 REQUIRED)
 find_package(Check REQUIRED)
 find_package(open62541 REQUIRED)
 
-if(${ENABLE_ASAN})
-    set(${C_COMPILE_DEFS} -g -fsanitize=address -fsanitize=leak -fsanitize=undefined)
-endif()
-
 add_library(NodesetLoader SHARED 
     src/NodesetLoader.c 
     src/Sort.c 
