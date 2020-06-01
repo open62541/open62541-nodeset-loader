@@ -49,9 +49,9 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -Wswitch-enum)
 
 
-find_package(LibXml2 REQUIRED)
+#find_package(LibXml2 REQUIRED)
 find_package(Check REQUIRED)
-find_package(open62541 REQUIRED)
+#find_package(open62541 REQUIRED)
 
 add_library(NodesetLoader SHARED 
     src/NodesetLoader.c 
@@ -72,9 +72,9 @@ add_library(NodesetLoader SHARED
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
-target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
-target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} CONAN_PKG::libxml2)
+target_link_libraries(NodesetLoader PRIVATE CONAN_PKG::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
 target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
 target_link_libraries(NodesetLoader PRIVATE gcov)
