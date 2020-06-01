@@ -12,7 +12,7 @@ endif()
 
 include(${CMAKE_BINARY_DIR}/conan.cmake)
 conan_cmake_run(CONANFILE conanfile.txt
-                BASIC_SETUP CMAKE_TARGETS
+                BASIC_SETUP
                 BUILD missing)
 
 option(ENABLE_TESTING off "enable tests")
@@ -71,8 +71,8 @@ target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} CONAN_PKG::libxml2)
-target_link_libraries(NodesetLoader PRIVATE CONAN_PKG::open62541)
+target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${CONAN_LIBS_LIBXML2})
+target_include_directories(NodesetLoader PRIVATE ${CONAN_INCLUDE_DIRS_OPEN62541})
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
 target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
 target_link_libraries(NodesetLoader PRIVATE gcov)
