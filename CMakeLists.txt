@@ -4,6 +4,17 @@ project(nodesetLoader)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
+if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+   file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
+                 "${CMAKE_BINARY_DIR}/conan.cmake")
+endif()
+
+include(${CMAKE_BINARY_DIR}/conan.cmake)
+conan_cmake_run(CONANFILE conanfile.txt
+                BASIC_SETUP CMAKE_TARGETS
+                BUILD missing)
+
 include(CTest)
 enable_testing()
 
@@ -92,9 +103,9 @@ set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PU
 
 install(TARGETS NodesetLoader
         EXPORT NodesetLoader
-        LIBRARY DESTINATION lib/NodesetLoader
-        ARCHIVE DESTINATION lib/NodesetLoader
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib
         PUBLIC_HEADER DESTINATION include/NodesetLoader)
-install(FILES nodesetloader-config.cmake DESTINATION lib/NodesetLoader)
+install(FILES nodesetloader-config.cmake DESTINATION lib)
 
-install(EXPORT NodesetLoader DESTINATION lib/NodesetLoader)
+install(EXPORT NodesetLoader DESTINATION lib)
