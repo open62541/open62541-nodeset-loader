@@ -15,9 +15,7 @@ conan_cmake_run(CONANFILE conanfile.txt
                 BASIC_SETUP CMAKE_TARGETS
                 BUILD missing)
 
-include(CTest)
-enable_testing()
-
+option(ENABLE_TESTING off "enable tests")
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 option(ENABLE_ASAN off "build with address sanitizer enabled")
 option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
@@ -82,9 +80,12 @@ if(${ENABLE_ASAN})
     target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
 endif()
 
-add_subdirectory(tests)
+if(ENABLE_TESTING)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 add_subdirectory(backends)
-
 
 #install
 set(NODESETLOADER_PUBLIC_HEADER 
