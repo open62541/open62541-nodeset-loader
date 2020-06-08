@@ -146,6 +146,7 @@ UA_Boolean BrowseServerAddressspace(UA_Client *pClient,
 
 int main(int argc, char *argv[])
 {
+
     if (argc < 4)
     {
         cout << "Error: not enough arguments" << endl;
@@ -164,7 +165,6 @@ int main(int argc, char *argv[])
     string Port = "4840";
     string FilePath = "Output.txt";
     */
-
     cout << "Test output file path = '" << FilePath << "'" << endl;
 
     UA_NodeId StartId = UA_NODEID_NUMERIC(0, UA_NS0ID_ROOTFOLDER); // default

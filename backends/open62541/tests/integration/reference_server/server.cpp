@@ -22,6 +22,14 @@
 #include "open62541/namespace_integration_test_euromap_77_generated.h"
 #endif
 
+#ifdef USE_EUROMAP_INSTANCES
+#include "open62541/namespace_integration_test_euromap_instances_generated.h"
+#endif
+
+#ifdef USE_STRUCT_UNION_OPTIONSET
+#include "open62541/namespace_integration_test_struct_union_optionset_generated.h"
+#endif
+
 using namespace std;
 
 UA_Boolean running = true;
@@ -46,7 +54,7 @@ static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
     UA_DataType *newTypes = (UA_DataType *)realloc(
         const_cast<UA_DataType *>(pDataTypeArray->types),
         sizeof(UA_DataType) * (newDataTypesSize + pDataTypeArray->typesSize));
-    if(!newTypes)
+    if (!newTypes)
     {
         return UA_FALSE;
     }
@@ -59,7 +67,7 @@ static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
          type != newTypes + pDataTypeArray->typesSize + newDataTypesSize;
          type++)
     {
-        
+
         for (UA_DataTypeMember *m = type->members;
              m != type->members + type->membersSize; m++)
         {
@@ -142,7 +150,7 @@ int main()
     // prepare custom datatype arrays
     UA_DataTypeArray *pDataTypeArray =
         (UA_DataTypeArray *)calloc(1, sizeof(UA_DataTypeArray));
-    if(!pDataTypeArray)
+    if (!pDataTypeArray)
     {
         return EXIT_FAILURE;
     }
@@ -250,8 +258,53 @@ int main()
     }
 #endif
 
-    //assign new typeIndizes
-    UA_UInt16 idx=0;
+#ifdef USE_EUROMAP_INSTANCES
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                "Adding the Euromap test instances namespace.");
+    retval |= namespace_integration_test_euromap_instances_generated(server);
+    if (retval != UA_STATUSCODE_GOOD)
+    {
+        UA_LOG_ERROR(
+            UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+            "Adding the Euromap test instances namespace failed. Please check "
+            "previous error output.");
+        FreeDataTypeArray(pDataTypeArray);
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+    // this nodeset does not define types
+#endif
+
+#ifdef USE_STRUCT_UNION_OPTIONSET
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                "Adding the struct/union/optionset test instances namespace.");
+    retval |=
+        namespace_integration_test_struct_union_optionset_generated(server);
+    if (retval != UA_STATUSCODE_GOOD)
+    {
+        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                     "Adding the struct/union/optionset test instances "
+                     "namespace failed. Please check "
+                     "previous error output.");
+        FreeDataTypeArray(pDataTypeArray);
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+    if (addDataTypeArray(
+            pDataTypeArray, UA_TYPES_INTEGRATION_TEST_STRUCT_UNION_OPTIONSET,
+            UA_TYPES_INTEGRATION_TEST_STRUCT_UNION_OPTIONSET_COUNT) == UA_FALSE)
+    {
+        UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
+                     "Adding the struct/union/optionset test instances data "
+                     "types failed.");
+        FreeDataTypeArray(pDataTypeArray);
+        UA_Server_delete(server);
+        return EXIT_FAILURE;
+    }
+#endif
+
+    // assign new typeIndizes
+    UA_UInt16 idx = 0;
     for (UA_DataType *type = (UA_DataType *)(uintptr_t)pDataTypeArray->types;
          type != pDataTypeArray->types + pDataTypeArray->typesSize; type++)
     {

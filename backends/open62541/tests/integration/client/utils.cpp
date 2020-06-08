@@ -389,6 +389,9 @@ UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
     UA_NodeId_clear(&dataType);
     if (tmpRet == UA_FALSE)
     {
+        cout << "PrintVariableAttributes() Error: Print value of "
+                "node Id = "
+             << Id << " failed " << endl;
         return UA_FALSE;
     }
 
@@ -525,6 +528,9 @@ UA_Boolean PrintVariableTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     {
         if (PrintValueAttribute(pClient, dataType, Value, out) == UA_FALSE)
         {
+            cout << "PrintVariableTypeAttributes() Error: Print value of "
+                    "node Id = "
+                 << Id << " failed " << endl;
             UA_Variant_clear(&Value);
             UA_NodeId_clear(&dataType);
             return UA_FALSE;
@@ -943,6 +949,12 @@ UA_Boolean PrintNode(UA_Client *pClient, const UA_NodeId &Id, ofstream &out)
         cout << "Error PrintNode: nodeclass is unknown" << endl;
         ret &= UA_FALSE;
         break;
+    }
+
+    if (ret == UA_FALSE)
+    {
+        cout << "PrintNode() Error: at NodeId = " << Id << endl;
+        out << "PrintNode() Error: at NodeId = " << Id << endl;
     }
 
     out << endl;
