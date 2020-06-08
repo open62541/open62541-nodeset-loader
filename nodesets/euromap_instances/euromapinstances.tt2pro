@@ -1,0 +1,32 @@
+###########################
+# UaModeler Project File  #
+# Generated at 08.06.2020 #
+###########################
+
+PROJECTNAME = EuromapInstances
+
+TEMPLATESET = ($TEMPLATES)/ansi_c/v1_9/t1/ansi_c.tt2set
+
+MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
+    ($MODELS)/Opc.Ua.Di.NodeSet2.ua \
+    ../euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.ua \
+    ../euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.ua \
+    euromapinstances.ua
+
+COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #0000ff\
+    ($MODELS)/Opc.Ua.Di.NodeSet2.ua: #0000ff\
+    ../euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.ua: #0000ff\
+    ../euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.ua: #0000ff\
+    euromapinstances.ua: #0000ff
+
+PROJECTVARIABLES += ProviderName = EuromapInstances \
+    alarmAndEvents = false
+
+OUTPUTPATH = 
+
+NODEACCESSINFOROLES += Administrator \
+    SecurityAdmin \
+    ConfigurationAdmin \
+    Operator \
+    Observer
+
