@@ -164,11 +164,11 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         *attr.arrayDimensions = 0;
     }
 
-    UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {
-        dims = (UA_UInt32)node->value->data->val.complexData.membersSize;
-        attr.arrayDimensions = &dims;
+        attr.arrayDimensions = UA_UInt32_new();
+        *attr.arrayDimensions =
+            (UA_UInt32)node->value->data->val.complexData.membersSize;
         attr.arrayDimensionsSize = 1;
     }
     RawData *data = NULL;
