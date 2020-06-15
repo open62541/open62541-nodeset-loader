@@ -15,7 +15,7 @@ fi
 if ! [ -z ${CLANG_RELEASE+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo-DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_ASAN=ON ..
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_ASAN=ON ..
     make
     make test
 fi
