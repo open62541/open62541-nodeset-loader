@@ -357,7 +357,6 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     UA_Logger *logger = (UA_Logger *)context;
     va_list vl;
     va_start(vl, message);
-    va_end(vl);
     UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
     switch (level)
     {
@@ -372,6 +371,7 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
         break;
     }
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
+    va_end(vl);
 }
 
 static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
