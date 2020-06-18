@@ -28,17 +28,17 @@ jobs:
             - check
       env:
        - CLANG_RELEASE=true
-#    - os: linux
-#      dist: bionic
-#      compiler: clang
-#      addons:
-#        apt:
-#          packages:
-#            - cmake
-#            - valgrind
-#            - check
-#      env:
-#       - INTEGRATION_TEST=true
+    - os: linux
+      dist: bionic
+      compiler: clang
+      addons:
+        apt:
+          packages:
+            - cmake
+            - valgrind
+            - check
+      env:
+       - INTEGRATION_TEST=true
 
 before_install:
 - pyenv versions
