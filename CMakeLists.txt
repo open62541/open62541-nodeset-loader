@@ -4,23 +4,29 @@ project(nodesetLoader)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-   message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-   file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
-                 "${CMAKE_BINARY_DIR}/conan.cmake")
-endif()
-
-include(${CMAKE_BINARY_DIR}/conan.cmake)
-conan_cmake_run(CONANFILE conanfile.txt
-                BASIC_SETUP
-                BUILD missing)
-
+option(ENABLE_CONAN on "use conan for consuming dependencies")
 option(ENABLE_TESTING off "enable tests")
 option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
 option(ENABLE_ASAN off "build with address sanitizer enabled")
 option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
 option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
 option(CALC_COVERAGE off "calculate code coverage")
+
+
+if(${ENABLE_CONAN})
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
+                    "${CMAKE_BINARY_DIR}/conan.cmake")
+    endif()
+
+    include(${CMAKE_BINARY_DIR}/conan.cmake)
+    conan_cmake_run(CONANFILE conanfile.txt
+                    BASIC_SETUP
+                    BUILD missing)
+endif()
+
+
 
 if(CALC_COVERAGE)
     set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
@@ -47,7 +53,8 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -Wswitch-enum)
 
 find_package(Check REQUIRED)
-#find_package(LibXml2 REQUIRED)
+find_package(open62541 REQUIRED)
+find_package(LibXml2 REQUIRED)
 
 add_library(NodesetLoader SHARED 
     src/NodesetLoader.c 
@@ -68,9 +75,9 @@ add_library(NodesetLoader SHARED
 target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
-    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
-target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${CONAN_LIBS_LIBXML2} ${CONAN_LIBS_ZLIB})
-target_include_directories(NodesetLoader PRIVATE ${CONAN_INCLUDE_DIRS_OPEN62541})
+    PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
+target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
+target_include_directories(NodesetLoader PRIVATE open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
 target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
 target_link_libraries(NodesetLoader PRIVATE gcov)

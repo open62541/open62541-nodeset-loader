@@ -5,17 +5,17 @@ set -e
 if ! [ -z ${GCC_MEMCHECK+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_DATATYPEIMPORT_TEST=ON .. 
+    cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_DATATYPEIMPORT_TEST=ON .. 
     make -j
     make test
-    ctest --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck
+    #ctest --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck
 fi
 
 # clang, test
 if ! [ -z ${CLANG_RELEASE+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_ASAN=ON ..
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_ASAN=ON ..
     make
     make test
 fi
@@ -24,7 +24,7 @@ fi
 if ! [ -z ${INTEGRATION_TEST+x} ]; then
     mkdir -p build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_INTEGRATION_TEST=ON -DENABLE_ASAN=ON ..
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_INTEGRATION_TEST=ON -DENABLE_ASAN=ON ..
     make
     make test
 fi

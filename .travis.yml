@@ -17,28 +17,28 @@ jobs:
             - check
       env:
         - GCC_MEMCHECK=true
-    - os: linux
-      dist: bionic
-      compiler: clang
-      addons:
-        apt:
-          packages:
-            - cmake
-            - valgrind
-            - check
-      env:
-       - CLANG_RELEASE=true
-    - os: linux
-      dist: bionic
-      compiler: clang
-      addons:
-        apt:
-          packages:
-            - cmake
-            - valgrind
-            - check
-      env:
-       - INTEGRATION_TEST=true
+#    - os: linux
+#      dist: bionic
+#      compiler: clang
+#      addons:
+#        apt:
+#          packages:
+#            - cmake
+#            - valgrind
+#            - check
+#      env:
+#       - CLANG_RELEASE=true
+#    - os: linux
+#      dist: bionic
+#      compiler: clang
+#      addons:
+#        apt:
+#          packages:
+#            - cmake
+#            - valgrind
+#            - check
+#      env:
+#       - INTEGRATION_TEST=true
 
 before_install:
 - pyenv versions
@@ -49,7 +49,6 @@ install:
 - conan user
 - conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
 - conan remote add openRepo https://api.bintray.com/conan/matkonnerth/cpprepo
-- sh ./travis_install_script.sh
 
 script:
   - cd ~/build/matkonnerth/nodesetLoader
