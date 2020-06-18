@@ -4,13 +4,13 @@ project(nodesetLoader)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(ENABLE_CONAN on "use conan for consuming dependencies")
-option(ENABLE_TESTING off "enable tests")
-option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
-option(ENABLE_ASAN off "build with address sanitizer enabled")
-option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
-option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
-option(CALC_COVERAGE off "calculate code coverage")
+option(ENABLE_CONAN "use conan for consuming dependencies" on)
+option(ENABLE_TESTING "enable tests" off)
+option(ENABLE_BACKEND_OPEN62541 "backend for open62541" off)
+option(ENABLE_ASAN "build with address sanitizer enabled" off)
+option(ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
+option(ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
+option(CALC_COVERAGE "calculate code coverage" off)
 
 
 if(${ENABLE_CONAN})
@@ -25,8 +25,6 @@ if(${ENABLE_CONAN})
                     BASIC_SETUP
                     BUILD missing)
 endif()
-
-
 
 if(CALC_COVERAGE)
     set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
