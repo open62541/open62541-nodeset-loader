@@ -62,7 +62,7 @@ ua_generate_nodeset_and_datatypes(
 add_executable(refServer_DI server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES})
 target_compile_definitions(refServer_DI PRIVATE USE_DI)
-target_link_libraries(refServer_DI PRIVATE open62541::open62541)
+target_link_libraries(refServer_DI PRIVATE open62541)
 target_include_directories(refServer_DI PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 # DI + PLCopen
@@ -70,7 +70,7 @@ add_executable(refServer_DI_PLCopen server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES}
     ${UA_NODESET_INTEGRATION_TEST_PLC_SOURCES} ${UA_TYPES_INTEGRATION_TEST_PLC_SOURCES})
 target_compile_definitions(refServer_DI_PLCopen PRIVATE USE_DI USE_PLC_OPEN)
-target_link_libraries(refServer_DI_PLCopen PRIVATE open62541::open62541)
+target_link_libraries(refServer_DI_PLCopen PRIVATE open62541)
 target_include_directories(refServer_DI_PLCopen PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 # DI + Euromap83 + Euromap77
@@ -79,7 +79,7 @@ add_executable(refServer_DI_Euromap_83_77 server.cpp
     ${UA_NODESET_INTEGRATION_TEST_EUROMAP_83_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_83_SOURCES}
     ${UA_NODESET_INTEGRATION_TEST_EUROMAP_77_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_77_SOURCES})
 target_compile_definitions(refServer_DI_Euromap_83_77 PRIVATE USE_DI USE_EUROMAP_83 USE_EUROMAP_77)
-target_link_libraries(refServer_DI_Euromap_83_77 PRIVATE open62541::open62541)
+target_link_libraries(refServer_DI_Euromap_83_77 PRIVATE open62541)
 target_include_directories(refServer_DI_Euromap_83_77 PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 

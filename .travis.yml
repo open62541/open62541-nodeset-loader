@@ -41,9 +41,14 @@ jobs:
        - INTEGRATION_TEST=true
 
 before_install:
+- pyenv versions
+- pyenv global 3.8
 
 install:
-  - sh ./travis_install_script.sh
+- pip install conan
+- conan user
+- conan remote add bincrafters https://api.bintray.com/conan/bincrafters/public-conan
+- conan remote add openRepo https://api.bintray.com/conan/matkonnerth/cpprepo
 
 script:
   - cd ~/build/matkonnerth/nodesetLoader
