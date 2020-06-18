@@ -8,7 +8,7 @@ if ! [ -z ${GCC_MEMCHECK+x} ]; then
     cmake -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_DATATYPEIMPORT_TEST=ON .. 
     make -j
     make test
-    #ctest --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck
+    ctest --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck
 fi
 
 # clang, test

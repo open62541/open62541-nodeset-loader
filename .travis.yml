@@ -17,17 +17,17 @@ jobs:
             - check
       env:
         - GCC_MEMCHECK=true
-#    - os: linux
-#      dist: bionic
-#      compiler: clang
-#      addons:
-#        apt:
-#          packages:
-#            - cmake
-#            - valgrind
-#            - check
-#      env:
-#       - CLANG_RELEASE=true
+    - os: linux
+      dist: bionic
+      compiler: clang
+      addons:
+        apt:
+          packages:
+            - cmake
+            - valgrind
+            - check
+      env:
+       - CLANG_RELEASE=true
 #    - os: linux
 #      dist: bionic
 #      compiler: clang
