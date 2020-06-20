@@ -50,7 +50,6 @@ set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
                     -fexceptions
                     -Wswitch-enum)
 
-find_package(Check REQUIRED)
 find_package(open62541 REQUIRED)
 find_package(LibXml2 REQUIRED)
 
@@ -84,6 +83,7 @@ if(${ENABLE_ASAN})
 endif()
 
 if(ENABLE_TESTING)
+    find_package(Check REQUIRED)
     include(CTest)
     enable_testing()
     add_subdirectory(tests)
