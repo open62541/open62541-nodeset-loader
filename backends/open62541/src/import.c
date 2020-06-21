@@ -18,6 +18,50 @@
 
 int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
+static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.nodeId = id;
+    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
+    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
+
+    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
+    {
+        return UA_NODEID_NULL;
+    }
+    UA_NodeId parentId = br.references[0].nodeId.nodeId;
+    UA_BrowseResult_clear(&br);
+    return parentId;
+}
+
+static bool isKnownParent(const UA_NodeId typeId)
+{
+    if (typeId.namespaceIndex == 0 &&
+        typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
+        typeId.identifier.numeric <= 30)
+    {
+        return true;
+    }
+    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+    if (UA_NodeId_equal(&typeId, &optionSetId))
+    {
+        return true;
+    }
+    return false;
+}
+
+static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
+{
+    UA_NodeId current = dataTypeId;
+    while (!isKnownParent(current))
+    {
+        current = getParentDataType(server, current);
+    }
+    return current;
+}
+
 static UA_NodeId getReferenceTypeId(const Reference *ref)
 {
     if (!ref)
@@ -179,6 +223,13 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         {
             // try it with custom types
             dataType = getCustomDataType(server, &attr.dataType);
+            //try it with parent
+            if(!dataType)
+            {
+                const UA_NodeId parent =
+                    getParentType(server, attr.dataType);
+                dataType = UA_findDataType(&parent);
+            }
         }
 
         UA_ServerConfig *config = UA_Server_getConfig(server);
@@ -374,49 +425,7 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     va_end(vl);
 }
 
-static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
-{
-    UA_BrowseDescription bd;
-    UA_BrowseDescription_init(&bd);
-    bd.nodeId = id;
-    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
-    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
 
-    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
-    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
-    {
-        return UA_NODEID_NULL;
-    }
-    UA_NodeId parentId = br.references[0].nodeId.nodeId;
-    UA_BrowseResult_clear(&br);
-    return parentId;
-}
-
-static bool isKnownParent(const UA_NodeId typeId)
-{
-    if (typeId.namespaceIndex == 0 &&
-        typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
-        typeId.identifier.numeric <= 30)
-    {
-        return true;
-    }
-    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
-    if(UA_NodeId_equal(&typeId, &optionSetId))
-    {
-        return true;
-    }
-    return false;
-}
-
-static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
-{
-    UA_NodeId current = dataTypeId;
-    while (!isKnownParent(current))
-    {
-        current = getParentDataType(server, current);
-    }
-    return current;
-}
 
 struct DataTypeImportCtx
 {
