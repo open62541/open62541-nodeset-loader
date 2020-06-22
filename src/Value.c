@@ -139,7 +139,7 @@ static const char* isOnlyWhitespace(const char* value)
     }
     for(const char* c=value;*c!='\n'; c++)
     {
-        if(!isspace(c))
+        if(!isspace(*c))
         {
             return value;
         }
