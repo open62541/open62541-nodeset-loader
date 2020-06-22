@@ -7,6 +7,7 @@
 
 #include "Value.h"
 #include <stdlib.h>
+#include <ctype.h>
 
 Value *Value_new(const TNode *node)
 {
@@ -130,6 +131,22 @@ void Value_start(Value *val, const char *name)
     }
 }
 
+static const char* isOnlyWhitespace(const char* value)
+{
+    if(!value)
+    {
+        return NULL;
+    }
+    for(const char* c=value;*c!='\n'; c++)
+    {
+        if(!isspace(c))
+        {
+            return value;
+        }
+    }
+    return NULL;
+}
+
 void Value_end(Value *val, const char *name, const char *value)
 {
     switch (val->ctx->state)
@@ -163,7 +180,7 @@ void Value_end(Value *val, const char *name, const char *value)
         }
         if (val->ctx->currentData->type == DATATYPE_PRIMITIVE)
         {
-            val->ctx->currentData->val.primitiveData.value = value;
+            val->ctx->currentData->val.primitiveData.value = isOnlyWhitespace(value);
         }
         val->ctx->currentData = val->ctx->currentData->parent;
         // exit conditions
