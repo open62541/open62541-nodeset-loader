@@ -50,4 +50,6 @@ backends/open62541/examples/server <pathToNodeset>
 Here's an example repo, consuming open62541 and NodesetLoader via cmake find_package:
 https://github.com/matkonnerth/nodesetLoader_usage
 
+conan packages are available on bintray repo https://bintray.com/matkonnerth/cpprepo
+
 
