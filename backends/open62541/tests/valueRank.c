@@ -52,6 +52,16 @@ START_TEST(import_ValueRank)
             UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var));
     ck_assert(300 == ((int *)var.data)[2]);
     UA_Variant_clear(&var);
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6005), &var));
+    ck_assert(4 == ((int *)var.data)[4]);
+    UA_Variant_clear(&var);
+    //should this really work?
+    //value rank = 1, no arrayDimensions and scalar value
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6006), &var));
+    ck_assert(1 == *((int *)var.data));
+    UA_Variant_clear(&var);
 }
 END_TEST
 
