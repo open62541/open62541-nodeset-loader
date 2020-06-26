@@ -39,7 +39,7 @@
 
 const char *NODECLASS_NAME[NODECLASS_COUNT] = {
     "Object", "ObjectType",    "Variable",    "DataType",
-    "Method", "ReferenceType", "VariableType"};
+    "Method", "ReferenceType", "VariableType", "View"};
 
 typedef enum
 {
@@ -150,6 +150,13 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, VARIABLETYPE))
         {
             pctx->nodeClass = NODECLASS_VARIABLETYPE;
+            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
+                                         nb_attributes, attributes);
+            pctx->state = PARSER_STATE_NODE;
+        }
+        else if (!strcmp(localname, VIEW))
+        {
+            pctx->nodeClass = NODECLASS_VIEW;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;

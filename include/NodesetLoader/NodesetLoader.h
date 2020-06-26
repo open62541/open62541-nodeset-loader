@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-#define NODECLASS_COUNT 7
+#define NODECLASS_COUNT 8
 typedef enum
 {
     NODECLASS_OBJECT = 0,
@@ -29,6 +29,7 @@ typedef enum
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
     NODECLASS_VARIABLETYPE = 6,
+    NODECLASS_VIEW = 7
     // eventtype is handled like a object type
 } TNodeClass;
 
@@ -214,8 +215,16 @@ struct TReferenceTypeNode
 };
 typedef struct TReferenceTypeNode TReferenceTypeNode;
 
-typedef int (*addNamespaceCb)(void *userContext, const char *);
+struct TViewNode
+{
+    NODE_ATTRIBUTES
+    TNodeId parentNodeId;
+    char *containsNoLoops;
+    char *eventNotifier;
+};
+typedef struct TViewNode TViewNode;
 
+typedef int (*addNamespaceCb)(void *userContext, const char *);
 typedef void *(*newExtensionCb)(const TNode *);
 typedef void (*startExtensionCb)(void *extensionData, const char *name);
 typedef void (*endExtensionCb)(void *extensionData, const char *name,
