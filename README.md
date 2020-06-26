@@ -2,8 +2,7 @@
 nodesetLoader is a library written in C99 for the purpose of loading OPC UA nodesets from xml and sorting the nodes based on their hierachical references.
 
 # Current status
-NodesetLoader is in an early alpha, SHOULD NOT be used in production environment. Interfaces for consumers will change in future.
-Automated test environment for quality insurance is set up, but has to be improved.
+There is no official release tagged, interfaces for consumers will maybe change in future.
 
 ## License
 MPL2.0 https://github.com/matkonnerth/nodesetLoader/blob/master/LICENSE
@@ -50,6 +49,9 @@ backends/open62541/examples/server <pathToNodeset>
 Here's an example repo, consuming open62541 and NodesetLoader via cmake find_package:
 https://github.com/matkonnerth/nodesetLoader_usage
 
-conan packages are available on bintray repo https://bintray.com/matkonnerth/cpprepo
 
+### conan package
+
+conan packages are available on bintray repo https://bintray.com/matkonnerth/cpprepo
+repo containing the conan recipe: https://github.com/matkonnerth/conan-nodesetloader
 
