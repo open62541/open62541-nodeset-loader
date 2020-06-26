@@ -42,6 +42,8 @@ TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define ATTRIBUTE_ISFORWARD "IsForward"
 #define ATTRIBUTE_SYMMETRIC "Symmetric"
 #define ATTRIBUTE_ALIAS "Alias"
+// View
+#define ATTRIBUTE_CONTAINSNOLOOPS "ContainsNoLoops"
 
 typedef struct
 {
@@ -73,6 +75,7 @@ const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
 const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
+const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
 TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
 {
@@ -166,6 +169,7 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger,
     nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(100, true);
     nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(100, true);
     nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100, true);
+    nodeset->nodes[NODECLASS_VIEW] = NodeContainer_new(10, true);
     nodeset->nodesWithUnknownRefs = NodeContainer_new(100, false);
     nodeset->refTypesWithUnknownRefs = NodeContainer_new(100, false);
     nodeset->refService = refService;
@@ -371,7 +375,16 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
         ((TReferenceTypeNode *)node)->symmetric = getAttributeValue(
             nodeset, &attrSymmetric, attributes, attributeSize);
         break;
-    default:;
+    case NODECLASS_VIEW:
+        ((TViewNode *)node)->parentNodeId = extractNodedId(
+            namespaces, getAttributeValue(nodeset, &attrParentNodeId,
+                                          attributes, attributeSize));
+        ((TViewNode *)node)->containsNoLoops = getAttributeValue(
+            nodeset, &attrContainsNoLoops, attributes, attributeSize);
+        ((TViewNode *)node)->eventNotifier = getAttributeValue(
+            nodeset, &attrEventNotifier, attributes, attributeSize);
+        break;
+     default:;
     }
 }
 

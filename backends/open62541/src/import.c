@@ -138,6 +138,20 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
 }
 
 static void
+handleViewNode(const TViewNode *node, UA_NodeId *id,
+                 const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
+                 const UA_LocalizedText *lt, const UA_QualifiedName *qn,
+                 const UA_LocalizedText *description, UA_Server *server)
+{
+    UA_ViewAttributes attr = UA_ViewAttributes_default;
+    attr.displayName = *lt;
+    attr.description = *description;
+    attr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
+    attr.containsNoLoops = isTrue(node->containsNoLoops);
+    UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId, *qn, attr, NULL, NULL);
+}
+
+static void
 handleMethodNode(const TMethodNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
@@ -200,7 +214,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.description = *description;
     attr.historizing = isTrue(node->historizing);
 
-    // euromap work around?
+    // this case is only needed for the euromap83 comparison, think the nodeset is not valid
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
     {
         attr.arrayDimensionsSize = 1;
@@ -392,6 +406,11 @@ static void addNode(UA_Server *server, const TNode *node)
     case NODECLASS_DATATYPE:
         handleDataTypeNode((const TDataTypeNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
+        break;
+    case NODECLASS_VIEW:
+        handleViewNode((const TViewNode *)node, &id, &parentId,
+                       &parentReferenceId, &lt, &qn, &description, server);
+        break;
     }
 }
 
@@ -508,7 +527,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
     const TNodeClass order[NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
-        NODECLASS_VARIABLE};
+        NODECLASS_VARIABLE, NODECLASS_VIEW};
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
