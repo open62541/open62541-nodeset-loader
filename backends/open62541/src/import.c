@@ -200,7 +200,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.description = *description;
     attr.historizing = isTrue(node->historizing);
 
-    // euromap work around?
+    // this case is only needed for the euromap83 comparison, think the nodeset is not valid
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
     {
         attr.arrayDimensionsSize = 1;
