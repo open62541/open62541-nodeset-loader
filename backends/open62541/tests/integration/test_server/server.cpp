@@ -32,7 +32,7 @@ UA_Boolean AddDIStructVariables(UA_Server *pServer)
     // so if we can't find the type we assume that it's okay
     UA_NodeId TransferResultDataDataTypeId = UA_NODEID_NUMERIC(2, 15889);
     const UA_DataType *importedType =
-        getCustomDataType(pServer, &TransferResultDataDataTypeId);
+        NodesetLoader_getCustomDataType(pServer, &TransferResultDataDataTypeId);
     if (importedType == 0)
     {
         UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
