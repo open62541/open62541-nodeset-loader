@@ -45,7 +45,7 @@ START_TEST(compareDI)
 
     for(const UA_DataType* generatedType = UA_TYPES_DI; generatedType!= UA_TYPES_DI + UA_TYPES_DI_COUNT; generatedType++)
     {
-        const UA_DataType* importedType = getCustomDataType(server, &generatedType->typeId);
+        const UA_DataType* importedType = NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType!=NULL);
         typesAreMatching(generatedType, importedType,
                          &UA_TYPES_DI[0], config->customDataTypes->types);

@@ -29,9 +29,57 @@ static void teardown(void)
     UA_Server_delete(server);
 }
 
+struct MyExtension
+{
+    char *address;
+};
+
+void *Extension_new()
+{
+    struct MyExtension *newExt = calloc(1, sizeof(struct MyExtension));
+    if (!newExt)
+    {
+        return NULL;
+    }
+    return newExt;
+}
+
+void startExtension(void *ext, const char *name, int attrCnt,
+                    const char **attributes)
+{
+}
+
+void endExtension(void *ext, const char *name, const char *value)
+{
+    if (ext && !strcmp(name, "Address"))
+    {
+        ((struct MyExtension *)ext)->address =
+            calloc(strlen(value) + 1, sizeof(char));
+        memcpy(((struct MyExtension *)ext)->address, value, strlen(value));
+    }
+}
+
+void finishExtension(void *ext) {}
+
 START_TEST(extensions)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    NodesetLoader_ExtensionInterface extIf;
+    extIf.userContext = NULL;
+    extIf.newExtension = Extension_new;
+    extIf.start = startExtension;
+    extIf.end = endExtension;
+    extIf.finish = finishExtension;
+    ck_assert(NodesetLoader_loadFile(server, nodesetPath, &extIf));
+    ck_assert(UA_NODECLASS_VARIABLE ==
+              getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)));
+
+    struct MyExtension *parsedContext = NULL;
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_getNodeContext(server, UA_NODEID_NUMERIC(2, 6002),
+                                       (void **)&parsedContext));
+    ck_assert(!strcmp(parsedContext->address, "demo.test"));
+    free(parsedContext->address);
+    free(parsedContext);
 }
 END_TEST
 
