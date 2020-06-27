@@ -37,7 +37,7 @@ START_TEST(OperatingModeEnum)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
-    const UA_DataType *type = getCustomDataType(server, &typeId);
+    const UA_DataType *type = NodesetLoader_getCustomDataType(server, &typeId);
     ck_assert(type);
 
     ck_assert(type->typeKind == UA_DATATYPEKIND_ENUM);

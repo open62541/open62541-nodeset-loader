@@ -48,7 +48,7 @@ START_TEST(compareUnion)
          generatedType++)
     {
         const UA_DataType *importedType =
-            getCustomDataType(server, &generatedType->typeId);
+            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
         typesAreMatching(generatedType, importedType, &UA_TYPES_UNION2[0],
                          config->customDataTypes->types);

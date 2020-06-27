@@ -5,8 +5,8 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#ifndef __BACKEND_OPEN62541_DATATYPES_H__
-#define __BACKEND_OPEN62541_DATATYPES_H__
+#ifndef __NODESETLOADER_BACKEND_OPEN62541_DATATYPES_H__
+#define __NODESETLOADER_BACKEND_OPEN62541_DATATYPES_H__
 #include <open62541/types.h>
 
 #if __GNUC__ || __clang__
@@ -22,7 +22,7 @@ extern "C" {
 
 struct UA_Server;
 LOADER_EXPORT const struct UA_DataType *
-getCustomDataType(struct UA_Server *server, const UA_NodeId *typeId);
+NodesetLoader_getCustomDataType(struct UA_Server *server, const UA_NodeId *typeId);
 
 #ifdef __cplusplus
 }

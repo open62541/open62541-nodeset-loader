@@ -23,9 +23,6 @@
             <Extension>
                 <Address>demo.test</Address>
             </Extension>
-            <Extension>
-                <Demo>test</Demo>
-            </Extension>
         </Extensions>
     </UAVariable>
 </UANodeSet>
