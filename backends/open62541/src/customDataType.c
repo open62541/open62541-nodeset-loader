@@ -8,7 +8,7 @@
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server_config.h>
 
-const struct UA_DataType *getCustomDataType(struct UA_Server *server,
+const struct UA_DataType *NodesetLoader_getCustomDataType(struct UA_Server *server,
                                             const UA_NodeId *typeId)
 {
     UA_ServerConfig *config = UA_Server_getConfig(server);

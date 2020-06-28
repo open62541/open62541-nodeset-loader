@@ -35,7 +35,7 @@ void addPoint(UA_Server *server)
 
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &p1, getCustomDataType(server, &attr.dataType));
+    UA_Variant_setScalar(&var, &p1, NodesetLoader_getCustomDataType(server, &attr.dataType));
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1000), var);
 }
 
@@ -64,7 +64,7 @@ void addStructWithArray(UA_Server *server)
 
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &s, getCustomDataType(server, &attr.dataType));
+    UA_Variant_setScalar(&var, &s, NodesetLoader_getCustomDataType(server, &attr.dataType));
 
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1001), var);
 }
@@ -101,7 +101,7 @@ void addStructWithPointArray(UA_Server *server)
     UA_Variant_init(&var);
 
     UA_Variant_setScalar(&var, &structWithPointData,
-                         getCustomDataType(server, &attr.dataType));
+                         NodesetLoader_getCustomDataType(server, &attr.dataType));
 
     UA_StatusCode retval =
         UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1002), var);

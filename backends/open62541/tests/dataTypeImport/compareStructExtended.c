@@ -48,7 +48,7 @@ START_TEST(compareDI)
                               UA_TYPES_STRUCTEXTENDED_COUNT;
          generatedType++)
     {
-        const UA_DataType* importedType = getCustomDataType(server, &generatedType->typeId);
+        const UA_DataType* importedType = NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType!=NULL);
         typesAreMatching(
             generatedType, importedType,
