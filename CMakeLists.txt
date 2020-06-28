@@ -101,6 +101,7 @@ set(NODESETLOADER_PUBLIC_HEADER
 
 if(${ENABLE_BACKEND_OPEN62541})
     list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
+    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
 endif()
 
 set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
@@ -110,6 +111,6 @@ install(TARGETS NodesetLoader
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib
         PUBLIC_HEADER DESTINATION include/NodesetLoader)
-install(FILES nodesetloader-config.cmake DESTINATION lib)
+install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
 
-install(EXPORT NodesetLoader DESTINATION lib)
+install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
