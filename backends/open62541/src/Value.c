@@ -13,6 +13,15 @@
 #include <time.h>
 #include "base64.h"
 
+//there is no strptime in win32
+#ifdef WIN32
+char *strptime(const char *restrict buf, const char *restrict format,
+               struct tm *restrict tm)
+{
+    return NULL;
+}
+#endif
+
 typedef struct TypeList TypeList;
 struct TypeList
 {
@@ -154,14 +163,12 @@ static Data *lookupMember(const Data *value, const char *name)
 static void setDateTime(const Data *value, RawData *data)
 {
     uintptr_t adr = (uintptr_t)data->mem + data->offset;
-    /*
     struct tm dateTime;
     memset(&dateTime, 0, sizeof(struct tm));
     strptime(value->val.primitiveData.value, "%Y-%m-%d %H:%M:%S%Z", &dateTime);
     time_t rawTime = mktime(&dateTime);
     UA_DateTime *val = (UA_DateTime *)adr;
     *val = (UA_DateTime)(rawTime * UA_DATETIME_SEC + UA_DATETIME_UNIX_EPOCH);
-    * */
     data->offset = data->offset + sizeof(UA_DateTime);
 }
 
