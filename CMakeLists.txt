@@ -26,34 +26,48 @@ if(${ENABLE_CONAN})
                     BUILD missing)
 endif()
 
-if(CALC_COVERAGE)
+if(${CALC_COVERAGE})
     set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
 endif()
 
-set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
-                    -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
-                    -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
-                    -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
-                    -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
-                    -Wformat -Wformat-security -Wformat-nonliteral
-                    -Wuninitialized -Winit-self
-                    -Wcast-qual
-                    -Wstrict-overflow
-                    -Wnested-externs
-                    -Wmultichar
-                    -Wundef
-                    -Wc++-compat
-                    -Wsign-conversion
-                    -Wconversion
-                    -Wshadow
-                    -fno-strict-aliasing # fewer compiler assumptions about pointer types
-                    -fexceptions
-                    -Wswitch-enum)
+if(MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /WX /w44996") # Compiler warnings, error on warning
+
+  #if(UA_MSVC_FORCE_STATIC_CRT AND NOT BUILD_SHARED_LIBS)
+  #  set(CompilerFlags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS
+  #      CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE)
+  #  foreach(CompilerFlag ${CompilerFlags})
+  #    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+  #  endforeach()
+  #endif()
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
+    set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
+                        -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
+                        -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
+                        -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
+                        -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
+                        -Wformat -Wformat-security -Wformat-nonliteral
+                        -Wuninitialized -Winit-self
+                        -Wcast-qual
+                        -Wstrict-overflow
+                        -Wnested-externs
+                        -Wmultichar
+                        -Wundef
+                        -Wc++-compat
+                        -Wsign-conversion
+                        -Wconversion
+                        -Wshadow
+                        -fno-strict-aliasing # fewer compiler assumptions about pointer types
+                        -fexceptions
+                        -Wswitch-enum)
+endif()
 
 find_package(open62541 REQUIRED)
 find_package(LibXml2 REQUIRED)
 
-add_library(NodesetLoader SHARED 
+add_library(NodesetLoader
     src/NodesetLoader.c 
     src/Sort.c 
     src/Nodeset.c 
@@ -77,7 +91,9 @@ target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
 target_include_directories(NodesetLoader PRIVATE open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
 target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
+if(${CALC_COVERAGE})
 target_link_libraries(NodesetLoader PRIVATE gcov)
+endif()
 if(${ENABLE_ASAN})
     target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
 endif()

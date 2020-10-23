@@ -9,7 +9,7 @@
 #include "conversion.h"
 #include "padding.h"
 #include <assert.h>
-#include <open62541/server_config.h>
+#include <open62541/server.h>
 #include <open62541/types.h>
 
 #define alignof(type) offsetof(struct {char c; type d;}, d)
@@ -22,7 +22,7 @@ struct DataTypeImporter
     size_t firstNewDataType;
 };
 
-static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
+static UA_NodeId getBinaryEncodingId(const TDataTypeNode *node)
 {
     TNodeId encodingRefType = {0, "i=38"};
 
@@ -32,11 +32,11 @@ static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
         if (!TNodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
-            return id.identifier.numeric;
+            return id;
         }
         ref = ref->next;
     }
-    return 0;
+    return UA_NODEID_NULL;
 }
 
 static const UA_DataType *getTypeFromLists(bool nsZero, UA_UInt16 idx,
@@ -359,7 +359,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
         type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     }
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
-    type->binaryEncodingId = (UA_UInt16)getBinaryEncodingId(node);
+    type->binaryEncodingId = getBinaryEncodingId(node);
     type->pointerFree = true;
     if(!isOptionSet)
     {
@@ -373,7 +373,7 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 {
     enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
-    enumType->binaryEncodingId = 0;
+    enumType->binaryEncodingId = UA_NODEID_NULL;
     enumType->pointerFree = true;
     enumType->overlayable = UA_BINARY_OVERLAYABLE_INTEGER;
     enumType->members = NULL;
@@ -523,7 +523,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     }
 
     importer->nodes = (const TDataTypeNode **)realloc(
-        importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
+        (void*)importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
     importer->nodes[importer->nodesSize] = node;
     importer->nodesSize++;
 
@@ -559,6 +559,6 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
 
 void DataTypeImporter_delete(DataTypeImporter *importer)
 {
-    free(importer->nodes);
+    free((void*)importer->nodes);
     free(importer);
 }
