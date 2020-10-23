@@ -29,7 +29,8 @@ add_test(NAME valueRank_Test
     COMMAND valueRank ${CMAKE_CURRENT_SOURCE_DIR}/valueRank.xml)
 
 add_executable(basicNodeClasses basicNodeClasses.c)
-target_link_libraries(basicNodeClasses PRIVATE NodesetLoader ${CONAN_LIBS_OPEN62541} ${CHECK_LIBRARIES} pthread)
+target_include_directories(basicNodeClasses PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(basicNodeClasses PRIVATE NodesetLoader ${CONAN_LIBS_OPEN62541} ${CHECK_LIBRARIES})
 add_test(NAME basicNodeClasses_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND basicNodeClasses ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClasses.xml)
