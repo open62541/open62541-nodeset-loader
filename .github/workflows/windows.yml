@@ -29,7 +29,7 @@ jobs:
             cd check
             mkdir build
             cd build
-            cmake ..
+            cmake -DCMAKE_BUILD_TYPE=Release ..
             cmake --build .
             cmake --install .
 
