@@ -29,8 +29,8 @@ jobs:
             cd check
             mkdir build
             cd build
-            cmake ..
-            make -j
+            ./configure
+            make
             make install
 
     - name: Create Build Environment
