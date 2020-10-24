@@ -4,8 +4,10 @@
 #include <algorithm>
 #include <cassert>
 #include <iostream>
+#include <open62541/client.h>
 #include <open62541/client_highlevel.h>
 #include <open62541/types.h>
+#include <open62541/types_generated.h>
 
 using namespace std;
 
