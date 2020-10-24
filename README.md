@@ -7,6 +7,8 @@ MPL2.0 https://github.com/matkonnerth/nodesetLoader/blob/master/LICENSE
 # Current status
 First official release v0.1.0 is tagged. Please be aware that interface may change in future releases.
 
+Supported operating systems: Linux, Windows (rudimentary)
+
 #### Backend open62541
 Support for loading values with datatypes from namespace 0 or custom namespacesd
 Support parsing of extensions (via a callback interface)
