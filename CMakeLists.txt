@@ -62,6 +62,8 @@ if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
                         -fno-strict-aliasing # fewer compiler assumptions about pointer types
                         -fexceptions
                         -Wswitch-enum)
+
+    set(PTHREAD_LIB pthread)
 endif()
 
 find_package(open62541 REQUIRED)
