@@ -2077,10 +2077,9 @@ In semi-automatic mode also during waiting time (e.g. for manual loading/unloadi
             <Field Name="DefaultValue">
                 <Description>Default value of the parameter</Description>
             </Field>
-            <!--have to skip this because of nodesetCompiler issues
             <Field DataType="EUInformation" Name="Unit">
                 <Description>Engineering unit of the parameter. If the Type of Defaultvalue is not a Number, then the Unit shall be empty</Description>
-            </Field>-->
+            </Field>
         </Definition>
     </UADataType>
     <UAVariable DataType="String" ParentNodeId="ns=1;i=6002" NodeId="ns=1;i=6297" BrowseName="1:ConfigurationParameterType">
