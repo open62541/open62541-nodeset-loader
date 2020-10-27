@@ -14,7 +14,7 @@
 #ifdef __GNUC__
 #define LOADER_EXPORT __attribute__((dllexport))
 #else
-#define UA_EXPORT __declspec(dllexport)
+#define LOADER_EXPORT __declspec(dllexport)
 #endif
 #else /* import dll */
 #ifdef __GNUC__
