@@ -8,11 +8,28 @@
 #ifndef NODESETLOADER_ARCH_H
 #define NODESETLOADER_ARCH_H
 
-#if __GNUC__ || __clang__
-#define LOADER_EXPORT __attribute__((visibility("default")))
+/* this is taken from open62541.com */
+#if defined(_WIN32) && defined(UA_DYNAMIC_LINKING)
+#ifdef UA_DYNAMIC_LINKING_EXPORT /* export dll */
+#ifdef __GNUC__
+#define UA_EXPORT __attribute__((dllexport))
+#else
+#define UA_EXPORT __declspec(dllexport)
 #endif
-#ifndef LOADER_EXPORT
-#define LOADER_EXPORT /* fallback to default */
+#else /* import dll */
+#ifdef __GNUC__
+#define UA_EXPORT __attribute__((dllimport))
+#else
+#define UA_EXPORT __declspec(dllimport)
+#endif
+#endif
+#else /* non win32 */
+#if __GNUC__ || __clang__
+#define UA_EXPORT __attribute__((visibility("default")))
+#endif
+#endif
+#ifndef UA_EXPORT
+#define UA_EXPORT /* fallback to default */
 #endif
 
 #endif
