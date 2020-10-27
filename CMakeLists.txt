@@ -91,8 +91,9 @@ target_include_directories(NodesetLoader
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
 target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
 target_include_directories(NodesetLoader PRIVATE open62541)
-target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
+target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
+set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${CALC_COVERAGE})
 target_link_libraries(NodesetLoader PRIVATE gcov)
 endif()
@@ -118,6 +119,7 @@ set(NODESETLOADER_PUBLIC_HEADER
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
 )
 
 if(${ENABLE_BACKEND_OPEN62541})
