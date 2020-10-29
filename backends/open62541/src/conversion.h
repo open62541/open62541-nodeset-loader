@@ -9,6 +9,7 @@
 #define CONVERSION_H
 #include <NodesetLoader/NodesetLoader.h>
 #include <open62541/types.h>
+#include <time.h>
 
 static inline UA_Boolean isNodeId(const char *s)
 {
@@ -72,6 +73,25 @@ static inline UA_NodeId extractNodeId(char *s)
         return id;
     }
     return id;
+}
+
+static inline UA_DateTime UA_DateTime_fromString(const char *dateString)
+{
+    UA_DateTimeStruct dt;
+    memset(&dt, 0, sizeof(UA_DateTimeStruct));
+    int y, M, d, h, m;
+    float s;
+    sscanf(dateString, "%d-%d-%dT%d:%d:%fZ", &y, &M, &d, &h, &m, &s);
+    dt.year = (UA_UInt16)y;
+    dt.month = (UA_UInt16)M;
+    dt.day = (UA_UInt16)d;
+    dt.hour = (UA_UInt16)h;
+    dt.min = (UA_UInt16)m;
+    dt.sec = (UA_UInt16)s;
+
+
+    UA_DateTime dateTime = UA_DateTime_fromStruct(dt);
+    return dateTime;
 }
 
 #endif

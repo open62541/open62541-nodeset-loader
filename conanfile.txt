@@ -3,7 +3,7 @@ cmake
 
 [requires]
 libxml2/2.9.9
-open62541/master@matkonnerth/testing
+open62541/master
 
 [options]
 libxml2:shared=True
