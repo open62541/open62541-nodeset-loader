@@ -125,7 +125,7 @@ START_TEST(NumericRange)
     UA_StatusCode retval =
         UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 15007), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
-    ck_assert(var.type->typeIndex == UA_TYPES_STRING);
+    ck_assert(var.type->typeIndex == UA_TYPES_OPAQUENUMERICRANGE);
     UA_String *numericRange = (UA_String *)var.data;
     ck_assert(!strncmp(numericRange[0].data, "1:65535", numericRange[0].length));
     UA_Variant_clear(&var);
