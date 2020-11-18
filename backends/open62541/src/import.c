@@ -14,7 +14,7 @@
 #include <RefServiceImpl.h>
 #include <assert.h>
 #include <open62541/server.h>
-#include <open62541/server.h>
+#include <open62541/server_config.h>
 
 int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 

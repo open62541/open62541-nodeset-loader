@@ -57,16 +57,12 @@ static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMem
 
 void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
-    ck_assert(t1->typeKind == t2->typeKind);
-    if (t1->typeKind != UA_DATATYPEKIND_ENUM)
-    {
-        ck_assert(
-            UA_NodeId_equal(&t1->binaryEncodingId, &t2->binaryEncodingId));
-    }
+    ck_assert(t1->binaryEncodingId == t2->binaryEncodingId);
     ck_assert(t1->membersSize == t2->membersSize);
     ck_assert(t1->memSize == t2->memSize);
     ck_assert(t1->overlayable == t2->overlayable);
     ck_assert(t1->pointerFree == t2->pointerFree);
+    ck_assert(t1->typeKind == t2->typeKind);
     
     ck_assert(!strcmp(t1->typeName, t2->typeName));
     size_t cnt =0;

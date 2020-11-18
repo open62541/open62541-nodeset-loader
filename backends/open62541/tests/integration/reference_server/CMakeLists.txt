@@ -7,7 +7,7 @@ ua_generate_nodeset_and_datatypes(
     NAME "integration_test_di"
     FILE_CSV "${open62541_NODESET_DIR}/DI/OpcUaDiModel.csv"
     FILE_BSD "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.Types.bsd"
-    NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
+    NAMESPACE_IDX 2
     FILE_NS "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
     INTERNAL
 )
@@ -26,7 +26,7 @@ ua_generate_datatypes(
     IMPORT_BSD "UA_TYPES#/home/matzy/git/open62541/deps/ua-nodeset/Schema/Opc.Ua.Types.bsd"
     NAME "types83"
     TARGET_SUFFIX "types83"
-    NAMESPACE_MAP "3:http://opcfoundation.org/EM83/"
+    NAMESPACE_IDX 3
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
     FILES_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
 )
@@ -37,7 +37,7 @@ ua_generate_nodeset_and_datatypes(
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
     IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
-    NAMESPACE_MAP "3:http://opcfoundation.org/UA/PlasticsRubber/GeneralTypes/"
+    NAMESPACE_IDX 3
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
     DEPENDS "integration_test_di"
     INTERNAL
@@ -49,7 +49,7 @@ ua_generate_nodeset_and_datatypes(
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.bsd"
     IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
-    NAMESPACE_MAP "4:http://opcfoundation.org/UA/PlasticsRubber/IMM2MES/"
+    NAMESPACE_IDX 4
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
     DEPENDS "integration_test_euromap_83"
     INTERNAL
@@ -62,7 +62,7 @@ ua_generate_nodeset_and_datatypes(
 add_executable(refServer_DI server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES})
 target_compile_definitions(refServer_DI PRIVATE USE_DI)
-target_link_libraries(refServer_DI PRIVATE open62541)
+target_link_libraries(refServer_DI PRIVATE open62541::open62541)
 target_include_directories(refServer_DI PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 # DI + PLCopen
@@ -70,7 +70,7 @@ add_executable(refServer_DI_PLCopen server.cpp
     ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES}
     ${UA_NODESET_INTEGRATION_TEST_PLC_SOURCES} ${UA_TYPES_INTEGRATION_TEST_PLC_SOURCES})
 target_compile_definitions(refServer_DI_PLCopen PRIVATE USE_DI USE_PLC_OPEN)
-target_link_libraries(refServer_DI_PLCopen PRIVATE open62541)
+target_link_libraries(refServer_DI_PLCopen PRIVATE open62541::open62541)
 target_include_directories(refServer_DI_PLCopen PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 # DI + Euromap83 + Euromap77
@@ -79,7 +79,7 @@ add_executable(refServer_DI_Euromap_83_77 server.cpp
     ${UA_NODESET_INTEGRATION_TEST_EUROMAP_83_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_83_SOURCES}
     ${UA_NODESET_INTEGRATION_TEST_EUROMAP_77_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_77_SOURCES})
 target_compile_definitions(refServer_DI_Euromap_83_77 PRIVATE USE_DI USE_EUROMAP_83 USE_EUROMAP_77)
-target_link_libraries(refServer_DI_Euromap_83_77 PRIVATE open62541)
+target_link_libraries(refServer_DI_Euromap_83_77 PRIVATE open62541::open62541)
 target_include_directories(refServer_DI_Euromap_83_77 PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
 

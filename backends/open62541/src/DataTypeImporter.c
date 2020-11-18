@@ -10,6 +10,7 @@
 #include "padding.h"
 #include <assert.h>
 #include <open62541/server.h>
+#include <open62541/server_config.h>
 #include <open62541/types.h>
 
 #define alignof(type) offsetof(struct {char c; type d;}, d)
@@ -22,7 +23,7 @@ struct DataTypeImporter
     size_t firstNewDataType;
 };
 
-static UA_NodeId getBinaryEncodingId(const TDataTypeNode *node)
+static UA_UInt32 getBinaryEncodingId(const TDataTypeNode *node)
 {
     TNodeId encodingRefType = {0, "i=38"};
 
@@ -32,11 +33,11 @@ static UA_NodeId getBinaryEncodingId(const TDataTypeNode *node)
         if (!TNodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
-            return id;
+            return id.identifier.numeric;
         }
         ref = ref->next;
     }
-    return UA_NODEID_NULL;
+    return 0;
 }
 
 static const UA_DataType *getTypeFromLists(bool nsZero, UA_UInt16 idx,
@@ -373,7 +374,7 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 {
     enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
-    enumType->binaryEncodingId = UA_NODEID_NULL;
+    enumType->binaryEncodingId = 0;
     enumType->pointerFree = true;
     enumType->overlayable = UA_BINARY_OVERLAYABLE_INTEGER;
     enumType->members = NULL;
