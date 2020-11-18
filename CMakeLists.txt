@@ -4,7 +4,7 @@ project(nodesetLoader)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(ENABLE_CONAN "use conan for consuming dependencies" off)
+option(ENABLE_CONAN "use conan for consuming dependencies" on)
 option(ENABLE_TESTING "enable tests" off)
 option(ENABLE_BACKEND_OPEN62541 "backend for open62541" off)
 option(ENABLE_ASAN "build with address sanitizer enabled" off)
