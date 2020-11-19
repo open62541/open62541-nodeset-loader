@@ -17,6 +17,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
+    - name: set conan
+      run: pyenv global 3.8
+    
     - name: install conan
       run:  pip install conan
     
