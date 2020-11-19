@@ -17,11 +17,8 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - name: set conan
-      run: pyenv global 3.8
-    
     - name: install conan
-      run:  pip install conan
+      run:  pip3 install conan
     
     - name: add conan remotes
       run:  conan remote add openRepo https://api.bintray.com/conan/matkonnerth/cpprepo
