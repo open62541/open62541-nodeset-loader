@@ -15,11 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: codecov/codecov-action@v1
-      with:
-        file: ./build/coverage/coverage.info # optional
-        verbose: true # optional (default = false)
+    - uses: actions/checkout@v2    
     - uses: actions/setup-python@v2
       with:
         python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
@@ -68,3 +64,8 @@ jobs:
       working-directory: ${{runner.workspace}}/build
       shell: bash
       run: cmake --build . --target coverage
+
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ./build/coverage/coverage.info # optional
+        verbose: true # optional (default = false)
