@@ -26,20 +26,29 @@ if(${ENABLE_CONAN})
                     BUILD missing)
 endif()
 
+#link against this library to gather coverage info
+add_library(coverageLib INTERFACE)
+
 if(${CALC_COVERAGE})
-    set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+    #set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+
+    message(STATUS "Code coverage is enabled.")
+    # Note that --coverage is synonym for the necessary compiler and
+    # linker flags for the given compiler.  For example, with GCC,
+    # --coverage translates to -fprofile-arcs -ftest-coverage when
+    # compiling and -lgcov when linking
+    #add_compile_options(--coverage -O0)
+    #add_link_options(--coverage)
+    target_compile_options(coverageLib INTERFACE
+        -O0        # no optimization
+        -g         # generate debug info
+        --coverage # sets all required flags)
+    )
+    target_link_libraries(coverageLib INTERFACE --coverage)
 endif()
 
 if(MSVC)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /WX /w44996") # Compiler warnings, error on warning
-
-  #if(UA_MSVC_FORCE_STATIC_CRT AND NOT BUILD_SHARED_LIBS)
-  #  set(CompilerFlags CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE CMAKE_C_FLAGS
-  #      CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE)
-  #  foreach(CompilerFlag ${CompilerFlags})
-  #    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
-  #  endforeach()
-  #endif()
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
@@ -89,14 +98,13 @@ target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
-target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
+target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
+if(${CALC_COVERAGE})
+    target_link_libraries(NodesetLoader PUBLIC coverageLib)
+endif()
 target_include_directories(NodesetLoader PRIVATE open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
-target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
-if(${CALC_COVERAGE})
-target_link_libraries(NodesetLoader PRIVATE gcov)
-endif()
 if(${ENABLE_ASAN})
     target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
 endif()
@@ -112,28 +120,34 @@ if(ENABLE_TESTING)
 endif()
 add_subdirectory(backends)
 
-#install
-set(NODESETLOADER_PUBLIC_HEADER 
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
-)
-
-if(${ENABLE_BACKEND_OPEN62541})
-    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
-    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
+if(${CALC_COVERAGE})
+    add_subdirectory(coverage)
 endif()
 
-set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+#install
+if(NOT ${CALC_COVERAGE})
+    set(NODESETLOADER_PUBLIC_HEADER 
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
+    )
 
-install(TARGETS NodesetLoader
-        EXPORT NodesetLoader
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/NodesetLoader)
-install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
+    if(${ENABLE_BACKEND_OPEN62541})
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
+    endif()
 
-install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
+    set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+
+    install(TARGETS NodesetLoader
+            EXPORT NodesetLoader
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            PUBLIC_HEADER DESTINATION include/NodesetLoader)
+    install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
+
+    install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
+endif()
