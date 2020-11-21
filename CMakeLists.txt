@@ -99,9 +99,7 @@ target_include_directories(NodesetLoader
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
 target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
-if(${CALC_COVERAGE})
-    target_link_libraries(NodesetLoader PUBLIC coverageLib)
-endif()
+target_link_libraries(NodesetLoader PUBLIC coverageLib)
 target_include_directories(NodesetLoader PRIVATE open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
@@ -125,27 +123,29 @@ if(${CALC_COVERAGE})
 endif()
 
 #install
-set(NODESETLOADER_PUBLIC_HEADER 
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
-)
+if(NOT ${CALC_COVERAGE})
+    set(NODESETLOADER_PUBLIC_HEADER 
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
+    )
 
-if(${ENABLE_BACKEND_OPEN62541})
-    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
-    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
+    if(${ENABLE_BACKEND_OPEN62541})
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
+    endif()
+
+    set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+
+    install(TARGETS NodesetLoader
+            EXPORT NodesetLoader
+            LIBRARY DESTINATION lib
+            ARCHIVE DESTINATION lib
+            PUBLIC_HEADER DESTINATION include/NodesetLoader)
+    install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
+
+    install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
 endif()
-
-set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
-
-install(TARGETS NodesetLoader
-        EXPORT NodesetLoader
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib
-        PUBLIC_HEADER DESTINATION include/NodesetLoader)
-install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
-
-install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
