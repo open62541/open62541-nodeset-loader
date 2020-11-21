@@ -1,4 +1,4 @@
-# nodesetLoader [![Build Status](https://travis-ci.org/matkonnerth/nodesetLoader.svg?branch=master)](https://travis-ci.org/matkonnerth/nodesetLoader)
+# nodesetLoader ![IntegrationTests](https://github.com/matkonnerth/nodesetLoader/workflows/IntegrationTests/badge.svg)
 nodesetLoader is a library written in C99 for the purpose of loading OPC UA nodesets from xml and sorting the nodes based on their hierachical references.
 
 ## License
