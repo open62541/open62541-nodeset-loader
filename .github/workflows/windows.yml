@@ -26,6 +26,8 @@ jobs:
     - name: install libcheck
       run: |
             git clone https://github.com/libcheck/check.git
+            git fetch
+            git checkout 0.15.2
             cd check
             mkdir build
             cd build
