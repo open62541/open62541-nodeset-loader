@@ -9,8 +9,16 @@
 #define __NODESETLOADER_BACKEND_OPEN62541_DATATYPES_H__
 #include <open62541/types.h>
 
+#if defined(_WIN32)
+#ifdef __GNUC__
+#define LOADER_EXPORT __attribute__((dllexport))
+#else
+#define LOADER_EXPORT __declspec(dllexport)
+#endif
+#else /* non win32 */
 #if __GNUC__ || __clang__
 #define LOADER_EXPORT __attribute__((visibility("default")))
+#endif
 #endif
 #ifndef LOADER_EXPORT
 #define LOADER_EXPORT /* fallback to default */

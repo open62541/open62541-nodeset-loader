@@ -103,6 +103,7 @@ if(${CALC_COVERAGE})
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
 target_include_directories(NodesetLoader PRIVATE open62541)
+target_link_libraries(NodesetLoader PRIVATE open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${ENABLE_ASAN})
@@ -146,6 +147,7 @@ if(NOT ${CALC_COVERAGE})
             EXPORT NodesetLoader
             LIBRARY DESTINATION lib
             ARCHIVE DESTINATION lib
+            RUNTIME DESTINATION bin
             PUBLIC_HEADER DESTINATION include/NodesetLoader)
     install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
 

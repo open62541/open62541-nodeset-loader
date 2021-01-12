@@ -2,6 +2,7 @@
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+#include <open62541/util.h>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -30,8 +31,7 @@ void iterate(UA_Server* server, const UA_NodeId* id)
     {
         for(UA_ReferenceDescription* rd = br.references; rd != br.references+br.referencesSize; rd++)
         {
-            printf("found :printf %.*s\n", rd->browseName.name.length,
-                   rd->browseName.name.data);
+            printf("found :printf %.*s\n", UA_PRINTF_STRING_DATA( rd->browseName.name ) );
 
             /*
             const char* bn = "PublishedEventsType";
