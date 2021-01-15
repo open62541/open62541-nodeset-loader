@@ -20,6 +20,9 @@ jobs:
       with:
         python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
         
+    - name: update
+      run: sudo apt-get update
+        
     - name: Install check
       run: sudo apt-get install check
     
