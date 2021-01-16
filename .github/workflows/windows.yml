@@ -24,7 +24,7 @@ jobs:
       with:
         setupOnly: true
     # Now that vcpkg is installed, it is being used to run with the desired arguments.
-    - run: $VCPKG_ROOT/vcpkg install check:x86-windows-static
+    - run: vcpkg install check:x86-windows-static
     
     - name: install conan
       run:  pip install conan
