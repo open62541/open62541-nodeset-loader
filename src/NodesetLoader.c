@@ -313,12 +313,12 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_REFERENCE:
         enterUnknownState(pctx);
         break;
+    case PARSER_STATE_INVERSENAME:
+        enterUnknownState(pctx);
+        break;
     case PARSER_STATE_UNKNOWN:
         pctx->unknown_depth++;
-        break;
-    case PARSER_STATE_INVERSENAME:
-        pctx->unknown_depth++;
-        break;
+        break;    
     }
     pctx->onCharacters = NULL;
     pctx->onCharLength = 0;
