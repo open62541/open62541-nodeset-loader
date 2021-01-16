@@ -16,12 +16,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-
-    # Restore from cache the previously built ports. If cache-miss, download and build vcpkg (aka "bootstrap vcpkg").
+    
     - name: install vcpkg
-      # Download and build vcpkg, without installing any port. If content is cached already, it is a no-op.
-    # Now that vcpkg is installed, it is being used to run with the desired arguments.
-    - run: git clone https://github.com/microsoft/vcpkg
+      run: git clone https://github.com/microsoft/vcpkg
 
     - name: bootstrap vcpkg
       run: .\vcpkg\bootstrap-vcpkg.bat
