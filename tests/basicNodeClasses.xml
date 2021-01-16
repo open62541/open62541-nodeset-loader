@@ -38,7 +38,6 @@
             <Reference ReferenceType="HasDescription" IsForward="false">ns=1;i=5002</Reference>
         </References>
         <Value>
-            <test></test>
             <uax:String>//xs:element[@name='Point']</uax:String>
         </Value>
     </UAVariable>
