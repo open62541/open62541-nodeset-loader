@@ -82,16 +82,25 @@ typedef struct TLocalizedText TLocalizedText;
     Reference *unknownRefs;                                                    \
     void *extension;
 
+#define NODE_INSTANCE_ATTRIBUTES TNodeId parentNodeId;
+
 struct TNode
 {
     NODE_ATTRIBUTES
 };
 typedef struct TNode TNode;
 
+struct TInstanceNode
+{
+    NODE_ATTRIBUTES
+    NODE_INSTANCE_ATTRIBUTES
+};
+typedef struct TInstanceNode TInstanceNode;
+
 struct TObjectNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
     Reference *refToTypeDef;
 };
@@ -162,7 +171,7 @@ typedef struct Value Value;
 struct TVariableNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
@@ -203,7 +212,7 @@ typedef struct TDataTypeNode TDataTypeNode;
 struct TMethodNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 };
@@ -220,7 +229,7 @@ typedef struct TReferenceTypeNode TReferenceTypeNode;
 struct TViewNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     char *containsNoLoops;
     char *eventNotifier;
 };
@@ -252,7 +261,7 @@ typedef void (*NodesetLoader_forEachNode_Func)(void *context, TNode *node);
 LOADER_EXPORT size_t
 NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
-
+LOADER_EXPORT bool NodesetLoader_isInstanceNode (const TNode *baseNode);
 #ifdef __cplusplus
 }
 #endif

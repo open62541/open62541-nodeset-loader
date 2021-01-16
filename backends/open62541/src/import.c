@@ -98,15 +98,11 @@ static Reference *getHierachicalInverseReference(const TNode *node)
 static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
 {
     UA_NodeId parentId = UA_NODEID_NULL;
-    if (node->nodeClass == NODECLASS_OBJECT)
+
+    if(NodesetLoader_isInstanceNode(node))
     {
         parentId =
-            getNodeIdFromChars(((const TObjectNode *)node)->parentNodeId);
-    }
-    else if (node->nodeClass == NODECLASS_VARIABLE)
-    {
-        parentId =
-            getNodeIdFromChars(((const TVariableNode *)node)->parentNodeId);
+            getNodeIdFromChars(((const TInstanceNode*)node)->parentNodeId);
     }
     Reference *ref = getHierachicalInverseReference((const TNode *)node);
     *parentRefId = getReferenceTypeId(ref);
