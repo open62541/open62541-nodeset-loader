@@ -24,7 +24,7 @@ jobs:
       with:
         setupOnly: true
     # Now that vcpkg is installed, it is being used to run with the desired arguments.
-    - run: vcpkg install check:x86-windows
+    - run: vcpkg install --triplet x64-windows check
     
     - name: install conan
       run:  pip install conan
