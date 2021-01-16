@@ -1,16 +1,19 @@
-add_executable(sort sort.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/TNodeId.c)
+add_executable(sort sort.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/TNodeId.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/InstanceNode.c)
 target_include_directories(sort PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME sort_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND sort ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(nodeId TNodeId.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/TNodeId.c)
 target_include_directories(nodeId PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(nodeId PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_link_libraries(nodeId PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME nodeId_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeId ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(value ValueTest.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c)
 target_include_directories(value PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME value_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND value ${CMAKE_CURRENT_LIST_DIR})
 
 #these tests are simple loading nodesets and dumping it to stdout
@@ -25,5 +28,5 @@ COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml ${PROJECT_
 
 add_executable(allocator allocator.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/CharAllocator.c)
 target_include_directories(allocator PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME allocatorTest WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND allocator ${CMAKE_CURRENT_LIST_DIR})
