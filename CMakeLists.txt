@@ -88,6 +88,7 @@ add_library(NodesetLoader
     src/nodes/Node.c
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c
+    src/nodes/InstanceNode.c
     src/TNodeId.c
     src/PrintfLogger.c
     src/Value.c
