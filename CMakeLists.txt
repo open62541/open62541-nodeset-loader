@@ -99,7 +99,7 @@ target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
-target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
+target_link_libraries(NodesetLoader PUBLIC ${LIBXML2_LIBRARIES})
 if(${CALC_COVERAGE})
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
