@@ -1,4 +1,4 @@
-name: ClangRelWithDebInfoAsan.
+name: ClangRelWithDebInfoAsan
 
 on: [push, pull_request]
 
