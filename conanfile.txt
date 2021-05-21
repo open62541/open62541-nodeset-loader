@@ -1,5 +1,6 @@
 [generators]
 cmake_find_package
+cmake_paths
 
 [requires]
 libxml2/2.9.9
