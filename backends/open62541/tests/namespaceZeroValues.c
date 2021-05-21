@@ -119,6 +119,7 @@ START_TEST(EnumValues)
 }
 END_TEST
 
+/*
 START_TEST(NumericRange)
 {
     UA_Variant var;
@@ -131,6 +132,7 @@ START_TEST(NumericRange)
     UA_Variant_clear(&var);
 }
 END_TEST
+*/
 
 static Suite *testSuite_Client(void) {
     Suite *s = suite_create("server nodeset import");
@@ -138,7 +140,7 @@ static Suite *testSuite_Client(void) {
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, Server_LoadNS0Values);
     tcase_add_test(tc_server, EnumValues);
-    tcase_add_test(tc_server, NumericRange);
+    //tcase_add_test(tc_server, NumericRange);
     suite_add_tcase(s, tc_server);
     return s;
 }
