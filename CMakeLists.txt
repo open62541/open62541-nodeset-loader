@@ -26,7 +26,7 @@ if(${ENABLE_CONAN})
                     CMAKE_TARGETS
                     BUILD missing)
 
-    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)     
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
 #link against this library to gather coverage info
@@ -78,7 +78,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
     set(PTHREAD_LIB pthread)
 endif()
 
-find_package(open62541 REQUIRED)
+if(${ENABLE_BACKEND_OPEN62541})
+    find_package(open62541 REQUIRED)
+endif()
 find_package(LibXml2 REQUIRED)
 
 add_library(NodesetLoader
@@ -106,8 +108,12 @@ target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 if(${CALC_COVERAGE})
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
-target_include_directories(NodesetLoader PRIVATE open62541::open62541)
-target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+
+if(${ENABLE_BACKEND_OPEN62541})
+    target_include_directories(NodesetLoader PRIVATE open62541::open62541)
+    target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+endif()
+
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${ENABLE_ASAN})
