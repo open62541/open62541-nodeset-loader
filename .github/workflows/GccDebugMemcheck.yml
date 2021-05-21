@@ -43,8 +43,7 @@ jobs:
       with:
         repository: open62541/open62541
         ref: refs/tags/v1.2.2
-        with:
-          submodules: recursive
+        submodules: recursive
         path: ./openRoot
         
     - name: Create Build Environment for open62541
