@@ -23,7 +23,10 @@ if(${ENABLE_CONAN})
     include(${CMAKE_BINARY_DIR}/conan.cmake)
     conan_cmake_run(CONANFILE conanfile.txt
                     BASIC_SETUP
+                    CMAKE_TARGETS
                     BUILD missing)
+
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)     
 endif()
 
 #link against this library to gather coverage info
@@ -103,8 +106,8 @@ target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 if(${CALC_COVERAGE})
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
-target_include_directories(NodesetLoader PRIVATE open62541)
-target_link_libraries(NodesetLoader PRIVATE open62541)
+target_include_directories(NodesetLoader PRIVATE open62541::open62541)
+target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${ENABLE_ASAN})
