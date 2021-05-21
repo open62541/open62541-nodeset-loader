@@ -42,16 +42,18 @@ jobs:
     - uses: actions/checkout@master
       with:
         repository: open62541/open62541
-        #ref: refs/tags/v1.2.2
+        ref: refs/tags/v1.2.2
+        with:
+          submodules: recursive
         path: ./openRoot
-
+        
     - name: Create Build Environment for open62541
       run: cmake -E make_directory ./openRoot/build
 
     - name: Configure open
       shell: bash
       working-directory: ./openRoot/build
-      run: cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON ..
+      run: cmake -DCMAKE_BUILD_TYPE=Debug -DUA_NAMESPACE_ZERO=FULL -DBUILD_SHARED_LIBS=ON -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON ..
 
     - name: Build open
       working-directory: ./openRoot/build
