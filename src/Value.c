@@ -139,6 +139,7 @@ static const char* isOnlyWhitespace(const char* value)
     }
     for(const char* c=value;*c!='\0'; c++)
     {
+        // http://www.cplusplus.com/reference/cctype/isspace/
         if(!isspace((unsigned char)*c))
         {
             return value;
