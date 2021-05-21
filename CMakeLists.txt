@@ -25,8 +25,8 @@ if(${ENABLE_CONAN})
                     BASIC_SETUP
                     CMAKE_TARGETS
                     BUILD missing)
-    include(${​​​​​​​​CMAKE_BINARY_DIR}​​​​​​​​/conan_paths.cmake)
-                    
+
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)     
 endif()
 
 #link against this library to gather coverage info
