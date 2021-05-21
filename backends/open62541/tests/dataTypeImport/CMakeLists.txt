@@ -136,11 +136,11 @@ ua_generate_nodeset_and_datatypes(
 #    INTERNAL
 #)
 
-add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
-add_dependencies(compareOptionset open62541-generator-ns-optionset2)
-target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+#add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
+#add_dependencies(compareOptionset open62541-generator-ns-optionset2)
+#target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+#target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
-add_test(NAME compareOptionset_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND compareOptionset "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml")
+#add_test(NAME compareOptionset_Test
+#    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+#    COMMAND compareOptionset "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml")
