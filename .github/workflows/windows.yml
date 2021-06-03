@@ -55,11 +55,11 @@ jobs:
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTING=ON ..
 
-    - name: Build
+    - uses: ilammy/msvc-dev-cmd@v1
+    - name: Build nodesetLoader
       working-directory: ${{runner.workspace}}/build
-      shell: bash
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cmake --build . --config $BUILD_TYPE
+      run: cmake -G "NMake Makefiles" --config $BUILD_TYPE . && nmake
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
