@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+include(GNUInstallDirs)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(ENABLE_CONAN "use conan for consuming dependencies" on)
@@ -155,11 +157,11 @@ if(NOT ${CALC_COVERAGE})
 
     install(TARGETS NodesetLoader
             EXPORT NodesetLoader
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             PUBLIC_HEADER DESTINATION include/NodesetLoader)
-    install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
+    install(FILES nodesetloader-config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
 
-    install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
+    install(EXPORT NodesetLoader DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
 endif()
