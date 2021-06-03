@@ -1,0 +1,11 @@
+[generators]
+cmake_find_package
+cmake_paths
+
+[requires]
+libxml2/2.9.9
+open62541/1.1.6
+
+[options]
+libxml2:shared=True
+

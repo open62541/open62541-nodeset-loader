@@ -1,9 +1,10 @@
 #ifndef _BROWSE_UTILS_H
 #define _BROWSE_UTILS_H
 
-#include <open62541/client_config.h>
 #include <open62541/types.h>
 #include <vector>
+
+class UA_Client;
 
 typedef struct
 {

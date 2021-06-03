@@ -14,9 +14,53 @@
 #include <RefServiceImpl.h>
 #include <assert.h>
 #include <open62541/server.h>
-#include <open62541/server_config.h>
+#include <open62541/server.h>
 
-int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
+int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
+
+static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
+{
+    UA_BrowseDescription bd;
+    UA_BrowseDescription_init(&bd);
+    bd.nodeId = id;
+    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
+    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
+
+    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
+    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
+    {
+        return UA_NODEID_NULL;
+    }
+    UA_NodeId parentId = br.references[0].nodeId.nodeId;
+    UA_BrowseResult_clear(&br);
+    return parentId;
+}
+
+static bool isKnownParent(const UA_NodeId typeId)
+{
+    if (typeId.namespaceIndex == 0 &&
+        typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
+        typeId.identifier.numeric <= 30)
+    {
+        return true;
+    }
+    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
+    if (UA_NodeId_equal(&typeId, &optionSetId))
+    {
+        return true;
+    }
+    return false;
+}
+
+static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
+{
+    UA_NodeId current = dataTypeId;
+    while (!isKnownParent(current))
+    {
+        current = getParentDataType(server, current);
+    }
+    return current;
+}
 
 static UA_NodeId getReferenceTypeId(const Reference *ref)
 {
@@ -54,15 +98,11 @@ static Reference *getHierachicalInverseReference(const TNode *node)
 static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
 {
     UA_NodeId parentId = UA_NODEID_NULL;
-    if (node->nodeClass == NODECLASS_OBJECT)
+
+    if(NodesetLoader_isInstanceNode(node))
     {
         parentId =
-            getNodeIdFromChars(((const TObjectNode *)node)->parentNodeId);
-    }
-    else if (node->nodeClass == NODECLASS_VARIABLE)
-    {
-        parentId =
-            getNodeIdFromChars(((const TVariableNode *)node)->parentNodeId);
+            getNodeIdFromChars(((const TInstanceNode*)node)->parentNodeId);
     }
     Reference *ref = getHierachicalInverseReference((const TNode *)node);
     *parentRefId = getReferenceTypeId(ref);
@@ -90,7 +130,23 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
     // instantiated
     UA_Server_addNode_begin(server, UA_NODECLASS_OBJECT, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &oAttr,
-                            &UA_TYPES[UA_TYPES_OBJECTATTRIBUTES], NULL, NULL);
+                            &UA_TYPES[UA_TYPES_OBJECTATTRIBUTES],
+                            node->extension, NULL);
+}
+
+static void
+handleViewNode(const TViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
+               const UA_NodeId *parentReferenceId, const UA_LocalizedText *lt,
+               const UA_QualifiedName *qn, const UA_LocalizedText *description,
+               UA_Server *server)
+{
+    UA_ViewAttributes attr = UA_ViewAttributes_default;
+    attr.displayName = *lt;
+    attr.description = *description;
+    attr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
+    attr.containsNoLoops = isTrue(node->containsNoLoops);
+    UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId, *qn, attr,
+                          node->extension, NULL);
 }
 
 static void
@@ -106,7 +162,8 @@ handleMethodNode(const TMethodNode *node, UA_NodeId *id,
     attr.description = *description;
 
     UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn,
-                            attr, NULL, 0, NULL, 0, NULL, NULL, NULL);
+                            attr, NULL, 0, NULL, 0, NULL, node->extension,
+                            NULL);
 }
 
 static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
@@ -156,7 +213,8 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     attr.description = *description;
     attr.historizing = isTrue(node->historizing);
 
-    // euromap work around?
+    // this case is only needed for the euromap83 comparison, think the nodeset
+    // is not valid
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
     {
         attr.arrayDimensionsSize = 1;
@@ -164,11 +222,11 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         *attr.arrayDimensions = 0;
     }
 
-    UA_UInt32 dims = 0;
     if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
     {
-        dims = (UA_UInt32)node->value->data->val.complexData.membersSize;
-        attr.arrayDimensions = &dims;
+        attr.arrayDimensions = UA_UInt32_new();
+        *attr.arrayDimensions =
+            (UA_UInt32)node->value->data->val.complexData.membersSize;
         attr.arrayDimensionsSize = 1;
     }
     RawData *data = NULL;
@@ -178,7 +236,13 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
         if (!dataType)
         {
             // try it with custom types
-            dataType = getCustomDataType(server, &attr.dataType);
+            dataType = NodesetLoader_getCustomDataType(server, &attr.dataType);
+            // try it with parent
+            if (!dataType)
+            {
+                const UA_NodeId parent = getParentType(server, attr.dataType);
+                dataType = UA_findDataType(&parent);
+            }
         }
 
         UA_ServerConfig *config = UA_Server_getConfig(server);
@@ -204,7 +268,8 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES], NULL, NULL);
+                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
+                            node->extension, NULL);
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
 }
@@ -223,7 +288,7 @@ static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
     oAttr.description = *description;
 
     UA_Server_addObjectTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
-                                oAttr, NULL, NULL);
+                                oAttr, node->extension, NULL);
 }
 
 static void handleReferenceTypeNode(const TReferenceTypeNode *node,
@@ -242,7 +307,7 @@ static void handleReferenceTypeNode(const TReferenceTypeNode *node,
         UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
 
     UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
-                                   *qn, attr, NULL, NULL);
+                                   *qn, attr, node->extension, NULL);
 }
 
 static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
@@ -271,8 +336,8 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
                             *parentReferenceId, *qn, UA_NODEID_NULL, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES], NULL,
-                            NULL);
+                            &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES],
+                            node->extension, NULL);
 }
 
 static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
@@ -289,7 +354,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
     attr.isAbstract = isTrue(node->isAbstract);
 
     UA_Server_addDataTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
-                              attr, NULL, NULL);
+                              attr, node->extension, NULL);
 }
 
 static void addNode(UA_Server *server, const TNode *node)
@@ -341,10 +406,15 @@ static void addNode(UA_Server *server, const TNode *node)
     case NODECLASS_DATATYPE:
         handleDataTypeNode((const TDataTypeNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
+        break;
+    case NODECLASS_VIEW:
+        handleViewNode((const TViewNode *)node, &id, &parentId,
+                       &parentReferenceId, &lt, &qn, &description, server);
+        break;
     }
 }
 
-int BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
+int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
 {
     int idx =
         (int)UA_Server_addNamespace((UA_Server *)userContext, namespaceUri);
@@ -357,7 +427,6 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     UA_Logger *logger = (UA_Logger *)context;
     va_list vl;
     va_start(vl, message);
-    va_end(vl);
     UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
     switch (level)
     {
@@ -372,50 +441,7 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
         break;
     }
     logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
-}
-
-static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
-{
-    UA_BrowseDescription bd;
-    UA_BrowseDescription_init(&bd);
-    bd.nodeId = id;
-    bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
-    bd.nodeClassMask = UA_NODECLASS_DATATYPE;
-
-    UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
-    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
-    {
-        return UA_NODEID_NULL;
-    }
-    UA_NodeId parentId = br.references[0].nodeId.nodeId;
-    UA_BrowseResult_clear(&br);
-    return parentId;
-}
-
-static bool isKnownParent(const UA_NodeId typeId)
-{
-    if (typeId.namespaceIndex == 0 &&
-        typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
-        typeId.identifier.numeric <= 30)
-    {
-        return true;
-    }
-    UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
-    if(UA_NodeId_equal(&typeId, &optionSetId))
-    {
-        return true;
-    }
-    return false;
-}
-
-static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
-{
-    UA_NodeId current = dataTypeId;
-    while (!isKnownParent(current))
-    {
-        current = getParentDataType(server, current);
-    }
-    return current;
+    va_end(vl);
 }
 
 struct DataTypeImportCtx
@@ -428,7 +454,7 @@ struct DataTypeImportCtx
 static void addDataType(struct DataTypeImportCtx *ctx, TNode *node)
 {
     // add only the types
-    const BiDirectionalReference* r = ctx->hasEncodingRef;
+    const BiDirectionalReference *r = ctx->hasEncodingRef;
     while (r)
     {
         if (!TNodeId_cmp(&r->source, &node->id))
@@ -499,7 +525,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
     const TNodeClass order[NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
-        NODECLASS_VARIABLE};
+        NODECLASS_VARIABLE,      NODECLASS_VIEW};
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)
     {
@@ -525,7 +551,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
 }
 
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            void *extensionHandling)
+                            NodesetLoader_ExtensionInterface *extensionHandling)
 {
     if (!server)
     {
@@ -536,10 +562,10 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         return false;
     }
     FileContext handler;
-    handler.addNamespace = BackendOpen62541_addNamespace;
+    handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = server;
     handler.file = path;
-    handler.extensionHandling = NULL;
+    handler.extensionHandling = extensionHandling;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     NodesetLoader_Logger *logger =

@@ -8,7 +8,6 @@
 #include "Sort.h"
 #include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
-#include <error.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -325,12 +324,12 @@ void Sort_addNode(SortContext *ctx, TNode *data)
     {
         // there are no hierachical refs on it, can we find the nodes
         // referencing it? -> try it with parentNodeId
-        if (data->nodeClass == NODECLASS_VARIABLE)
+        if (NodesetLoader_isInstanceNode(data))
         {
-            TVariableNode *varnode = (TVariableNode *)data;
-            if (varnode->parentNodeId.id != NULL)
+            TInstanceNode *instanceNode = (TInstanceNode *)data;
+            if (instanceNode->parentNodeId.id != NULL)
             {
-                node *k = search_node(ctx->root1, &varnode->parentNodeId);
+                node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
                 if (k->data)
                 {
                     Reference *r = k->data->hierachicalRefs;
@@ -347,32 +346,6 @@ void Sort_addNode(SortContext *ctx, TNode *data)
                             break;
                         }
                         r = r->next;
-                    }
-                }
-            }
-            else if (data->nodeClass == NODECLASS_OBJECT)
-            {
-                TObjectNode *objnode = (TObjectNode *)data;
-                if (objnode->parentNodeId.id != NULL)
-                {
-                    node *k = search_node(ctx->root1, &objnode->parentNodeId);
-                    if (k->data)
-                    {
-                        Reference *r = k->data->hierachicalRefs;
-                        while (r)
-                        {
-                            if (!TNodeId_cmp(&r->target, &data->id))
-                            {
-                                Reference *newRef =
-                                    (Reference *)calloc(1, sizeof(Reference));
-                                newRef->isForward = !r->isForward;
-                                newRef->target = k->data->id;
-                                newRef->refType = r->refType;
-                                data->hierachicalRefs = newRef;
-                                break;
-                            }
-                            r = r->next;
-                        }
                     }
                 }
             }

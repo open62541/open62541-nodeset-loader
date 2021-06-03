@@ -3,35 +3,49 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-//#include "unistd.h"
-#include <NodesetLoader/backendOpen62541.h>
-#include <open62541/server.h>
-#include <open62541/server_config_default.h>
-#include <open62541/types.h>
+#include <NodesetLoader/NodesetLoader.h>
+#include <stdlib.h>
 
-#include "testHelper.h"
+int addNamespace(void *userContext, const char *uri) { return 1; }
 
-UA_Server *server;
+void addNode(void *userContext, const TNode *node)
+{
+    (*((int*)userContext))++;
+}
+
 char *nodesetPath = NULL;
 
 static void setup(void)
 {
-    printf("path to testnodesets %s\n", nodesetPath);
-    server = UA_Server_new();
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    UA_ServerConfig_setDefault(config);
+
 }
 
 static void teardown(void)
 {
-    UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
-    UA_Server_delete(server);
+
 }
 
 START_TEST(Server_ImportBasicNodeClassTest)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    FileContext handler;
+    handler.addNamespace = addNamespace;
+
+    NodesetLoader *loader = NodesetLoader_new(NULL, NULL);
+    handler.file = nodesetPath;
+    ck_assert(NodesetLoader_importFile(loader, &handler));
+    ck_assert(NodesetLoader_sort(loader));
+
+    int nodeCount=0;
+
+    for (int i = 0; i < NODECLASS_COUNT; i++)
+    {
+        NodesetLoader_forEachNode(loader, (TNodeClass)i, &nodeCount,
+                                  (NodesetLoader_forEachNode_Func)addNode);
+    }
+
+    ck_assert_int_eq(nodeCount, 8);
+
+    NodesetLoader_delete(loader);
 }
 END_TEST
 
@@ -47,7 +61,6 @@ static Suite *testSuite_Client(void)
 
 int main(int argc, char *argv[])
 {
-    printf("%s", argv[0]);
     if (!(argc > 1))
         return 1;
     nodesetPath = argv[1];

@@ -98,4 +98,19 @@
             <Reference ReferenceType="HasProperty" IsForward="false">i=85</Reference>
         </References>
     </UAVariable>
+    <!--only parentId specified-->
+    <UAObject NodeId="ns=1;i=7010" BrowseName="1:Folder_Parent">
+        <DisplayName>Folder Parent</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="Organizes" IsForward="true">ns=1;i=7011</Reference>
+        </References>
+    </UAObject>
+    <UAObject NodeId="ns=1;i=7011" ParentNodeId="ns=1;i=7010" BrowseName="1:Folder_Child">
+        <DisplayName>Folder Child</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+        </References>
+    </UAObject>
 </UANodeSet>

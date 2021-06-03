@@ -12,5 +12,7 @@ target_include_directories(NodesetLoader PUBLIC
     $<INSTALL_INTERFACE:include>
     PRIVATE src)
 
-add_subdirectory(tests)
+if(ENABLE_TESTING)
+    add_subdirectory(tests)
+endif()
 add_subdirectory(examples)

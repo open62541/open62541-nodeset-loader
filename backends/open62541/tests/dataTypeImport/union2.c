@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <open62541/server.h>
-#include <open62541/server_config.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
@@ -48,7 +47,7 @@ START_TEST(compareUnion)
          generatedType++)
     {
         const UA_DataType *importedType =
-            getCustomDataType(server, &generatedType->typeId);
+            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
         typesAreMatching(generatedType, importedType, &UA_TYPES_UNION2[0],
                          config->customDataTypes->types);

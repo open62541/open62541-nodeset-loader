@@ -39,7 +39,7 @@
 
 const char *NODECLASS_NAME[NODECLASS_COUNT] = {
     "Object", "ObjectType",    "Variable",    "DataType",
-    "Method", "ReferenceType", "VariableType"};
+    "Method", "ReferenceType", "VariableType", "View"};
 
 typedef enum
 {
@@ -74,7 +74,7 @@ struct TParserCtx
     size_t onCharLength;
     Value *val;
     void *extensionData;
-    ExtensionInterface *extIf;
+    NodesetLoader_ExtensionInterface *extIf;
     Reference *ref;
     Nodeset *nodeset;
 };
@@ -150,6 +150,13 @@ static void OnStartElementNs(void *ctx, const char *localname,
         else if (!strcmp(localname, VARIABLETYPE))
         {
             pctx->nodeClass = NODECLASS_VARIABLETYPE;
+            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
+                                         nb_attributes, attributes);
+            pctx->state = PARSER_STATE_NODE;
+        }
+        else if (!strcmp(localname, VIEW))
+        {
+            pctx->nodeClass = NODECLASS_VIEW;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
@@ -266,7 +273,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         {
             if (pctx->extIf)
             {
-                pctx->extensionData = pctx->extIf->newExtension(pctx->node);
+                pctx->extensionData = pctx->extIf->newExtension();
             }
             pctx->state = PARSER_STATE_EXTENSION;
         }
@@ -278,7 +285,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_EXTENSION:
         if (pctx->extIf)
         {
-            pctx->extIf->start(pctx->extensionData, localname);
+            pctx->extIf->start(pctx->extensionData, localname, nb_attributes, attributes);
         }
         break;
 
@@ -306,12 +313,12 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_REFERENCE:
         enterUnknownState(pctx);
         break;
+    case PARSER_STATE_INVERSENAME:
+        enterUnknownState(pctx);
+        break;
     case PARSER_STATE_UNKNOWN:
         pctx->unknown_depth++;
-        break;
-    case PARSER_STATE_INVERSENAME:
-        pctx->unknown_depth++;
-        break;
+        break;    
     }
     pctx->onCharacters = NULL;
     pctx->onCharLength = 0;
@@ -376,6 +383,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
             if (pctx->extIf)
             {
                 pctx->extIf->finish(pctx->extensionData);
+                pctx->node->extension = pctx->extensionData;
             }
             pctx->state = PARSER_STATE_EXTENSIONS;
         }

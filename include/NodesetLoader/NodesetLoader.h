@@ -7,6 +7,7 @@
 
 #ifndef NODESETLOADER_NODESETLOADER_H
 #define NODESETLOADER_NODESETLOADER_H
+#include "Extension.h"
 #include "Logger.h"
 #include "ReferenceService.h"
 #include "TNodeId.h"
@@ -19,7 +20,7 @@
 extern "C" {
 #endif
 
-#define NODECLASS_COUNT 7
+#define NODECLASS_COUNT 8
 typedef enum
 {
     NODECLASS_OBJECT = 0,
@@ -29,6 +30,7 @@ typedef enum
     NODECLASS_METHOD = 4,
     NODECLASS_REFERENCETYPE = 5,
     NODECLASS_VARIABLETYPE = 6,
+    NODECLASS_VIEW = 7
     // eventtype is handled like a object type
 } TNodeClass;
 
@@ -77,7 +79,10 @@ typedef struct TLocalizedText TLocalizedText;
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
     Reference *nonHierachicalRefs;                                             \
-    Reference *unknownRefs;
+    Reference *unknownRefs;                                                    \
+    void *extension;
+
+#define NODE_INSTANCE_ATTRIBUTES TNodeId parentNodeId;
 
 struct TNode
 {
@@ -85,10 +90,17 @@ struct TNode
 };
 typedef struct TNode TNode;
 
+struct TInstanceNode
+{
+    NODE_ATTRIBUTES
+    NODE_INSTANCE_ATTRIBUTES
+};
+typedef struct TInstanceNode TInstanceNode;
+
 struct TObjectNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
     Reference *refToTypeDef;
 };
@@ -159,7 +171,7 @@ typedef struct Value Value;
 struct TVariableNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     TNodeId datatype;
     char *arrayDimensions;
     char *valueRank;
@@ -200,7 +212,7 @@ typedef struct TDataTypeNode TDataTypeNode;
 struct TMethodNode
 {
     NODE_ATTRIBUTES
-    TNodeId parentNodeId;
+    NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 };
@@ -214,30 +226,25 @@ struct TReferenceTypeNode
 };
 typedef struct TReferenceTypeNode TReferenceTypeNode;
 
+struct TViewNode
+{
+    NODE_ATTRIBUTES
+    NODE_INSTANCE_ATTRIBUTES
+    char *containsNoLoops;
+    char *eventNotifier;
+};
+typedef struct TViewNode TViewNode;
+
 typedef int (*addNamespaceCb)(void *userContext, const char *);
 
-typedef void *(*newExtensionCb)(const TNode *);
-typedef void (*startExtensionCb)(void *extensionData, const char *name);
-typedef void (*endExtensionCb)(void *extensionData, const char *name,
-                               char *value);
-typedef void (*finishExtensionCb)(void *extensionData);
-
-typedef struct
-{
-    void *userContext;
-    newExtensionCb newExtension;
-    startExtensionCb start;
-    endExtensionCb end;
-    finishExtensionCb finish;
-} ExtensionInterface;
-
-typedef struct
+struct FileContext
 {
     void *userContext;
     const char *file;
     addNamespaceCb addNamespace;
-    ExtensionInterface *extensionHandling;
-} FileContext;
+    NodesetLoader_ExtensionInterface *extensionHandling;
+};
+typedef struct FileContext FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
@@ -254,7 +261,7 @@ typedef void (*NodesetLoader_forEachNode_Func)(void *context, TNode *node);
 LOADER_EXPORT size_t
 NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
-
+LOADER_EXPORT bool NodesetLoader_isInstanceNode (const TNode *baseNode);
 #ifdef __cplusplus
 }
 #endif

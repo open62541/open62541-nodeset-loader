@@ -3,7 +3,7 @@
 
 #include "browse_utils.h"
 #include <iostream>
-#include <open62541/types.h>
+#include <open62541/types_generated.h>
 
 std::ostream &operator<<(std::ostream &os, const UA_NodeId &Id);
 std::ostream &operator<<(std::ostream &os, const UA_ExpandedNodeId &Id);

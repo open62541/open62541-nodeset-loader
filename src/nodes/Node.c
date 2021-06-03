@@ -36,6 +36,9 @@ TNode *Node_new(TNodeClass nodeClass)
     case NODECLASS_METHOD:
         node = (TNode *)calloc(1, sizeof(TMethodNode));
         break;
+    case NODECLASS_VIEW:
+        node = (TNode *)calloc(1, sizeof(TViewNode));
+        break;
     }
     if(!node)
     {

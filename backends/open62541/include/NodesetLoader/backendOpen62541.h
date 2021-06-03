@@ -5,13 +5,22 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#ifndef __BACKEND_H__
-#define __BACKEND_H__
+#ifndef __NODESETLOADER_BACKEND_OPEN62541_H__
+#define __NODESETLOADER_BACKEND_OPEN62541_H__
 #include <stdbool.h>
 #include <stdio.h>
+#include <NodesetLoader/Extension.h>
 
+#if defined(_WIN32)
+#ifdef __GNUC__
+#define LOADER_EXPORT __attribute__((dllexport))
+#else
+#define LOADER_EXPORT __declspec(dllexport)
+#endif
+#else /* non win32 */
 #if __GNUC__ || __clang__
 #define LOADER_EXPORT __attribute__((visibility("default")))
+#endif
 #endif
 #ifndef LOADER_EXPORT
 #define LOADER_EXPORT /* fallback to default */
@@ -23,7 +32,7 @@ extern "C" {
 struct UA_Server;
 
 LOADER_EXPORT bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
-                            void *extensionHandling);
+                            NodesetLoader_ExtensionInterface *extensionHandling);
 
 #ifdef __cplusplus
 }

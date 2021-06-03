@@ -2,51 +2,90 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+include(GNUInstallDirs)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-include(CTest)
-enable_testing()
+option(ENABLE_CONAN "use conan for consuming dependencies" on)
+option(ENABLE_TESTING "enable tests" off)
+option(ENABLE_BACKEND_OPEN62541 "backend for open62541" off)
+option(ENABLE_ASAN "build with address sanitizer enabled" off)
+option(ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
+option(ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
+option(CALC_COVERAGE "calculate code coverage" off)
 
-option(ENABLE_BACKEND_OPEN62541 off "backend for open62541")
-option(ENABLE_ASAN off "build with address sanitizer enabled")
-option(ENABLE_INTEGRATION_TEST off "run detailled tests to compare address spaces")
-option(ENABLE_DATATYPEIMPORT_TEST off "run tests for importing datatypes")
-option(CALC_COVERAGE off "calculate code coverage")
 
-if(CALC_COVERAGE)
-    set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
+if(${ENABLE_CONAN})
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
+                    "${CMAKE_BINARY_DIR}/conan.cmake")
+    endif()
+
+    include(${CMAKE_BINARY_DIR}/conan.cmake)
+    conan_cmake_run(CONANFILE conanfile.txt
+                    BASIC_SETUP
+                    CMAKE_TARGETS
+                    BUILD missing)
+
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
-set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
-                    -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
-                    -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
-                    -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
-                    -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
-                    -Wformat -Wformat-security -Wformat-nonliteral
-                    -Wuninitialized -Winit-self
-                    -Wcast-qual
-                    -Wstrict-overflow
-                    -Wnested-externs
-                    -Wmultichar
-                    -Wundef
-                    -Wc++-compat
-                    -Wsign-conversion
-                    -Wconversion
-                    -Wshadow
-                    -fno-strict-aliasing # fewer compiler assumptions about pointer types
-                    -fexceptions
-                    -Wswitch-enum)
+#link against this library to gather coverage info
+add_library(coverageLib INTERFACE)
 
+if(${CALC_COVERAGE})
+    #set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
 
+    message(STATUS "Code coverage is enabled.")
+    # Note that --coverage is synonym for the necessary compiler and
+    # linker flags for the given compiler.  For example, with GCC,
+    # --coverage translates to -fprofile-arcs -ftest-coverage when
+    # compiling and -lgcov when linking
+    #add_compile_options(--coverage -O0)
+    #add_link_options(--coverage)
+    target_compile_options(coverageLib INTERFACE
+        -O0        # no optimization
+        -g         # generate debug info
+        --coverage # sets all required flags)
+    )
+    target_link_libraries(coverageLib INTERFACE --coverage)
+endif()
+
+if(MSVC)
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /WX /w44996") # Compiler warnings, error on warning
+endif()
+
+if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
+    set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
+                        -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
+                        -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
+                        -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
+                        -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
+                        -Wformat -Wformat-security -Wformat-nonliteral
+                        -Wuninitialized -Winit-self
+                        -Wcast-qual
+                        -Wstrict-overflow
+                        -Wnested-externs
+                        -Wmultichar
+                        -Wundef
+                        -Wc++-compat
+                        -Wsign-conversion
+                        -Wconversion
+                        -Wshadow
+                        -fno-strict-aliasing # fewer compiler assumptions about pointer types
+                        -fexceptions
+                        -Wswitch-enum)
+
+    set(PTHREAD_LIB pthread)
+endif()
+
+if(${ENABLE_BACKEND_OPEN62541})
+    find_package(open62541 REQUIRED)
+endif()
 find_package(LibXml2 REQUIRED)
-find_package(Check REQUIRED)
-find_package(open62541 REQUIRED)
 
-if(${ENABLE_ASAN})
-    set(${C_COMPILE_DEFS} -g -fsanitize=address -fsanitize=leak -fsanitize=undefined)
-endif()
-
-add_library(NodesetLoader SHARED 
+add_library(NodesetLoader
     src/NodesetLoader.c 
     src/Sort.c 
     src/Nodeset.c 
@@ -56,6 +95,7 @@ add_library(NodesetLoader SHARED
     src/nodes/Node.c
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c
+    src/nodes/InstanceNode.c
     src/TNodeId.c
     src/PrintfLogger.c
     src/Value.c
@@ -66,39 +106,62 @@ target_include_directories(NodesetLoader
     PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
             $<INSTALL_INTERFACE:include>
     PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src ${LIBXML2_INCLUDE_DIRS})
-target_link_libraries(NodesetLoader PRIVATE ${LIB_GCOV} ${LIBXML2_LIBRARIES})
-target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
-target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS} "-fvisibility=hidden")
-target_compile_options(NodesetLoader PUBLIC ${GCOV_COMPILE_DEFS})
-target_link_libraries(NodesetLoader PRIVATE gcov)
+target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
+if(${CALC_COVERAGE})
+    target_link_libraries(NodesetLoader PUBLIC coverageLib)
+endif()
+
+if(${ENABLE_BACKEND_OPEN62541})
+    target_include_directories(NodesetLoader PRIVATE open62541::open62541)
+    target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+endif()
+
+target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
+set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${ENABLE_ASAN})
     target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
 endif()
 
-add_subdirectory(tests)
+if(ENABLE_TESTING)
+    if(MSVC)
+        set(CHECK_INSTALL_DIR "C:/Program Files (x86)/Check")
+    endif()
+    find_package(Check REQUIRED)
+    include(CTest)
+    enable_testing()
+    add_subdirectory(tests)
+endif()
 add_subdirectory(backends)
 
-
-#install
-set(NODESETLOADER_PUBLIC_HEADER 
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
-)
-
-if(${ENABLE_BACKEND_OPEN62541})
-    list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
+if(${CALC_COVERAGE})
+    add_subdirectory(coverage)
 endif()
 
-set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+#install
+if(NOT ${CALC_COVERAGE})
+    set(NODESETLOADER_PUBLIC_HEADER 
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
+    )
 
-install(TARGETS NodesetLoader
-        EXPORT NodesetLoader
-        LIBRARY DESTINATION lib/NodesetLoader
-        ARCHIVE DESTINATION lib/NodesetLoader
-        PUBLIC_HEADER DESTINATION include/NodesetLoader)
-install(FILES nodesetloader-config.cmake DESTINATION lib/NodesetLoader)
+    if(${ENABLE_BACKEND_OPEN62541})
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/backendOpen62541.h)
+        list(APPEND NODESETLOADER_PUBLIC_HEADER ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/include/NodesetLoader/dataTypes.h)
+    endif()
 
-install(EXPORT NodesetLoader DESTINATION lib/NodesetLoader)
+    set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADER}")
+
+    install(TARGETS NodesetLoader
+            EXPORT NodesetLoader
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+            PUBLIC_HEADER DESTINATION include/NodesetLoader)
+    install(FILES nodesetloader-config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
+
+    install(EXPORT NodesetLoader DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
+endif()

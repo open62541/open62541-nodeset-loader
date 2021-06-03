@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include <open62541/server.h>
-#include <open62541/server_config.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
 
@@ -37,7 +36,7 @@ START_TEST(OperatingModeEnum)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
-    const UA_DataType *type = getCustomDataType(server, &typeId);
+    const UA_DataType *type = NodesetLoader_getCustomDataType(server, &typeId);
     ck_assert(type);
 
     ck_assert(type->typeKind == UA_DATATYPEKIND_ENUM);
