@@ -91,8 +91,12 @@ TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName bn)
 {
     if (bn.nsIdx > 0)
     {
-        bn.nsIdx =
-            (uint16_t)NamespaceList_getNamespace(namespaces, bn.nsIdx)->idx;
+        const Namespace* ns = NamespaceList_getNamespace(namespaces, bn.nsIdx);
+        if (ns != NULL)
+        {
+            bn.nsIdx =
+                (uint16_t)NamespaceList_getNamespace(namespaces, bn.nsIdx)->idx;
+        }
         return bn;
     }
     return bn;
