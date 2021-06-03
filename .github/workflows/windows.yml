@@ -30,6 +30,10 @@ jobs:
         ref: refs/tags/0.15.2
         path: ./checkRoot
 
+    - name: run vcvarsall
+      shell: cmd
+      run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
     - name: Create Build Environment for libcheck
       run: cd ./checkRoot && cmake -G "NMake Makefiles" .
 
