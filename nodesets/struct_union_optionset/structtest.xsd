@@ -1,0 +1,104 @@
+<xs:schema elementFormDefault="qualified" targetNamespace="http://yourorganisation.org/StructTest/Types.xsd" xmlns:tns="http://yourorganisation.org/StructTest/Types.xsd" xmlns:ua="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <xs:import namespace="http://opcfoundation.org/UA/2008/02/Types.xsd"/>
+    <xs:complexType name="TAllOptional">
+        <xs:sequence>
+            <xs:element minOccurs="0" type="xs:unsignedInt" name="EncodingMask"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d1"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d2"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TAllOptional" name="TAllOptional"/>
+    <xs:complexType name="ListOfTAllOptional">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TAllOptional" name="TAllOptional" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTAllOptional" name="ListOfTAllOptional" nillable="true"/>
+    <xs:complexType name="TNested_1">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="D1"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="tns:TSimple" name="D2"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TNested_1" name="TNested_1"/>
+    <xs:complexType name="ListOfTNested_1">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TNested_1" name="TNested_1" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTNested_1" name="ListOfTNested_1" nillable="true"/>
+    <xs:complexType name="TOptional">
+        <xs:sequence>
+            <xs:element minOccurs="0" type="xs:unsignedInt" name="EncodingMask"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d1"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d2"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d3"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="d4"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TOptional" name="TOptional"/>
+    <xs:complexType name="ListOfTOptional">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TOptional" name="TOptional" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTOptional" name="ListOfTOptional" nillable="true"/>
+    <xs:complexType name="TSimple">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="D1"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:boolean" name="D2"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:short" name="D3"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:boolean" name="D4"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:string" name="D5"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:byte" name="D6"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:boolean" name="D7"/>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="D8"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TSimple" name="TSimple"/>
+    <xs:complexType name="ListOfTSimple">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TSimple" name="TSimple" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTSimple" name="ListOfTSimple" nillable="true"/>
+    <xs:complexType name="TComplexUnion">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:unsignedInt" name="SwitchField"/>
+            <xs:choice>
+                <xs:element minOccurs="0" maxOccurs="1" type="ua:ListOfDouble" name="D1"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="ua:ListOfInt16" name="D2"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="ua:ListOfBoolean" name="D3"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:boolean" name="D4"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="D5"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="ua:ListOfString" name="D6"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:string" name="D7"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TComplexUnion" name="TComplexUnion"/>
+    <xs:complexType name="ListOfTComplexUnion">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TComplexUnion" name="TComplexUnion" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTComplexUnion" name="ListOfTComplexUnion" nillable="true"/>
+    <xs:complexType name="TSimpleUnion">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="1" type="xs:unsignedInt" name="SwitchField"/>
+            <xs:choice>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:double" name="D1"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:byte" name="D2"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:string" name="D3"/>
+                <xs:element minOccurs="0" maxOccurs="1" type="xs:short" name="D4"/>
+            </xs:choice>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:TSimpleUnion" name="TSimpleUnion"/>
+    <xs:complexType name="ListOfTSimpleUnion">
+        <xs:sequence>
+            <xs:element minOccurs="0" maxOccurs="unbounded" type="tns:TSimpleUnion" name="TSimpleUnion" nillable="true"/>
+        </xs:sequence>
+    </xs:complexType>
+    <xs:element type="tns:ListOfTSimpleUnion" name="ListOfTSimpleUnion" nillable="true"/>
+</xs:schema>

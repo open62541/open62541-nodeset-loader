@@ -5,13 +5,16 @@ nodesetLoader is a library written in C99 for the purpose of loading OPC UA node
 MPL2.0 https://github.com/matkonnerth/nodesetLoader/blob/master/LICENSE
 
 # Current status
-First official release v0.1.0 is tagged. Please be aware that interface may change in future releases.
+Official release v0.2.0 is tagged. Please be aware that interface may change in future releases.
 
 Supported operating systems: Linux, Windows (rudimentary)
 
 #### Backend open62541
-Support for loading values with datatypes from namespace 0 or custom namespacesd
+Support for loading values with datatypes from namespace 0 or custom namespaces
 Support parsing of extensions (via a callback interface)
+
+## Contribution
+Feel free to work on issues or providing further tests to improve the quality of this library. You can start by forking this repository and opening pull requests on it.
 
 ## dependencies
 xmlImport: libXml (http://www.xmlsoft.org/) for parsing the nodeset xml \
@@ -83,6 +86,5 @@ https://github.com/matkonnerth/nodesetLoader_usage
 
 ### conan package
 
-conan packages are available on bintray repo https://bintray.com/matkonnerth/cpprepo
 repo containing the conan recipe: https://github.com/matkonnerth/conan-nodesetloader
 

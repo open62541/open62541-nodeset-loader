@@ -55,6 +55,24 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
+# generate euromap instances
+ua_generate_nodeset_and_datatypes(
+    NAME "integration_test_euromap_instances"
+    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap_instances/euromapinstances.xml"
+    DEPENDS "integration_test_euromap_77" 
+    INTERNAL
+)
+
+# generate struct/union/optionset nodeset test
+#ua_generate_nodeset_and_datatypes(
+#    NAME "integration_test_struct_union_optionset"
+#    FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/struct_union_optionset/structtest.csv"
+#    FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/struct_union_optionset/structtest.bsd"
+#    NAMESPACE_IDX 5
+#    FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/struct_union_optionset/structtest.xml"
+#    INTERNAL
+#)
+
 
 # add executables:
 
@@ -82,5 +100,19 @@ target_compile_definitions(refServer_DI_Euromap_83_77 PRIVATE USE_DI USE_EUROMAP
 target_link_libraries(refServer_DI_Euromap_83_77 PRIVATE open62541::open62541)
 target_include_directories(refServer_DI_Euromap_83_77 PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
+# DI + Euromap83 + Euromap77 + Euromap-Instances
+add_executable(refServer_DI_Euromap_Instances server.cpp
+    ${UA_NODESET_INTEGRATION_TEST_DI_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_DI_SOURCES}
+    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_83_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_83_SOURCES}
+    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_77_SOURCES} ${UA_TYPES_INTEGRATION_TEST_EUROMAP_77_SOURCES}
+    ${UA_NODESET_INTEGRATION_TEST_EUROMAP_INSTANCES_SOURCES} ${UA_NODESET_INTEGRATION_TEST_EUROMAP_INSTANCES_SOURCES})
+target_compile_definitions(refServer_DI_Euromap_Instances PRIVATE USE_DI USE_EUROMAP_83 USE_EUROMAP_77 USE_EUROMAP_INSTANCES)
+target_link_libraries(refServer_DI_Euromap_Instances PRIVATE open62541::open62541)
+target_include_directories(refServer_DI_Euromap_Instances PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
-# TODO: DI + Euromap83 + Euromap77 + Euromap-Instances
+# struct/union/optionset nodeset test
+#add_executable(refServer_Struct server.cpp
+#    ${UA_NODESET_INTEGRATION_TEST_STRUCT_UNION_OPTIONSET_SOURCES}  ${UA_TYPES_INTEGRATION_TEST_STRUCT_UNION_OPTIONSET_SOURCES})
+#target_compile_definitions(refServer_Struct PRIVATE USE_STRUCT_UNION_OPTIONSET)
+#target_link_libraries(refServer_Struct PRIVATE open62541::open62541)
+#target_include_directories(refServer_Struct PRIVATE ${CMAKE_BINARY_DIR}/src_generated)

@@ -16,6 +16,12 @@ target_include_directories(value PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SO
 target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME value_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND value ${CMAKE_CURRENT_LIST_DIR})
 
+add_executable(parser parser.c)
+target_link_libraries(parser PRIVATE NodesetLoader ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+add_test(NAME parser_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND parser ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClasses.xml)
+
 #these tests are simple loading nodesets and dumping it to stdout
 add_test(NAME import_testNodeset WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/testNodeset100nodes.xml)
 add_test(NAME import_Nodeset2 WORKING_DIRECTORY ${CMAKE_BINARY_DIR} COMMAND parserDemo ${PROJECT_SOURCE_DIR}/nodesets/Opc.Ua.NodeSet2.xml)

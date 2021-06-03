@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(nodesetLoader)
 
+include(GNUInstallDirs)
+
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
 option(ENABLE_CONAN "use conan for consuming dependencies" on)
@@ -23,7 +25,10 @@ if(${ENABLE_CONAN})
     include(${CMAKE_BINARY_DIR}/conan.cmake)
     conan_cmake_run(CONANFILE conanfile.txt
                     BASIC_SETUP
+                    CMAKE_TARGETS
                     BUILD missing)
+
+    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
 #link against this library to gather coverage info
@@ -75,7 +80,9 @@ if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
     set(PTHREAD_LIB pthread)
 endif()
 
-find_package(open62541 REQUIRED)
+if(${ENABLE_BACKEND_OPEN62541})
+    find_package(open62541 REQUIRED)
+endif()
 find_package(LibXml2 REQUIRED)
 
 add_library(NodesetLoader
@@ -103,8 +110,12 @@ target_link_libraries(NodesetLoader PRIVATE ${LIBXML2_LIBRARIES})
 if(${CALC_COVERAGE})
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
-target_include_directories(NodesetLoader PRIVATE open62541)
-target_link_libraries(NodesetLoader PRIVATE open62541)
+
+if(${ENABLE_BACKEND_OPEN62541})
+    target_include_directories(NodesetLoader PRIVATE open62541::open62541)
+    target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+endif()
+
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
 set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
 if(${ENABLE_ASAN})
@@ -146,11 +157,11 @@ if(NOT ${CALC_COVERAGE})
 
     install(TARGETS NodesetLoader
             EXPORT NodesetLoader
-            LIBRARY DESTINATION lib
-            ARCHIVE DESTINATION lib
-            RUNTIME DESTINATION bin
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             PUBLIC_HEADER DESTINATION include/NodesetLoader)
-    install(FILES nodesetloader-config.cmake DESTINATION lib/cmake/NodesetLoader)
+    install(FILES nodesetloader-config.cmake DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
 
-    install(EXPORT NodesetLoader DESTINATION lib/cmake/NodesetLoader)
+    install(EXPORT NodesetLoader DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/NodesetLoader)
 endif()
