@@ -65,7 +65,9 @@
             <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
         </References>
         <Value>
-            <uax:UInt32>1</uax:UInt32>
+            <uax:ListOfInt32>
+                <uax:Int32>1</uax:Int32>
+            </uax:ListOfInt32>
         </Value>
     </UAVariable>
     <UAVariable DataType="UInt32" NodeId="ns=1;i=6002" BrowseName="1:ScalarValue" AccessLevel="3">
@@ -84,5 +86,22 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">i=85</Reference>
         </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>i=16126</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <RolePermissionType xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">
+                            <RoleId>
+                                <Identifier>ns=1;i=12</Identifier>
+                            </RoleId>
+                            <Permissions>3</Permissions>
+                        </RolePermissionType>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
     </UAVariable>
 </UANodeSet>

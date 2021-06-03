@@ -384,7 +384,7 @@ UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
         UA_NodeId_clear(&dataType);
         return UA_FALSE;
     }
-    UA_Boolean tmpRet = PrintValueAttribute(pClient, dataType, Value, out);
+    UA_Boolean tmpRet = PrintValueAttribute(Value, out);
     UA_Variant_clear(&Value);
     UA_NodeId_clear(&dataType);
     if (tmpRet == UA_FALSE)
@@ -526,7 +526,7 @@ UA_Boolean PrintVariableTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
     UA_Variant_init(&Value);
     if (UA_Client_readValueAttribute(pClient, Id, &Value) == UA_STATUSCODE_GOOD)
     {
-        if (PrintValueAttribute(pClient, dataType, Value, out) == UA_FALSE)
+        if (PrintValueAttribute(Value, out) == UA_FALSE)
         {
             cout << "PrintVariableTypeAttributes() Error: Print value of "
                     "node Id = "
