@@ -270,8 +270,12 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
                             *parentReferenceId, *qn, typeDefId, &attr,
                             &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
                             node->extension, NULL);
+    //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
+    //UA_Server_addNode_finish(server, *id);
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
+
+    
 }
 
 static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,

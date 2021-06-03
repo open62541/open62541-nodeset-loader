@@ -1,42 +1,16 @@
 #include "utils.h"
 #include "browse_utils.h"
+#include "common_defs.h"
 #include "operator_ov.h"
+#include "value_utils.h"
 #include <iostream>
 #include <open62541/client_highlevel.h>
 #include <open62541/types_generated_handling.h>
 #include <open62541/util.h>
-#include <set>
 #include <string>
 #include <vector>
 
 using namespace std;
-
-/*****************************************************************************/
-// constants
-static const UA_NodeId HasPropertyId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY);
-static const UA_NodeId HasSubtypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE);
-static const UA_NodeId HierarchicalReferenceId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_HIERARCHICALREFERENCES);
-static const UA_NodeId HasTypeDefinitionId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_HASTYPEDEFINITION);
-static const UA_NodeId HasModellingRuleId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_HASMODELLINGRULE);
-static const UA_NodeId HasEncodingId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_HASENCODING);
-static const UA_NodeId StructureId = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
-static const UA_NodeId EnumerationId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
-static const UA_NodeId OptionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
-static const UA_NodeId OptionSetValuesId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSETVALUES);
-static const UA_NodeId UnsignedIntegerId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_UINTEGER);
-static const UA_NodeId DataTypeDefinitionId =
-    UA_NODEID_NUMERIC(0, UA_NS0ID_DATATYPEDEFINITION);
-
-static const UA_QualifiedName PropertyBrowseNameOptionSetValues =
-    UA_QUALIFIEDNAME(0, (char *)"OptionSetValues");
 
 /*****************************************************************************/
 // print functions:
@@ -386,43 +360,9 @@ UA_Boolean PrintObjectTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
 /*****************************************************************************/
 // Variable
 
-void PrintArrayDimensions(const size_t arrayDimSize,
-                          const UA_UInt32 *const pArrayDimensions,
-                          const UA_UInt32 Indentation, ostream &out)
-{
-    string strIndent = string(Indentation, '\t');
-    out << strIndent << "ArrayDimensions = [";
-    if (pArrayDimensions != 0)
-    {
-        for (size_t i = 0; i < arrayDimSize; i++)
-        {
-            out << strIndent << "\t" << pArrayDimensions[i] << ",";
-        }
-    }
-    out << "] " << endl;
-}
-
-void PrintValueAttribute(const UA_Variant &Value, ostream &out)
-{
-    out << "Value = ";
-
-    // TODO:
-    out << endl;
-}
-
 UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
                                    ofstream &out)
 {
-    // M: Value
-    UA_Variant Value;
-    UA_Variant_init(&Value);
-    if (UA_Client_readValueAttribute(pClient, Id, &Value) != UA_STATUSCODE_GOOD)
-    {
-        return UA_FALSE;
-    }
-    PrintValueAttribute(Value, out);
-    UA_Variant_clear(&Value);
-
     // M: DataType
     UA_NodeId dataType;
     UA_NodeId_init(&dataType);
@@ -432,7 +372,28 @@ UA_Boolean PrintVariableAttributes(UA_Client *pClient, const UA_NodeId &Id,
         return UA_FALSE;
     }
     out << "DataType = " << dataType << endl;
+
+    // M: Value
+    UA_Variant Value;
+    UA_Variant_init(&Value);
+    if (UA_Client_readValueAttribute(pClient, Id, &Value) != UA_STATUSCODE_GOOD)
+    {
+        cout << "PrintVariableAttributes() Error: Reading value attribute of "
+                "node Id = "
+             << Id << " failed " << endl;
+        UA_NodeId_clear(&dataType);
+        return UA_FALSE;
+    }
+    UA_Boolean tmpRet = PrintValueAttribute(Value, out);
+    UA_Variant_clear(&Value);
     UA_NodeId_clear(&dataType);
+    if (tmpRet == UA_FALSE)
+    {
+        cout << "PrintVariableAttributes() Error: Print value of "
+                "node Id = "
+             << Id << " failed " << endl;
+        return UA_FALSE;
+    }
 
     // M: ValueRank
     UA_Int32 valueRank = 0;
@@ -546,6 +507,87 @@ UA_Boolean PrintVariableReferences(UA_Client *pClient, const UA_NodeId &Id,
 
 /*****************************************************************************/
 // VariableType
+
+UA_Boolean PrintVariableTypeAttributes(UA_Client *pClient, const UA_NodeId &Id,
+                                       ofstream &out)
+{
+    // M: DataType
+    UA_NodeId dataType;
+    UA_NodeId_init(&dataType);
+    if (UA_Client_readDataTypeAttribute(pClient, Id, &dataType) !=
+        UA_STATUSCODE_GOOD)
+    {
+        return UA_FALSE;
+    }
+    out << "DataType = " << dataType << endl;
+
+    // O: Value
+    UA_Variant Value;
+    UA_Variant_init(&Value);
+    if (UA_Client_readValueAttribute(pClient, Id, &Value) == UA_STATUSCODE_GOOD)
+    {
+        if (PrintValueAttribute(Value, out) == UA_FALSE)
+        {
+            cout << "PrintVariableTypeAttributes() Error: Print value of "
+                    "node Id = "
+                 << Id << " failed " << endl;
+            UA_Variant_clear(&Value);
+            UA_NodeId_clear(&dataType);
+            return UA_FALSE;
+        }
+    }
+    UA_Variant_clear(&Value);
+    UA_NodeId_clear(&dataType);
+
+    // M: ValueRank
+    UA_Int32 valueRank = 0;
+    if (UA_Client_readValueRankAttribute(pClient, Id, &valueRank) !=
+        UA_STATUSCODE_GOOD)
+    {
+        return UA_FALSE;
+    }
+    out << "ValueRank = " << valueRank << endl;
+
+    // O: ArrayDimensions
+    size_t arrayDimSize = 0;
+    UA_UInt32 *pArrayDimensions = 0;
+    if (UA_Client_readArrayDimensionsAttribute(pClient, Id, &arrayDimSize,
+                                               &pArrayDimensions) ==
+        UA_STATUSCODE_GOOD)
+    {
+        PrintArrayDimensions(arrayDimSize, pArrayDimensions, 0, out);
+        UA_free(pArrayDimensions);
+        pArrayDimensions = 0;
+    }
+
+    // M: IsAbstract
+    UA_Boolean isAbstract = UA_FALSE;
+    if (UA_Client_readIsAbstractAttribute(pClient, Id, &isAbstract) !=
+        UA_STATUSCODE_GOOD)
+    {
+        return UA_FALSE;
+    }
+    out << "IsAbstract = " << ((isAbstract) ? "true" : "false") << endl;
+
+    return UA_TRUE;
+}
+
+UA_Boolean PrintVariableTypeReferences(UA_Client *pClient, const UA_NodeId &Id,
+                                       ofstream &out)
+{
+    out << "References: " << endl;
+    TReferenceVec ReferencesVec;
+    UA_Boolean ret = BrowseReferences(pClient, Id, ReferencesVec);
+    if (ret == UA_TRUE)
+    {
+        for (size_t i = 0; i < ReferencesVec.size(); i++)
+        {
+            out << "\t" << ReferencesVec[i] << endl;
+        }
+    }
+    FreeReferencesVec(ReferencesVec);
+    return ret;
+}
 
 /*****************************************************************************/
 // Method
@@ -745,11 +787,11 @@ UA_Boolean PrintDataTypeDefinition(UA_Client *pClient, const UA_NodeId &Id,
             if ((rResp.resultsSize != 1) ||
                 (rResp.results[0].hasValue == UA_FALSE))
             {
-                /* TODO: it seems that the DataTypeDefinition attribute is not
-                   supported for a lot of types. E.g. StructureDefiniton itself,
-                   Enumerations, etc.
-                   As this is the case for the referenceServer too, we can't
-                   create an error here ... So we only print an Info
+                /* TODO: it seems that the DataTypeDefinition attribute is
+                   not supported for a lot of types. E.g. StructureDefiniton
+                   itself, Enumerations, etc. As this is the case for the
+                   referenceServer too, we can't create an error here ... So
+                   we only print an Info
                 */
                 cout << "Info PrintDataTypeDefinition: '" << Id
                      << "' has no DataTypeDefiniton attribute, although it "
@@ -876,7 +918,8 @@ UA_Boolean PrintNode(UA_Client *pClient, const UA_NodeId &Id, ofstream &out)
         ret &= PrintReferenceTypeReferences(pClient, Id, out);
         break;
     case UA_NODECLASS_VARIABLETYPE:
-
+        ret &= PrintVariableTypeAttributes(pClient, Id, out);
+        ret &= PrintVariableTypeReferences(pClient, Id, out);
         break;
     case UA_NODECLASS_VARIABLE:
         ret &= PrintVariableAttributes(pClient, Id, out);
@@ -906,6 +949,12 @@ UA_Boolean PrintNode(UA_Client *pClient, const UA_NodeId &Id, ofstream &out)
         cout << "Error PrintNode: nodeclass is unknown" << endl;
         ret &= UA_FALSE;
         break;
+    }
+
+    if (ret == UA_FALSE)
+    {
+        cout << "PrintNode() Error: at NodeId = " << Id << endl;
+        out << "PrintNode() Error: at NodeId = " << Id << endl;
     }
 
     out << endl;

@@ -2,6 +2,8 @@
 #include <open62541/types_generated.h>
 #include <open62541/types_generated_handling.h>
 
+#include <open62541/util.h>
+
 using namespace std;
 
 ostream &operator<<(ostream &os, const UA_NodeId &Id)
@@ -20,9 +22,23 @@ ostream &operator<<(ostream &os, const UA_NodeId &Id)
     return os;
 }
 
+std::ostream &operator<<(std::ostream &os, const UA_ExpandedNodeId &Id)
+{
+    os << Id.serverIndex << " : " << Id.namespaceUri << " : " << Id.nodeId;
+    return os;
+}
+
 ostream &operator<<(ostream &os, const UA_String &Str)
 {
     os << string((char *)Str.data, Str.length);
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os, const UA_Guid &Guid)
+{
+    char Buffer[256] = {0};
+    snprintf(Buffer, 256, UA_PRINTF_GUID_FORMAT, UA_PRINTF_GUID_DATA(Guid));
+    os << Buffer;
     return os;
 }
 
@@ -75,6 +91,44 @@ ostream &operator<<(ostream &os, const UA_LocalizedText &LocalizedText)
     os << string((char *)LocalizedText.locale.data, LocalizedText.locale.length)
        << ":"
        << string((char *)LocalizedText.text.data, LocalizedText.text.length);
+    return os;
+}
+
+std::ostream &operator<<(std::ostream &os,
+                         const UA_DiagnosticInfo &DiagnosticInfo)
+{
+    // TODO
+    os << "{" << endl;
+    if (DiagnosticInfo.hasSymbolicId)
+    {
+        os << "\tSymbolic Id = " << DiagnosticInfo.symbolicId << " ";
+    }
+    if (DiagnosticInfo.hasNamespaceUri)
+    {
+        os << "\tNamespace URI = " << DiagnosticInfo.namespaceUri << " ";
+    }
+    if (DiagnosticInfo.hasLocalizedText)
+    {
+        os << "\tLocalized Text = " << DiagnosticInfo.localizedText << " ";
+    }
+    if (DiagnosticInfo.hasLocale)
+    {
+        os << "\tLocale = " << DiagnosticInfo.locale << " ";
+    }
+    if (DiagnosticInfo.hasAdditionalInfo)
+    {
+        os << "\tSymbolic Id = " << DiagnosticInfo.additionalInfo << " ";
+    }
+    if (DiagnosticInfo.hasInnerStatusCode)
+    {
+        os << "\tInner StatusCode = " << DiagnosticInfo.innerStatusCode << " ";
+    }
+    if (DiagnosticInfo.hasInnerDiagnosticInfo)
+    {
+        os << "\tInner Diagnostic Info = "
+           << *DiagnosticInfo.innerDiagnosticInfo << " ";
+    }
+    os << "}" << endl;
     return os;
 }
 

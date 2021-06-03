@@ -1,0 +1,54 @@
+<opc:TypeDictionary xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tns="http://yourorganisation.org/StructTest/" DefaultByteOrder="LittleEndian" xmlns:opc="http://opcfoundation.org/BinarySchema/" xmlns:ua="http://opcfoundation.org/UA/" TargetNamespace="http://yourorganisation.org/StructTest/">
+    <opc:Import Namespace="http://opcfoundation.org/UA/"/>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="TAllOptional">
+        <opc:Field TypeName="opc:Bit" Name="d1Specified"/>
+        <opc:Field TypeName="opc:Bit" Name="d2Specified"/>
+        <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field SwitchField="d1Specified" TypeName="opc:Double" Name="d1"/>
+        <opc:Field SwitchField="d2Specified" TypeName="opc:Double" Name="d2"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="TNested_1">
+        <opc:Field TypeName="opc:Double" Name="D1"/>
+        <opc:Field TypeName="tns:TSimple" Name="D2"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="TOptional">
+        <opc:Field TypeName="opc:Bit" Name="d2Specified"/>
+        <opc:Field TypeName="opc:Bit" Name="d4Specified"/>
+        <opc:Field Length="30" TypeName="opc:Bit" Name="Reserved1"/>
+        <opc:Field TypeName="opc:Double" Name="d1"/>
+        <opc:Field SwitchField="d2Specified" TypeName="opc:Double" Name="d2"/>
+        <opc:Field TypeName="opc:Double" Name="d3"/>
+        <opc:Field SwitchField="d4Specified" TypeName="opc:Double" Name="d4"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:ExtensionObject" Name="TSimple">
+        <opc:Field TypeName="opc:Double" Name="D1"/>
+        <opc:Field TypeName="opc:Boolean" Name="D2"/>
+        <opc:Field TypeName="opc:Int16" Name="D3"/>
+        <opc:Field TypeName="opc:Boolean" Name="D4"/>
+        <opc:Field TypeName="opc:CharArray" Name="D5"/>
+        <opc:Field TypeName="opc:SByte" Name="D6"/>
+        <opc:Field TypeName="opc:Boolean" Name="D7"/>
+        <opc:Field TypeName="opc:Double" Name="D8"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:Union" Name="TComplexUnion">
+        <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="1" Name="NoOfD1"/>
+        <opc:Field LengthField="NoOfD1" SwitchField="SwitchField" TypeName="opc:Double" SwitchValue="1" Name="D1"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="2" Name="NoOfD2"/>
+        <opc:Field LengthField="NoOfD2" SwitchField="SwitchField" TypeName="opc:Int16" SwitchValue="2" Name="D2"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="3" Name="NoOfD3"/>
+        <opc:Field LengthField="NoOfD3" SwitchField="SwitchField" TypeName="opc:Boolean" SwitchValue="3" Name="D3"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Boolean" SwitchValue="4" Name="D4"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Double" SwitchValue="5" Name="D5"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="6" Name="NoOfD6"/>
+        <opc:Field LengthField="NoOfD6" SwitchField="SwitchField" TypeName="opc:CharArray" SwitchValue="6" Name="D6"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:CharArray" SwitchValue="7" Name="D7"/>
+    </opc:StructuredType>
+    <opc:StructuredType BaseType="ua:Union" Name="TSimpleUnion">
+        <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Double" SwitchValue="1" Name="D1"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:SByte" SwitchValue="2" Name="D2"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:CharArray" SwitchValue="3" Name="D3"/>
+        <opc:Field SwitchField="SwitchField" TypeName="opc:Int16" SwitchValue="4" Name="D4"/>
+    </opc:StructuredType>
+</opc:TypeDictionary>

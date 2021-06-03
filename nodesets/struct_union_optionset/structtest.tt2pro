@@ -1,0 +1,28 @@
+###########################
+# UaModeler Project File  #
+# Generated at 08.06.2020 #
+###########################
+
+PROJECTNAME = StructTest
+
+TEMPLATESET = ($TEMPLATES)/ansi_c/v1_8/t2/ansi_c.tt2set
+
+MODELS += ($MODELS)/Opc.Ua.NodeSet2.ua \
+    structtest.ua
+
+COLORS = ($MODELS)/Opc.Ua.NodeSet2.ua: #0000ff\
+    structtest.ua: #008000
+
+PROJECTVARIABLES += ProviderName = StructTest \
+    alarmAndEvents = false
+
+OUTPUTPATH = 
+
+GENERATE += structtest.ua
+
+NODEACCESSINFOROLES += Administrator \
+    SecurityAdmin \
+    ConfigurationAdmin \
+    Operator \
+    Observer
+

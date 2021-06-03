@@ -1,0 +1,896 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xmlns:s1="http://yourorganisation.org/StructTest/Types.xsd" xmlns:ua="http://unifiedautomation.com/Configuration/NodeSet.xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <NamespaceUris>
+        <Uri>http://yourorganisation.org/StructTest/</Uri>
+    </NamespaceUris>
+    <Models>
+        <Model ModelUri="http://yourorganisation.org/StructTest/" PublicationDate="2020-06-08T11:27:56Z" Version="1.0.0">
+            <RequiredModel ModelUri="http://opcfoundation.org/UA/" PublicationDate="2019-09-09T00:00:00Z" Version="1.04.3"/>
+        </Model>
+    </Models>
+    <Aliases>
+        <Alias Alias="Boolean">i=1</Alias>
+        <Alias Alias="SByte">i=2</Alias>
+        <Alias Alias="Int16">i=4</Alias>
+        <Alias Alias="Double">i=11</Alias>
+        <Alias Alias="String">i=12</Alias>
+        <Alias Alias="DateTime">i=13</Alias>
+        <Alias Alias="LocalizedText">i=21</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
+        <Alias Alias="HasModellingRule">i=37</Alias>
+        <Alias Alias="HasEncoding">i=38</Alias>
+        <Alias Alias="HasTypeDefinition">i=40</Alias>
+        <Alias Alias="HasSubtype">i=45</Alias>
+        <Alias Alias="HasProperty">i=46</Alias>
+        <Alias Alias="HasComponent">i=47</Alias>
+        <Alias Alias="IdType">i=256</Alias>
+        <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="DataSetFieldFlags">i=15904</Alias>
+        <Alias Alias="TSimple">ns=1;i=3002</Alias>
+        <Alias Alias="TSimpleUnion">ns=1;i=3003</Alias>
+        <Alias Alias="TComplexUnion">ns=1;i=3004</Alias>
+        <Alias Alias="My_UInt64_OptionSet">ns=1;i=3006</Alias>
+        <Alias Alias="TNested_1">ns=1;i=3007</Alias>
+        <Alias Alias="TOptional">ns=1;i=3008</Alias>
+    </Aliases>
+    <Extensions>
+        <Extension>
+            <ua:ModelInfo Tool="UaModeler" Hash="yLhQrojmWUUekrE9X1LzGA==" Version="1.6.3"/>
+        </Extension>
+    </Extensions>
+    <UADataType NodeId="ns=1;i=3005" BrowseName="1:MyOptionSet">
+        <DisplayName>MyOptionSet</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=7</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6021</Reference>
+        </References>
+        <Definition Name="1:MyOptionSet" IsOptionSet="true">
+            <Field Name="A" Value="0"/>
+            <Field Name="B" Value="1"/>
+            <Field Name="C" Value="2"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=3005" ValueRank="1" NodeId="ns=1;i=6021" ArrayDimensions="3" BrowseName="OptionSetValues">
+        <DisplayName>OptionSetValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3005</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfLocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>A</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>B</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>C</uax:Text>
+                </uax:LocalizedText>
+            </uax:ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+    <UADataType NodeId="ns=1;i=3006" BrowseName="1:My_UInt64_OptionSet">
+        <DisplayName>My_UInt64_OptionSet</DisplayName>
+        <References>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=9</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6001</Reference>
+        </References>
+        <Definition Name="1:My_UInt64_OptionSet" IsOptionSet="true">
+            <Field Name="A" Value="0"/>
+            <Field Name="B" Value="1">
+                <Description>some description</Description>
+            </Field>
+            <Field Name="C" Value="2"/>
+        </Definition>
+    </UADataType>
+    <UAVariable DataType="LocalizedText" ParentNodeId="ns=1;i=3006" ValueRank="1" NodeId="ns=1;i=6001" ArrayDimensions="3" BrowseName="OptionSetValues">
+        <DisplayName>OptionSetValues</DisplayName>
+        <References>
+            <Reference ReferenceType="HasModellingRule">i=78</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=3006</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:ListOfLocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>A</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>B</uax:Text>
+                </uax:LocalizedText>
+                <uax:LocalizedText>
+                    <uax:Text>C</uax:Text>
+                </uax:LocalizedText>
+            </uax:ListOfLocalizedText>
+        </Value>
+    </UAVariable>
+    <UADataType NodeId="ns=1;i=3009" BrowseName="1:TAllOptional">
+        <DisplayName>TAllOptional</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5020</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5022</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5021</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:TAllOptional">
+            <Field IsOptional="true" DataType="Double" Name="d1"/>
+            <Field IsOptional="true" DataType="Double" Name="d2"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3007" BrowseName="1:TNested_1">
+        <DisplayName>TNested_1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5014</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5016</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5015</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:TNested_1">
+            <Field DataType="Double" Name="D1"/>
+            <Field DataType="TSimple" Name="D2"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3008" BrowseName="1:TOptional">
+        <DisplayName>TOptional</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5017</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5019</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5018</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:TOptional">
+            <Field DataType="Double" Name="d1"/>
+            <Field IsOptional="true" DataType="Double" Name="d2"/>
+            <Field DataType="Double" Name="d3"/>
+            <Field IsOptional="true" DataType="Double" Name="d4"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3002" BrowseName="1:TSimple">
+        <DisplayName>TSimple</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5001</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5003</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5002</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+        </References>
+        <Definition Name="1:TSimple">
+            <Field DataType="Double" Name="D1"/>
+            <Field DataType="Boolean" Name="D2"/>
+            <Field DataType="Int16" Name="D3"/>
+            <Field DataType="Boolean" Name="D4"/>
+            <Field DataType="String" Name="D5"/>
+            <Field DataType="SByte" Name="D6"/>
+            <Field DataType="Boolean" Name="D7"/>
+            <Field DataType="Double" Name="D8"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3004" BrowseName="1:TComplexUnion">
+        <DisplayName>TComplexUnion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5009</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5011</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5010</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=12756</Reference>
+        </References>
+        <Definition Name="1:TComplexUnion" IsUnion="true">
+            <Field DataType="Double" ValueRank="1" ArrayDimensions="1" Name="D1"/>
+            <Field DataType="Int16" ValueRank="1" ArrayDimensions="2" Name="D2"/>
+            <Field DataType="Boolean" ValueRank="1" ArrayDimensions="2" Name="D3"/>
+            <Field DataType="Boolean" Name="D4"/>
+            <Field DataType="Double" Name="D5"/>
+            <Field DataType="String" ValueRank="1" ArrayDimensions="2" Name="D6"/>
+            <Field DataType="String" MaxStringLength="10" Name="D7"/>
+        </Definition>
+    </UADataType>
+    <UADataType NodeId="ns=1;i=3003" BrowseName="1:TSimpleUnion">
+        <DisplayName>TSimpleUnion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5004</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5008</Reference>
+            <Reference ReferenceType="HasEncoding">ns=1;i=5007</Reference>
+            <Reference ReferenceType="HasSubtype" IsForward="false">i=12756</Reference>
+        </References>
+        <Definition Name="1:TSimpleUnion" IsUnion="true">
+            <Field DataType="Double" Name="D1"/>
+            <Field DataType="SByte" Name="D2"/>
+            <Field DataType="String" Name="D3"/>
+            <Field DataType="Int16" Name="D4"/>
+        </Definition>
+    </UADataType>
+    <UAObject NodeId="ns=1;i=5013" BrowseName="1:OptionSets">
+        <DisplayName>OptionSets</DisplayName>
+        <References>
+            <Reference ReferenceType="HasComponent">ns=1;i=6019</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6017</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6018</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="DataSetFieldFlags" NodeId="ns=1;i=6019" BrowseName="1:DataSetFieldFlag" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>DataSetFieldFlag</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5013</Reference>
+        </References>
+        <Value>
+            <uax:UInt16>1</uax:UInt16>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="My_UInt64_OptionSet" NodeId="ns=1;i=6017" BrowseName="1:My_UInt64_OptionSet_Bit_B" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>My_UInt64_OptionSet_Bit_B</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5013</Reference>
+        </References>
+        <Value>
+            <uax:UInt64>2</uax:UInt64>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="My_UInt64_OptionSet" NodeId="ns=1;i=6018" BrowseName="1:My_UInt64_OptionSet_Bit_C" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>My_UInt64_OptionSet_Bit_C</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5013</Reference>
+        </References>
+        <Value>
+            <uax:UInt64>4</uax:UInt64>
+        </Value>
+    </UAVariable>
+    <UAObject SymbolicName="http___yourorganisation_org_StructTest_" NodeId="ns=1;i=5012" BrowseName="1:http://yourorganisation.org/StructTest/">
+        <DisplayName>http://yourorganisation.org/StructTest/</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty">ns=1;i=6016</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6020</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6022</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6023</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6024</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6025</Reference>
+            <Reference ReferenceType="HasProperty">ns=1;i=6026</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="Boolean" ParentNodeId="ns=1;i=5012" NodeId="ns=1;i=6016" BrowseName="IsNamespaceSubset">
+        <DisplayName>IsNamespaceSubset</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:Boolean>false</uax:Boolean>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="DateTime" ParentNodeId="ns=1;i=5012" NodeId="ns=1;i=6020" BrowseName="NamespacePublicationDate">
+        <DisplayName>NamespacePublicationDate</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:DateTime>2020-06-08T11:27:56Z</uax:DateTime>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5012" NodeId="ns=1;i=6022" BrowseName="NamespaceUri">
+        <DisplayName>NamespaceUri</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>http://yourorganisation.org/StructTest/</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5012" NodeId="ns=1;i=6023" BrowseName="NamespaceVersion">
+        <DisplayName>NamespaceVersion</DisplayName>
+        <References>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+        </References>
+        <Value>
+            <uax:String>1.0.0</uax:String>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="IdType" ParentNodeId="ns=1;i=5012" ValueRank="1" NodeId="ns=1;i=6024" ArrayDimensions="0" BrowseName="StaticNodeIdTypes">
+        <DisplayName>StaticNodeIdTypes</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="NumericRange" ParentNodeId="ns=1;i=5012" ValueRank="1" NodeId="ns=1;i=6025" ArrayDimensions="0" BrowseName="StaticNumericNodeIdRange">
+        <DisplayName>StaticNumericNodeIdRange</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="String" ParentNodeId="ns=1;i=5012" NodeId="ns=1;i=6026" BrowseName="StaticStringNodeIdPattern">
+        <DisplayName>StaticStringNodeIdPattern</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
+            <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5012</Reference>
+        </References>
+    </UAVariable>
+    <UAObject NodeId="ns=1;i=5005" BrowseName="1:Structs">
+        <DisplayName>Structs</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes">ns=1;i=6031</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6028</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6029</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6030</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6007</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6002</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6008</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6009</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="TNested_1" NodeId="ns=1;i=6031" BrowseName="1:MyNestedStruct" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>MyNestedStruct</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5015</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TNested_1 xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <D1>5</D1>
+                        <D2>
+                            <D1>2</D1>
+                            <D2>true</D2>
+                            <D3>0</D3>
+                            <D4>false</D4>
+                            <D5></D5>
+                            <D6>0</D6>
+                            <D7>false</D7>
+                            <D8>0</D8>
+                        </D2>
+                    </TNested_1>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TOptional" NodeId="ns=1;i=6028" BrowseName="1:MyOptionalStruct_1" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>MyOptionalStruct_1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5018</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TOptional xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <EncodingMask>0</EncodingMask>
+                        <d1>0</d1>
+                        <d3>0</d3>
+                    </TOptional>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TOptional" NodeId="ns=1;i=6029" BrowseName="1:MyOptionalStruct_2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>MyOptionalStruct_2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5018</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TOptional xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <EncodingMask>1</EncodingMask>
+                        <d1>0</d1>
+                        <d2>3.3</d2>
+                        <d3>0</d3>
+                    </TOptional>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TOptional" NodeId="ns=1;i=6030" BrowseName="1:MyOptionalStruct_3" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>MyOptionalStruct_3</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5018</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TOptional xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <EncodingMask>3</EncodingMask>
+                        <d1>1</d1>
+                        <d2>2</d2>
+                        <d3>3</d3>
+                        <d4>4</d4>
+                    </TOptional>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimple" NodeId="ns=1;i=6007" BrowseName="1:Simple" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TSimple xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <D1>47.11</D1>
+                        <D2>true</D2>
+                        <D3>4711</D3>
+                        <D4>true</D4>
+                        <D5>test</D5>
+                        <D6>0</D6>
+                        <D7>false</D7>
+                        <D8>13.13</D8>
+                    </TSimple>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimple" NodeId="ns=1;i=6002" BrowseName="1:Simple_Null" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_Null</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+    </UAVariable>
+    <UAVariable DataType="TSimple" ValueRank="1" NodeId="ns=1;i=6008" ArrayDimensions="2" BrowseName="1:SimpleArr_DIM_1_LEN_2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>SimpleArr_DIM_1_LEN_2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TSimple xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <D1>0</D1>
+                            <D2>false</D2>
+                            <D3>0</D3>
+                            <D4>false</D4>
+                            <D5></D5>
+                            <D6>0</D6>
+                            <D7>false</D7>
+                            <D8>0</D8>
+                        </TSimple>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TSimple xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <D1>45.6</D1>
+                            <D2>true</D2>
+                            <D3>0</D3>
+                            <D4>true</D4>
+                            <D5></D5>
+                            <D6>0</D6>
+                            <D7>false</D7>
+                            <D8>0</D8>
+                        </TSimple>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimple" ValueRank="1" NodeId="ns=1;i=6009" ArrayDimensions="0" BrowseName="1:SimpleArr_DIM_2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>SimpleArr_DIM_2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5005</Reference>
+        </References>
+    </UAVariable>
+    <UAObject NodeId="ns=1;i=5006" BrowseName="1:Unions">
+        <DisplayName>Unions</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes">ns=1;i=6010</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6011</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6013</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6014</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6012</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=61</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6004</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6006</Reference>
+            <Reference ReferenceType="HasComponent">ns=1;i=6015</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6003</Reference>
+            <Reference ReferenceType="Organizes">ns=1;i=6005</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+    </UAObject>
+    <UAVariable DataType="TComplexUnion" NodeId="ns=1;i=6010" BrowseName="1:Complex_D1" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Complex_D1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>1</SwitchField>
+                        <D1>
+                            <Double xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">3.3</Double>
+                        </D1>
+                    </TComplexUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TComplexUnion" NodeId="ns=1;i=6011" BrowseName="1:Complex_D2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Complex_D2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>2</SwitchField>
+                        <D2>
+                            <Int16 xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd">5</Int16>
+                        </D2>
+                    </TComplexUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TComplexUnion" NodeId="ns=1;i=6013" BrowseName="1:Complex_D4" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Complex_D4</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>4</SwitchField>
+                        <D4>true</D4>
+                    </TComplexUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TComplexUnion" ValueRank="1" NodeId="ns=1;i=6014" ArrayDimensions="2" BrowseName="1:Complex_D4_Arr_DIM_1_LEN_2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Complex_D4_Arr_DIM_1_LEN_2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <SwitchField>5</SwitchField>
+                            <D5>13</D5>
+                        </TComplexUnion>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <SwitchField>5</SwitchField>
+                            <D5>16</D5>
+                        </TComplexUnion>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TComplexUnion" NodeId="ns=1;i=6012" BrowseName="1:Complex_D7_maxStringLength" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Complex_D7_maxStringLength</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5010</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TComplexUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>7</SwitchField>
+                        <D7>1234567899</D7>
+                    </TComplexUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimpleUnion" NodeId="ns=1;i=6004" BrowseName="1:Simple_D1" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_D1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>1</SwitchField>
+                        <D1>88.8</D1>
+                    </TSimpleUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimpleUnion" ValueRank="1" NodeId="ns=1;i=6006" ArrayDimensions="3" BrowseName="1:Simple_D1_Arr_DIM_1_LEN_3" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_D1_Arr_DIM_1_LEN_3</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ListOfExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <SwitchField>1</SwitchField>
+                            <D1>20</D1>
+                        </TSimpleUnion>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <SwitchField>1</SwitchField>
+                            <D1>30</D1>
+                        </TSimpleUnion>
+                    </uax:Body>
+                </uax:ExtensionObject>
+                <uax:ExtensionObject>
+                    <uax:TypeId>
+                        <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                    </uax:TypeId>
+                    <uax:Body>
+                        <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                            <SwitchField>1</SwitchField>
+                            <D1>40</D1>
+                        </TSimpleUnion>
+                    </uax:Body>
+                </uax:ExtensionObject>
+            </uax:ListOfExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimpleUnion" NodeId="ns=1;i=6015" BrowseName="1:Simple_D2" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_D2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>2</SwitchField>
+                        <D2>55</D2>
+                    </TSimpleUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimpleUnion" NodeId="ns=1;i=6003" BrowseName="1:Simple_D3" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_D3</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>3</SwitchField>
+                        <D3>test</D3>
+                    </TSimpleUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="TSimpleUnion" NodeId="ns=1;i=6005" BrowseName="1:Simple_D4" UserAccessLevel="3" AccessLevel="3">
+        <DisplayName>Simple_D4</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5006</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5007</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <TSimpleUnion xmlns="http://yourorganisation.org/StructTest/Types.xsd">
+                        <SwitchField>4</SwitchField>
+                        <D4>15</D4>
+                    </TSimpleUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5002" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5003" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3002</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5004" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5007" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5008" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3003</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5009" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5010" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5011" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3004</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5014" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5015" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5016" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3007</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5017" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3008</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5018" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3008</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5019" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3008</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5020" BrowseName="Default Binary">
+        <DisplayName>Default Binary</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3009</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultXml" NodeId="ns=1;i=5021" BrowseName="Default XML">
+        <DisplayName>Default XML</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3009</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+    <UAObject SymbolicName="DefaultJson" NodeId="ns=1;i=5022" BrowseName="Default JSON">
+        <DisplayName>Default JSON</DisplayName>
+        <References>
+            <Reference ReferenceType="HasEncoding" IsForward="false">ns=1;i=3009</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=76</Reference>
+        </References>
+    </UAObject>
+</UANodeSet>
