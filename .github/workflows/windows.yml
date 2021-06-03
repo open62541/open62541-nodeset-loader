@@ -48,7 +48,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Build nodesetLoader
       # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cd ${{runner.workspace}}/build && cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTING=ON . && nmake
+      run: cd ${{runner.workspace}}/build && cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DENABLE_TESTING=ON .. && nmake
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
