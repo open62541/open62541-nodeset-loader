@@ -29,9 +29,8 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Build nodesetLoader
-      # Execute the build.  You can specify a specific target with "--target <NAME>"
-      run: cd ./nodesetLoader && cmake --build . --config -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON
-      
+      run: cd ./nodesetLoader && cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON . && cmake --build .
+
     - name: Test
       shell: cmd
     #  Execute tests defined by the CMake configuration.  
