@@ -9,6 +9,7 @@ libcheck/0.15.2
 
 [options]
 libxml2:shared=True
+libcheck:shared=True
 libcheck:with_subunit=True
 
 
