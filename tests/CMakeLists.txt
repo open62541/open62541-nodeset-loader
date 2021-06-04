@@ -18,6 +18,7 @@ add_test(NAME value_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND v
 
 add_executable(parser parser.c)
 target_link_libraries(parser PRIVATE NodesetLoader ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_include_directories(parser PRIVATE ${CHECK_INCLUDE_DIR})
 add_test(NAME parser_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND parser ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClasses.xml)
