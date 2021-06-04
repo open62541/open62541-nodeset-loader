@@ -35,6 +35,13 @@ add_test(NAME basicNodeClasses_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND basicNodeClasses ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClasses.xml)
 
+add_executable(cornerCases cornerCases.c)
+target_include_directories(cornerCases PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(cornerCases PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME cornerCases_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND cornerCases ${CMAKE_CURRENT_SOURCE_DIR}/cornerCases.xml)
+
 add_executable(extension extension.c)
 target_link_libraries(extension PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME extension_Test
