@@ -21,8 +21,6 @@ target_include_directories(allocator PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURREN
 target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME allocatorTest WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND allocator ${CMAKE_CURRENT_LIST_DIR})
 
-find_package(NodesetLoader REQUIRED)
-
 add_executable(parser parser.c)
 target_link_libraries(parser PRIVATE NodesetLoader ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 target_include_directories(parser PRIVATE ${CHECK_INCLUDE_DIR})
