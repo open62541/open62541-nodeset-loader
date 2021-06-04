@@ -124,7 +124,11 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
     oAttr.description = *description;
     oAttr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
 
-    UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+    UA_NodeId typeDefId = UA_NODEID_NULL;
+    if (node->refToTypeDef)
+    {
+        typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+    }
 
     // addNode_begin is used, otherwise all mandatory childs from type are
     // instantiated
@@ -264,7 +268,11 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
             }
         }
     }
-    UA_NodeId typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+    UA_NodeId typeDefId = UA_NODEID_NULL;
+    if (node->refToTypeDef)
+    {
+        typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+    }
 
     UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &attr,
