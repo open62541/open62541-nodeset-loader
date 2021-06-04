@@ -33,7 +33,7 @@ jobs:
       run: cd ./nodesetLoader && cmake -G "NMake Makefiles" -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON . && nmake
 
     - name: Test
-      shell: bash
+      shell: cmd
     #  Execute tests defined by the CMake configuration.  
     # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
       run: cd ./nodesetLoader && ctest --verbose
