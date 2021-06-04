@@ -32,8 +32,12 @@ jobs:
       run: cd ./nodesetLoader && cmake -DBUILD_SHARED_LIBS=ON -DCMAKE_BUILD_TYPE=Debug -DENABLE_TESTING=ON . && cmake --build .
 
     - name: check depends
-      shel: cmd
+      shell: cmd
       run: cd ./nodesetLoader && dumpbin /DEPENDENTS D:\a\nodesetLoader\nodesetLoader\nodesetLoader\bin\parser.exe
+
+    - name: run parser manually
+      shell: cmd
+      run: D:\a\nodesetLoader\nodesetLoader\nodesetLoader\bin\parser.exe
 
     - name: Test
       shell: cmd
