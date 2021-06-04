@@ -23,22 +23,6 @@ jobs:
     - name: install conan
       run:  pip install conan
 
-##libcheck
-    
-    - uses: actions/checkout@master
-      with:
-        repository: libcheck/check
-        ref: refs/tags/0.15.2
-        path: ./checkRoot
-
-
-    #- name: run vcvarsall
-    #  shell: cmd
-    #  run: call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-    - uses: ilammy/msvc-dev-cmd@v1
-    - name: Create Build Environment for libcheck
-      run: cd ./checkRoot && cmake -G "NMake Makefiles" . && nmake && nmake install
-
     - uses: actions/checkout@v2
       with:
         path: ./nodesetLoader
