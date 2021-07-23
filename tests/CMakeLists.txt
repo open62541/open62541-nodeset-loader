@@ -11,6 +11,17 @@ target_include_directories(nodeId PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_S
 target_link_libraries(nodeId PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
 add_test(NAME nodeId_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeId ${CMAKE_CURRENT_LIST_DIR})
 
+add_executable(nodeContainer 
+    NodeContainer.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/NodeContainer.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/Node.c 
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/DataTypeNode.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c
+    )
+target_include_directories(nodeContainer PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../src)
+target_link_libraries(nodeContainer PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+add_test(NAME nodeContainer_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeContainer ${CMAKE_CURRENT_LIST_DIR})
+
 add_executable(value ValueTest.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c)
 target_include_directories(value PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
