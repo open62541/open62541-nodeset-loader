@@ -18,7 +18,7 @@ NodeContainer *NodeContainer_new(size_t initialSize, bool owner)
         return NULL;
     }
     container->nodes =
-        (TNode **)calloc(initialSize, sizeof(void *) * initialSize);
+        (TNode **)calloc(initialSize, sizeof(TNode*));
     if(!container->nodes)
     {
         free(container);
