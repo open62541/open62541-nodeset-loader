@@ -207,6 +207,12 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
     if (id->namespaceIndex == 0)
     {
         const UA_DataType *ns0type = UA_findDataType(id);
+        //TODO: how to properly check if it is an abstract dataType?
+        //if it is abstract, a Variant is returned
+        if(!ns0type)
+        {
+            return UA_TYPES[UA_TYPES_VARIANT].typeIndex;
+        }
         return ns0type->typeIndex;
     }
     size_t idx = 0;
