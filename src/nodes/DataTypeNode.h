@@ -11,5 +11,5 @@
 
 void DataTypeNode_clear(NL_DataTypeNode *node);
 DataTypeDefinition *DataTypeDefinition_new(NL_DataTypeNode *node);
-DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def);
+NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def);
 #endif

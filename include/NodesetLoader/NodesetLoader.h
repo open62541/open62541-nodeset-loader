@@ -190,11 +190,11 @@ typedef struct
     int valueRank;
     int value;
     bool isOptional;
-} DataTypeDefinitionField;
+} NL_DataTypeDefinitionField;
 
 typedef struct
 {
-    DataTypeDefinitionField *fields;
+    NL_DataTypeDefinitionField *fields;
     size_t fieldCnt;
     bool isEnum;
     bool isUnion;

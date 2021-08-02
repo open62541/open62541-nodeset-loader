@@ -549,7 +549,7 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node, int attributeSize
         return;
     }
 
-    DataTypeDefinitionField *newField =
+    NL_DataTypeDefinitionField *newField =
         DataTypeNode_addDefinitionField(dataTypeNode->definition);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
