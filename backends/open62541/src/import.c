@@ -550,7 +550,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
             importDataTypes(loader, server);
         }
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %ss: %zu", NODECLASS_NAME[classToImport], cnt);
+                    "imported %ss: %zu", NL_NODECLASS_NAME[classToImport], cnt);
     }
 
     for (size_t i = 0; i < NODECLASS_COUNT; i++)

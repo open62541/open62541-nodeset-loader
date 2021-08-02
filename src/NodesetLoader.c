@@ -37,7 +37,7 @@
 #define EXTENSION "Extension"
 #define INVERSENAME "InverseName"
 
-const char *NODECLASS_NAME[NODECLASS_COUNT] = {
+const char *NL_NODECLASS_NAME[NODECLASS_COUNT] = {
     "Object", "ObjectType",    "Variable",    "DataType",
     "Method", "ReferenceType", "VariableType", "View"};
 
