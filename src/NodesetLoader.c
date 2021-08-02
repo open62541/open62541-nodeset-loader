@@ -67,7 +67,7 @@ struct TParserCtx
     TParserState state;
     TParserState prev_state;
     size_t unknown_depth;
-    TNodeClass nodeClass;
+    NL_NodeClass nodeClass;
     TNode *node;
     struct Alias *alias;
     char *onCharacters;
@@ -567,7 +567,7 @@ NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
     return Nodeset_getBiDirectionalRefs(loader->nodeset);
 }
 
-size_t NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
+size_t NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                                void *context,
                                NodesetLoader_forEachNode_Func fn)
 {

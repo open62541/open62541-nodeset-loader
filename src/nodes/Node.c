@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include "../Value.h"
 
-TNode *Node_new(TNodeClass nodeClass)
+TNode *Node_new(NL_NodeClass nodeClass)
 {
     TNode *node = NULL;
     switch (nodeClass)

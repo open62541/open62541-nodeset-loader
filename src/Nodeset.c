@@ -393,14 +393,14 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
 }
 
 static void initNode(Nodeset *nodeset, const NamespaceList *namespaces,
-                     TNodeClass nodeClass, TNode *node, int nb_attributes,
+                     NL_NodeClass nodeClass, TNode *node, int nb_attributes,
                      const char **attributes)
 {
     node->nodeClass = nodeClass;
     extractAttributes(nodeset, namespaces, node, nb_attributes, attributes);
 }
 
-TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
+TNode *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                        int nb_attributes, const char **attributes)
 {
     TNode *node = Node_new(nodeClass);
@@ -622,7 +622,7 @@ void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text)
     }
 }
 
-size_t Nodeset_forEachNode(Nodeset *nodeset, TNodeClass nodeClass,
+size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                            void *context, NodesetLoader_forEachNode_Func fn)
 {
     NodeContainer *c = nodeset->nodes[nodeClass];

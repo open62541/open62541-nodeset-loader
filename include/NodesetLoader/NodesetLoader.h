@@ -32,7 +32,7 @@ typedef enum
     NODECLASS_VARIABLETYPE = 6,
     NODECLASS_VIEW = 7
     // eventtype is handled like a object type
-} TNodeClass;
+} NL_NodeClass;
 
 LOADER_EXPORT extern const char *NODECLASS_NAME[NODECLASS_COUNT];
 
@@ -71,7 +71,7 @@ struct TLocalizedText
 typedef struct TLocalizedText TLocalizedText;
 
 #define NODE_ATTRIBUTES                                                        \
-    TNodeClass nodeClass;                                                      \
+    NL_NodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
     NL_BrowseName browseName;                                                    \
     TLocalizedText displayName;                                                \
@@ -259,7 +259,7 @@ NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
 LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
 typedef void (*NodesetLoader_forEachNode_Func)(void *context, TNode *node);
 LOADER_EXPORT size_t
-NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
+NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
 LOADER_EXPORT bool NodesetLoader_isInstanceNode (const TNode *baseNode);
 #ifdef __cplusplus
