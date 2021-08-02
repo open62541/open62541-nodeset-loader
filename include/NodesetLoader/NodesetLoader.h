@@ -40,7 +40,7 @@ typedef struct
 {
     uint16_t nsIdx;
     char *name;
-} TBrowseName;
+} NL_BrowseName;
 
 struct Reference;
 typedef struct Reference Reference;
@@ -73,7 +73,7 @@ typedef struct TLocalizedText TLocalizedText;
 #define NODE_ATTRIBUTES                                                        \
     TNodeClass nodeClass;                                                      \
     TNodeId id;                                                                \
-    TBrowseName browseName;                                                    \
+    NL_BrowseName browseName;                                                    \
     TLocalizedText displayName;                                                \
     TLocalizedText description;                                                \
     char *writeMask;                                                           \

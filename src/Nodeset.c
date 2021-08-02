@@ -19,9 +19,9 @@
 static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
 static TNodeId alias2Id(const Nodeset *nodeset, char *name);
 static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
-static TBrowseName translateBrowseName(const NamespaceList *namespaces,
-                                       TBrowseName id);
-TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
+static NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
+                                       NL_BrowseName id);
+NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
@@ -87,7 +87,7 @@ TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
     return id;
 }
 
-TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName bn)
+NL_BrowseName translateBrowseName(const NamespaceList *namespaces, NL_BrowseName bn)
 {
     if (bn.nsIdx > 0)
     {
@@ -127,9 +127,9 @@ TNodeId extractNodedId(const NamespaceList *namespaces, char *s)
     return translateNodeId(namespaces, id);
 }
 
-TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
+NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
 {
-    TBrowseName bn;
+    NL_BrowseName bn;
     bn.nsIdx = 0;
     char *bnName = strchr(s, ':');
     if (bnName == NULL)
