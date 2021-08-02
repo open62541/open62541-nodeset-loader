@@ -27,7 +27,7 @@ struct Nodeset
 {
     CharArenaAllocator *charArena;
     struct AliasList *aliasList;
-    struct NodeContainer *nodes[NODECLASS_COUNT];
+    struct NodeContainer *nodes[NL_NODECLASS_COUNT];
     struct NamespaceList *namespaces;
     struct SortContext *sortCtx;
     NL_BiDirectionalReference *hasEncodingRefs;

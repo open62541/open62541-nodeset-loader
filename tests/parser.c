@@ -37,7 +37,7 @@ START_TEST(Server_ImportBasicNodeClassTest)
 
     int nodeCount=0;
 
-    for (int i = 0; i < NODECLASS_COUNT; i++)
+    for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
         NodesetLoader_forEachNode(loader, (NL_NodeClass)i, &nodeCount,
                                   (NodesetLoader_forEachNode_Func)addNode);

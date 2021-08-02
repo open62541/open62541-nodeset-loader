@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define NODECLASS_COUNT 8
+#define NL_NODECLASS_COUNT 8
 typedef enum
 {
     NODECLASS_OBJECT = 0,
@@ -34,7 +34,7 @@ typedef enum
     // eventtype is handled like a object type
 } NL_NodeClass;
 
-LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NODECLASS_COUNT];
+LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
 typedef struct
 {

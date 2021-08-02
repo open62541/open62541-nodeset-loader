@@ -261,7 +261,7 @@ void Nodeset_cleanup(Nodeset *nodeset)
 {
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
-    for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
+    for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++)
     {
         NodeContainer_delete(nodeset->nodes[cnt]);
     }

@@ -36,7 +36,7 @@ int main(int argc, char *argv[])
 
     NodesetLoader_sort(loader);
 
-    for (int i = 0; i < NODECLASS_COUNT; i++)
+    for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
         NodesetLoader_forEachNode(loader, (NL_NodeClass)i, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
     }

@@ -534,12 +534,12 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
 static void addNodes(NodesetLoader *loader, UA_Server *server,
                      NodesetLoader_Logger *logger)
 {
-    const NL_NodeClass order[NODECLASS_COUNT] = {
+    const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
         NODECLASS_VARIABLE,      NODECLASS_VIEW};
 
-    for (size_t i = 0; i < NODECLASS_COUNT; i++)
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
     {
         const NL_NodeClass classToImport = order[i];
         size_t cnt =
@@ -553,7 +553,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
                     "imported %ss: %zu", NL_NODECLASS_NAME[classToImport], cnt);
     }
 
-    for (size_t i = 0; i < NODECLASS_COUNT; i++)
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
     {
         const NL_NodeClass classToImport = order[i];
         NodesetLoader_forEachNode(
