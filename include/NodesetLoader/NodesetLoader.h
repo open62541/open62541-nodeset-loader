@@ -97,14 +97,14 @@ struct NL_InstanceNode
 };
 typedef struct NL_InstanceNode NL_InstanceNode;
 
-struct TObjectNode
+struct NL_ObjectNode
 {
     NODE_ATTRIBUTES
     NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
     Reference *refToTypeDef;
 };
-typedef struct TObjectNode TObjectNode;
+typedef struct NL_ObjectNode NL_ObjectNode;
 
 struct TObjectTypeNode
 {
@@ -201,13 +201,13 @@ typedef struct
     bool isOptionSet;
 } DataTypeDefinition;
 
-struct TDataTypeNode
+struct NL_DataTypeNode
 {
     NODE_ATTRIBUTES
     DataTypeDefinition *definition;
     char *isAbstract;
 };
-typedef struct TDataTypeNode TDataTypeNode;
+typedef struct NL_DataTypeNode NL_DataTypeNode;
 
 struct TMethodNode
 {

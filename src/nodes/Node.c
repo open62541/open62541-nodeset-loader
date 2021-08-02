@@ -19,7 +19,7 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
         node = (NL_Node *)calloc(1, sizeof(TVariableNode));
         break;
     case NODECLASS_OBJECT:
-        node = (NL_Node *)calloc(1, sizeof(TObjectNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ObjectNode));
         break;
     case NODECLASS_OBJECTTYPE:
         node = (NL_Node *)calloc(1, sizeof(TObjectTypeNode));
@@ -31,7 +31,7 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
         node = (NL_Node *)calloc(1, sizeof(TVariableTypeNode));
         break;
     case NODECLASS_DATATYPE:
-        node = (NL_Node *)calloc(1, sizeof(TDataTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_DataTypeNode));
         break;
     case NODECLASS_METHOD:
         node = (NL_Node *)calloc(1, sizeof(TMethodNode));
@@ -63,7 +63,7 @@ void Node_delete(NL_Node *node)
     deleteRef(node->nonHierachicalRefs);
     if (node->nodeClass == NODECLASS_DATATYPE)
     {
-        DataTypeNode_clear((TDataTypeNode *)node);
+        DataTypeNode_clear((NL_DataTypeNode *)node);
     }
     if(node->nodeClass == NODECLASS_VARIABLE)
     {
@@ -76,7 +76,7 @@ void Node_delete(NL_Node *node)
     }
     if(node->nodeClass==NODECLASS_OBJECT)
     {
-        TObjectNode *objNode = (TObjectNode *)node;
+        NL_ObjectNode *objNode = (NL_ObjectNode *)node;
         free(objNode->refToTypeDef);
     }
     free(node);

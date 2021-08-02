@@ -320,10 +320,10 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
     }
     case NODECLASS_OBJECT:
     {
-        ((TObjectNode *)node)->parentNodeId = extractNodedId(
+        ((NL_ObjectNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TObjectNode *)node)->eventNotifier = getAttributeValue(
+        ((NL_ObjectNode *)node)->eventNotifier = getAttributeValue(
             nodeset, &attrEventNotifier, attributes, attributeSize);
         break;
     }
@@ -363,7 +363,7 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
         break;
     }
     case NODECLASS_DATATYPE:
-        ((TDataTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_DataTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     case NODECLASS_METHOD:
@@ -439,7 +439,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
         nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
                                              newRef))
     {
-        ((TObjectNode *)node)->refToTypeDef = newRef;
+        ((NL_ObjectNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
@@ -530,7 +530,7 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, NL_Node *node,
 void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
                                    int attributeSize, const char **attributes)
 {
-    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
     def->isUnion =
         !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
@@ -543,7 +543,7 @@ void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
 void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node, int attributeSize,
                               const char **attributes)
 {
-    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     if (dataTypeNode->definition->isOptionSet)
     {
         return;

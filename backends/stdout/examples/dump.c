@@ -18,9 +18,9 @@ void dumpNode(void *userContext, const NL_Node *node)
     {
     case NODECLASS_OBJECT:
         printf("\tparentNodeId: %s\n",
-               ((const TObjectNode *)node)->parentNodeId.id);
+               ((const NL_ObjectNode *)node)->parentNodeId.id);
         printf("\teventNotifier: %s\n",
-               ((const TObjectNode *)node)->eventNotifier);
+               ((const NL_ObjectNode *)node)->eventNotifier);
         break;
     case NODECLASS_VARIABLE:
         printf("\tparentNodeId: %s\n",

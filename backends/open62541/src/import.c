@@ -114,7 +114,7 @@ static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
 }
 
 static void
-handleObjectNode(const TObjectNode *node, UA_NodeId *id,
+handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
                  const UA_LocalizedText *description, UA_Server *server)
@@ -352,7 +352,7 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
                             node->extension, NULL);
 }
 
-static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
+static void handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
                                const UA_NodeId *parentId,
                                const UA_NodeId *parentReferenceId,
                                const UA_LocalizedText *lt,
@@ -384,7 +384,7 @@ static void addNode(UA_Server *server, const NL_Node *node)
     switch (node->nodeClass)
     {
     case NODECLASS_OBJECT:
-        handleObjectNode((const TObjectNode *)node, &id, &parentId,
+        handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
                          &parentReferenceId, &lt, &qn, &description, server);
         break;
 
@@ -416,7 +416,7 @@ static void addNode(UA_Server *server, const NL_Node *node)
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_DATATYPE:
-        handleDataTypeNode((const TDataTypeNode *)node, &id, &parentId,
+        handleDataTypeNode((const NL_DataTypeNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_VIEW:
@@ -484,7 +484,7 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
     }
     const UA_NodeId parent =
         getParentType(ctx->server, getNodeIdFromChars(node->id));
-    DataTypeImporter_addCustomDataType(ctx->importer, (TDataTypeNode *)node,
+    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node,
                                        parent);
 }
 

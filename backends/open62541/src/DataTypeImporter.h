@@ -18,7 +18,7 @@ struct UA_DataType;
 
 DataTypeImporter *DataTypeImporter_new(struct UA_Server *server);
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
-                                        const TDataTypeNode *node, const UA_NodeId parentId);
+                                        const NL_DataTypeNode *node, const UA_NodeId parentId);
 // has to be called after all dependent types where added
 void DataTypeImporter_initMembers(DataTypeImporter *importer);
 void DataTypeImporter_delete(DataTypeImporter *importer);
