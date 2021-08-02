@@ -125,13 +125,13 @@ typedef struct NL_VariableTypeNode NL_VariableTypeNode;
 
 struct Data;
 typedef struct Data Data;
-enum DataType
+enum NL_DataType
 {
     DATATYPE_PRIMITIVE,
     DATATYPE_COMPLEX,
 };
 
-typedef enum DataType DataType;
+typedef enum NL_DataType NL_DataType;
 
 struct PrimitiveData
 {
@@ -147,7 +147,7 @@ typedef struct ComplexData ComplexData;
 
 struct Data
 {
-    DataType type;
+    NL_DataType type;
     const char *name;
     union
     {

@@ -17,7 +17,7 @@ Value *Value_new(const NL_Node *node)
     return newValue;
 }
 
-static Data *newData(const char *name, DataType type)
+static Data *newData(const char *name, NL_DataType type)
 {
     Data *newData = (Data *)calloc(1, sizeof(Data));
     newData->type = type;
