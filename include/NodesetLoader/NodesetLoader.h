@@ -106,12 +106,12 @@ struct NL_ObjectNode
 };
 typedef struct NL_ObjectNode NL_ObjectNode;
 
-struct TObjectTypeNode
+struct NL_ObjectTypeNode
 {
     NODE_ATTRIBUTES
     char *isAbstract;
 };
-typedef struct TObjectTypeNode TObjectTypeNode;
+typedef struct NL_ObjectTypeNode NL_ObjectTypeNode;
 
 struct TVariableTypeNode
 {
@@ -218,13 +218,13 @@ struct TMethodNode
 };
 typedef struct TMethodNode TMethodNode;
 
-struct TReferenceTypeNode
+struct NL_ReferenceTypeNode
 {
     NODE_ATTRIBUTES
     NL_LocalizedText inverseName;
     char *symmetric;
 };
-typedef struct TReferenceTypeNode TReferenceTypeNode;
+typedef struct NL_ReferenceTypeNode NL_ReferenceTypeNode;
 
 struct TViewNode
 {

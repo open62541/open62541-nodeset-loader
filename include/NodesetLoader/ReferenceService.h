@@ -10,11 +10,11 @@
 #include <stdbool.h>
 
 struct Reference;
-struct TReferenceTypeNode;
+struct NL_ReferenceTypeNode;
 typedef bool (*RefService_isHierachicalRef)(void* context, const struct Reference* ref);
 typedef bool (*RefService_isNonHierachicalRef)(void* context, const struct Reference *ref);
 typedef bool (*RefService_isHasTypeDefRef)(void *context, const struct Reference *ref);
-typedef void (*RefService_addNewReferenceType)(void* context, const struct TReferenceTypeNode* node);
+typedef void (*RefService_addNewReferenceType)(void* context, const struct NL_ReferenceTypeNode* node);
 struct RefService
 {
     void* context;

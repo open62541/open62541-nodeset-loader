@@ -22,10 +22,10 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
         node = (NL_Node *)calloc(1, sizeof(NL_ObjectNode));
         break;
     case NODECLASS_OBJECTTYPE:
-        node = (NL_Node *)calloc(1, sizeof(TObjectTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ObjectTypeNode));
         break;
     case NODECLASS_REFERENCETYPE:
-        node = (NL_Node *)calloc(1, sizeof(TReferenceTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ReferenceTypeNode));
         break;
     case NODECLASS_VARIABLETYPE:
         node = (NL_Node *)calloc(1, sizeof(TVariableTypeNode));

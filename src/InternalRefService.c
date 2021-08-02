@@ -13,14 +13,14 @@
 struct InternalRefService
 {
     size_t hierachicalRefsSize;
-    TReferenceTypeNode *hierachicalRefs;
+    NL_ReferenceTypeNode *hierachicalRefs;
     struct NodeContainer *nonHierachicalRefs;
 };
 
 typedef struct InternalRefService InternalRefService;
 
 #define MAX_HIERACHICAL_REFS 50
-TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
+NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {
         NODECLASS_REFERENCETYPE,
         {0, "i=35"},
@@ -172,7 +172,7 @@ static bool isTypeDefRef(const InternalRefService* service, const Reference* ref
     return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
 }
 
-static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
+static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node)
 {
     Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
@@ -185,7 +185,7 @@ static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
                 if (!TNodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
                 {
                     service->hierachicalRefs[service->hierachicalRefsSize++] =
-                        *(TReferenceTypeNode *)node;
+                        *(NL_ReferenceTypeNode *)node;
                     isHierachical = true;
                     break;
                 }

@@ -314,7 +314,7 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
     {
     case NODECLASS_OBJECTTYPE:
     {
-        ((TObjectTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_ObjectTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     }
@@ -376,7 +376,7 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
             nodeset, &attrUserExecutable, attributes, attributeSize);
         break;
     case NODECLASS_REFERENCETYPE:
-        ((TReferenceTypeNode *)node)->symmetric = getAttributeValue(
+        ((NL_ReferenceTypeNode *)node)->symmetric = getAttributeValue(
             nodeset, &attrSymmetric, attributes, attributeSize);
         break;
     case NODECLASS_VIEW:
@@ -490,7 +490,7 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
         if (node->nodeClass == NODECLASS_REFERENCETYPE)
         {
             nodeset->refService->addNewReferenceType(
-                nodeset->refService->context, (TReferenceTypeNode *)node);
+                nodeset->refService->context, (NL_ReferenceTypeNode *)node);
         }
     }
     else
@@ -610,7 +610,7 @@ void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, int attributeSize,
 {
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
-        ((TReferenceTypeNode *)node)->inverseName.locale =
+        ((NL_ReferenceTypeNode *)node)->inverseName.locale =
             getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
     }
 }
@@ -618,7 +618,7 @@ void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text
 {
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
-        ((TReferenceTypeNode *)node)->inverseName.text = text;
+        ((NL_ReferenceTypeNode *)node)->inverseName.text = text;
     }
 }
 

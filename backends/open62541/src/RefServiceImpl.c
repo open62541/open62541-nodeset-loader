@@ -153,7 +153,7 @@ static bool isTypeDefRef(const RefServiceImpl *service, const Reference *ref)
     return isInContainer(service->hasTypeDefRefs, ref);
 }
 
-static void addnewRefType(RefServiceImpl *service, TReferenceTypeNode *node)
+static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
 {
     Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;

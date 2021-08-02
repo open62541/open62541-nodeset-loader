@@ -286,7 +286,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     
 }
 
-static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
+static void handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
                                  const UA_NodeId *parentId,
                                  const UA_NodeId *parentReferenceId,
                                  const UA_LocalizedText *lt,
@@ -303,7 +303,7 @@ static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
                                 oAttr, node->extension, NULL);
 }
 
-static void handleReferenceTypeNode(const TReferenceTypeNode *node,
+static void handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                     UA_NodeId *id, const UA_NodeId *parentId,
                                     const UA_NodeId *parentReferenceId,
                                     const UA_LocalizedText *lt,
@@ -394,13 +394,13 @@ static void addNode(UA_Server *server, const NL_Node *node)
         break;
 
     case NODECLASS_OBJECTTYPE:
-        handleObjectTypeNode((const TObjectTypeNode *)node, &id, &parentId,
+        handleObjectTypeNode((const NL_ObjectTypeNode *)node, &id, &parentId,
                              &parentReferenceId, &lt, &qn, &description,
                              server);
         break;
 
     case NODECLASS_REFERENCETYPE:
-        handleReferenceTypeNode((const TReferenceTypeNode *)node, &id,
+        handleReferenceTypeNode((const NL_ReferenceTypeNode *)node, &id,
                                 &parentId, &parentReferenceId, &lt, &qn,
                                 &description, server);
         break;
