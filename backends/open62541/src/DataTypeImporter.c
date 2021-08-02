@@ -26,7 +26,7 @@ static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
 {
     NL_NodeId encodingRefType = {0, "i=38"};
 
-    Reference *ref = node->nonHierachicalRefs;
+    NL_Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
         if (!TNodeId_cmp(&encodingRefType, &ref->refType))
@@ -241,7 +241,7 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
 
 static NL_NodeId getParentNode(const NL_DataTypeNode *node)
 {
-    Reference *ref = node->hierachicalRefs;
+    NL_Reference *ref = node->hierachicalRefs;
     while (ref)
     {
         if (!ref->isForward)

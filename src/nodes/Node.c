@@ -47,11 +47,11 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
     return node;
 }
 
-static void deleteRef(Reference *ref)
+static void deleteRef(NL_Reference *ref)
 {
     while (ref)
     {
-        Reference *tmp = ref->next;
+        NL_Reference *tmp = ref->next;
         free(ref);
         ref = tmp;
     }

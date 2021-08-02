@@ -75,7 +75,7 @@ START_TEST(nodeWithRefs_1) {
     a.id.id = "nodeA";
     a.nodeClass = NODECLASS_VARIABLE;
 
-    Reference ref;
+    NL_Reference ref;
     ref.isForward = false;
     ref.target = a.id;
     ref.next = NULL;
@@ -107,7 +107,7 @@ START_TEST(nodeWithRefs_2) {
     initNode(&a);
     a.id.id = "nodeA";
 
-    Reference ref;
+    NL_Reference ref;
     ref.isForward = false;
     ref.target = a.id;
     ref.next = NULL;
@@ -144,14 +144,14 @@ START_TEST(cycleDetect) {
     b.id.id = "nodeB";
     b.id.nsIdx = 1;
 
-    Reference ref_AToB;
+    NL_Reference ref_AToB;
     ref_AToB.isForward = false;
     ref_AToB.target = b.id;
     ref_AToB.next = NULL;
 
     a.hierachicalRefs = &ref_AToB;
 
-    Reference ref_BToA;
+    NL_Reference ref_BToA;
     ref_BToA.isForward = false;
     ref_BToA.target = a.id;
     ref_BToA.next = NULL;

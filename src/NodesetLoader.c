@@ -75,7 +75,7 @@ struct TParserCtx
     Value *val;
     void *extensionData;
     NodesetLoader_ExtensionInterface *extIf;
-    Reference *ref;
+    NL_Reference *ref;
     Nodeset *nodeset;
 };
 

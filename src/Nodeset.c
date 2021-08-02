@@ -37,7 +37,7 @@ NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
 // UAObjectType
 #define ATTRIBUTE_ISABSTRACT "IsAbstract"
-// Reference
+// NL_Reference
 #define ATTRIBUTE_REFERENCETYPE "ReferenceType"
 #define ATTRIBUTE_ISFORWARD "IsForward"
 #define ATTRIBUTE_SYMMETRIC "Symmetric"
@@ -191,7 +191,7 @@ static bool lookupUnknownReferences(Nodeset *nodeset, NL_Node *node)
 {
     while (node->unknownRefs)
     {
-        Reference *next = node->unknownRefs->next;
+        NL_Reference *next = node->unknownRefs->next;
         if (nodeset->refService->isHierachicalRef(nodeset->refService->context,
                                                   node->unknownRefs))
         {
@@ -409,10 +409,10 @@ NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
     return node;
 }
 
-Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
+NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                 int attributeSize, const char **attributes)
 {
-    Reference *newRef = (Reference *)calloc(1, sizeof(Reference));
+    NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
     if (!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes,
                                           attributeSize)))
     {
@@ -506,7 +506,7 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
     }
 }
 
-void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, NL_Node *node,
+void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *node,
                                 char *targetId)
 {
     ref->target = alias2Id(nodeset, targetId);

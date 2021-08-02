@@ -43,9 +43,9 @@ bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                        int attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node);
-Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
+NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                 int attributeSize, const char **attributes);
-void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, NL_Node *node,
+void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *node,
                                 char *targetId);
 struct Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
                                const char **attribute);

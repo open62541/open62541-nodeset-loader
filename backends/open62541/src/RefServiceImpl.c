@@ -124,7 +124,7 @@ static void getRefs(UA_Server *server, RefServiceImpl *impl,
     iterate(server, &startId, fn, impl);
 }
 
-static bool isInContainer(const RefContainer c, const Reference *ref)
+static bool isInContainer(const RefContainer c, const NL_Reference *ref)
 {
     for (const NL_NodeId *id = c.ids; id != c.ids + c.size; id++)
     {
@@ -137,25 +137,25 @@ static bool isInContainer(const RefContainer c, const Reference *ref)
 }
 
 static bool isNonHierachicalRef(const RefServiceImpl *service,
-                                const Reference *ref)
+                                const NL_Reference *ref)
 {
     return isInContainer(service->nonHierachicalRefs, ref);
 }
 
 static bool isHierachicalReference(const RefServiceImpl *service,
-                                   const Reference *ref)
+                                   const NL_Reference *ref)
 {
     return isInContainer(service->hierachicalRefs, ref);
 }
 
-static bool isTypeDefRef(const RefServiceImpl *service, const Reference *ref)
+static bool isTypeDefRef(const RefServiceImpl *service, const NL_Reference *ref)
 {
     return isInContainer(service->hasTypeDefRefs, ref);
 }
 
 static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
 {
-    Reference *ref = node->hierachicalRefs;
+    NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
     while (ref)
     {

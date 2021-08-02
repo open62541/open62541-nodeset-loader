@@ -62,7 +62,7 @@ static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
     return current;
 }
 
-static UA_NodeId getReferenceTypeId(const Reference *ref)
+static UA_NodeId getReferenceTypeId(const NL_Reference *ref)
 {
     if (!ref)
     {
@@ -71,7 +71,7 @@ static UA_NodeId getReferenceTypeId(const Reference *ref)
     return getNodeIdFromChars(ref->refType);
 }
 
-static UA_NodeId getReferenceTarget(const Reference *ref)
+static UA_NodeId getReferenceTarget(const NL_Reference *ref)
 {
     if (!ref)
     {
@@ -80,10 +80,10 @@ static UA_NodeId getReferenceTarget(const Reference *ref)
     return getNodeIdFromChars(ref->target);
 }
 
-static Reference *getHierachicalInverseReference(const NL_Node *node)
+static NL_Reference *getHierachicalInverseReference(const NL_Node *node)
 {
 
-    Reference *hierachicalRef = node->hierachicalRefs;
+    NL_Reference *hierachicalRef = node->hierachicalRefs;
     while (hierachicalRef)
     {
         if (!hierachicalRef->isForward)
@@ -104,7 +104,7 @@ static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
         parentId =
             getNodeIdFromChars(((const NL_InstanceNode*)node)->parentNodeId);
     }
-    Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
+    NL_Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);
     if (UA_NodeId_equal(&parentId, &UA_NODEID_NULL))
     {
@@ -471,11 +471,11 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
     {
         if (!TNodeId_cmp(&r->source, &node->id))
         {
-            Reference *ref = (Reference *)calloc(1, sizeof(Reference));
+            NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;
             ref->target = r->target;
 
-            Reference *lastRef = node->nonHierachicalRefs;
+            NL_Reference *lastRef = node->nonHierachicalRefs;
             node->nonHierachicalRefs = ref;
             ref->next = lastRef;
             break;
@@ -507,7 +507,7 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 
 static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
 {
-    Reference *ref = node->nonHierachicalRefs;
+    NL_Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
 

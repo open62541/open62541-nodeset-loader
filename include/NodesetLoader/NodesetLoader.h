@@ -42,15 +42,15 @@ typedef struct
     char *name;
 } NL_BrowseName;
 
-struct Reference;
-typedef struct Reference Reference;
+struct NL_Reference;
+typedef struct NL_Reference NL_Reference;
 
-struct Reference
+struct NL_Reference
 {
     bool isForward;
     NL_NodeId refType;
     NL_NodeId target;
-    Reference *next;
+    NL_Reference *next;
 };
 
 struct NL_BiDirectionalReference;
@@ -77,9 +77,9 @@ typedef struct NL_LocalizedText NL_LocalizedText;
     NL_LocalizedText displayName;                                                \
     NL_LocalizedText description;                                                \
     char *writeMask;                                                           \
-    Reference *hierachicalRefs;                                                \
-    Reference *nonHierachicalRefs;                                             \
-    Reference *unknownRefs;                                                    \
+    NL_Reference *hierachicalRefs;                                                \
+    NL_Reference *nonHierachicalRefs;                                             \
+    NL_Reference *unknownRefs;                                                    \
     void *extension;
 
 #define NL_NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
@@ -102,7 +102,7 @@ struct NL_ObjectNode
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
-    Reference *refToTypeDef;
+    NL_Reference *refToTypeDef;
 };
 typedef struct NL_ObjectNode NL_ObjectNode;
 
@@ -179,7 +179,7 @@ struct NL_VariableNode
     char *userAccessLevel;
     char *historizing;
     Value *value;
-    Reference *refToTypeDef;
+    NL_Reference *refToTypeDef;
 };
 typedef struct NL_VariableNode NL_VariableNode;
 

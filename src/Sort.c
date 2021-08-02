@@ -300,7 +300,7 @@ void Sort_addNode(SortContext *ctx, NL_Node *data)
     // add node, no matter if there are references on it
     j = search_node(ctx->root1, &data->id);
     j->data = data;
-    Reference *hierachicalRef = data->hierachicalRefs;
+    NL_Reference *hierachicalRef = data->hierachicalRefs;
     if (hierachicalRef)
     {
         while (hierachicalRef)
@@ -332,13 +332,13 @@ void Sort_addNode(SortContext *ctx, NL_Node *data)
                 node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
                 if (k->data)
                 {
-                    Reference *r = k->data->hierachicalRefs;
+                    NL_Reference *r = k->data->hierachicalRefs;
                     while (r)
                     {
                         if (!TNodeId_cmp(&r->target, &data->id))
                         {
-                            Reference *newRef =
-                                (Reference *)calloc(1, sizeof(Reference));
+                            NL_Reference *newRef =
+                                (NL_Reference *)calloc(1, sizeof(NL_Reference));
                             newRef->isForward = !r->isForward;
                             newRef->target = k->data->id;
                             newRef->refType = r->refType;

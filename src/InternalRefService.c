@@ -134,7 +134,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
 };
 
 static bool isNonHierachicalRef(const InternalRefService *service,
-                                const Reference *ref)
+                                const NL_Reference *ref)
 {
     // TODO: nonHierachicalrefs should also be imported first
     // we state that we know all references from namespace 0
@@ -154,7 +154,7 @@ static bool isNonHierachicalRef(const InternalRefService *service,
 }
 
 static bool isHierachicalReference(const InternalRefService *service,
-                                   const Reference *ref)
+                                   const NL_Reference *ref)
 {
     for (size_t i = 0; i < service->hierachicalRefsSize; i++)
     {
@@ -166,7 +166,7 @@ static bool isHierachicalReference(const InternalRefService *service,
     return false;
 }
 
-static bool isTypeDefRef(const InternalRefService* service, const Reference* ref)
+static bool isTypeDefRef(const InternalRefService* service, const NL_Reference* ref)
 {
     NL_NodeId hasTypeDefId = {0, "i=40"};
     return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
@@ -174,7 +174,7 @@ static bool isTypeDefRef(const InternalRefService* service, const Reference* ref
 
 static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node)
 {
-    Reference *ref = node->hierachicalRefs;
+    NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
     while (ref)
     {
