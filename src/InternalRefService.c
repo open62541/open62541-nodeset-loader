@@ -168,7 +168,7 @@ static bool isHierachicalReference(const InternalRefService *service,
 
 static bool isTypeDefRef(const InternalRefService* service, const Reference* ref)
 {
-    TNodeId hasTypeDefId = {0, "i=40"};
+    NL_NodeId hasTypeDefId = {0, "i=40"};
     return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
 }
 

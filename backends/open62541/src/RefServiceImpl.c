@@ -7,7 +7,7 @@
 
 #include "RefServiceImpl.h"
 #include <NodesetLoader/NodesetLoader.h>
-#include <NodesetLoader/TNodeId.h>
+#include <NodesetLoader/NodeId.h>
 #include <assert.h>
 #include <open62541/server.h>
 #include <stdlib.h>
@@ -15,7 +15,7 @@
 struct RefContainer
 {
     size_t size;
-    TNodeId *ids;
+    NL_NodeId *ids;
 };
 typedef struct RefContainer RefContainer;
 
@@ -28,7 +28,7 @@ struct RefServiceImpl
 
 static void RefContainer_clear(RefContainer *c)
 {
-    for (TNodeId *id = c->ids; id != c->ids + c->size; id++)
+    for (NL_NodeId *id = c->ids; id != c->ids + c->size; id++)
     {
         free(id->id);
     }
@@ -64,11 +64,11 @@ static void iterate(UA_Server *server, const UA_NodeId *startId, browseFnc fnc,
     UA_BrowseResult_clear(&br);
 }
 
-static void addTNodeIdToRefs(RefContainer *refs, const TNodeId id)
+static void addTNodeIdToRefs(RefContainer *refs, const NL_NodeId id)
 {
     refs->ids =
-        (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
-    TNodeId *newId = refs->ids + refs->size;
+        (NL_NodeId *)realloc(refs->ids, sizeof(NL_NodeId) * (refs->size + 1));
+    NL_NodeId *newId = refs->ids + refs->size;
     newId->nsIdx = id.nsIdx;
     size_t len = strlen(id.id);
     newId->id = (char *)calloc(len + 1, sizeof(char));
@@ -79,8 +79,8 @@ static void addTNodeIdToRefs(RefContainer *refs, const TNodeId id)
 static void addToRefs(RefContainer *refs, const UA_NodeId id)
 {
     refs->ids =
-        (TNodeId *)realloc(refs->ids, sizeof(TNodeId) * (refs->size + 1));
-    TNodeId *newId = refs->ids + refs->size;
+        (NL_NodeId *)realloc(refs->ids, sizeof(NL_NodeId) * (refs->size + 1));
+    NL_NodeId *newId = refs->ids + refs->size;
     newId->nsIdx = id.namespaceIndex;
     if (id.identifierType == UA_NODEIDTYPE_NUMERIC)
     {
@@ -126,7 +126,7 @@ static void getRefs(UA_Server *server, RefServiceImpl *impl,
 
 static bool isInContainer(const RefContainer c, const Reference *ref)
 {
-    for (const TNodeId *id = c.ids; id != c.ids + c.size; id++)
+    for (const NL_NodeId *id = c.ids; id != c.ids + c.size; id++)
     {
         if (!TNodeId_cmp(&ref->refType, id))
         {

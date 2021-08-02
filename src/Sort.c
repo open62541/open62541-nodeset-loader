@@ -24,7 +24,7 @@ typedef struct edge edge;
 
 struct node
 {
-    const TNodeId *id;
+    const NL_NodeId *id;
     struct node *left, *right;
     int balance;
     struct node *qlink;
@@ -43,7 +43,7 @@ struct SortContext
     size_t keyCnt;
 };
 
-static node *new_node(const TNodeId *id)
+static node *new_node(const NL_NodeId *id)
 {
     node *k = (node *)calloc(1, sizeof(node));
     if(!k)
@@ -62,7 +62,7 @@ static node *new_node(const TNodeId *id)
     return k;
 }
 
-static node *search_node(node *rootNode, const TNodeId *nodeId)
+static node *search_node(node *rootNode, const NL_NodeId *nodeId)
 {
     if(!rootNode)
     {

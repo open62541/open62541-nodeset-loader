@@ -16,9 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
-static TNodeId alias2Id(const Nodeset *nodeset, char *name);
-static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
+static NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s);
+static NL_NodeId alias2Id(const Nodeset *nodeset, char *name);
+static NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id);
 static NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
                                        NL_BrowseName id);
 NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
@@ -77,7 +77,7 @@ const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
-TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
+NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id)
 {
     if (id.nsIdx > 0)
     {
@@ -102,16 +102,16 @@ NL_BrowseName translateBrowseName(const NamespaceList *namespaces, NL_BrowseName
     return bn;
 }
 
-TNodeId extractNodedId(const NamespaceList *namespaces, char *s)
+NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s)
 {
     if (s == NULL)
     {
-        TNodeId id;
+        NL_NodeId id;
         id.id = NULL;
         id.nsIdx = 0;
         return id;
     }
-    TNodeId id;
+    NL_NodeId id;
     id.nsIdx = 0;
     char *idxSemi = strchr(s, ';');
     if (idxSemi == NULL)
@@ -145,9 +145,9 @@ NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
     return translateBrowseName(namespaces, bn);
 }
 
-static TNodeId alias2Id(const Nodeset *nodeset, char *name)
+static NL_NodeId alias2Id(const Nodeset *nodeset, char *name)
 {
-    const TNodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
+    const NL_NodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
     if (!alias)
     {
         return extractNodedId(nodeset->namespaces, name);
@@ -511,7 +511,7 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, NL_Node *node,
 {
     ref->target = alias2Id(nodeset, targetId);
     // handle hasEncoding in a special way
-    TNodeId hasEncodingRef = {0, "i=38"};
+    NL_NodeId hasEncodingRef = {0, "i=38"};
     if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&
         !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
     {

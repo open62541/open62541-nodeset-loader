@@ -10,7 +10,7 @@
 #include "Extension.h"
 #include "Logger.h"
 #include "ReferenceService.h"
-#include "TNodeId.h"
+#include "NodeId.h"
 #include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -48,8 +48,8 @@ typedef struct Reference Reference;
 struct Reference
 {
     bool isForward;
-    TNodeId refType;
-    TNodeId target;
+    NL_NodeId refType;
+    NL_NodeId target;
     Reference *next;
 };
 
@@ -57,9 +57,9 @@ struct BiDirectionalReference;
 typedef struct BiDirectionalReference BiDirectionalReference;
 struct BiDirectionalReference
 {
-    TNodeId source;
-    TNodeId target;
-    TNodeId refType;
+    NL_NodeId source;
+    NL_NodeId target;
+    NL_NodeId refType;
     BiDirectionalReference *next;
 };
 
@@ -72,7 +72,7 @@ typedef struct TLocalizedText TLocalizedText;
 
 #define NODE_ATTRIBUTES                                                        \
     NL_NodeClass nodeClass;                                                      \
-    TNodeId id;                                                                \
+    NL_NodeId id;                                                                \
     NL_BrowseName browseName;                                                    \
     TLocalizedText displayName;                                                \
     TLocalizedText description;                                                \
@@ -82,7 +82,7 @@ typedef struct TLocalizedText TLocalizedText;
     Reference *unknownRefs;                                                    \
     void *extension;
 
-#define NODE_INSTANCE_ATTRIBUTES TNodeId parentNodeId;
+#define NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
 
 struct NL_Node
 {
@@ -117,7 +117,7 @@ struct TVariableTypeNode
 {
     NODE_ATTRIBUTES
     char *isAbstract;
-    TNodeId datatype;
+    NL_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
 };
@@ -164,7 +164,7 @@ struct Value
     bool isArray;
     bool isExtensionObject;
     const char *type;
-    TNodeId typeId;
+    NL_NodeId typeId;
     Data *data;
 };
 typedef struct Value Value;
@@ -172,7 +172,7 @@ struct TVariableNode
 {
     NODE_ATTRIBUTES
     NODE_INSTANCE_ATTRIBUTES
-    TNodeId datatype;
+    NL_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
     char *accessLevel;
@@ -186,7 +186,7 @@ typedef struct TVariableNode TVariableNode;
 typedef struct
 {
     char *name;
-    TNodeId dataType;
+    NL_NodeId dataType;
     int valueRank;
     int value;
     bool isOptional;

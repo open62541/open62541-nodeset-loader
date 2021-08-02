@@ -24,7 +24,7 @@ struct DataTypeImporter
 
 static UA_NodeId getBinaryEncodingId(const TDataTypeNode *node)
 {
-    TNodeId encodingRefType = {0, "i=38"};
+    NL_NodeId encodingRefType = {0, "i=38"};
 
     Reference *ref = node->nonHierachicalRefs;
     while (ref)
@@ -239,7 +239,7 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
     }
 }
 
-static TNodeId getParentNode(const TDataTypeNode *node)
+static NL_NodeId getParentNode(const TDataTypeNode *node)
 {
     Reference *ref = node->hierachicalRefs;
     while (ref)
@@ -250,7 +250,7 @@ static TNodeId getParentNode(const TDataTypeNode *node)
         }
         ref=ref->next;
     }
-    TNodeId nullId = {0, NULL};
+    NL_NodeId nullId = {0, NULL};
     return nullId;
 }
 

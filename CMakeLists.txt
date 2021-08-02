@@ -96,7 +96,7 @@ add_library(NodesetLoader
     src/nodes/DataTypeNode.c
     src/nodes/NodeContainer.c
     src/nodes/InstanceNode.c
-    src/TNodeId.c
+    src/NodeId.c
     src/PrintfLogger.c
     src/Value.c
     src/InternalRefService.c
@@ -138,7 +138,7 @@ endif()
 if(NOT ${CALC_COVERAGE})
     set(NODESETLOADER_PUBLIC_HEADER 
         ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
-        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/TNodeId.h
+        ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodeId.h
         ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
         ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
         ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h

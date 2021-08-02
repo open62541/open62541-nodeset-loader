@@ -38,7 +38,7 @@ static inline UA_Boolean isTrue(const char *s)
     return UA_TRUE;
 }
 
-static inline UA_NodeId getNodeIdFromChars(TNodeId tid)
+static inline UA_NodeId getNodeIdFromChars(NL_NodeId tid)
 {
     UA_NodeId id = UA_NODEID_NULL;
     if (!tid.id)
