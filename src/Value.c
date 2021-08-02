@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-Value *Value_new(const TNode *node)
+Value *Value_new(const NL_Node *node)
 {
     Value *newValue = (Value *)calloc(1, sizeof(Value));
     newValue->ctx = (ParserCtx *)calloc(1, sizeof(ParserCtx));

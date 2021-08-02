@@ -80,7 +80,7 @@ static UA_NodeId getReferenceTarget(const Reference *ref)
     return getNodeIdFromChars(ref->target);
 }
 
-static Reference *getHierachicalInverseReference(const TNode *node)
+static Reference *getHierachicalInverseReference(const NL_Node *node)
 {
 
     Reference *hierachicalRef = node->hierachicalRefs;
@@ -95,7 +95,7 @@ static Reference *getHierachicalInverseReference(const TNode *node)
     return NULL;
 }
 
-static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
+static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
 {
     UA_NodeId parentId = UA_NODEID_NULL;
 
@@ -104,7 +104,7 @@ static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
         parentId =
             getNodeIdFromChars(((const TInstanceNode*)node)->parentNodeId);
     }
-    Reference *ref = getHierachicalInverseReference((const TNode *)node);
+    Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);
     if (UA_NodeId_equal(&parentId, &UA_NODEID_NULL))
     {
@@ -369,7 +369,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
                               attr, node->extension, NULL);
 }
 
-static void addNode(UA_Server *server, const TNode *node)
+static void addNode(UA_Server *server, const NL_Node *node)
 {
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
@@ -463,7 +463,7 @@ struct DataTypeImportCtx
     UA_Server *server;
 };
 
-static void addDataType(struct DataTypeImportCtx *ctx, TNode *node)
+static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
 {
     // add only the types
     const BiDirectionalReference *r = ctx->hasEncodingRef;
@@ -505,7 +505,7 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
     DataTypeImporter_delete(importer);
 }
 
-static void addNonHierachicalRefs(UA_Server *server, TNode *node)
+static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
 {
     Reference *ref = node->nonHierachicalRefs;
     while (ref)

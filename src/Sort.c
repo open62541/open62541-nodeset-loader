@@ -30,7 +30,7 @@ struct node
     struct node *qlink;
     struct edge *edges;
     size_t edgeCount;
-    TNode *data;
+    NL_Node *data;
 };
 
 typedef struct node node;
@@ -294,7 +294,7 @@ void Sort_cleanup(SortContext *ctx)
     free(ctx);
 }
 
-void Sort_addNode(SortContext *ctx, TNode *data)
+void Sort_addNode(SortContext *ctx, NL_Node *data)
 {
     node *j = NULL;
     // add node, no matter if there are references on it

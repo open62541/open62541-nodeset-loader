@@ -18,7 +18,7 @@ NodeContainer *NodeContainer_new(size_t initialSize, bool owner)
         return NULL;
     }
     container->nodes =
-        (TNode **)calloc(initialSize, sizeof(TNode*));
+        (NL_Node **)calloc(initialSize, sizeof(NL_Node*));
     if(!container->nodes)
     {
         free(container);
@@ -31,11 +31,11 @@ NodeContainer *NodeContainer_new(size_t initialSize, bool owner)
     return container;
 }
 
-void NodeContainer_add(NodeContainer *container, TNode *node)
+void NodeContainer_add(NodeContainer *container, NL_Node *node)
 {
     if (container->size == container->capacity)
     {
-        container->nodes = (TNode **)realloc(
+        container->nodes = (NL_Node **)realloc(
             container->nodes,
             (container->size + container->incrementSize) * sizeof(void *));
         if(!container->nodes)

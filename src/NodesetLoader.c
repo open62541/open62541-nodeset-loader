@@ -68,7 +68,7 @@ struct TParserCtx
     TParserState prev_state;
     size_t unknown_depth;
     NL_NodeClass nodeClass;
-    TNode *node;
+    NL_Node *node;
     struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;

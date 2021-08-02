@@ -3,12 +3,12 @@
 #include <check.h>
 #include <stdio.h>
 
-static const TNode* sortedNodes[100];
+static const NL_Node* sortedNodes[100];
 static int sortedNodesCnt = 0;
 
 struct Nodeset;
 
-static void sortCallback(struct Nodeset* nodeset, TNode *node) 
+static void sortCallback(struct Nodeset* nodeset, NL_Node *node) 
 { 
     printf("%s\n", node->id.id);
     sortedNodes[sortedNodesCnt] = node;
@@ -29,7 +29,7 @@ START_TEST(singleNode) {
     a.id.id = "nodeA";
     a.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, (TNode *)&a);
+    Sort_addNode(ctx, (NL_Node *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 1);
     Sort_cleanup(ctx);
@@ -54,9 +54,9 @@ START_TEST(sortNodes) {
     c.id.id = "nodeC";
     c.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, (TNode*)&a);
-    Sort_addNode(ctx, (TNode *)&b);
-    Sort_addNode(ctx, (TNode *)&c);
+    Sort_addNode(ctx, (NL_Node*)&a);
+    Sort_addNode(ctx, (NL_Node *)&b);
+    Sort_addNode(ctx, (NL_Node *)&c);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==3);
     Sort_cleanup(ctx);
@@ -86,8 +86,8 @@ START_TEST(nodeWithRefs_1) {
     b.id.id = "nodeB";
     b.nodeClass = NODECLASS_VARIABLE;
 
-    Sort_addNode(ctx, (TNode *)&b);
-    Sort_addNode(ctx, (TNode *)&a);
+    Sort_addNode(ctx, (NL_Node *)&b);
+    Sort_addNode(ctx, (NL_Node *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
@@ -118,8 +118,8 @@ START_TEST(nodeWithRefs_2) {
     b.id.nsIdx=0;
     b.id.id = "nodeB";
 
-    Sort_addNode(ctx, (TNode *)&a);
-    Sort_addNode(ctx, (TNode *)&b);
+    Sort_addNode(ctx, (NL_Node *)&a);
+    Sort_addNode(ctx, (NL_Node *)&b);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 2);
     ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
@@ -158,8 +158,8 @@ START_TEST(cycleDetect) {
 
     b.hierachicalRefs = &ref_BToA;
 
-    Sort_addNode(ctx, (TNode *)&b);
-    Sort_addNode(ctx, (TNode *)&a);
+    Sort_addNode(ctx, (NL_Node *)&b);
+    Sort_addNode(ctx, (NL_Node *)&a);
     ck_assert(!Sort_start(ctx, NULL, sortCallback, NULL));
     Sort_cleanup(ctx);
 }

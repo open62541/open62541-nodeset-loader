@@ -12,5 +12,5 @@
 #include <stdio.h>
 
 int addNamespace(void *userContext, const char *namespaceUri);
-void dumpNode(void *userContext, const TNode *node);
+void dumpNode(void *userContext, const NL_Node *node);
 #endif

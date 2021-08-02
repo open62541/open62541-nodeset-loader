@@ -29,7 +29,7 @@ struct ParserCtx
 };
 typedef struct ParserCtx ParserCtx;
 
-Value *Value_new(const TNode *node);
+Value *Value_new(const NL_Node *node);
 void Value_start(Value *val, const char *name);
 void Value_end(Value *val, const char *name, const char *value);
 void Value_delete(Value *val);

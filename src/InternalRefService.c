@@ -195,7 +195,7 @@ static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
     }
     if (!isHierachical)
     {
-        NodeContainer_add(service->nonHierachicalRefs, (TNode *)node);
+        NodeContainer_add(service->nonHierachicalRefs, (NL_Node *)node);
     }
 }
 

@@ -23,7 +23,7 @@ START_TEST(ownership) {
     NodeContainer* container = NodeContainer_new(100, false);
     for(int i=0; i<100; i++)
     {
-        NodeContainer_add(container, (TNode*)&varNode);
+        NodeContainer_add(container, (NL_Node*)&varNode);
     }
     NodeContainer_delete(container);
 }

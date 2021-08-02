@@ -8,7 +8,7 @@
 
 int addNamespace(void *userContext, const char *uri) { return 1; }
 
-void addNode(void *userContext, const TNode *node)
+void addNode(void *userContext, const NL_Node *node)
 {
     (*((int*)userContext))++;
 }

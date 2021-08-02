@@ -84,11 +84,11 @@ typedef struct TLocalizedText TLocalizedText;
 
 #define NODE_INSTANCE_ATTRIBUTES TNodeId parentNodeId;
 
-struct TNode
+struct NL_Node
 {
     NODE_ATTRIBUTES
 };
-typedef struct TNode TNode;
+typedef struct NL_Node NL_Node;
 
 struct TInstanceNode
 {
@@ -257,11 +257,11 @@ LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
 LOADER_EXPORT const BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
 LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
-typedef void (*NodesetLoader_forEachNode_Func)(void *context, TNode *node);
+typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
 LOADER_EXPORT size_t
 NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
-LOADER_EXPORT bool NodesetLoader_isInstanceNode (const TNode *baseNode);
+LOADER_EXPORT bool NodesetLoader_isInstanceNode (const NL_Node *baseNode);
 #ifdef __cplusplus
 }
 #endif
