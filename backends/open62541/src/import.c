@@ -139,7 +139,7 @@ handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
 }
 
 static void
-handleViewNode(const TViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
+handleViewNode(const NL_ViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
                const UA_NodeId *parentReferenceId, const UA_LocalizedText *lt,
                const UA_QualifiedName *qn, const UA_LocalizedText *description,
                UA_Server *server)
@@ -420,7 +420,7 @@ static void addNode(UA_Server *server, const NL_Node *node)
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_VIEW:
-        handleViewNode((const TViewNode *)node, &id, &parentId,
+        handleViewNode((const NL_ViewNode *)node, &id, &parentId,
                        &parentReferenceId, &lt, &qn, &description, server);
         break;
     }
@@ -573,7 +573,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     {
         return false;
     }
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = server;
     handler.file = path;

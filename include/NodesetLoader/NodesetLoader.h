@@ -70,7 +70,7 @@ struct NL_LocalizedText
 };
 typedef struct NL_LocalizedText NL_LocalizedText;
 
-#define NODE_ATTRIBUTES                                                        \
+#define NL_NODE_ATTRIBUTES                                                        \
     NL_NodeClass nodeClass;                                                      \
     NL_NodeId id;                                                                \
     NL_BrowseName browseName;                                                    \
@@ -82,25 +82,25 @@ typedef struct NL_LocalizedText NL_LocalizedText;
     Reference *unknownRefs;                                                    \
     void *extension;
 
-#define NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
+#define NL_NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
 
 struct NL_Node
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
 };
 typedef struct NL_Node NL_Node;
 
 struct NL_InstanceNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
 };
 typedef struct NL_InstanceNode NL_InstanceNode;
 
 struct NL_ObjectNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
     Reference *refToTypeDef;
 };
@@ -108,14 +108,14 @@ typedef struct NL_ObjectNode NL_ObjectNode;
 
 struct NL_ObjectTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     char *isAbstract;
 };
 typedef struct NL_ObjectTypeNode NL_ObjectTypeNode;
 
 struct NL_VariableTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     char *isAbstract;
     NL_NodeId datatype;
     char *arrayDimensions;
@@ -170,8 +170,8 @@ struct Value
 typedef struct Value Value;
 struct NL_VariableNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     NL_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
@@ -203,7 +203,7 @@ typedef struct
 
 struct NL_DataTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     DataTypeDefinition *definition;
     char *isAbstract;
 };
@@ -211,8 +211,8 @@ typedef struct NL_DataTypeNode NL_DataTypeNode;
 
 struct NL_MethodNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 };
@@ -220,31 +220,31 @@ typedef struct NL_MethodNode NL_MethodNode;
 
 struct NL_ReferenceTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     NL_LocalizedText inverseName;
     char *symmetric;
 };
 typedef struct NL_ReferenceTypeNode NL_ReferenceTypeNode;
 
-struct TViewNode
+struct NL_ViewNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *containsNoLoops;
     char *eventNotifier;
 };
-typedef struct TViewNode TViewNode;
+typedef struct NL_ViewNode NL_ViewNode;
 
-typedef int (*addNamespaceCb)(void *userContext, const char *);
+typedef int (*NL_addNamespaceCallback)(void *userContext, const char *);
 
-struct FileContext
+struct NL_FileContext
 {
     void *userContext;
     const char *file;
-    addNamespaceCb addNamespace;
+    NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
 };
-typedef struct FileContext FileContext;
+typedef struct NL_FileContext NL_FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
@@ -252,7 +252,7 @@ typedef struct NodesetLoader NodesetLoader;
 LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
                                                struct RefService *refService);
 LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
-                                            const FileContext *fileContext);
+                                            const NL_FileContext *fileContext);
 LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
 LOADER_EXPORT const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);

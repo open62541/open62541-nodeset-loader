@@ -37,7 +37,7 @@ struct Nodeset
     RefService* refService;
 };
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger* logger, RefService* refService);
+Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger* logger, RefService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,

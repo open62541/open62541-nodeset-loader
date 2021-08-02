@@ -27,7 +27,7 @@ static void teardown(void)
 
 START_TEST(Server_ImportBasicNodeClassTest)
 {
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = addNamespace;
 
     NodesetLoader *loader = NodesetLoader_new(NULL, NULL);

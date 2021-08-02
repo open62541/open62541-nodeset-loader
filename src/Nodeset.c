@@ -155,7 +155,7 @@ static NL_NodeId alias2Id(const Nodeset *nodeset, char *name)
     return *alias;
 }
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger,
+Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger *logger,
                      RefService *refService)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
@@ -380,12 +380,12 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
             nodeset, &attrSymmetric, attributes, attributeSize);
         break;
     case NODECLASS_VIEW:
-        ((TViewNode *)node)->parentNodeId = extractNodedId(
+        ((NL_ViewNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TViewNode *)node)->containsNoLoops = getAttributeValue(
+        ((NL_ViewNode *)node)->containsNoLoops = getAttributeValue(
             nodeset, &attrContainsNoLoops, attributes, attributeSize);
-        ((TViewNode *)node)->eventNotifier = getAttributeValue(
+        ((NL_ViewNode *)node)->eventNotifier = getAttributeValue(
             nodeset, &attrEventNotifier, attributes, attributeSize);
         break;
      default:;

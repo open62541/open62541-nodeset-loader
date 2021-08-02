@@ -445,7 +445,7 @@ static void OnCharacters(void *ctx, const char *ch, int len)
 }
 
 bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const FileContext *fileHandler)
+                              const NL_FileContext *fileHandler)
 {
     if (fileHandler == NULL)
     {

@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     }
 
     int maxValueRank = -1;
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
 

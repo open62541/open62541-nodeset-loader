@@ -37,7 +37,7 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
         node = (NL_Node *)calloc(1, sizeof(NL_MethodNode));
         break;
     case NODECLASS_VIEW:
-        node = (NL_Node *)calloc(1, sizeof(TViewNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ViewNode));
         break;
     }
     if(!node)
