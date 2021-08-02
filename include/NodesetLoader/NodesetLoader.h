@@ -133,11 +133,11 @@ enum NL_DataType
 
 typedef enum NL_DataType NL_DataType;
 
-struct PrimitiveData
+struct NL_PrimitiveData
 {
     const char *value;
 };
-typedef struct PrimitiveData PrimitiveData;
+typedef struct NL_PrimitiveData NL_PrimitiveData;
 struct ComplexData
 {
     size_t membersSize;
@@ -151,7 +151,7 @@ struct Data
     const char *name;
     union
     {
-        PrimitiveData primitiveData;
+        NL_PrimitiveData primitiveData;
         ComplexData complexData;
     } val;
     Data *parent;
