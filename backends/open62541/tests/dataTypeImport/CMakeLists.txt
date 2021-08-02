@@ -118,6 +118,24 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
+ua_generate_nodeset_and_datatypes(
+    NAME "abstractdatatypemember"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.bsd"
+    NAMESPACE_MAP "2:http://yourorganisation.org/AbstractDataTypeMember/"
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml"
+    INTERNAL
+)
+
+add_executable(compareAbstractDataTypeMember compareAbstractDataTypeMember.c ${UA_TYPES_ABSTRACTDATATYPEMEMBER_SOURCES})
+add_dependencies(compareAbstractDataTypeMember open62541-generator-ns-abstractdatatypemember)
+target_link_libraries(compareAbstractDataTypeMember PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_include_directories(compareAbstractDataTypeMember PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+
+add_test(NAME compareAbstractDataTypeMember_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareAbstractDataTypeMember "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml")
+
 #add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
 #add_dependencies(compareUnion open62541-generator-ns-union2)
 #target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
