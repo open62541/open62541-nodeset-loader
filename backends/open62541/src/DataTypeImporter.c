@@ -29,7 +29,7 @@ static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
     NL_Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
-        if (!TNodeId_cmp(&encodingRefType, &ref->refType))
+        if (!NodesetLoader_NodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id;

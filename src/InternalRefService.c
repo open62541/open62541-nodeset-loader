@@ -144,7 +144,7 @@ static bool isNonHierachicalRef(const InternalRefService *service,
     }
     for (size_t i = 0; i < service->nonHierachicalRefs->size; i++)
     {
-        if (!TNodeId_cmp(&ref->refType,
+        if (!NodesetLoader_NodeId_cmp(&ref->refType,
                          &service->nonHierachicalRefs->nodes[i]->id))
         {
             return true;
@@ -158,7 +158,7 @@ static bool isHierachicalReference(const InternalRefService *service,
 {
     for (size_t i = 0; i < service->hierachicalRefsSize; i++)
     {
-        if (!TNodeId_cmp(&ref->refType, &service->hierachicalRefs[i].id))
+        if (!NodesetLoader_NodeId_cmp(&ref->refType, &service->hierachicalRefs[i].id))
         {
             return true;
         }
@@ -169,7 +169,7 @@ static bool isHierachicalReference(const InternalRefService *service,
 static bool isTypeDefRef(const InternalRefService* service, const NL_Reference* ref)
 {
     NL_NodeId hasTypeDefId = {0, "i=40"};
-    return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
+    return !(NodesetLoader_NodeId_cmp(&ref->refType, &hasTypeDefId));
 }
 
 static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node)
@@ -182,7 +182,7 @@ static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *nod
         {
             for (size_t i = 0; i < service->hierachicalRefsSize; i++)
             {
-                if (!TNodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
+                if (!NodesetLoader_NodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
                 {
                     service->hierachicalRefs[service->hierachicalRefsSize++] =
                         *(NL_ReferenceTypeNode *)node;

@@ -8,7 +8,7 @@
 #include <NodesetLoader/NodeId.h>
 #include <string.h>
 
-int TNodeId_cmp(const NL_NodeId *id1, const NL_NodeId *id2)
+int NodesetLoader_NodeId_cmp(const NL_NodeId *id1, const NL_NodeId *id2)
 {
     if (id1->nsIdx == id2->nsIdx)
     {

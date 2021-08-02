@@ -128,7 +128,7 @@ static bool isInContainer(const RefContainer c, const NL_Reference *ref)
 {
     for (const NL_NodeId *id = c.ids; id != c.ids + c.size; id++)
     {
-        if (!TNodeId_cmp(&ref->refType, id))
+        if (!NodesetLoader_NodeId_cmp(&ref->refType, id))
         {
             return true;
         }
@@ -163,7 +163,7 @@ static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
         {
             for (size_t i = 0; i < service->hierachicalRefs.size; i++)
             {
-                if (!TNodeId_cmp(&service->hierachicalRefs.ids[i],
+                if (!NodesetLoader_NodeId_cmp(&service->hierachicalRefs.ids[i],
                                  &ref->target))
                 {
                     addTNodeIdToRefs(&service->hierachicalRefs, node->id);
@@ -172,7 +172,7 @@ static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
             }
             for (size_t i = 0; i < service->hasTypeDefRefs.size; i++)
             {
-                if (!TNodeId_cmp(&service->hasTypeDefRefs.ids[i], &ref->target))
+                if (!NodesetLoader_NodeId_cmp(&service->hasTypeDefRefs.ids[i], &ref->target))
                 {
                     addTNodeIdToRefs(&service->hasTypeDefRefs, node->id);
                 }

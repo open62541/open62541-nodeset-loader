@@ -90,8 +90,8 @@ START_TEST(nodeWithRefs_1) {
     Sort_addNode(ctx, (NL_Node *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==2);
-    ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
-    ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
+    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[0]->id, &a.id));
+    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[1]->id, &b.id));
     Sort_cleanup(ctx);
 }
 END_TEST
@@ -122,8 +122,8 @@ START_TEST(nodeWithRefs_2) {
     Sort_addNode(ctx, (NL_Node *)&b);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 2);
-    ck_assert(!TNodeId_cmp(&sortedNodes[0]->id, &a.id));
-    ck_assert(!TNodeId_cmp(&sortedNodes[1]->id, &b.id));
+    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[0]->id, &a.id));
+    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[1]->id, &b.id));
     Sort_cleanup(ctx);
 }
 END_TEST

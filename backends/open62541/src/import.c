@@ -469,7 +469,7 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
     const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
     while (r)
     {
-        if (!TNodeId_cmp(&r->source, &node->id))
+        if (!NodesetLoader_NodeId_cmp(&r->source, &node->id))
         {
             NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;

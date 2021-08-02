@@ -512,7 +512,7 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *no
     ref->target = alias2Id(nodeset, targetId);
     // handle hasEncoding in a special way
     NL_NodeId hasEncodingRef = {0, "i=38"};
-    if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&
+    if (!NodesetLoader_NodeId_cmp(&ref->refType, &hasEncodingRef) &&
         !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
     {
         NL_BiDirectionalReference *newRef =

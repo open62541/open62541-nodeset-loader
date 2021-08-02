@@ -5,9 +5,9 @@ START_TEST(equal)
 {
     NL_NodeId a = {0, "abc"};
     NL_NodeId b = {0, "abc"};
-    ck_assert(TNodeId_cmp(&a, &b)==0);
-    ck_assert(TNodeId_cmp(&b,&a)==0);
-    ck_assert(TNodeId_cmp(&a,&a)==0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a, &b)==0);
+    ck_assert(NodesetLoader_NodeId_cmp(&b,&a)==0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a,&a)==0);
 }
 END_TEST
 
@@ -15,9 +15,9 @@ START_TEST(notEqual_nsIdx)
 {
     NL_NodeId a = {0, "abc"};
     NL_NodeId b = {1, "abc"};
-    ck_assert(TNodeId_cmp(&a, &b) != 0);
-    ck_assert(TNodeId_cmp(&b, &a) != 0);
-    ck_assert(TNodeId_cmp(&a, &a) == 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a, &b) != 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&b, &a) != 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a, &a) == 0);
 }
 END_TEST
 
@@ -25,9 +25,9 @@ START_TEST(notEqual_id)
 {
     NL_NodeId a = {11, "abc2"};
     NL_NodeId b = {11, "abc"};
-    ck_assert(TNodeId_cmp(&a, &b) != 0);
-    ck_assert(TNodeId_cmp(&b, &a) != 0);
-    ck_assert(TNodeId_cmp(&a, &a) == 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a, &b) != 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&b, &a) != 0);
+    ck_assert(NodesetLoader_NodeId_cmp(&a, &a) == 0);
 }
 END_TEST
 
