@@ -156,7 +156,7 @@ static NL_NodeId alias2Id(const Nodeset *nodeset, char *name)
 }
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger *logger,
-                     RefService *refService)
+                     NL_ReferenceService *refService)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if (!nodeset)

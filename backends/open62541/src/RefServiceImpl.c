@@ -186,7 +186,7 @@ static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
     }
 }
 
-RefService *RefServiceImpl_new(struct UA_Server *server)
+NL_ReferenceService *RefServiceImpl_new(struct UA_Server *server)
 {
     RefServiceImpl *impl = (RefServiceImpl *)calloc(1, sizeof(RefServiceImpl));
     if (!impl)
@@ -205,7 +205,7 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
     getRefs(server, impl, nonHierachicalRoot, addToNonHierachicalRefs);
     getRefs(server, impl, hasTypeDefRoot, addToHasTypeDefRefs);
 
-    RefService *refService = (RefService *)calloc(1, sizeof(RefService));
+    NL_ReferenceService *refService = (NL_ReferenceService *)calloc(1, sizeof(NL_ReferenceService));
     if (!refService)
     {
         RefContainer_clear(&impl->hierachicalRefs);
@@ -225,7 +225,7 @@ RefService *RefServiceImpl_new(struct UA_Server *server)
     return refService;
 }
 
-void RefServiceImpl_delete(RefService *service)
+void RefServiceImpl_delete(NL_ReferenceService *service)
 {
     RefServiceImpl *impl = (RefServiceImpl *)service->context;
     RefContainer_clear(&impl->hierachicalRefs);

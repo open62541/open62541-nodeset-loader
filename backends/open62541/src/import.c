@@ -584,7 +584,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
     logger->context = &config->logger;
     logger->log = &logToOpen;
-    RefService *refService = RefServiceImpl_new(server);
+    NL_ReferenceService *refService = RefServiceImpl_new(server);
 
     NodesetLoader *loader = NodesetLoader_new(logger, refService);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,

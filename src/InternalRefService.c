@@ -199,7 +199,7 @@ static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *nod
     }
 }
 
-RefService *InternalRefService_new()
+NL_ReferenceService *InternalRefService_new()
 {
     InternalRefService *service =
         (InternalRefService *)calloc(1, sizeof(InternalRefService));
@@ -211,7 +211,7 @@ RefService *InternalRefService_new()
     service->hierachicalRefsSize = 9;
     service->nonHierachicalRefs = NodeContainer_new(100, false);
 
-    RefService *refService = (RefService *)calloc(1, sizeof(RefService));
+    NL_ReferenceService *refService = (NL_ReferenceService *)calloc(1, sizeof(NL_ReferenceService));
     if(!refService)
     {
         free(service);
@@ -228,7 +228,7 @@ RefService *InternalRefService_new()
     return refService;
 }
 
-void InternalRefService_delete(RefService *refService)
+void InternalRefService_delete(NL_ReferenceService *refService)
 {
     InternalRefService *internalService =
         (InternalRefService *)refService->context;

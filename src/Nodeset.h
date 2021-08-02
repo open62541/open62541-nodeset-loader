@@ -34,10 +34,10 @@ struct Nodeset
     NodesetLoader_Logger* logger;
     struct NodeContainer *nodesWithUnknownRefs;
     struct NodeContainer *refTypesWithUnknownRefs;
-    RefService* refService;
+    NL_ReferenceService* refService;
 };
 
-Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger* logger, RefService* refService);
+Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger* logger, NL_ReferenceService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,

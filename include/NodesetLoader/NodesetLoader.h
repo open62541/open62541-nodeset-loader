@@ -250,7 +250,7 @@ struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
 LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                               struct RefService *refService);
+                                               struct NL_ReferenceService *refService);
 LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
                                             const NL_FileContext *fileContext);
 LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);

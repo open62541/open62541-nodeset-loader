@@ -84,7 +84,7 @@ struct NodesetLoader
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
     bool internalLogger;
-    RefService *refService;
+    NL_ReferenceService *refService;
     bool internalRefService;
 };
 
@@ -519,7 +519,7 @@ bool NodesetLoader_sort(NodesetLoader *loader)
 }
 
 NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                 RefService *refService)
+                                 NL_ReferenceService *refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
