@@ -3,9 +3,9 @@
 #include <check.h>
 #include <stdio.h>
 
-static void initNode(TVariableNode* n)
+static void initNode(NL_VariableNode* n)
 {
-    memset(n, 0, sizeof(TVariableNode));
+    memset(n, 0, sizeof(NL_VariableNode));
 }
 
 START_TEST(newEmptyContainer) {
@@ -17,7 +17,7 @@ END_TEST
 
 START_TEST(ownership) {
 
-    TVariableNode varNode;
+    NL_VariableNode varNode;
     initNode(&varNode);
     
     NodeContainer* container = NodeContainer_new(100, false);

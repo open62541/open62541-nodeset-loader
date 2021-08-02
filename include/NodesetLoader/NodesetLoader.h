@@ -113,7 +113,7 @@ struct NL_ObjectTypeNode
 };
 typedef struct NL_ObjectTypeNode NL_ObjectTypeNode;
 
-struct TVariableTypeNode
+struct NL_VariableTypeNode
 {
     NODE_ATTRIBUTES
     char *isAbstract;
@@ -121,7 +121,7 @@ struct TVariableTypeNode
     char *arrayDimensions;
     char *valueRank;
 };
-typedef struct TVariableTypeNode TVariableTypeNode;
+typedef struct NL_VariableTypeNode NL_VariableTypeNode;
 
 struct Data;
 typedef struct Data Data;
@@ -168,7 +168,7 @@ struct Value
     Data *data;
 };
 typedef struct Value Value;
-struct TVariableNode
+struct NL_VariableNode
 {
     NODE_ATTRIBUTES
     NODE_INSTANCE_ATTRIBUTES
@@ -181,7 +181,7 @@ struct TVariableNode
     Value *value;
     Reference *refToTypeDef;
 };
-typedef struct TVariableNode TVariableNode;
+typedef struct NL_VariableNode NL_VariableNode;
 
 typedef struct
 {
@@ -209,14 +209,14 @@ struct NL_DataTypeNode
 };
 typedef struct NL_DataTypeNode NL_DataTypeNode;
 
-struct TMethodNode
+struct NL_MethodNode
 {
     NODE_ATTRIBUTES
     NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 };
-typedef struct TMethodNode TMethodNode;
+typedef struct NL_MethodNode NL_MethodNode;
 
 struct NL_ReferenceTypeNode
 {

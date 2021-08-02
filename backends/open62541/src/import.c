@@ -154,7 +154,7 @@ handleViewNode(const TViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
 }
 
 static void
-handleMethodNode(const TMethodNode *node, UA_NodeId *id,
+handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
                  const UA_LocalizedText *description, UA_Server *server)
@@ -196,7 +196,7 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
     return arrSize;
 }
 
-static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
+static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
                                const UA_NodeId *parentId,
                                const UA_NodeId *parentReferenceId,
                                const UA_LocalizedText *lt,
@@ -322,7 +322,7 @@ static void handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                    *qn, attr, node->extension, NULL);
 }
 
-static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
+static void handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *id,
                                    const UA_NodeId *parentId,
                                    const UA_NodeId *parentReferenceId,
                                    const UA_LocalizedText *lt,
@@ -389,7 +389,7 @@ static void addNode(UA_Server *server, const NL_Node *node)
         break;
 
     case NODECLASS_METHOD:
-        handleMethodNode((const TMethodNode *)node, &id, &parentId,
+        handleMethodNode((const NL_MethodNode *)node, &id, &parentId,
                          &parentReferenceId, &lt, &qn, &description, server);
         break;
 
@@ -406,13 +406,13 @@ static void addNode(UA_Server *server, const NL_Node *node)
         break;
 
     case NODECLASS_VARIABLETYPE:
-        handleVariableTypeNode((const TVariableTypeNode *)node, &id, &parentId,
+        handleVariableTypeNode((const NL_VariableTypeNode *)node, &id, &parentId,
                                &parentReferenceId, &lt, &qn, &description,
                                server);
         break;
 
     case NODECLASS_VARIABLE:
-        handleVariableNode((const TVariableNode *)node, &id, &parentId,
+        handleVariableNode((const NL_VariableNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_DATATYPE:

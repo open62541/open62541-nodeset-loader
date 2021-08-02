@@ -330,35 +330,35 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
     case NODECLASS_VARIABLE:
     {
 
-        ((TVariableNode *)node)->parentNodeId = extractNodedId(
+        ((NL_VariableNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        ((TVariableNode *)node)->datatype = alias2Id(nodeset, datatype);
-        ((TVariableNode *)node)->valueRank = getAttributeValue(
+        ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
+        ((NL_VariableNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
-        ((TVariableNode *)node)->arrayDimensions = getAttributeValue(
+        ((NL_VariableNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
-        ((TVariableNode *)node)->accessLevel = getAttributeValue(
+        ((NL_VariableNode *)node)->accessLevel = getAttributeValue(
             nodeset, &attrAccessLevel, attributes, attributeSize);
-        ((TVariableNode *)node)->userAccessLevel = getAttributeValue(
+        ((NL_VariableNode *)node)->userAccessLevel = getAttributeValue(
             nodeset, &attrUserAccessLevel, attributes, attributeSize);
-        ((TVariableNode *)node)->historizing = getAttributeValue(
+        ((NL_VariableNode *)node)->historizing = getAttributeValue(
             nodeset, &attrHistorizing, attributes, attributeSize);
         break;
     }
     case NODECLASS_VARIABLETYPE:
     {
 
-        ((TVariableTypeNode *)node)->valueRank = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        ((TVariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
-        ((TVariableTypeNode *)node)->arrayDimensions = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
+        ((NL_VariableTypeNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
-        ((TVariableTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     }
@@ -367,12 +367,12 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     case NODECLASS_METHOD:
-        ((TMethodNode *)node)->parentNodeId = extractNodedId(
+        ((NL_MethodNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TMethodNode *)node)->executable = getAttributeValue(
+        ((NL_MethodNode *)node)->executable = getAttributeValue(
             nodeset, &attrExecutable, attributes, attributeSize);
-        ((TMethodNode *)node)->userExecutable = getAttributeValue(
+        ((NL_MethodNode *)node)->userExecutable = getAttributeValue(
             nodeset, &attrUserExecutable, attributes, attributeSize);
         break;
     case NODECLASS_REFERENCETYPE:
@@ -431,7 +431,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
         nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
                                              newRef))
     {
-        ((TVariableNode *)node)->refToTypeDef = newRef;
+        ((NL_VariableNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 

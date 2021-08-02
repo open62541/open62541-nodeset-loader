@@ -15,16 +15,16 @@ static void sortCallback(struct Nodeset* nodeset, NL_Node *node)
     sortedNodesCnt++;
 }
 
-static void initNode(TVariableNode* n)
+static void initNode(NL_VariableNode* n)
 {
-    memset(n, 0, sizeof(TVariableNode));
+    memset(n, 0, sizeof(NL_VariableNode));
 }
 
 START_TEST(singleNode) {
     sortedNodesCnt = 0;
     SortContext* ctx = Sort_init();
 
-    TVariableNode a;
+    NL_VariableNode a;
     initNode(&a);
     a.id.id = "nodeA";
     a.nodeClass = NODECLASS_VARIABLE;
@@ -41,15 +41,15 @@ START_TEST(sortNodes) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TVariableNode a;
+    NL_VariableNode a;
     initNode(&a);
     a.id.id = "nodeA";
     a.nodeClass = NODECLASS_VARIABLE;
-    TVariableNode b;
+    NL_VariableNode b;
     initNode(&b);
     b.id.id = "nodeB";
     b.nodeClass = NODECLASS_VARIABLE;
-    TVariableNode c;
+    NL_VariableNode c;
     initNode(&c);
     c.id.id = "nodeC";
     c.nodeClass = NODECLASS_VARIABLE;
@@ -70,7 +70,7 @@ START_TEST(nodeWithRefs_1) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TVariableNode a;
+    NL_VariableNode a;
     initNode(&a);
     a.id.id = "nodeA";
     a.nodeClass = NODECLASS_VARIABLE;
@@ -80,7 +80,7 @@ START_TEST(nodeWithRefs_1) {
     ref.target = a.id;
     ref.next = NULL;
 
-    TVariableNode b;
+    NL_VariableNode b;
     initNode(&b);
     b.hierachicalRefs = &ref;
     b.id.id = "nodeB";
@@ -103,7 +103,7 @@ START_TEST(nodeWithRefs_2) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TVariableNode a;
+    NL_VariableNode a;
     initNode(&a);
     a.id.id = "nodeA";
 
@@ -112,7 +112,7 @@ START_TEST(nodeWithRefs_2) {
     ref.target = a.id;
     ref.next = NULL;
 
-    TVariableNode b;
+    NL_VariableNode b;
     initNode(&b);
     b.hierachicalRefs = &ref;
     b.id.nsIdx=0;
@@ -134,12 +134,12 @@ START_TEST(cycleDetect) {
     sortedNodesCnt = 0;
     SortContext *ctx = Sort_init();
 
-    TVariableNode a;
+    NL_VariableNode a;
     initNode(&a);
     a.id.nsIdx = 1;
     a.id.id = "nodeA";
 
-    TVariableNode b;
+    NL_VariableNode b;
     initNode(&b);
     b.id.id = "nodeB";
     b.id.nsIdx = 1;

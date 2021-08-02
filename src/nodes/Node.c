@@ -16,7 +16,7 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
     switch (nodeClass)
     {
     case NODECLASS_VARIABLE:
-        node = (NL_Node *)calloc(1, sizeof(TVariableNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_VariableNode));
         break;
     case NODECLASS_OBJECT:
         node = (NL_Node *)calloc(1, sizeof(NL_ObjectNode));
@@ -28,13 +28,13 @@ NL_Node *Node_new(NL_NodeClass nodeClass)
         node = (NL_Node *)calloc(1, sizeof(NL_ReferenceTypeNode));
         break;
     case NODECLASS_VARIABLETYPE:
-        node = (NL_Node *)calloc(1, sizeof(TVariableTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_VariableTypeNode));
         break;
     case NODECLASS_DATATYPE:
         node = (NL_Node *)calloc(1, sizeof(NL_DataTypeNode));
         break;
     case NODECLASS_METHOD:
-        node = (NL_Node *)calloc(1, sizeof(TMethodNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_MethodNode));
         break;
     case NODECLASS_VIEW:
         node = (NL_Node *)calloc(1, sizeof(TViewNode));
@@ -67,7 +67,7 @@ void Node_delete(NL_Node *node)
     }
     if(node->nodeClass == NODECLASS_VARIABLE)
     {
-        TVariableNode* varNode = (TVariableNode*)node;
+        NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
         if(varNode->value)
         {

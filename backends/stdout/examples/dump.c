@@ -24,11 +24,11 @@ void dumpNode(void *userContext, const NL_Node *node)
         break;
     case NODECLASS_VARIABLE:
         printf("\tparentNodeId: %s\n",
-               ((const TVariableNode *)node)->parentNodeId.id);
-        printf("\tdatatype: %s\n", ((const TVariableNode *)node)->datatype.id);
-        printf("\tvalueRank: %s\n", ((const TVariableNode *)node)->valueRank);
+               ((const NL_VariableNode *)node)->parentNodeId.id);
+        printf("\tdatatype: %s\n", ((const NL_VariableNode *)node)->datatype.id);
+        printf("\tvalueRank: %s\n", ((const NL_VariableNode *)node)->valueRank);
         printf("\tarrayDimensions: %s\n",
-               ((const TVariableNode *)node)->valueRank);
+               ((const NL_VariableNode *)node)->valueRank);
         break;
     case NODECLASS_OBJECTTYPE:
         break;
