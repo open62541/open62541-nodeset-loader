@@ -138,12 +138,12 @@ struct NL_PrimitiveData
     const char *value;
 };
 typedef struct NL_PrimitiveData NL_PrimitiveData;
-struct ComplexData
+struct NL_ComplexData
 {
     size_t membersSize;
     Data **members;
 };
-typedef struct ComplexData ComplexData;
+typedef struct NL_ComplexData NL_ComplexData;
 
 struct Data
 {
@@ -152,7 +152,7 @@ struct Data
     union
     {
         NL_PrimitiveData primitiveData;
-        ComplexData complexData;
+        NL_ComplexData complexData;
     } val;
     Data *parent;
 };
