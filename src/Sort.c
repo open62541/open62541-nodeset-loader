@@ -326,7 +326,7 @@ void Sort_addNode(SortContext *ctx, NL_Node *data)
         // referencing it? -> try it with parentNodeId
         if (NodesetLoader_isInstanceNode(data))
         {
-            TInstanceNode *instanceNode = (TInstanceNode *)data;
+            NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
             if (instanceNode->parentNodeId.id != NULL)
             {
                 node *k = search_node(ctx->root1, &instanceNode->parentNodeId);

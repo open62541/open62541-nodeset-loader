@@ -102,7 +102,7 @@ static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
     if(NodesetLoader_isInstanceNode(node))
     {
         parentId =
-            getNodeIdFromChars(((const TInstanceNode*)node)->parentNodeId);
+            getNodeIdFromChars(((const NL_InstanceNode*)node)->parentNodeId);
     }
     Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);

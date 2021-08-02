@@ -63,19 +63,19 @@ struct NL_BiDirectionalReference
     NL_BiDirectionalReference *next;
 };
 
-struct TLocalizedText
+struct NL_LocalizedText
 {
     char *locale;
     char *text;
 };
-typedef struct TLocalizedText TLocalizedText;
+typedef struct NL_LocalizedText NL_LocalizedText;
 
 #define NODE_ATTRIBUTES                                                        \
     NL_NodeClass nodeClass;                                                      \
     NL_NodeId id;                                                                \
     NL_BrowseName browseName;                                                    \
-    TLocalizedText displayName;                                                \
-    TLocalizedText description;                                                \
+    NL_LocalizedText displayName;                                                \
+    NL_LocalizedText description;                                                \
     char *writeMask;                                                           \
     Reference *hierachicalRefs;                                                \
     Reference *nonHierachicalRefs;                                             \
@@ -90,12 +90,12 @@ struct NL_Node
 };
 typedef struct NL_Node NL_Node;
 
-struct TInstanceNode
+struct NL_InstanceNode
 {
     NODE_ATTRIBUTES
     NODE_INSTANCE_ATTRIBUTES
 };
-typedef struct TInstanceNode TInstanceNode;
+typedef struct NL_InstanceNode NL_InstanceNode;
 
 struct TObjectNode
 {
@@ -221,7 +221,7 @@ typedef struct TMethodNode TMethodNode;
 struct TReferenceTypeNode
 {
     NODE_ATTRIBUTES
-    TLocalizedText inverseName;
+    NL_LocalizedText inverseName;
     char *symmetric;
 };
 typedef struct TReferenceTypeNode TReferenceTypeNode;
