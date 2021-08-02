@@ -25,7 +25,7 @@ typedef enum ParserState ParserState;
 struct NL_ParserCtx
 {
     ParserState state;
-    Data *currentData;
+    NL_Data *currentData;
 };
 typedef struct NL_ParserCtx NL_ParserCtx;
 

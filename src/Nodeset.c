@@ -531,7 +531,7 @@ void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
                                    int attributeSize, const char **attributes)
 {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
-    DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
+    NL_DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
     def->isUnion =
         !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
                                           attributes, attributeSize));

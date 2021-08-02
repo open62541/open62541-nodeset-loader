@@ -137,7 +137,7 @@ static void setPrimitiveValue(RawData *data, const char *value,
     data->offset = data->offset + memSize;
 }
 
-static Data *lookupMember(const Data *value, const char *name)
+static NL_Data *lookupMember(const NL_Data *value, const char *name)
 {
     // is there a better way?
     for (size_t cnt = 0; cnt < value->val.complexData.membersSize; cnt++)
@@ -150,7 +150,7 @@ static Data *lookupMember(const Data *value, const char *name)
     return NULL;
 }
 
-static void setDateTime(const Data *value, RawData *data)
+static void setDateTime(const NL_Data *value, RawData *data)
 {
     uintptr_t adr = (uintptr_t)data->mem + data->offset;
     UA_DateTime time = UA_DateTime_fromString(value->val.primitiveData.value);
@@ -158,7 +158,7 @@ static void setDateTime(const Data *value, RawData *data)
     data->offset = data->offset + sizeof(UA_DateTime);
 }
 
-static void setQualifiedName(const Data *value, RawData *data)
+static void setQualifiedName(const NL_Data *value, RawData *data)
 {
 
     setScalarValueWithAddress(
@@ -175,9 +175,9 @@ static void setQualifiedName(const Data *value, RawData *data)
     data->offset += sizeof(UA_QualifiedName);
 }
 
-static void setLocalizedText(const Data *value, RawData *data)
+static void setLocalizedText(const NL_Data *value, RawData *data)
 {
-    Data *localeData = lookupMember(value, "Locale");
+    NL_Data *localeData = lookupMember(value, "Locale");
 
     if (localeData)
     {
@@ -187,7 +187,7 @@ static void setLocalizedText(const Data *value, RawData *data)
                                   localeData->val.primitiveData.value);
     }
 
-    Data *textData = lookupMember(value, "Text");
+    NL_Data *textData = lookupMember(value, "Text");
 
     if (textData)
     {
@@ -198,7 +198,7 @@ static void setLocalizedText(const Data *value, RawData *data)
     data->offset += sizeof(UA_LocalizedText);
 }
 
-static void setNodeId(const Data *value, RawData *data)
+static void setNodeId(const NL_Data *value, RawData *data)
 {
     // TODO: translate namespaceIndex?
     assert(value->val.complexData.membersSize == 1);
@@ -208,7 +208,7 @@ static void setNodeId(const Data *value, RawData *data)
     data->offset += sizeof(UA_NodeId);
 }
 
-static void setByteString(const Data* value, RawData*data)
+static void setByteString(const NL_Data* value, RawData*data)
 {
     UA_ByteString *s = (UA_ByteString *)((uintptr_t)data->mem+data->offset);
     int len = 0;
@@ -220,12 +220,12 @@ static void setByteString(const Data* value, RawData*data)
     data->additionalMem = val;
 }
 
-static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
+static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes);
-static void setArray(const Data *value, const UA_DataType *type, RawData *data,
+static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
                      const UA_DataType *customTypes);
 
-static void setStructure(const Data *value, const UA_DataType *type,
+static void setStructure(const NL_Data *value, const UA_DataType *type,
                          RawData *data, const UA_DataType *customTypes)
 {
     assert(value->type == DATATYPE_COMPLEX);
@@ -244,7 +244,7 @@ static void setStructure(const Data *value, const UA_DataType *type,
         }
 
         data->offset += m->padding;
-        Data *memberData = lookupMember(value, m->memberName);
+        NL_Data *memberData = lookupMember(value, m->memberName);
         if (!memberData)
         {
             data->offset += memberType->memSize;
@@ -270,7 +270,7 @@ static void setStructure(const Data *value, const UA_DataType *type,
     }
 }
 
-static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
+static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes)
 {
     if (type->typeKind < CONVERSION_TABLE_SIZE)
@@ -314,7 +314,7 @@ static void setScalar(const Data *value, const UA_DataType *type, RawData *data,
     }
 }
 
-static void setArray(const Data *value, const UA_DataType *type, RawData *data,
+static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
                      const UA_DataType *customTypes)
 {
     for (size_t i = 0; i < value->val.complexData.membersSize; i++)

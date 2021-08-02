@@ -8,7 +8,7 @@
 #include "DataTypeNode.h"
 #include <stdlib.h>
 
-static NL_DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
+static NL_DataTypeDefinitionField *getNewField(NL_DataTypeDefinition *definition)
 {
     definition->fieldCnt++;
     definition->fields = (NL_DataTypeDefinitionField *)realloc(
@@ -21,10 +21,10 @@ static NL_DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
     return &definition->fields[definition->fieldCnt - 1];
 }
 
-DataTypeDefinition* DataTypeDefinition_new(NL_DataTypeNode* node)
+NL_DataTypeDefinition* DataTypeDefinition_new(NL_DataTypeNode* node)
 {
     node->definition =
-        (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
+        (NL_DataTypeDefinition *)calloc(1, sizeof(NL_DataTypeDefinition));
     if (!node->definition)
     {
         return NULL;
@@ -32,7 +32,7 @@ DataTypeDefinition* DataTypeDefinition_new(NL_DataTypeNode* node)
     return node->definition;
 }
 
-NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def)
+NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def)
 {
     return getNewField(def);
 }

@@ -123,8 +123,8 @@ struct NL_VariableTypeNode
 };
 typedef struct NL_VariableTypeNode NL_VariableTypeNode;
 
-struct Data;
-typedef struct Data Data;
+struct NL_Data;
+typedef struct NL_Data NL_Data;
 enum NL_DataType
 {
     DATATYPE_PRIMITIVE,
@@ -141,11 +141,11 @@ typedef struct NL_PrimitiveData NL_PrimitiveData;
 struct NL_ComplexData
 {
     size_t membersSize;
-    Data **members;
+    NL_Data **members;
 };
 typedef struct NL_ComplexData NL_ComplexData;
 
-struct Data
+struct NL_Data
 {
     NL_DataType type;
     const char *name;
@@ -154,7 +154,7 @@ struct Data
         NL_PrimitiveData primitiveData;
         NL_ComplexData complexData;
     } val;
-    Data *parent;
+    NL_Data *parent;
 };
 
 struct NL_ParserCtx;
@@ -165,7 +165,7 @@ struct NL_Value
     bool isExtensionObject;
     const char *type;
     NL_NodeId typeId;
-    Data *data;
+    NL_Data *data;
 };
 typedef struct NL_Value NL_Value;
 struct NL_VariableNode
@@ -199,12 +199,12 @@ typedef struct
     bool isEnum;
     bool isUnion;
     bool isOptionSet;
-} DataTypeDefinition;
+} NL_DataTypeDefinition;
 
 struct NL_DataTypeNode
 {
     NL_NODE_ATTRIBUTES
-    DataTypeDefinition *definition;
+    NL_DataTypeDefinition *definition;
     char *isAbstract;
 };
 typedef struct NL_DataTypeNode NL_DataTypeNode;
