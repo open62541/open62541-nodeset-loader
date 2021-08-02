@@ -72,7 +72,7 @@ struct TParserCtx
     struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;
-    Value *val;
+    NL_Value *val;
     void *extensionData;
     NodesetLoader_ExtensionInterface *extIf;
     NL_Reference *ref;

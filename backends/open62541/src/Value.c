@@ -323,7 +323,7 @@ static void setArray(const Data *value, const UA_DataType *type, RawData *data,
     }
 }
 
-RawData *Value_getData(const Value *value, const UA_DataType *type,
+RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
                        const UA_DataType *customTypes)
 {
     if (!type)

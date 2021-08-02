@@ -158,7 +158,7 @@ struct Data
 };
 
 struct NL_ParserCtx;
-struct Value
+struct NL_Value
 {
     struct NL_ParserCtx *ctx;
     bool isArray;
@@ -167,7 +167,7 @@ struct Value
     NL_NodeId typeId;
     Data *data;
 };
-typedef struct Value Value;
+typedef struct NL_Value NL_Value;
 struct NL_VariableNode
 {
     NL_NODE_ATTRIBUTES
@@ -178,7 +178,7 @@ struct NL_VariableNode
     char *accessLevel;
     char *userAccessLevel;
     char *historizing;
-    Value *value;
+    NL_Value *value;
     NL_Reference *refToTypeDef;
 };
 typedef struct NL_VariableNode NL_VariableNode;

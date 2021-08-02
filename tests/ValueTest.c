@@ -3,9 +3,9 @@
 
 START_TEST(simpleVal)
 {
-    //<Value><Double> 3.1415 < / Double > </ Value>
+    //<Value><Double> 3.1415 < / Double > </Value>
 
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "Double");
     Value_end(val, "Double", "3.1415");
     ck_assert(val);
@@ -39,7 +39,7 @@ START_TEST(ExtensionObject)
     </Value>
 */
 
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "ExtensionObject");
     Value_start(val, "TypeId");
     Value_start(val, "Identifier");
@@ -78,7 +78,7 @@ START_TEST(ListOfUInt32)
         </Value>
     */
 
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "ListOfUInt32");
     Value_start(val, "UInt32");
     Value_end(val, "UInt32", "120");
@@ -136,7 +136,7 @@ xmlns="http://opcfoundation.org/UA/2008/02/Types.xsd"> <ExtensionObject>
       </ListOfExtensionObject>
 */
 
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "ListOfExtensionObject");
     // obj1
     Value_start(val, "ExtensionObject");
@@ -190,7 +190,7 @@ START_TEST(LocalizedText)
     </Value>
     */
 
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "LocalizedText");
     Value_start(val, "Locale");
     Value_end(val, "Locale", "en");
@@ -248,7 +248,7 @@ START_TEST(EnumValueType)
     </uax:ExtensionObject>
 </uax:ListOfExtensionObject>
 */
-    Value *val = Value_new(NULL);
+    NL_Value *val = Value_new(NULL);
     Value_start(val, "ListOfExtensionObject");
     // obj1
     Value_start(val, "ExtensionObject");

@@ -9,9 +9,9 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-Value *Value_new(const NL_Node *node)
+NL_Value *Value_new(const NL_Node *node)
 {
-    Value *newValue = (Value *)calloc(1, sizeof(Value));
+    NL_Value *newValue = (NL_Value *)calloc(1, sizeof(NL_Value));
     newValue->ctx = (NL_ParserCtx *)calloc(1, sizeof(NL_ParserCtx));
     newValue->ctx->state = PARSERSTATE_INIT;
     return newValue;
@@ -43,7 +43,7 @@ static Data *addNewMember(Data *parent, const char *name)
     return newData;
 }
 
-void Value_start(Value *val, const char *name)
+void Value_start(NL_Value *val, const char *name)
 {
     switch (val->ctx->state)
     {
@@ -148,7 +148,7 @@ static const char* isOnlyWhitespace(const char* value)
     return NULL;
 }
 
-void Value_end(Value *val, const char *name, const char *value)
+void Value_end(NL_Value *val, const char *name, const char *value)
 {
     switch (val->ctx->state)
     {
@@ -240,7 +240,7 @@ static void Data_clear(Data *data)
     free(data);
 }
 
-void Value_delete(Value *val)
+void Value_delete(NL_Value *val)
 {
     Data_clear(val->data);
     free(val->ctx);
