@@ -157,10 +157,10 @@ struct Data
     Data *parent;
 };
 
-struct ParserCtx;
+struct NL_ParserCtx;
 struct Value
 {
-    struct ParserCtx *ctx;
+    struct NL_ParserCtx *ctx;
     bool isArray;
     bool isExtensionObject;
     const char *type;

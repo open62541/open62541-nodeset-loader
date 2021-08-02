@@ -22,12 +22,12 @@ enum ParserState
 };
 typedef enum ParserState ParserState;
 
-struct ParserCtx
+struct NL_ParserCtx
 {
     ParserState state;
     Data *currentData;
 };
-typedef struct ParserCtx ParserCtx;
+typedef struct NL_ParserCtx NL_ParserCtx;
 
 Value *Value_new(const NL_Node *node);
 void Value_start(Value *val, const char *name);

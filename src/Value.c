@@ -12,7 +12,7 @@
 Value *Value_new(const NL_Node *node)
 {
     Value *newValue = (Value *)calloc(1, sizeof(Value));
-    newValue->ctx = (ParserCtx *)calloc(1, sizeof(ParserCtx));
+    newValue->ctx = (NL_ParserCtx *)calloc(1, sizeof(NL_ParserCtx));
     newValue->ctx->state = PARSERSTATE_INIT;
     return newValue;
 }
