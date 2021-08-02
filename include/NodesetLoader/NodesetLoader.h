@@ -53,14 +53,14 @@ struct Reference
     Reference *next;
 };
 
-struct BiDirectionalReference;
-typedef struct BiDirectionalReference BiDirectionalReference;
-struct BiDirectionalReference
+struct NL_BiDirectionalReference;
+typedef struct NL_BiDirectionalReference NL_BiDirectionalReference;
+struct NL_BiDirectionalReference
 {
     NL_NodeId source;
     NL_NodeId target;
     NL_NodeId refType;
-    BiDirectionalReference *next;
+    NL_BiDirectionalReference *next;
 };
 
 struct TLocalizedText
@@ -254,7 +254,7 @@ LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
 LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
                                             const FileContext *fileContext);
 LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
-LOADER_EXPORT const BiDirectionalReference *
+LOADER_EXPORT const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
 LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
 typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);

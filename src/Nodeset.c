@@ -269,10 +269,10 @@ void Nodeset_cleanup(Nodeset *nodeset)
     NodeContainer_delete(nodeset->refTypesWithUnknownRefs);
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
-    BiDirectionalReference *ref = nodeset->hasEncodingRefs;
+    NL_BiDirectionalReference *ref = nodeset->hasEncodingRefs;
     while (ref)
     {
-        BiDirectionalReference *tmp = ref->next;
+        NL_BiDirectionalReference *tmp = ref->next;
         free(ref);
         ref = tmp;
     }
@@ -515,13 +515,13 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, NL_Node *node,
     if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&
         !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
     {
-        BiDirectionalReference *newRef =
-            (BiDirectionalReference *)calloc(1, sizeof(BiDirectionalReference));
+        NL_BiDirectionalReference *newRef =
+            (NL_BiDirectionalReference *)calloc(1, sizeof(NL_BiDirectionalReference));
         newRef->source = ref->target;
         newRef->target = node->id;
         newRef->refType = ref->refType;
 
-        BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
+        NL_BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
         nodeset->hasEncodingRefs = newRef;
         newRef->next = lastRef;
     }
@@ -575,7 +575,7 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node, int attributeSize
     }
 }
 
-const BiDirectionalReference *
+const NL_BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset)
 {
     return nodeset->hasEncodingRefs;

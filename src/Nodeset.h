@@ -30,7 +30,7 @@ struct Nodeset
     struct NodeContainer *nodes[NODECLASS_COUNT];
     struct NamespaceList *namespaces;
     struct SortContext *sortCtx;
-    BiDirectionalReference *hasEncodingRefs;
+    NL_BiDirectionalReference *hasEncodingRefs;
     NodesetLoader_Logger* logger;
     struct NodeContainer *nodesWithUnknownRefs;
     struct NodeContainer *refTypesWithUnknownRefs;
@@ -66,7 +66,7 @@ void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text
 void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, int attributeSize,
                             const char **attributes);
 void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-const BiDirectionalReference *
+const NL_BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
 size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                            void *context, NodesetLoader_forEachNode_Func fn);

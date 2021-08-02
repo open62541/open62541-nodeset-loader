@@ -459,14 +459,14 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
 struct DataTypeImportCtx
 {
     DataTypeImporter *importer;
-    const BiDirectionalReference *hasEncodingRef;
+    const NL_BiDirectionalReference *hasEncodingRef;
     UA_Server *server;
 };
 
 static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
 {
     // add only the types
-    const BiDirectionalReference *r = ctx->hasEncodingRef;
+    const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
     while (r)
     {
         if (!TNodeId_cmp(&r->source, &node->id))
@@ -491,7 +491,7 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
-    const BiDirectionalReference *hasEncodingRef =
+    const NL_BiDirectionalReference *hasEncodingRef =
         NodesetLoader_getBidirectionalRefs(loader);
     DataTypeImporter *importer = DataTypeImporter_new(server);
     struct DataTypeImportCtx ctx;

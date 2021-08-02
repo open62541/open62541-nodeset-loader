@@ -561,7 +561,7 @@ void NodesetLoader_delete(NodesetLoader *loader)
     free(loader);
 }
 
-const BiDirectionalReference *
+const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
 {
     return Nodeset_getBiDirectionalRefs(loader->nodeset);
