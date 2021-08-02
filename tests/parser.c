@@ -8,7 +8,7 @@
 
 int addNamespace(void *userContext, const char *uri) { return 1; }
 
-void addNode(void *userContext, const TNode *node)
+void addNode(void *userContext, const NL_Node *node)
 {
     (*((int*)userContext))++;
 }
@@ -27,7 +27,7 @@ static void teardown(void)
 
 START_TEST(Server_ImportBasicNodeClassTest)
 {
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = addNamespace;
 
     NodesetLoader *loader = NodesetLoader_new(NULL, NULL);
@@ -37,9 +37,9 @@ START_TEST(Server_ImportBasicNodeClassTest)
 
     int nodeCount=0;
 
-    for (int i = 0; i < NODECLASS_COUNT; i++)
+    for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
-        NodesetLoader_forEachNode(loader, (TNodeClass)i, &nodeCount,
+        NodesetLoader_forEachNode(loader, (NL_NodeClass)i, &nodeCount,
                                   (NodesetLoader_forEachNode_Func)addNode);
     }
 

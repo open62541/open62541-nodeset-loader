@@ -13,15 +13,15 @@
 extern "C" {
 #endif
 
-struct TNode;
+struct NL_Node;
 struct Nodeset;
 struct SortContext;
 struct NodesetLoader_Logger;
 typedef struct SortContext SortContext;
 SortContext* Sort_init(void);
 void Sort_cleanup(SortContext * ctx);
-void Sort_addNode(SortContext* ctx, struct TNode *node);
-typedef void (*Sort_SortedNodeCallback)(struct Nodeset *nodeset, struct TNode *node);
+void Sort_addNode(SortContext* ctx, struct NL_Node *node);
+typedef void (*Sort_SortedNodeCallback)(struct Nodeset *nodeset, struct NL_Node *node);
 bool Sort_start(SortContext* ctx, struct Nodeset *nodeset, Sort_SortedNodeCallback callback, struct NodesetLoader_Logger* logger);
 
 #ifdef __cplusplus

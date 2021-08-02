@@ -46,7 +46,7 @@ Alias *AliasList_newAlias(AliasList *list, char *name)
     return &list->data[list->size - 1];
 }
 
-const TNodeId *AliasList_getNodeId(const AliasList *list, const char *name)
+const NL_NodeId *AliasList_getNodeId(const AliasList *list, const char *name)
 {
     if(!name)
     {

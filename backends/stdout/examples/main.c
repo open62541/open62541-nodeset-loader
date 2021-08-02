@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     }
 
     int maxValueRank = -1;
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = addNamespace;
     handler.userContext = &maxValueRank;
 
@@ -36,9 +36,9 @@ int main(int argc, char *argv[])
 
     NodesetLoader_sort(loader);
 
-    for (int i = 0; i < NODECLASS_COUNT; i++)
+    for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
-        NodesetLoader_forEachNode(loader, (TNodeClass)i, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
+        NodesetLoader_forEachNode(loader, (NL_NodeClass)i, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
     }
 
     NodesetLoader_delete(loader);

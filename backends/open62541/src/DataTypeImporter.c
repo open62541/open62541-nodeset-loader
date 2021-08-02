@@ -17,19 +17,19 @@
 struct DataTypeImporter
 {
     UA_DataTypeArray *types;
-    const TDataTypeNode **nodes;
+    const NL_DataTypeNode **nodes;
     size_t nodesSize;
     size_t firstNewDataType;
 };
 
-static UA_NodeId getBinaryEncodingId(const TDataTypeNode *node)
+static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
 {
-    TNodeId encodingRefType = {0, "i=38"};
+    NL_NodeId encodingRefType = {0, "i=38"};
 
-    Reference *ref = node->nonHierachicalRefs;
+    NL_Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
-        if (!TNodeId_cmp(&encodingRefType, &ref->refType))
+        if (!NodesetLoader_NodeId_cmp(&encodingRefType, &ref->refType))
         {
             UA_NodeId id = getNodeIdFromChars(ref->target);
             return id;
@@ -239,9 +239,9 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
     }
 }
 
-static TNodeId getParentNode(const TDataTypeNode *node)
+static NL_NodeId getParentNode(const NL_DataTypeNode *node)
 {
-    Reference *ref = node->hierachicalRefs;
+    NL_Reference *ref = node->hierachicalRefs;
     while (ref)
     {
         if (!ref->isForward)
@@ -250,13 +250,13 @@ static TNodeId getParentNode(const TDataTypeNode *node)
         }
         ref=ref->next;
     }
-    TNodeId nullId = {0, NULL};
+    NL_NodeId nullId = {0, NULL};
     return nullId;
 }
 
 static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
                                         UA_DataType *type,
-                                        const TDataTypeNode *node)
+                                        const NL_DataTypeNode *node)
 {
     // member of supertype have to be added, if there is one
     UA_NodeId parent = getNodeIdFromChars(getParentNode(node));
@@ -318,7 +318,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 }
 
 static void addDataTypeMembers(const UA_DataType *customTypes,
-                               UA_DataType *type, const TDataTypeNode *node)
+                               UA_DataType *type, const NL_DataTypeNode *node)
 {
 
     if (!node->definition)
@@ -354,7 +354,7 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
 }
 
 static void StructureDataType_init(const DataTypeImporter *importer,
-                                   UA_DataType *type, const TDataTypeNode *node, bool isOptionSet)
+                                   UA_DataType *type, const NL_DataTypeNode *node, bool isOptionSet)
 {
     if (node->definition && node->definition->isUnion)
     {
@@ -375,7 +375,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
 }
 
 static void EnumDataType_init(const DataTypeImporter *importer,
-                              UA_DataType *enumType, const TDataTypeNode *node)
+                              UA_DataType *enumType, const NL_DataTypeNode *node)
 {
     enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
@@ -388,7 +388,7 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 }
 
 static void SubtypeOfBase_init(const DataTypeImporter *importer,
-                               UA_DataType *type, const TDataTypeNode *node,
+                               UA_DataType *type, const NL_DataTypeNode *node,
                                const UA_NodeId parent)
 {
     const UA_DataType* parentType = UA_findDataType(&parent);
@@ -482,7 +482,7 @@ void DataTypeImporter_initMembers(DataTypeImporter *importer)
 }
 
 void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
-                                        const TDataTypeNode *node,
+                                        const NL_DataTypeNode *node,
                                         const UA_NodeId parent)
 {
     // there is an open issue for that
@@ -528,7 +528,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
         SubtypeOfBase_init(importer, type, node, parent);
     }
 
-    importer->nodes = (const TDataTypeNode **)realloc(
+    importer->nodes = (const NL_DataTypeNode **)realloc(
         (void*)importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
     importer->nodes[importer->nodesSize] = node;
     importer->nodesSize++;

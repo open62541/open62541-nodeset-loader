@@ -13,14 +13,14 @@
 struct InternalRefService
 {
     size_t hierachicalRefsSize;
-    TReferenceTypeNode *hierachicalRefs;
+    NL_ReferenceTypeNode *hierachicalRefs;
     struct NodeContainer *nonHierachicalRefs;
 };
 
 typedef struct InternalRefService InternalRefService;
 
 #define MAX_HIERACHICAL_REFS 50
-TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
+NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
     {
         NODECLASS_REFERENCETYPE,
         {0, "i=35"},
@@ -134,7 +134,7 @@ TReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
 };
 
 static bool isNonHierachicalRef(const InternalRefService *service,
-                                const Reference *ref)
+                                const NL_Reference *ref)
 {
     // TODO: nonHierachicalrefs should also be imported first
     // we state that we know all references from namespace 0
@@ -144,7 +144,7 @@ static bool isNonHierachicalRef(const InternalRefService *service,
     }
     for (size_t i = 0; i < service->nonHierachicalRefs->size; i++)
     {
-        if (!TNodeId_cmp(&ref->refType,
+        if (!NodesetLoader_NodeId_cmp(&ref->refType,
                          &service->nonHierachicalRefs->nodes[i]->id))
         {
             return true;
@@ -154,11 +154,11 @@ static bool isNonHierachicalRef(const InternalRefService *service,
 }
 
 static bool isHierachicalReference(const InternalRefService *service,
-                                   const Reference *ref)
+                                   const NL_Reference *ref)
 {
     for (size_t i = 0; i < service->hierachicalRefsSize; i++)
     {
-        if (!TNodeId_cmp(&ref->refType, &service->hierachicalRefs[i].id))
+        if (!NodesetLoader_NodeId_cmp(&ref->refType, &service->hierachicalRefs[i].id))
         {
             return true;
         }
@@ -166,15 +166,15 @@ static bool isHierachicalReference(const InternalRefService *service,
     return false;
 }
 
-static bool isTypeDefRef(const InternalRefService* service, const Reference* ref)
+static bool isTypeDefRef(const InternalRefService* service, const NL_Reference* ref)
 {
-    TNodeId hasTypeDefId = {0, "i=40"};
-    return !(TNodeId_cmp(&ref->refType, &hasTypeDefId));
+    NL_NodeId hasTypeDefId = {0, "i=40"};
+    return !(NodesetLoader_NodeId_cmp(&ref->refType, &hasTypeDefId));
 }
 
-static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
+static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node)
 {
-    Reference *ref = node->hierachicalRefs;
+    NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
     while (ref)
     {
@@ -182,10 +182,10 @@ static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
         {
             for (size_t i = 0; i < service->hierachicalRefsSize; i++)
             {
-                if (!TNodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
+                if (!NodesetLoader_NodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
                 {
                     service->hierachicalRefs[service->hierachicalRefsSize++] =
-                        *(TReferenceTypeNode *)node;
+                        *(NL_ReferenceTypeNode *)node;
                     isHierachical = true;
                     break;
                 }
@@ -195,11 +195,11 @@ static void addnewRefType(InternalRefService *service, TReferenceTypeNode *node)
     }
     if (!isHierachical)
     {
-        NodeContainer_add(service->nonHierachicalRefs, (TNode *)node);
+        NodeContainer_add(service->nonHierachicalRefs, (NL_Node *)node);
     }
 }
 
-RefService *InternalRefService_new()
+NL_ReferenceService *InternalRefService_new()
 {
     InternalRefService *service =
         (InternalRefService *)calloc(1, sizeof(InternalRefService));
@@ -211,7 +211,7 @@ RefService *InternalRefService_new()
     service->hierachicalRefsSize = 9;
     service->nonHierachicalRefs = NodeContainer_new(100, false);
 
-    RefService *refService = (RefService *)calloc(1, sizeof(RefService));
+    NL_ReferenceService *refService = (NL_ReferenceService *)calloc(1, sizeof(NL_ReferenceService));
     if(!refService)
     {
         free(service);
@@ -228,7 +228,7 @@ RefService *InternalRefService_new()
     return refService;
 }
 
-void InternalRefService_delete(RefService *refService)
+void InternalRefService_delete(NL_ReferenceService *refService)
 {
     InternalRefService *internalService =
         (InternalRefService *)refService->context;

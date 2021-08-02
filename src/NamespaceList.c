@@ -12,10 +12,10 @@ struct NamespaceList
 {
     size_t size;
     Namespace *data;
-    addNamespaceCb cb;
+    NL_addNamespaceCallback cb;
 };
 
-NamespaceList *NamespaceList_new(addNamespaceCb cb)
+NamespaceList *NamespaceList_new(NL_addNamespaceCallback cb)
 {
     NamespaceList *list = (NamespaceList *)calloc(1, sizeof(NamespaceList));
     if(!list)

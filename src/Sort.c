@@ -24,13 +24,13 @@ typedef struct edge edge;
 
 struct node
 {
-    const TNodeId *id;
+    const NL_NodeId *id;
     struct node *left, *right;
     int balance;
     struct node *qlink;
     struct edge *edges;
     size_t edgeCount;
-    TNode *data;
+    NL_Node *data;
 };
 
 typedef struct node node;
@@ -43,7 +43,7 @@ struct SortContext
     size_t keyCnt;
 };
 
-static node *new_node(const TNodeId *id)
+static node *new_node(const NL_NodeId *id)
 {
     node *k = (node *)calloc(1, sizeof(node));
     if(!k)
@@ -62,7 +62,7 @@ static node *new_node(const TNodeId *id)
     return k;
 }
 
-static node *search_node(node *rootNode, const TNodeId *nodeId)
+static node *search_node(node *rootNode, const NL_NodeId *nodeId)
 {
     if(!rootNode)
     {
@@ -78,7 +78,7 @@ static node *search_node(node *rootNode, const TNodeId *nodeId)
 
     while (true)
     {
-        int a = TNodeId_cmp(nodeId, p->id);
+        int a = NodesetLoader_NodeId_cmp(nodeId, p->id);
         if (a == 0)
             return p;
 
@@ -96,8 +96,8 @@ static node *search_node(node *rootNode, const TNodeId *nodeId)
             else
                 p->right = q;
 
-            assert(TNodeId_cmp(nodeId, s->id));
-            if (TNodeId_cmp(nodeId, s->id) < 0)
+            assert(NodesetLoader_NodeId_cmp(nodeId, s->id));
+            if (NodesetLoader_NodeId_cmp(nodeId, s->id) < 0)
             {
                 r = p = s->left;
                 a = -1;
@@ -110,8 +110,8 @@ static node *search_node(node *rootNode, const TNodeId *nodeId)
 
             while (p != q)
             {
-                assert(TNodeId_cmp(nodeId, p->id));
-                if (TNodeId_cmp(nodeId, p->id) < 0)
+                assert(NodesetLoader_NodeId_cmp(nodeId, p->id));
+                if (NodesetLoader_NodeId_cmp(nodeId, p->id) < 0)
                 {
                     p->balance = -1;
                     p = p->left;
@@ -192,7 +192,7 @@ static node *search_node(node *rootNode, const TNodeId *nodeId)
 
 static void record_relation(node *from, node *to)
 {
-    if (TNodeId_cmp(from->id, to->id))
+    if (NodesetLoader_NodeId_cmp(from->id, to->id))
     {
         to->edgeCount++;
         struct edge *e;
@@ -294,13 +294,13 @@ void Sort_cleanup(SortContext *ctx)
     free(ctx);
 }
 
-void Sort_addNode(SortContext *ctx, TNode *data)
+void Sort_addNode(SortContext *ctx, NL_Node *data)
 {
     node *j = NULL;
     // add node, no matter if there are references on it
     j = search_node(ctx->root1, &data->id);
     j->data = data;
-    Reference *hierachicalRef = data->hierachicalRefs;
+    NL_Reference *hierachicalRef = data->hierachicalRefs;
     if (hierachicalRef)
     {
         while (hierachicalRef)
@@ -326,19 +326,19 @@ void Sort_addNode(SortContext *ctx, TNode *data)
         // referencing it? -> try it with parentNodeId
         if (NodesetLoader_isInstanceNode(data))
         {
-            TInstanceNode *instanceNode = (TInstanceNode *)data;
+            NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
             if (instanceNode->parentNodeId.id != NULL)
             {
                 node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
                 if (k->data)
                 {
-                    Reference *r = k->data->hierachicalRefs;
+                    NL_Reference *r = k->data->hierachicalRefs;
                     while (r)
                     {
-                        if (!TNodeId_cmp(&r->target, &data->id))
+                        if (!NodesetLoader_NodeId_cmp(&r->target, &data->id))
                         {
-                            Reference *newRef =
-                                (Reference *)calloc(1, sizeof(Reference));
+                            NL_Reference *newRef =
+                                (NL_Reference *)calloc(1, sizeof(NL_Reference));
                             newRef->isForward = !r->isForward;
                             newRef->target = k->data->id;
                             newRef->refType = r->refType;

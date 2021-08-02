@@ -21,7 +21,7 @@ struct Namespace
     const char *name;
 };
 
-NamespaceList *NamespaceList_new(addNamespaceCb cb);
+NamespaceList *NamespaceList_new(NL_addNamespaceCallback cb);
 Namespace *NamespaceList_newNamespace(NamespaceList *list, void *userContext,
                                       const char *uri);
 void NamespaceList_setUri(NamespaceList *list, Namespace *ns);

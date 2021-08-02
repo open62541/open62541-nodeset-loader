@@ -10,7 +10,7 @@
 #include "Extension.h"
 #include "Logger.h"
 #include "ReferenceService.h"
-#include "TNodeId.h"
+#include "NodeId.h"
 #include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -20,7 +20,7 @@
 extern "C" {
 #endif
 
-#define NODECLASS_COUNT 8
+#define NL_NODECLASS_COUNT 8
 typedef enum
 {
     NODECLASS_OBJECT = 0,
@@ -32,236 +32,236 @@ typedef enum
     NODECLASS_VARIABLETYPE = 6,
     NODECLASS_VIEW = 7
     // eventtype is handled like a object type
-} TNodeClass;
+} NL_NodeClass;
 
-LOADER_EXPORT extern const char *NODECLASS_NAME[NODECLASS_COUNT];
+LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
 typedef struct
 {
     uint16_t nsIdx;
     char *name;
-} TBrowseName;
+} NL_BrowseName;
 
-struct Reference;
-typedef struct Reference Reference;
+struct NL_Reference;
+typedef struct NL_Reference NL_Reference;
 
-struct Reference
+struct NL_Reference
 {
     bool isForward;
-    TNodeId refType;
-    TNodeId target;
-    Reference *next;
+    NL_NodeId refType;
+    NL_NodeId target;
+    NL_Reference *next;
 };
 
-struct BiDirectionalReference;
-typedef struct BiDirectionalReference BiDirectionalReference;
-struct BiDirectionalReference
+struct NL_BiDirectionalReference;
+typedef struct NL_BiDirectionalReference NL_BiDirectionalReference;
+struct NL_BiDirectionalReference
 {
-    TNodeId source;
-    TNodeId target;
-    TNodeId refType;
-    BiDirectionalReference *next;
+    NL_NodeId source;
+    NL_NodeId target;
+    NL_NodeId refType;
+    NL_BiDirectionalReference *next;
 };
 
-struct TLocalizedText
+struct NL_LocalizedText
 {
     char *locale;
     char *text;
 };
-typedef struct TLocalizedText TLocalizedText;
+typedef struct NL_LocalizedText NL_LocalizedText;
 
-#define NODE_ATTRIBUTES                                                        \
-    TNodeClass nodeClass;                                                      \
-    TNodeId id;                                                                \
-    TBrowseName browseName;                                                    \
-    TLocalizedText displayName;                                                \
-    TLocalizedText description;                                                \
+#define NL_NODE_ATTRIBUTES                                                        \
+    NL_NodeClass nodeClass;                                                      \
+    NL_NodeId id;                                                                \
+    NL_BrowseName browseName;                                                    \
+    NL_LocalizedText displayName;                                                \
+    NL_LocalizedText description;                                                \
     char *writeMask;                                                           \
-    Reference *hierachicalRefs;                                                \
-    Reference *nonHierachicalRefs;                                             \
-    Reference *unknownRefs;                                                    \
+    NL_Reference *hierachicalRefs;                                                \
+    NL_Reference *nonHierachicalRefs;                                             \
+    NL_Reference *unknownRefs;                                                    \
     void *extension;
 
-#define NODE_INSTANCE_ATTRIBUTES TNodeId parentNodeId;
+#define NL_NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
 
-struct TNode
+struct NL_Node
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
 };
-typedef struct TNode TNode;
+typedef struct NL_Node NL_Node;
 
-struct TInstanceNode
+struct NL_InstanceNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
 };
-typedef struct TInstanceNode TInstanceNode;
+typedef struct NL_InstanceNode NL_InstanceNode;
 
-struct TObjectNode
+struct NL_ObjectNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
-    Reference *refToTypeDef;
+    NL_Reference *refToTypeDef;
 };
-typedef struct TObjectNode TObjectNode;
+typedef struct NL_ObjectNode NL_ObjectNode;
 
-struct TObjectTypeNode
+struct NL_ObjectTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     char *isAbstract;
 };
-typedef struct TObjectTypeNode TObjectTypeNode;
+typedef struct NL_ObjectTypeNode NL_ObjectTypeNode;
 
-struct TVariableTypeNode
+struct NL_VariableTypeNode
 {
-    NODE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
     char *isAbstract;
-    TNodeId datatype;
+    NL_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
 };
-typedef struct TVariableTypeNode TVariableTypeNode;
+typedef struct NL_VariableTypeNode NL_VariableTypeNode;
 
-struct Data;
-typedef struct Data Data;
-enum DataType
+struct NL_Data;
+typedef struct NL_Data NL_Data;
+enum NL_DataType
 {
     DATATYPE_PRIMITIVE,
     DATATYPE_COMPLEX,
 };
 
-typedef enum DataType DataType;
+typedef enum NL_DataType NL_DataType;
 
-struct PrimitiveData
+struct NL_PrimitiveData
 {
     const char *value;
 };
-typedef struct PrimitiveData PrimitiveData;
-struct ComplexData
+typedef struct NL_PrimitiveData NL_PrimitiveData;
+struct NL_ComplexData
 {
     size_t membersSize;
-    Data **members;
+    NL_Data **members;
 };
-typedef struct ComplexData ComplexData;
+typedef struct NL_ComplexData NL_ComplexData;
 
-struct Data
+struct NL_Data
 {
-    DataType type;
+    NL_DataType type;
     const char *name;
     union
     {
-        PrimitiveData primitiveData;
-        ComplexData complexData;
+        NL_PrimitiveData primitiveData;
+        NL_ComplexData complexData;
     } val;
-    Data *parent;
+    NL_Data *parent;
 };
 
-struct ParserCtx;
-struct Value
+struct NL_ParserCtx;
+struct NL_Value
 {
-    struct ParserCtx *ctx;
+    struct NL_ParserCtx *ctx;
     bool isArray;
     bool isExtensionObject;
     const char *type;
-    TNodeId typeId;
-    Data *data;
+    NL_NodeId typeId;
+    NL_Data *data;
 };
-typedef struct Value Value;
-struct TVariableNode
+typedef struct NL_Value NL_Value;
+struct NL_VariableNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
-    TNodeId datatype;
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
+    NL_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
     char *accessLevel;
     char *userAccessLevel;
     char *historizing;
-    Value *value;
-    Reference *refToTypeDef;
+    NL_Value *value;
+    NL_Reference *refToTypeDef;
 };
-typedef struct TVariableNode TVariableNode;
+typedef struct NL_VariableNode NL_VariableNode;
 
 typedef struct
 {
     char *name;
-    TNodeId dataType;
+    NL_NodeId dataType;
     int valueRank;
     int value;
     bool isOptional;
-} DataTypeDefinitionField;
+} NL_DataTypeDefinitionField;
 
 typedef struct
 {
-    DataTypeDefinitionField *fields;
+    NL_DataTypeDefinitionField *fields;
     size_t fieldCnt;
     bool isEnum;
     bool isUnion;
     bool isOptionSet;
-} DataTypeDefinition;
+} NL_DataTypeDefinition;
 
-struct TDataTypeNode
+struct NL_DataTypeNode
 {
-    NODE_ATTRIBUTES
-    DataTypeDefinition *definition;
+    NL_NODE_ATTRIBUTES
+    NL_DataTypeDefinition *definition;
     char *isAbstract;
 };
-typedef struct TDataTypeNode TDataTypeNode;
+typedef struct NL_DataTypeNode NL_DataTypeNode;
 
-struct TMethodNode
+struct NL_MethodNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 };
-typedef struct TMethodNode TMethodNode;
+typedef struct NL_MethodNode NL_MethodNode;
 
-struct TReferenceTypeNode
+struct NL_ReferenceTypeNode
 {
-    NODE_ATTRIBUTES
-    TLocalizedText inverseName;
+    NL_NODE_ATTRIBUTES
+    NL_LocalizedText inverseName;
     char *symmetric;
 };
-typedef struct TReferenceTypeNode TReferenceTypeNode;
+typedef struct NL_ReferenceTypeNode NL_ReferenceTypeNode;
 
-struct TViewNode
+struct NL_ViewNode
 {
-    NODE_ATTRIBUTES
-    NODE_INSTANCE_ATTRIBUTES
+    NL_NODE_ATTRIBUTES
+    NL_NODE_INSTANCE_ATTRIBUTES
     char *containsNoLoops;
     char *eventNotifier;
 };
-typedef struct TViewNode TViewNode;
+typedef struct NL_ViewNode NL_ViewNode;
 
-typedef int (*addNamespaceCb)(void *userContext, const char *);
+typedef int (*NL_addNamespaceCallback)(void *userContext, const char *);
 
-struct FileContext
+struct NL_FileContext
 {
     void *userContext;
     const char *file;
-    addNamespaceCb addNamespace;
+    NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
 };
-typedef struct FileContext FileContext;
+typedef struct NL_FileContext NL_FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
 LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                               struct RefService *refService);
+                                               struct NL_ReferenceService *refService);
 LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
-                                            const FileContext *fileContext);
+                                            const NL_FileContext *fileContext);
 LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
-LOADER_EXPORT const BiDirectionalReference *
+LOADER_EXPORT const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
 LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
-typedef void (*NodesetLoader_forEachNode_Func)(void *context, TNode *node);
+typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
 LOADER_EXPORT size_t
-NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
+NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
-LOADER_EXPORT bool NodesetLoader_isInstanceNode (const TNode *baseNode);
+LOADER_EXPORT bool NodesetLoader_isInstanceNode (const NL_Node *baseNode);
 #ifdef __cplusplus
 }
 #endif

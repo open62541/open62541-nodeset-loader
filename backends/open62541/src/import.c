@@ -62,7 +62,7 @@ static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
     return current;
 }
 
-static UA_NodeId getReferenceTypeId(const Reference *ref)
+static UA_NodeId getReferenceTypeId(const NL_Reference *ref)
 {
     if (!ref)
     {
@@ -71,7 +71,7 @@ static UA_NodeId getReferenceTypeId(const Reference *ref)
     return getNodeIdFromChars(ref->refType);
 }
 
-static UA_NodeId getReferenceTarget(const Reference *ref)
+static UA_NodeId getReferenceTarget(const NL_Reference *ref)
 {
     if (!ref)
     {
@@ -80,10 +80,10 @@ static UA_NodeId getReferenceTarget(const Reference *ref)
     return getNodeIdFromChars(ref->target);
 }
 
-static Reference *getHierachicalInverseReference(const TNode *node)
+static NL_Reference *getHierachicalInverseReference(const NL_Node *node)
 {
 
-    Reference *hierachicalRef = node->hierachicalRefs;
+    NL_Reference *hierachicalRef = node->hierachicalRefs;
     while (hierachicalRef)
     {
         if (!hierachicalRef->isForward)
@@ -95,16 +95,16 @@ static Reference *getHierachicalInverseReference(const TNode *node)
     return NULL;
 }
 
-static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
+static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
 {
     UA_NodeId parentId = UA_NODEID_NULL;
 
     if(NodesetLoader_isInstanceNode(node))
     {
         parentId =
-            getNodeIdFromChars(((const TInstanceNode*)node)->parentNodeId);
+            getNodeIdFromChars(((const NL_InstanceNode*)node)->parentNodeId);
     }
-    Reference *ref = getHierachicalInverseReference((const TNode *)node);
+    NL_Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);
     if (UA_NodeId_equal(&parentId, &UA_NODEID_NULL))
     {
@@ -114,7 +114,7 @@ static UA_NodeId getParentId(const TNode *node, UA_NodeId *parentRefId)
 }
 
 static void
-handleObjectNode(const TObjectNode *node, UA_NodeId *id,
+handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
                  const UA_LocalizedText *description, UA_Server *server)
@@ -139,7 +139,7 @@ handleObjectNode(const TObjectNode *node, UA_NodeId *id,
 }
 
 static void
-handleViewNode(const TViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
+handleViewNode(const NL_ViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
                const UA_NodeId *parentReferenceId, const UA_LocalizedText *lt,
                const UA_QualifiedName *qn, const UA_LocalizedText *description,
                UA_Server *server)
@@ -154,7 +154,7 @@ handleViewNode(const TViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
 }
 
 static void
-handleMethodNode(const TMethodNode *node, UA_NodeId *id,
+handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
                  const UA_LocalizedText *description, UA_Server *server)
@@ -196,7 +196,7 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
     return arrSize;
 }
 
-static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
+static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
                                const UA_NodeId *parentId,
                                const UA_NodeId *parentReferenceId,
                                const UA_LocalizedText *lt,
@@ -286,7 +286,7 @@ static void handleVariableNode(const TVariableNode *node, UA_NodeId *id,
     
 }
 
-static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
+static void handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
                                  const UA_NodeId *parentId,
                                  const UA_NodeId *parentReferenceId,
                                  const UA_LocalizedText *lt,
@@ -303,7 +303,7 @@ static void handleObjectTypeNode(const TObjectTypeNode *node, UA_NodeId *id,
                                 oAttr, node->extension, NULL);
 }
 
-static void handleReferenceTypeNode(const TReferenceTypeNode *node,
+static void handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                     UA_NodeId *id, const UA_NodeId *parentId,
                                     const UA_NodeId *parentReferenceId,
                                     const UA_LocalizedText *lt,
@@ -322,7 +322,7 @@ static void handleReferenceTypeNode(const TReferenceTypeNode *node,
                                    *qn, attr, node->extension, NULL);
 }
 
-static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
+static void handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *id,
                                    const UA_NodeId *parentId,
                                    const UA_NodeId *parentReferenceId,
                                    const UA_LocalizedText *lt,
@@ -352,7 +352,7 @@ static void handleVariableTypeNode(const TVariableTypeNode *node, UA_NodeId *id,
                             node->extension, NULL);
 }
 
-static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
+static void handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
                                const UA_NodeId *parentId,
                                const UA_NodeId *parentReferenceId,
                                const UA_LocalizedText *lt,
@@ -369,7 +369,7 @@ static void handleDataTypeNode(const TDataTypeNode *node, UA_NodeId *id,
                               attr, node->extension, NULL);
 }
 
-static void addNode(UA_Server *server, const TNode *node)
+static void addNode(UA_Server *server, const NL_Node *node)
 {
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
@@ -384,43 +384,43 @@ static void addNode(UA_Server *server, const TNode *node)
     switch (node->nodeClass)
     {
     case NODECLASS_OBJECT:
-        handleObjectNode((const TObjectNode *)node, &id, &parentId,
+        handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
                          &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_METHOD:
-        handleMethodNode((const TMethodNode *)node, &id, &parentId,
+        handleMethodNode((const NL_MethodNode *)node, &id, &parentId,
                          &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_OBJECTTYPE:
-        handleObjectTypeNode((const TObjectTypeNode *)node, &id, &parentId,
+        handleObjectTypeNode((const NL_ObjectTypeNode *)node, &id, &parentId,
                              &parentReferenceId, &lt, &qn, &description,
                              server);
         break;
 
     case NODECLASS_REFERENCETYPE:
-        handleReferenceTypeNode((const TReferenceTypeNode *)node, &id,
+        handleReferenceTypeNode((const NL_ReferenceTypeNode *)node, &id,
                                 &parentId, &parentReferenceId, &lt, &qn,
                                 &description, server);
         break;
 
     case NODECLASS_VARIABLETYPE:
-        handleVariableTypeNode((const TVariableTypeNode *)node, &id, &parentId,
+        handleVariableTypeNode((const NL_VariableTypeNode *)node, &id, &parentId,
                                &parentReferenceId, &lt, &qn, &description,
                                server);
         break;
 
     case NODECLASS_VARIABLE:
-        handleVariableNode((const TVariableNode *)node, &id, &parentId,
+        handleVariableNode((const NL_VariableNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_DATATYPE:
-        handleDataTypeNode((const TDataTypeNode *)node, &id, &parentId,
+        handleDataTypeNode((const NL_DataTypeNode *)node, &id, &parentId,
                            &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_VIEW:
-        handleViewNode((const TViewNode *)node, &id, &parentId,
+        handleViewNode((const NL_ViewNode *)node, &id, &parentId,
                        &parentReferenceId, &lt, &qn, &description, server);
         break;
     }
@@ -459,23 +459,23 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
 struct DataTypeImportCtx
 {
     DataTypeImporter *importer;
-    const BiDirectionalReference *hasEncodingRef;
+    const NL_BiDirectionalReference *hasEncodingRef;
     UA_Server *server;
 };
 
-static void addDataType(struct DataTypeImportCtx *ctx, TNode *node)
+static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
 {
     // add only the types
-    const BiDirectionalReference *r = ctx->hasEncodingRef;
+    const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
     while (r)
     {
-        if (!TNodeId_cmp(&r->source, &node->id))
+        if (!NodesetLoader_NodeId_cmp(&r->source, &node->id))
         {
-            Reference *ref = (Reference *)calloc(1, sizeof(Reference));
+            NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;
             ref->target = r->target;
 
-            Reference *lastRef = node->nonHierachicalRefs;
+            NL_Reference *lastRef = node->nonHierachicalRefs;
             node->nonHierachicalRefs = ref;
             ref->next = lastRef;
             break;
@@ -484,14 +484,14 @@ static void addDataType(struct DataTypeImportCtx *ctx, TNode *node)
     }
     const UA_NodeId parent =
         getParentType(ctx->server, getNodeIdFromChars(node->id));
-    DataTypeImporter_addCustomDataType(ctx->importer, (TDataTypeNode *)node,
+    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node,
                                        parent);
 }
 
 static void importDataTypes(NodesetLoader *loader, UA_Server *server)
 {
     // add datatypes
-    const BiDirectionalReference *hasEncodingRef =
+    const NL_BiDirectionalReference *hasEncodingRef =
         NodesetLoader_getBidirectionalRefs(loader);
     DataTypeImporter *importer = DataTypeImporter_new(server);
     struct DataTypeImportCtx ctx;
@@ -505,9 +505,9 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
     DataTypeImporter_delete(importer);
 }
 
-static void addNonHierachicalRefs(UA_Server *server, TNode *node)
+static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
 {
-    Reference *ref = node->nonHierachicalRefs;
+    NL_Reference *ref = node->nonHierachicalRefs;
     while (ref)
     {
 
@@ -534,14 +534,14 @@ static void addNonHierachicalRefs(UA_Server *server, TNode *node)
 static void addNodes(NodesetLoader *loader, UA_Server *server,
                      NodesetLoader_Logger *logger)
 {
-    const TNodeClass order[NODECLASS_COUNT] = {
+    const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
         NODECLASS_VARIABLE,      NODECLASS_VIEW};
 
-    for (size_t i = 0; i < NODECLASS_COUNT; i++)
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
     {
-        const TNodeClass classToImport = order[i];
+        const NL_NodeClass classToImport = order[i];
         size_t cnt =
             NodesetLoader_forEachNode(loader, classToImport, server,
                                       (NodesetLoader_forEachNode_Func)addNode);
@@ -550,12 +550,12 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
             importDataTypes(loader, server);
         }
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %ss: %zu", NODECLASS_NAME[classToImport], cnt);
+                    "imported %ss: %zu", NL_NODECLASS_NAME[classToImport], cnt);
     }
 
-    for (size_t i = 0; i < NODECLASS_COUNT; i++)
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
     {
-        const TNodeClass classToImport = order[i];
+        const NL_NodeClass classToImport = order[i];
         NodesetLoader_forEachNode(
             loader, classToImport, server,
             (NodesetLoader_forEachNode_Func)addNonHierachicalRefs);
@@ -573,7 +573,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     {
         return false;
     }
-    FileContext handler;
+    NL_FileContext handler;
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = server;
     handler.file = path;
@@ -584,7 +584,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
     logger->context = &config->logger;
     logger->log = &logToOpen;
-    RefService *refService = RefServiceImpl_new(server);
+    NL_ReferenceService *refService = RefServiceImpl_new(server);
 
     NodesetLoader *loader = NodesetLoader_new(logger, refService);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,

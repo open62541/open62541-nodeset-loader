@@ -9,7 +9,7 @@
 #define DATATYPENODE_H
 #include <NodesetLoader/NodesetLoader.h>
 
-void DataTypeNode_clear(TDataTypeNode *node);
-DataTypeDefinition *DataTypeDefinition_new(TDataTypeNode *node);
-DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def);
+void DataTypeNode_clear(NL_DataTypeNode *node);
+NL_DataTypeDefinition *DataTypeDefinition_new(NL_DataTypeNode *node);
+NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def);
 #endif

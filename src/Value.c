@@ -9,30 +9,30 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-Value *Value_new(const TNode *node)
+NL_Value *Value_new(const NL_Node *node)
 {
-    Value *newValue = (Value *)calloc(1, sizeof(Value));
-    newValue->ctx = (ParserCtx *)calloc(1, sizeof(ParserCtx));
+    NL_Value *newValue = (NL_Value *)calloc(1, sizeof(NL_Value));
+    newValue->ctx = (NL_ParserCtx *)calloc(1, sizeof(NL_ParserCtx));
     newValue->ctx->state = PARSERSTATE_INIT;
     return newValue;
 }
 
-static Data *newData(const char *name, DataType type)
+static NL_Data *newData(const char *name, NL_DataType type)
 {
-    Data *newData = (Data *)calloc(1, sizeof(Data));
+    NL_Data *newData = (NL_Data *)calloc(1, sizeof(NL_Data));
     newData->type = type;
     newData->name = name;
     return newData;
 }
 
-static Data *addNewMember(Data *parent, const char *name)
+static NL_Data *addNewMember(NL_Data *parent, const char *name)
 {
     parent->type = DATATYPE_COMPLEX;
-    parent->val.complexData.members = (Data **)realloc(
+    parent->val.complexData.members = (NL_Data **)realloc(
         parent->val.complexData.members,
-        (parent->val.complexData.membersSize + 1) * sizeof(Data *));
+        (parent->val.complexData.membersSize + 1) * sizeof(NL_Data *));
 
-    Data *newData = (Data *)calloc(1, sizeof(Data));
+    NL_Data *newData = (NL_Data *)calloc(1, sizeof(NL_Data));
     parent->val.complexData.members[parent->val.complexData.membersSize] =
         newData;
 
@@ -43,7 +43,7 @@ static Data *addNewMember(Data *parent, const char *name)
     return newData;
 }
 
-void Value_start(Value *val, const char *name)
+void Value_start(NL_Value *val, const char *name)
 {
     switch (val->ctx->state)
     {
@@ -79,7 +79,7 @@ void Value_start(Value *val, const char *name)
         val->ctx->state = PARSERSTATE_DATA;
         {
             val->type = name;
-            Data *newData = addNewMember(val->ctx->currentData, name);
+            NL_Data *newData = addNewMember(val->ctx->currentData, name);
             val->ctx->currentData = newData;
         }
 
@@ -105,7 +105,7 @@ void Value_start(Value *val, const char *name)
         }
         else
         {
-            Data *newData = addNewMember(val->ctx->currentData, name);
+            NL_Data *newData = addNewMember(val->ctx->currentData, name);
             val->ctx->currentData = newData;
         }
         break;
@@ -121,7 +121,7 @@ void Value_start(Value *val, const char *name)
         }
         else
         {
-            Data *newData = addNewMember(val->ctx->currentData, name);
+            NL_Data *newData = addNewMember(val->ctx->currentData, name);
             val->ctx->currentData = newData;
         }
 
@@ -148,7 +148,7 @@ static const char* isOnlyWhitespace(const char* value)
     return NULL;
 }
 
-void Value_end(Value *val, const char *name, const char *value)
+void Value_end(NL_Value *val, const char *name, const char *value)
 {
     switch (val->ctx->state)
     {
@@ -211,14 +211,14 @@ void Value_end(Value *val, const char *name, const char *value)
         break;
     }
 }
-static void Data_clear(Data *data);
+static void Data_clear(NL_Data *data);
 
-static void PrimitiveData_clear(Data *data)
+static void PrimitiveData_clear(NL_Data *data)
 {
     // free(data);
 }
 
-static void ComplexData_clear(Data *data)
+static void ComplexData_clear(NL_Data *data)
 {
     for (size_t cnt = 0; cnt < data->val.complexData.membersSize; cnt++)
     {
@@ -227,7 +227,7 @@ static void ComplexData_clear(Data *data)
     free(data->val.complexData.members);
 }
 
-static void Data_clear(Data *data)
+static void Data_clear(NL_Data *data)
 {
     if (data->type == DATATYPE_PRIMITIVE)
     {
@@ -240,7 +240,7 @@ static void Data_clear(Data *data)
     free(data);
 }
 
-void Value_delete(Value *val)
+void Value_delete(NL_Value *val)
 {
     Data_clear(val->data);
     free(val->ctx);

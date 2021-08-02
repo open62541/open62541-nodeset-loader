@@ -5,13 +5,13 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#ifndef NODESETLOADER_TNODEID_H
-#define NODESETLOADER_TNODEID_H
+#ifndef NODESETLOADER_NODEID_H
+#define NODESETLOADER_NODEID_H
 #include "arch.h"
 typedef struct
 {
     int nsIdx;
     char *id;
-} TNodeId;
-LOADER_EXPORT int TNodeId_cmp(const TNodeId *id1, const TNodeId *id2);
+} NL_NodeId;
+LOADER_EXPORT int NodesetLoader_NodeId_cmp(const NL_NodeId *id1, const NL_NodeId *id2);
 #endif

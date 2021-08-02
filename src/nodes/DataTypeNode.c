@@ -8,12 +8,12 @@
 #include "DataTypeNode.h"
 #include <stdlib.h>
 
-static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
+static NL_DataTypeDefinitionField *getNewField(NL_DataTypeDefinition *definition)
 {
     definition->fieldCnt++;
-    definition->fields = (DataTypeDefinitionField *)realloc(
+    definition->fields = (NL_DataTypeDefinitionField *)realloc(
         definition->fields,
-        definition->fieldCnt * sizeof(DataTypeDefinitionField));
+        definition->fieldCnt * sizeof(NL_DataTypeDefinitionField));
     if(!definition->fields)
     {
         return NULL;
@@ -21,10 +21,10 @@ static DataTypeDefinitionField *getNewField(DataTypeDefinition *definition)
     return &definition->fields[definition->fieldCnt - 1];
 }
 
-DataTypeDefinition* DataTypeDefinition_new(TDataTypeNode* node)
+NL_DataTypeDefinition* DataTypeDefinition_new(NL_DataTypeNode* node)
 {
     node->definition =
-        (DataTypeDefinition *)calloc(1, sizeof(DataTypeDefinition));
+        (NL_DataTypeDefinition *)calloc(1, sizeof(NL_DataTypeDefinition));
     if (!node->definition)
     {
         return NULL;
@@ -32,12 +32,12 @@ DataTypeDefinition* DataTypeDefinition_new(TDataTypeNode* node)
     return node->definition;
 }
 
-DataTypeDefinitionField *DataTypeNode_addDefinitionField(DataTypeDefinition *def)
+NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def)
 {
     return getNewField(def);
 }
 
-void DataTypeNode_clear(TDataTypeNode *node)
+void DataTypeNode_clear(NL_DataTypeNode *node)
 {
     if (node->definition)
     {

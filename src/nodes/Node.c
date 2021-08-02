@@ -10,34 +10,34 @@
 #include <stdlib.h>
 #include "../Value.h"
 
-TNode *Node_new(TNodeClass nodeClass)
+NL_Node *Node_new(NL_NodeClass nodeClass)
 {
-    TNode *node = NULL;
+    NL_Node *node = NULL;
     switch (nodeClass)
     {
     case NODECLASS_VARIABLE:
-        node = (TNode *)calloc(1, sizeof(TVariableNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_VariableNode));
         break;
     case NODECLASS_OBJECT:
-        node = (TNode *)calloc(1, sizeof(TObjectNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ObjectNode));
         break;
     case NODECLASS_OBJECTTYPE:
-        node = (TNode *)calloc(1, sizeof(TObjectTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ObjectTypeNode));
         break;
     case NODECLASS_REFERENCETYPE:
-        node = (TNode *)calloc(1, sizeof(TReferenceTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ReferenceTypeNode));
         break;
     case NODECLASS_VARIABLETYPE:
-        node = (TNode *)calloc(1, sizeof(TVariableTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_VariableTypeNode));
         break;
     case NODECLASS_DATATYPE:
-        node = (TNode *)calloc(1, sizeof(TDataTypeNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_DataTypeNode));
         break;
     case NODECLASS_METHOD:
-        node = (TNode *)calloc(1, sizeof(TMethodNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_MethodNode));
         break;
     case NODECLASS_VIEW:
-        node = (TNode *)calloc(1, sizeof(TViewNode));
+        node = (NL_Node *)calloc(1, sizeof(NL_ViewNode));
         break;
     }
     if(!node)
@@ -47,27 +47,27 @@ TNode *Node_new(TNodeClass nodeClass)
     return node;
 }
 
-static void deleteRef(Reference *ref)
+static void deleteRef(NL_Reference *ref)
 {
     while (ref)
     {
-        Reference *tmp = ref->next;
+        NL_Reference *tmp = ref->next;
         free(ref);
         ref = tmp;
     }
 }
 
-void Node_delete(TNode *node)
+void Node_delete(NL_Node *node)
 {
     deleteRef(node->hierachicalRefs);
     deleteRef(node->nonHierachicalRefs);
     if (node->nodeClass == NODECLASS_DATATYPE)
     {
-        DataTypeNode_clear((TDataTypeNode *)node);
+        DataTypeNode_clear((NL_DataTypeNode *)node);
     }
     if(node->nodeClass == NODECLASS_VARIABLE)
     {
-        TVariableNode* varNode = (TVariableNode*)node;
+        NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
         if(varNode->value)
         {
@@ -76,7 +76,7 @@ void Node_delete(TNode *node)
     }
     if(node->nodeClass==NODECLASS_OBJECT)
     {
-        TObjectNode *objNode = (TObjectNode *)node;
+        NL_ObjectNode *objNode = (NL_ObjectNode *)node;
         free(objNode->refToTypeDef);
     }
     free(node);

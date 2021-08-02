@@ -16,12 +16,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-static TNodeId extractNodedId(const NamespaceList *namespaces, char *s);
-static TNodeId alias2Id(const Nodeset *nodeset, char *name);
-static TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id);
-static TBrowseName translateBrowseName(const NamespaceList *namespaces,
-                                       TBrowseName id);
-TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
+static NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s);
+static NL_NodeId alias2Id(const Nodeset *nodeset, char *name);
+static NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id);
+static NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
+                                       NL_BrowseName id);
+NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 
 // UANode
 #define ATTRIBUTE_NODEID "NodeId"
@@ -37,7 +37,7 @@ TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
 // UAObjectType
 #define ATTRIBUTE_ISABSTRACT "IsAbstract"
-// Reference
+// NL_Reference
 #define ATTRIBUTE_REFERENCETYPE "ReferenceType"
 #define ATTRIBUTE_ISFORWARD "IsForward"
 #define ATTRIBUTE_SYMMETRIC "Symmetric"
@@ -77,7 +77,7 @@ const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
-TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
+NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id)
 {
     if (id.nsIdx > 0)
     {
@@ -87,7 +87,7 @@ TNodeId translateNodeId(const NamespaceList *namespaces, TNodeId id)
     return id;
 }
 
-TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName bn)
+NL_BrowseName translateBrowseName(const NamespaceList *namespaces, NL_BrowseName bn)
 {
     if (bn.nsIdx > 0)
     {
@@ -102,16 +102,16 @@ TBrowseName translateBrowseName(const NamespaceList *namespaces, TBrowseName bn)
     return bn;
 }
 
-TNodeId extractNodedId(const NamespaceList *namespaces, char *s)
+NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s)
 {
     if (s == NULL)
     {
-        TNodeId id;
+        NL_NodeId id;
         id.id = NULL;
         id.nsIdx = 0;
         return id;
     }
-    TNodeId id;
+    NL_NodeId id;
     id.nsIdx = 0;
     char *idxSemi = strchr(s, ';');
     if (idxSemi == NULL)
@@ -127,9 +127,9 @@ TNodeId extractNodedId(const NamespaceList *namespaces, char *s)
     return translateNodeId(namespaces, id);
 }
 
-TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
+NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
 {
-    TBrowseName bn;
+    NL_BrowseName bn;
     bn.nsIdx = 0;
     char *bnName = strchr(s, ':');
     if (bnName == NULL)
@@ -145,9 +145,9 @@ TBrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
     return translateBrowseName(namespaces, bn);
 }
 
-static TNodeId alias2Id(const Nodeset *nodeset, char *name)
+static NL_NodeId alias2Id(const Nodeset *nodeset, char *name)
 {
-    const TNodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
+    const NL_NodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
     if (!alias)
     {
         return extractNodedId(nodeset->namespaces, name);
@@ -155,8 +155,8 @@ static TNodeId alias2Id(const Nodeset *nodeset, char *name)
     return *alias;
 }
 
-Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger,
-                     RefService *refService)
+Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback, NodesetLoader_Logger *logger,
+                     NL_ReferenceService *refService)
 {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if (!nodeset)
@@ -182,16 +182,16 @@ Nodeset *Nodeset_new(addNamespaceCb nsCallback, NodesetLoader_Logger *logger,
     return nodeset;
 }
 
-static void Nodeset_addNode(Nodeset *nodeset, TNode *node)
+static void Nodeset_addNode(Nodeset *nodeset, NL_Node *node)
 {
     NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
-static bool lookupUnknownReferences(Nodeset *nodeset, TNode *node)
+static bool lookupUnknownReferences(Nodeset *nodeset, NL_Node *node)
 {
     while (node->unknownRefs)
     {
-        Reference *next = node->unknownRefs->next;
+        NL_Reference *next = node->unknownRefs->next;
         if (nodeset->refService->isHierachicalRef(nodeset->refService->context,
                                                   node->unknownRefs))
         {
@@ -261,7 +261,7 @@ void Nodeset_cleanup(Nodeset *nodeset)
 {
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
-    for (size_t cnt = 0; cnt < NODECLASS_COUNT; cnt++)
+    for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++)
     {
         NodeContainer_delete(nodeset->nodes[cnt]);
     }
@@ -269,10 +269,10 @@ void Nodeset_cleanup(Nodeset *nodeset)
     NodeContainer_delete(nodeset->refTypesWithUnknownRefs);
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
-    BiDirectionalReference *ref = nodeset->hasEncodingRefs;
+    NL_BiDirectionalReference *ref = nodeset->hasEncodingRefs;
     while (ref)
     {
-        BiDirectionalReference *tmp = ref->next;
+        NL_BiDirectionalReference *tmp = ref->next;
         free(ref);
         ref = tmp;
     }
@@ -301,7 +301,7 @@ static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
 }
 
 static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
-                              TNode *node, int attributeSize,
+                              NL_Node *node, int attributeSize,
                               const char **attributes)
 {
     node->id = extractNodedId(
@@ -314,78 +314,78 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
     {
     case NODECLASS_OBJECTTYPE:
     {
-        ((TObjectTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_ObjectTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     }
     case NODECLASS_OBJECT:
     {
-        ((TObjectNode *)node)->parentNodeId = extractNodedId(
+        ((NL_ObjectNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TObjectNode *)node)->eventNotifier = getAttributeValue(
+        ((NL_ObjectNode *)node)->eventNotifier = getAttributeValue(
             nodeset, &attrEventNotifier, attributes, attributeSize);
         break;
     }
     case NODECLASS_VARIABLE:
     {
 
-        ((TVariableNode *)node)->parentNodeId = extractNodedId(
+        ((NL_VariableNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        ((TVariableNode *)node)->datatype = alias2Id(nodeset, datatype);
-        ((TVariableNode *)node)->valueRank = getAttributeValue(
+        ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
+        ((NL_VariableNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
-        ((TVariableNode *)node)->arrayDimensions = getAttributeValue(
+        ((NL_VariableNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
-        ((TVariableNode *)node)->accessLevel = getAttributeValue(
+        ((NL_VariableNode *)node)->accessLevel = getAttributeValue(
             nodeset, &attrAccessLevel, attributes, attributeSize);
-        ((TVariableNode *)node)->userAccessLevel = getAttributeValue(
+        ((NL_VariableNode *)node)->userAccessLevel = getAttributeValue(
             nodeset, &attrUserAccessLevel, attributes, attributeSize);
-        ((TVariableNode *)node)->historizing = getAttributeValue(
+        ((NL_VariableNode *)node)->historizing = getAttributeValue(
             nodeset, &attrHistorizing, attributes, attributeSize);
         break;
     }
     case NODECLASS_VARIABLETYPE:
     {
 
-        ((TVariableTypeNode *)node)->valueRank = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
-        ((TVariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
-        ((TVariableTypeNode *)node)->arrayDimensions = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
+        ((NL_VariableTypeNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
-        ((TVariableTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_VariableTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     }
     case NODECLASS_DATATYPE:
-        ((TDataTypeNode *)node)->isAbstract = getAttributeValue(
+        ((NL_DataTypeNode *)node)->isAbstract = getAttributeValue(
             nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
     case NODECLASS_METHOD:
-        ((TMethodNode *)node)->parentNodeId = extractNodedId(
+        ((NL_MethodNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TMethodNode *)node)->executable = getAttributeValue(
+        ((NL_MethodNode *)node)->executable = getAttributeValue(
             nodeset, &attrExecutable, attributes, attributeSize);
-        ((TMethodNode *)node)->userExecutable = getAttributeValue(
+        ((NL_MethodNode *)node)->userExecutable = getAttributeValue(
             nodeset, &attrUserExecutable, attributes, attributeSize);
         break;
     case NODECLASS_REFERENCETYPE:
-        ((TReferenceTypeNode *)node)->symmetric = getAttributeValue(
+        ((NL_ReferenceTypeNode *)node)->symmetric = getAttributeValue(
             nodeset, &attrSymmetric, attributes, attributeSize);
         break;
     case NODECLASS_VIEW:
-        ((TViewNode *)node)->parentNodeId = extractNodedId(
+        ((NL_ViewNode *)node)->parentNodeId = extractNodedId(
             namespaces, getAttributeValue(nodeset, &attrParentNodeId,
                                           attributes, attributeSize));
-        ((TViewNode *)node)->containsNoLoops = getAttributeValue(
+        ((NL_ViewNode *)node)->containsNoLoops = getAttributeValue(
             nodeset, &attrContainsNoLoops, attributes, attributeSize);
-        ((TViewNode *)node)->eventNotifier = getAttributeValue(
+        ((NL_ViewNode *)node)->eventNotifier = getAttributeValue(
             nodeset, &attrEventNotifier, attributes, attributeSize);
         break;
      default:;
@@ -393,26 +393,26 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
 }
 
 static void initNode(Nodeset *nodeset, const NamespaceList *namespaces,
-                     TNodeClass nodeClass, TNode *node, int nb_attributes,
+                     NL_NodeClass nodeClass, NL_Node *node, int nb_attributes,
                      const char **attributes)
 {
     node->nodeClass = nodeClass;
     extractAttributes(nodeset, namespaces, node, nb_attributes, attributes);
 }
 
-TNode *Nodeset_newNode(Nodeset *nodeset, TNodeClass nodeClass,
+NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                        int nb_attributes, const char **attributes)
 {
-    TNode *node = Node_new(nodeClass);
+    NL_Node *node = Node_new(nodeClass);
     initNode(nodeset, nodeset->namespaces, nodeClass, node, nb_attributes,
              attributes);
     return node;
 }
 
-Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
+NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                 int attributeSize, const char **attributes)
 {
-    Reference *newRef = (Reference *)calloc(1, sizeof(Reference));
+    NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
     if (!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes,
                                           attributeSize)))
     {
@@ -431,7 +431,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
                                              newRef))
     {
-        ((TVariableNode *)node)->refToTypeDef = newRef;
+        ((NL_VariableNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
@@ -439,7 +439,7 @@ Reference *Nodeset_newReference(Nodeset *nodeset, TNode *node,
         nodeset->refService->isHasTypeDefRef(nodeset->refService->context,
                                              newRef))
     {
-        ((TObjectNode *)node)->refToTypeDef = newRef;
+        ((NL_ObjectNode *)node)->refToTypeDef = newRef;
         return newRef;
     }
 
@@ -482,7 +482,7 @@ void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
     NamespaceList_newNamespace(nodeset->namespaces, userContext, namespaceUri);
 }
 
-void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
+void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
 {
     if (!node->unknownRefs)
     {
@@ -490,7 +490,7 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
         if (node->nodeClass == NODECLASS_REFERENCETYPE)
         {
             nodeset->refService->addNewReferenceType(
-                nodeset->refService->context, (TReferenceTypeNode *)node);
+                nodeset->refService->context, (NL_ReferenceTypeNode *)node);
         }
     }
     else
@@ -506,32 +506,32 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, TNode *node)
     }
 }
 
-void Nodeset_newReferenceFinish(Nodeset *nodeset, Reference *ref, TNode *node,
+void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *node,
                                 char *targetId)
 {
     ref->target = alias2Id(nodeset, targetId);
     // handle hasEncoding in a special way
-    TNodeId hasEncodingRef = {0, "i=38"};
-    if (!TNodeId_cmp(&ref->refType, &hasEncodingRef) &&
+    NL_NodeId hasEncodingRef = {0, "i=38"};
+    if (!NodesetLoader_NodeId_cmp(&ref->refType, &hasEncodingRef) &&
         !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
     {
-        BiDirectionalReference *newRef =
-            (BiDirectionalReference *)calloc(1, sizeof(BiDirectionalReference));
+        NL_BiDirectionalReference *newRef =
+            (NL_BiDirectionalReference *)calloc(1, sizeof(NL_BiDirectionalReference));
         newRef->source = ref->target;
         newRef->target = node->id;
         newRef->refType = ref->refType;
 
-        BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
+        NL_BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
         nodeset->hasEncodingRefs = newRef;
         newRef->next = lastRef;
     }
 }
 
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, TNode *node,
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
                                    int attributeSize, const char **attributes)
 {
-    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
-    DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
+    NL_DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
     def->isUnion =
         !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
                                           attributes, attributeSize));
@@ -540,16 +540,16 @@ void Nodeset_addDataTypeDefinition(Nodeset *nodeset, TNode *node,
                                   attributes, attributeSize));
 }
 
-void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
+void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node, int attributeSize,
                               const char **attributes)
 {
-    TDataTypeNode *dataTypeNode = (TDataTypeNode *)node;
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     if (dataTypeNode->definition->isOptionSet)
     {
         return;
     }
 
-    DataTypeDefinitionField *newField =
+    NL_DataTypeDefinitionField *newField =
         DataTypeNode_addDefinitionField(dataTypeNode->definition);
     newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
                                        attributeSize);
@@ -575,58 +575,58 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, TNode *node, int attributeSize,
     }
 }
 
-const BiDirectionalReference *
+const NL_BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset)
 {
     return nodeset->hasEncodingRefs;
 }
 
-void Nodeset_setDisplayName(Nodeset *nodeset, TNode *node, int attributeSize,
+void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node, int attributeSize,
                             const char **attributes)
 {
     node->displayName.locale =
         getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
 }
 
-void Nodeset_DisplayNameFinish(const Nodeset *nodeset, TNode *node, char *text)
+void Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text)
 {
     node->displayName.text = text;
 }
 
-void Nodeset_setDescription(Nodeset *nodeset, TNode *node, int attributeSize,
+void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, int attributeSize,
                             const char **attributes)
 {
     node->description.locale =
         getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
 }
 
-void Nodeset_DescriptionFinish(const Nodeset *nodeset, TNode *node, char *text)
+void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text)
 {
     node->description.text = text;
 }
 
-void Nodeset_setInverseName(Nodeset *nodeset, TNode *node, int attributeSize,
+void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, int attributeSize,
                             const char **attributes)
 {
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
-        ((TReferenceTypeNode *)node)->inverseName.locale =
+        ((NL_ReferenceTypeNode *)node)->inverseName.locale =
             getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
     }
 }
-void Nodeset_InverseNameFinish(const Nodeset *nodeset, TNode *node, char *text)
+void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text)
 {
     if (node->nodeClass == NODECLASS_REFERENCETYPE)
     {
-        ((TReferenceTypeNode *)node)->inverseName.text = text;
+        ((NL_ReferenceTypeNode *)node)->inverseName.text = text;
     }
 }
 
-size_t Nodeset_forEachNode(Nodeset *nodeset, TNodeClass nodeClass,
+size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                            void *context, NodesetLoader_forEachNode_Func fn)
 {
     NodeContainer *c = nodeset->nodes[nodeClass];
-    for (TNode **node = c->nodes; node != c->nodes + c->size; node++)
+    for (NL_Node **node = c->nodes; node != c->nodes + c->size; node++)
     {
         fn(context, *node);
     }

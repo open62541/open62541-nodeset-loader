@@ -9,13 +9,13 @@
 #define NODESETLOADER_REFERENCESERVICE_H
 #include <stdbool.h>
 
-struct Reference;
-struct TReferenceTypeNode;
-typedef bool (*RefService_isHierachicalRef)(void* context, const struct Reference* ref);
-typedef bool (*RefService_isNonHierachicalRef)(void* context, const struct Reference *ref);
-typedef bool (*RefService_isHasTypeDefRef)(void *context, const struct Reference *ref);
-typedef void (*RefService_addNewReferenceType)(void* context, const struct TReferenceTypeNode* node);
-struct RefService
+struct NL_Reference;
+struct NL_ReferenceTypeNode;
+typedef bool (*RefService_isHierachicalRef)(void* context, const struct NL_Reference* ref);
+typedef bool (*RefService_isNonHierachicalRef)(void* context, const struct NL_Reference *ref);
+typedef bool (*RefService_isHasTypeDefRef)(void *context, const struct NL_Reference *ref);
+typedef void (*RefService_addNewReferenceType)(void* context, const struct NL_ReferenceTypeNode* node);
+struct NL_ReferenceService
 {
     void* context;
     RefService_isHierachicalRef isHierachicalRef;
@@ -23,5 +23,5 @@ struct RefService
     RefService_isHasTypeDefRef isHasTypeDefRef;
     RefService_addNewReferenceType addNewReferenceType;
 };
-typedef struct RefService RefService;
+typedef struct NL_ReferenceService NL_ReferenceService;
 #endif

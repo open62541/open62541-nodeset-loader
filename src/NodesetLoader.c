@@ -37,7 +37,7 @@
 #define EXTENSION "Extension"
 #define INVERSENAME "InverseName"
 
-const char *NODECLASS_NAME[NODECLASS_COUNT] = {
+const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
     "Object", "ObjectType",    "Variable",    "DataType",
     "Method", "ReferenceType", "VariableType", "View"};
 
@@ -67,15 +67,15 @@ struct TParserCtx
     TParserState state;
     TParserState prev_state;
     size_t unknown_depth;
-    TNodeClass nodeClass;
-    TNode *node;
+    NL_NodeClass nodeClass;
+    NL_Node *node;
     struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;
-    Value *val;
+    NL_Value *val;
     void *extensionData;
     NodesetLoader_ExtensionInterface *extIf;
-    Reference *ref;
+    NL_Reference *ref;
     Nodeset *nodeset;
 };
 
@@ -84,7 +84,7 @@ struct NodesetLoader
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
     bool internalLogger;
-    RefService *refService;
+    NL_ReferenceService *refService;
     bool internalRefService;
 };
 
@@ -368,7 +368,7 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     case PARSER_STATE_VALUE:
         if (!strcmp(localname, VALUE) && pctx->unknown_depth == 0)
         {
-            ((TVariableNode *)pctx->node)->value = pctx->val;
+            ((NL_VariableNode *)pctx->node)->value = pctx->val;
             pctx->state = PARSER_STATE_NODE;
         }
         else
@@ -445,7 +445,7 @@ static void OnCharacters(void *ctx, const char *ch, int len)
 }
 
 bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const FileContext *fileHandler)
+                              const NL_FileContext *fileHandler)
 {
     if (fileHandler == NULL)
     {
@@ -519,7 +519,7 @@ bool NodesetLoader_sort(NodesetLoader *loader)
 }
 
 NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                 RefService *refService)
+                                 NL_ReferenceService *refService)
 {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
@@ -561,13 +561,13 @@ void NodesetLoader_delete(NodesetLoader *loader)
     free(loader);
 }
 
-const BiDirectionalReference *
+const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
 {
     return Nodeset_getBiDirectionalRefs(loader->nodeset);
 }
 
-size_t NodesetLoader_forEachNode(NodesetLoader *loader, TNodeClass nodeClass,
+size_t NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                                void *context,
                                NodesetLoader_forEachNode_Func fn)
 {

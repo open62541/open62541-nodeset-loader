@@ -1,6 +1,6 @@
 #include <NodesetLoader/NodesetLoader.h>
 
-bool NodesetLoader_isInstanceNode(const TNode *baseNode)
+bool NodesetLoader_isInstanceNode(const NL_Node *baseNode)
 {
     if (baseNode->nodeClass == NODECLASS_VARIABLE ||
         baseNode->nodeClass == NODECLASS_OBJECT ||
