@@ -4,7 +4,6 @@ cmake_paths
 
 [requires]
 libxml2/2.9.9
-open62541/1.1.6
 libcheck/0.15.2
 
 [options]
