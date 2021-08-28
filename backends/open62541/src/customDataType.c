@@ -7,12 +7,11 @@
 
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
+#include "customDataType.h"
 
-const struct UA_DataType *NodesetLoader_getCustomDataType(struct UA_Server *server,
-                                            const UA_NodeId *typeId)
+const struct UA_DataType *findDataType(const UA_NodeId *typeId,
+                                       const UA_DataTypeArray *types)
 {
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    const UA_DataTypeArray *types = config->customDataTypes;
     while (types)
     {
         const UA_DataTypeArray *next = types->next;
@@ -30,4 +29,13 @@ const struct UA_DataType *NodesetLoader_getCustomDataType(struct UA_Server *serv
         types = next;
     }
     return NULL;
+}
+
+const struct UA_DataType *
+NodesetLoader_getCustomDataType(struct UA_Server *server,
+                                const UA_NodeId *typeId)
+{
+    UA_ServerConfig *config = UA_Server_getConfig(server);
+    const UA_DataTypeArray *types = config->customDataTypes;
+    return findDataType(typeId, types);
 }

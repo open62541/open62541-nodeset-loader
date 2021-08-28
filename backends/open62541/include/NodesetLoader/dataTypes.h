@@ -30,7 +30,8 @@ extern "C" {
 
 struct UA_Server;
 LOADER_EXPORT const struct UA_DataType *
-NodesetLoader_getCustomDataType(struct UA_Server *server, const UA_NodeId *typeId);
+NodesetLoader_getCustomDataType(struct UA_Server *server,
+                                const UA_NodeId *typeId);
 
 #ifdef __cplusplus
 }

@@ -7,12 +7,19 @@
 
 #include "DataTypeImporter.h"
 #include "conversion.h"
+#include "customDataType.h"
 #include "padding.h"
 #include <assert.h>
 #include <open62541/server.h>
 #include <open62541/types.h>
 
-#define alignof(type) offsetof(struct {char c; type d;}, d)
+#define alignof(type)                                                          \
+    offsetof(                                                                  \
+        struct {                                                               \
+            char c;                                                            \
+            type d;                                                            \
+        },                                                                     \
+        d)
 
 struct DataTypeImporter
 {
@@ -39,16 +46,33 @@ static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
     return UA_NODEID_NULL;
 }
 
-static const UA_DataType *getTypeFromLists(bool nsZero, UA_UInt16 idx,
-                                           const UA_DataType *ns0Types,
-                                           const UA_DataType *customTypes)
+#ifdef USE_MEMBERTYPE_INDEX
+// this is not the real NodeId of the type, but we need this hack to provide the
+// same interface
+static const UA_DataType *getDataType(bool nsZero, UA_UInt16 idx,
+                                      const UA_DataTypeArray *customTypes)
 {
-    const UA_DataType *typelists[2] = {ns0Types, customTypes};
+    const UA_DataType *typelists[2] = {UA_TYPES, customTypes->types};
     return &typelists[!nsZero][idx];
 }
+#endif
+/*
+#else
+static const UA_DataType *getDataType(const UA_NodeId *id,
+                                      const UA_DataTypeArray *customTypes)
+{
+    const UA_DataType *type = UA_findDataType(id);
+    if (type)
+    {
+        return type;
+    }
+    return findDataType(id, customTypes);
+}
+#endif
+*/
 
-static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
-                        const UA_DataType *customTypes)
+static int getAlignment(const UA_DataType *type,
+                        const UA_DataTypeArray *customTypes)
 {
     switch (type->typeKind)
     {
@@ -100,17 +124,23 @@ static int getAlignment(const UA_DataType *type, const UA_DataType *ns0Types,
     case UA_DATATYPEKIND_OPTSTRUCT:
         // here we have to take a look on the first member
         assert(type->members);
-        const UA_DataType *memberType = getTypeFromLists(
-            type->members[0].namespaceZero, type->members[0].memberTypeIndex,
-            ns0Types, customTypes);
-        return getAlignment(memberType, ns0Types, customTypes);
+#ifdef USE_MEMBERTYPE_INDEX
+        const UA_DataType *memberType =
+            getDataType(type->members[0].namespaceZero,
+                         type->members[0].memberTypeIndex, customTypes);
+#else
+        const UA_DataType *memberType = type->members[0].memberType;
+
+#endif
+        return getAlignment(memberType, customTypes);
     }
 
     assert(false && "typeKind not handled");
     return 0;
 }
-static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
-                              const UA_DataType *customTypes)
+
+static void setPaddingMemsize(UA_DataType *type,
+                              const UA_DataTypeArray *customTypes)
 {
     if (!type->members)
     {
@@ -124,8 +154,12 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
-        const UA_DataType *memberType = getTypeFromLists(
-            tm->namespaceZero, tm->memberTypeIndex, ns0Types, customTypes);
+#ifdef USE_MEMBERTYPE_INDEX
+        const UA_DataType *memberType =
+            findDataType(tm->namespaceZero, tm->memberTypeIndex, customTypes);
+#else
+        const UA_DataType *memberType = tm->memberType;
+#endif
         type->pointerFree = type->pointerFree && memberType->pointerFree;
 
         if (tm->isArray)
@@ -135,7 +169,11 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
             // serialization, we have a serious problem
             // we rely here that its an size_t
             int align = alignof(size_t);
+#ifdef USE_MEMBERTYPE_INDEX
             tm->padding = getPadding(align, offset);
+#else
+            tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
+#endif
             offset = offset + tm->padding + (UA_Byte)sizeof(size_t);
             // the void* for data
             align = alignof(void *);
@@ -153,7 +191,11 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
         else if (tm->isOptional)
         {
             int align = alignof(void *);
+#ifdef USE_MEMBERTYPE_INDEX
             tm->padding = getPadding(align, offset);
+#else
+            tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
+#endif
             offset = offset + tm->padding + (UA_Byte)sizeof(void *);
             type->pointerFree = false;
             if (sizeof(void *) > biggestMemberSize)
@@ -163,14 +205,23 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
         }
         else
         {
-            if(type->typeKind == UA_DATATYPEKIND_UNION && tm>type->members)
+            if (type->typeKind == UA_DATATYPEKIND_UNION && tm > type->members)
             {
-                tm->padding = sizeof(UA_UInt32);
+#ifdef USE_MEMBERTYPE_INDEX
+                tm->padding = (UA_Byte)sizeof(UA_UInt32);
+#else
+                tm->padding = (UA_Byte)sizeof(UA_UInt32);
+#endif
+                
             }
             else
             {
-                int align = getAlignment(memberType, ns0Types, customTypes);
+                int align = getAlignment(memberType, customTypes);
+#ifdef USE_MEMBERTYPE_INDEX
                 tm->padding = getPadding(align, offset);
+#else
+                tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
+#endif
                 offset = offset + tm->padding + memberType->memSize;
                 // padding after struct at end is needed
                 if (memberType->memSize > sizeof(size_t))
@@ -201,15 +252,16 @@ static void setPaddingMemsize(UA_DataType *type, const UA_DataType *ns0Types,
     }
 }
 
+#ifdef USE_MEMBERTYPE_INDEX
 static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
                               const UA_NodeId *id)
 {
     if (id->namespaceIndex == 0)
     {
         const UA_DataType *ns0type = UA_findDataType(id);
-        //TODO: how to properly check if it is an abstract dataType?
-        //if it is abstract, a Variant is returned
-        if(!ns0type)
+        // TODO: how to properly check if it is an abstract dataType?
+        // if it is abstract, a Variant is returned
+        if (!ns0type)
         {
             return UA_TYPES[UA_TYPES_VARIANT].typeIndex;
         }
@@ -238,6 +290,7 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
         return 0;
     }
 }
+#endif
 
 static NL_NodeId getParentNode(const NL_DataTypeNode *node)
 {
@@ -248,7 +301,7 @@ static NL_NodeId getParentNode(const NL_DataTypeNode *node)
         {
             return ref->target;
         }
-        ref=ref->next;
+        ref = ref->next;
     }
     NL_NodeId nullId = {0, NULL};
     return nullId;
@@ -264,6 +317,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     size_t memberOffset = 0;
     if (!UA_NodeId_equal(&parent, &structId))
     {
+#ifdef USE_MEMBERTYPE_INDEX
         UA_UInt16 idx = getTypeIndex(importer, &parent);
         const UA_DataType *parentType = NULL;
         if (parent.namespaceIndex == 0)
@@ -274,6 +328,9 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
         {
             parentType = &importer->types->types[idx];
         }
+#else
+        const UA_DataType* parentType = findDataType(&parent, importer->types);
+#endif
         // copy over parent members, if no members (abstract type), nothing is
         // done
         if (parentType->members)
@@ -312,7 +369,11 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     {
         UA_NodeId memberTypeId =
             getNodeIdFromChars(node->definition->fields[i].dataType);
+#ifdef USE_MEMBERTYPE_INDEX
         member->memberTypeIndex = getTypeIndex(importer, &memberTypeId);
+#else
+        member->memberType = findDataType(&memberTypeId, importer->types);
+#endif
         i++;
     }
 }
@@ -337,7 +398,9 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
     {
         UA_DataTypeMember *member = type->members + i;
         member->isArray = node->definition->fields[i].valueRank >= 0;
+#ifdef USE_MEMBERTYPE_INDEX
         member->namespaceZero = node->definition->fields[i].dataType.nsIdx == 0;
+#endif
 
         char *memberNameCopy = (char *)UA_calloc(
             strlen(node->definition->fields[i].name) + 1, sizeof(char));
@@ -354,7 +417,9 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
 }
 
 static void StructureDataType_init(const DataTypeImporter *importer,
-                                   UA_DataType *type, const NL_DataTypeNode *node, bool isOptionSet)
+                                   UA_DataType *type,
+                                   const NL_DataTypeNode *node,
+                                   bool isOptionSet)
 {
     if (node->definition && node->definition->isUnion)
     {
@@ -364,20 +429,29 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     {
         type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     }
+#ifdef USE_MEMBERTYPE_INDEX
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
+#else
+    type->typeId = getNodeIdFromChars(node->id);
+#endif
     type->binaryEncodingId = getBinaryEncodingId(node);
     type->pointerFree = true;
-    if(!isOptionSet)
+    if (!isOptionSet)
     {
         addDataTypeMembers(importer->types->types, type, node);
-    }    
+    }
     type->overlayable = false;
 }
 
 static void EnumDataType_init(const DataTypeImporter *importer,
-                              UA_DataType *enumType, const NL_DataTypeNode *node)
+                              UA_DataType *enumType,
+                              const NL_DataTypeNode *node)
 {
+#ifdef USE_MEMBERTYPE_INDEX
     enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
+#else
+    enumType->typeId = getNodeIdFromChars(node->id);
+#endif
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
     enumType->binaryEncodingId = UA_NODEID_NULL;
     enumType->pointerFree = true;
@@ -391,11 +465,15 @@ static void SubtypeOfBase_init(const DataTypeImporter *importer,
                                UA_DataType *type, const NL_DataTypeNode *node,
                                const UA_NodeId parent)
 {
-    const UA_DataType* parentType = UA_findDataType(&parent);
+    const UA_DataType *parentType = UA_findDataType(&parent);
 
     assert(parentType);
 
+#ifdef USE_MEMBERTYPE_INDEX
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
+#else
+    type->typeId = getNodeIdFromChars(node->id);
+#endif
     type->binaryEncodingId = parentType->binaryEncodingId;
     type->members = NULL;
     type->membersSize = 0;
@@ -421,6 +499,7 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
     for (UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
+#ifdef USE_MEMBERTYPE_INDEX
         if (m->namespaceZero)
         {
             continue;
@@ -429,6 +508,12 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
         {
             continue;
         }
+#else
+        if(m->memberType->memSize>0)
+        {
+            continue;
+        }
+#endif
         ready = false;
         break;
     }
@@ -452,7 +537,7 @@ static void calcMemSize(DataTypeImporter *importer)
             // known
             if (readyForMemsizeCalc(type, importer->types->types))
             {
-                setPaddingMemsize(type, &UA_TYPES[0], importer->types->types);
+                setPaddingMemsize(type, importer->types);
             }
             else
             {
@@ -506,7 +591,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
         memcpy((void *)(uintptr_t)type->typeName, node->browseName.name, len);
     }
 
-    UA_NodeId enumeration = UA_NODEID_NUMERIC(0,UA_NS0ID_ENUMERATION);
+    UA_NodeId enumeration = UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
     UA_NodeId structure = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
     UA_NodeId optionset = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
     if (UA_NodeId_equal(&parent, &enumeration))
@@ -515,10 +600,10 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     }
     else if (UA_NodeId_equal(&parent, &optionset))
     {
-        //treat optionset like a struct
+        // treat optionset like a struct
         StructureDataType_init(importer, type, node, true);
     }
-    
+
     else if (UA_NodeId_equal(&parent, &structure))
     {
         StructureDataType_init(importer, type, node, false);
@@ -529,7 +614,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     }
 
     importer->nodes = (const NL_DataTypeNode **)realloc(
-        (void*)importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
+        (void *)importer->nodes, (importer->nodesSize + 1) * sizeof(void *));
     importer->nodes[importer->nodesSize] = node;
     importer->nodesSize++;
 
@@ -565,6 +650,6 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
 
 void DataTypeImporter_delete(DataTypeImporter *importer)
 {
-    free((void*)importer->nodes);
+    free((void *)importer->nodes);
     free(importer);
 }
