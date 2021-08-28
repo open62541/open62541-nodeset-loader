@@ -1,4 +1,4 @@
-name: GccDebugMemcheck
+name: GccDebugMemcheck_WithoutMemberTypeIndex
 
 on:
   push:
