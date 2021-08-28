@@ -55,8 +55,6 @@ static const UA_DataType *getDataType(bool nsZero, UA_UInt16 idx,
     const UA_DataType *typelists[2] = {UA_TYPES, customTypes->types};
     return &typelists[!nsZero][idx];
 }
-#endif
-/*
 #else
 static const UA_DataType *getDataType(const UA_NodeId *id,
                                       const UA_DataTypeArray *customTypes)
@@ -66,10 +64,9 @@ static const UA_DataType *getDataType(const UA_NodeId *id,
     {
         return type;
     }
-    return findDataType(id, customTypes);
+    return findCustomDataType(id, customTypes);
 }
 #endif
-*/
 
 static int getAlignment(const UA_DataType *type,
                         const UA_DataTypeArray *customTypes)
@@ -329,7 +326,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
             parentType = &importer->types->types[idx];
         }
 #else
-        const UA_DataType* parentType = findDataType(&parent, importer->types);
+        const UA_DataType* parentType = getDataType(&parent, importer->types);
 #endif
         // copy over parent members, if no members (abstract type), nothing is
         // done
@@ -372,13 +369,13 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 #ifdef USE_MEMBERTYPE_INDEX
         member->memberTypeIndex = getTypeIndex(importer, &memberTypeId);
 #else
-        member->memberType = findDataType(&memberTypeId, importer->types);
+        member->memberType = getDataType(&memberTypeId, importer->types);
 #endif
         i++;
     }
 }
 
-static void addDataTypeMembers(const UA_DataType *customTypes,
+static void addDataTypeMembers(const UA_DataTypeArray *customTypes,
                                UA_DataType *type, const NL_DataTypeNode *node)
 {
 
@@ -400,6 +397,9 @@ static void addDataTypeMembers(const UA_DataType *customTypes,
         member->isArray = node->definition->fields[i].valueRank >= 0;
 #ifdef USE_MEMBERTYPE_INDEX
         member->namespaceZero = node->definition->fields[i].dataType.nsIdx == 0;
+#else
+        UA_NodeId typeId = getNodeIdFromChars(node->definition->fields[i].dataType);
+        member->memberType = getDataType(&typeId, customTypes);
 #endif
 
         char *memberNameCopy = (char *)UA_calloc(
@@ -438,7 +438,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
     type->pointerFree = true;
     if (!isOptionSet)
     {
-        addDataTypeMembers(importer->types->types, type, node);
+        addDataTypeMembers(importer->types, type, node);
     }
     type->overlayable = false;
 }
@@ -509,7 +509,7 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
             continue;
         }
 #else
-        if(m->memberType->memSize>0)
+        if(m->memberType && m->memberType->memSize>0)
         {
             continue;
         }
