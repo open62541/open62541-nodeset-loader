@@ -62,13 +62,12 @@ static void memberTypeMatching(const UA_DataTypeMember *m1,
                                const UA_DataType *customTypes)
 {
     ck_assert(m1->isArray == m2->isArray);
-    ck_assert(m1->memberType == m2->memberType);
-    //ck_assert(m1->namespaceZero == m2->namespaceZero);
+    ck_assert(UA_NodeId_equal(&m1->memberType->typeId, &m2->memberType->typeId));
     ck_assert(m1->padding == m2->padding);
     ck_assert(m1->isOptional == m2->isOptional);
 }
-
 #endif
+
 void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
     ck_assert(t1->typeKind == t2->typeKind);
