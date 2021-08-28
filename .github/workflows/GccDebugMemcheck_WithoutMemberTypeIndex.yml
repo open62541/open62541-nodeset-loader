@@ -1,0 +1,109 @@
+name: GccDebugMemcheck
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+
+jobs:
+  build:
+    # The CMake configure and build commands are platform agnostic and should work equally
+    # well on Windows or Mac.  You can convert this to a matrix build if you need
+    # cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2    
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
+        
+    - name: update
+      run: sudo apt-get update
+        
+    - name: Install check
+      run: sudo apt-get install check
+    
+    - name: Install valgrind
+      run: sudo apt-get install valgrind
+
+    - name: Install lcov
+      run: sudo apt-get install lcov
+
+    - name: install libxml2
+      run: sudo apt-get install libxml2-dev
+
+    ##open62541
+    - uses: actions/checkout@master
+      with:
+        repository: open62541/open62541
+        submodules: recursive
+        path: ./openRoot
+        
+    - name: Create Build Environment for open62541
+      run: cmake -E make_directory ./openRoot/build
+
+    - name: Configure open
+      shell: bash
+      working-directory: ./openRoot/build
+      run: cmake -DCMAKE_BUILD_TYPE=Debug -DUA_NAMESPACE_ZERO=FULL -DBUILD_SHARED_LIBS=ON -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON ..
+
+    - name: Build open
+      working-directory: ./openRoot/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: install open
+      working-directory: ./openRoot/build
+      shell: bash
+      run: sudo cmake --install .
+
+    - name: Create Build Environment
+      # Some projects don't allow in-source building, so create a separate build directory
+      # We'll use this as our working directory for all subsequent commands
+      run: cmake -E make_directory ${{runner.workspace}}/build
+
+    - name: Configure CMake
+      # Use a bash shell so we can use the same syntax for environment variable
+      # access regardless of the host operating system
+      shell: bash
+      working-directory: ${{runner.workspace}}/build
+      # Note the current convention is to use the -S and -B options here to specify source 
+      # and build directories, but this is only available with CMake 3.13 and higher.  
+      # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=Debug -DENABLE_CONAN=OFF -DENABLE_TESTING=ON -DBUILD_SHARED_LIBS=ON -DENABLE_BACKEND_OPEN62541=ON -DENABLE_DATATYPEIMPORT_TEST=ON -DCALC_COVERAGE=ON -DUSE_MEMBERTYPE_INDEX=FALSE ..
+
+    - name: Build
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute the build.  You can specify a specific target with "--target <NAME>"
+      run: cmake --build . --config $BUILD_TYPE
+
+
+    - name: Test
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: make test
+
+    - name: Test with memcheck
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      # Execute tests defined by the CMake configuration.  
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest --verbose --overwrite MemoryCheckCommandOptions="--leak-check=full --error-exitcode=100" -T memcheck
+
+    - name: CalculateCoverage
+      working-directory: ${{runner.workspace}}/build
+      shell: bash
+      run: cmake --build . --target coverage
+
+    - uses: codecov/codecov-action@v1
+      with:
+        file: ${{runner.workspace}}/build/coverage/coverage.info # optional
+        verbose: true # optional (default = false)
