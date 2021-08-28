@@ -159,7 +159,7 @@ static void setPaddingMemsize(UA_DataType *type,
     {
 #ifdef USE_MEMBERTYPE_INDEX
         const UA_DataType *memberType =
-            findDataType(tm->namespaceZero, tm->memberTypeIndex, customTypes);
+            getDataType(tm->namespaceZero, tm->memberTypeIndex, customTypes);
 #else
         const UA_DataType *memberType = tm->memberType;
 #endif
