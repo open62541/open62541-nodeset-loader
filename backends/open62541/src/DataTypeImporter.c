@@ -64,6 +64,12 @@ static const UA_DataType *getDataType(const UA_NodeId *id,
     {
         return type;
     }
+    // TODO: how to properly check if it is an abstract dataType?
+    // if it is abstract, a Variant is returned
+    if(id->namespaceIndex==0)
+    {
+        return &UA_TYPES[UA_TYPES_VARIANT];
+    }
     return findCustomDataType(id, customTypes);
 }
 #endif
