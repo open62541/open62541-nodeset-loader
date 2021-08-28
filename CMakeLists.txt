@@ -13,6 +13,7 @@ option(ENABLE_ASAN "build with address sanitizer enabled" off)
 option(ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
 option(ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
 option(CALC_COVERAGE "calculate code coverage" off)
+option(USE_MEMBERTYPE_INDEX "necessary for open62541 backend with version <= 1.2.x" ON)
 
 
 if(${ENABLE_CONAN})
@@ -114,6 +115,9 @@ endif()
 if(${ENABLE_BACKEND_OPEN62541})
     target_include_directories(NodesetLoader PRIVATE open62541::open62541)
     target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+    if(${USE_MEMBERTYPE_INDEX})
+        target_compile_definitions(NodesetLoader PRIVATE -DUSE_MEMBERTYPE_INDEX=1)
+    endif()
 endif()
 
 target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
