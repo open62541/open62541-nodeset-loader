@@ -44,6 +44,7 @@ UA_NodeId getTypeId(UA_UInt16 typeIndex, UA_Boolean isNamespaceZero, const UA_Da
     return types[!isNamespaceZero][typeIndex].typeId;
 }
 
+#ifdef USE_MEMBERTYPE_INDEX
 static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMember* m2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
     ck_assert(m1->isArray == m2->isArray);
@@ -54,6 +55,18 @@ static void memberTypeMatching(const UA_DataTypeMember* m1, const UA_DataTypeMem
     UA_NodeId m2Id = getTypeId(m2->memberTypeIndex, m2->namespaceZero, customTypes);
     ck_assert(UA_NodeId_equal(&m1Id, &m2Id));
 }
+#else
+static void memberTypeMatching(const UA_DataTypeMember *m1,
+                               const UA_DataTypeMember *m2,
+                               const UA_DataType *generatedTypes,
+                               const UA_DataType *customTypes)
+{
+    ck_assert(m1->isArray == m2->isArray);
+    ck_assert(UA_NodeId_equal(&m1->memberType->typeId, &m2->memberType->typeId));
+    ck_assert(m1->padding == m2->padding);
+    ck_assert(m1->isOptional == m2->isOptional);
+}
+#endif
 
 void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2, const UA_DataType* generatedTypes, const UA_DataType* customTypes)
 {
