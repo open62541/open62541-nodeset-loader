@@ -226,7 +226,7 @@ static void setArray(const NL_Data *value, const UA_DataType *type, RawData *dat
                      const UA_DataType *customTypes);
 
 #ifdef USE_MEMBERTYPE_INDEX
-static const UA_DataType* getMemberType(const UA_DataTypeMember* m)
+static const UA_DataType* getMemberType(const UA_DataTypeMember* m, const UA_DataType* customTypes)
 {
     const UA_DataType *memberType = NULL;
     if (m->namespaceZero)
@@ -240,8 +240,9 @@ static const UA_DataType* getMemberType(const UA_DataTypeMember* m)
     return memberType;
 }
 #else
-static const UA_DataType *getMemberType(const UA_DataTypeMember *m)
+static const UA_DataType *getMemberType(const UA_DataTypeMember *m, const UA_DataType* customTypes)
 {
+    (void)customTypes;
     return m->memberType;
 }
 
@@ -255,7 +256,7 @@ static void setStructure(const NL_Data *value, const UA_DataType *type,
     for (const UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
-        const UA_DataType* memberType = getMemberType(m);
+        const UA_DataType* memberType = getMemberType(m, customTypes);
 
         data->offset += m->padding;
         NL_Data *memberData = lookupMember(value, m->memberName);
