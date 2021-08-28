@@ -117,8 +117,6 @@ if(${ENABLE_BACKEND_OPEN62541})
     target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
     if(${USE_MEMBERTYPE_INDEX})
         target_compile_definitions(NodesetLoader PUBLIC -DUSE_MEMBERTYPE_INDEX=1)
-    else()
-        target_compile_definitions(NodesetLoader PUBLIC -DUSE_MEMBERTYPE_INDEX=0)
     endif()
 endif()
 
