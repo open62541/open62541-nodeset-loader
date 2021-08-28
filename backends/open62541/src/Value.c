@@ -225,7 +225,7 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
 static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
                      const UA_DataType *customTypes);
 
-#ifdef FALSE
+#ifdef USE_MEMBERTYPE_INDEX
 static const UA_DataType* getMemberType(const UA_DataTypeMember* m)
 {
     const UA_DataType *memberType = NULL;
