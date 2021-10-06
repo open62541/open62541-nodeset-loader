@@ -25,6 +25,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <ctype.h>
 
 static const char *b64 =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -118,12 +119,48 @@ unsigned char *unbase64(const char *ascii, int len, int *flen);
 
 unsigned char *unbase64(const char *ascii, int len, int *flen)
 {
-    const unsigned char *safeAsciiPtr = (const unsigned char *)ascii;
+    unsigned char *safeAsciiPtr;
     unsigned char *bin;
     int cb = 0;
     int charNo;
     int pad = 0;
 
+    safeAsciiPtr = (unsigned char *)malloc((size_t)len);
+    if (!safeAsciiPtr)
+    {
+        puts("ERROR: unbase64 could not allocate enough memory.");
+        puts("I must stop because I could not get enough");
+        return 0;
+    }
+
+    for (charNo = 0; charNo < len; charNo++)
+    {
+        // remove all space characters e.g. LF, CR, space and tab
+        if (!isspace(ascii[charNo]))
+        {
+            if (((ascii[charNo] >= '0') &&
+                 (ascii[charNo] <= '9')) ||
+                ((ascii[charNo] >= 'A') &&
+                 (ascii[charNo] <= 'Z')) ||
+                ((ascii[charNo] >= 'a') &&
+                 (ascii[charNo] <= 'z')) ||
+                (ascii[charNo] == '+') ||
+                (ascii[charNo] == '/') ||
+                (ascii[charNo] == '='))
+            {
+                 safeAsciiPtr[cb++] = ascii[charNo];
+            }
+            else
+            {
+                puts("ERROR: You passed an invalid base64 string (illegal character). "
+                     "You get NULL back.");
+                *flen = 0;
+                return 0;
+            }
+        }
+    }
+
+    len = cb;
     if (len < 2)
     { // 2 accesses below would be OOB.
         // catch empty string, return NULL as result.
@@ -146,12 +183,9 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
         return 0;
     }
 
+    cb = 0;
     for (charNo = 0; charNo <= len - 4 - pad; charNo += 4)
     {
-        //skip LF, CR
-        if(safeAsciiPtr[charNo]==0xa) charNo++;
-        if(safeAsciiPtr[charNo]==0xd) charNo++;
-
         unsigned char A = unb64[safeAsciiPtr[charNo]];
         unsigned char B = unb64[safeAsciiPtr[charNo + 1]];
         unsigned char C = unb64[safeAsciiPtr[charNo + 2]];
@@ -178,6 +212,8 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
 
         bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
     }
+
+    free( safeAsciiPtr );
 
     return bin;
 }
