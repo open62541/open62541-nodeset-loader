@@ -148,7 +148,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
                 (ascii[charNo] == '/') ||
                 (ascii[charNo] == '='))
             {
-                 safeAsciiPtr[cb++] = ascii[charNo];
+                 safeAsciiPtr[cb++] = (unsigned char)ascii[charNo];
             }
             else
             {
