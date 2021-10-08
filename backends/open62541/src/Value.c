@@ -210,18 +210,18 @@ static void setNodeId(const NL_Data *value, RawData *data)
 
 static void setByteString(const NL_Data* value, RawData*data)
 {
-   UA_ByteString *s = (UA_ByteString *)((uintptr_t)data->mem+data->offset);
-   int len = 0;
-   unsigned char *val = NULL;
+    UA_ByteString *s = (UA_ByteString *)((uintptr_t)data->mem+data->offset);
+    int len = 0;
+    unsigned char *val = NULL;
 
-   if (value->val.primitiveData.value)
-   {
-       val = unbase64(value->val.primitiveData.value, (int)strlen(value->val.primitiveData.value), &len);
-   }
+    if (value->val.primitiveData.value)
+    {
+        val = unbase64(value->val.primitiveData.value, (int)strlen(value->val.primitiveData.value), &len);
+    }
 
-   s->length = (size_t)len;
-   s->data = (UA_Byte *)val;
-   data->additionalMem = val;
+    s->length = (size_t)len;
+    s->data = (UA_Byte *)val;
+    data->additionalMem = val;
 }
 
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
@@ -353,9 +353,16 @@ RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
     RawData *data = RawData_new(NULL);
     if (value->isArray)
     {
-        data->mem =
-            calloc(value->data->val.complexData.membersSize, type->memSize);
-        setArray(value->data, type, data, customTypes);
+        if (value->data->val.complexData.membersSize == 0)
+        {
+            data = NULL;
+        }
+        else
+        {
+            data->mem =
+                calloc(value->data->val.complexData.membersSize, type->memSize);
+            setArray(value->data, type, data, customTypes);            
+        }
     }
     else
     {
