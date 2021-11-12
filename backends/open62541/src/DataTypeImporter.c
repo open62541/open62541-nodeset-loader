@@ -247,7 +247,6 @@ static void setPaddingMemsize(UA_DataType *type,
         type->memSize = (UA_UInt16)(type->memSize + biggestMemberSize);
         endPadding = getPadding(alignof(size_t), type->memSize);
         type->memSize = (UA_UInt16)(type->memSize + endPadding);
-        type->membersSize++;
     }
     else
     {
