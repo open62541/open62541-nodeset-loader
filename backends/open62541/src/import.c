@@ -283,7 +283,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
 
-    
+
 }
 
 static void handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
@@ -332,6 +332,7 @@ static void handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *i
 {
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
     attr.displayName = *lt;
+    attr.dataType = getNodeIdFromChars(node->datatype);
     attr.description = *description;
     attr.valueRank = atoi(node->valueRank);
     attr.isAbstract = isTrue(node->isAbstract);
