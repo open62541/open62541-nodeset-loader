@@ -5,6 +5,7 @@ target_sources(NodesetLoader
         ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.c
         ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.c
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.c
 )
 
 target_include_directories(NodesetLoader PUBLIC 

@@ -7,13 +7,13 @@
 
 #include "DataTypeImporter.h"
 #include "Value.h"
+#include "ServerContext.h"
 #include "conversion.h"
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
 #include <RefServiceImpl.h>
 #include <assert.h>
-#include <open62541/server.h>
 #include <open62541/server.h>
 
 int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
@@ -202,7 +202,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
                                const UA_LocalizedText *lt,
                                const UA_QualifiedName *qn,
                                const UA_LocalizedText *description,
-                               UA_Server *server)
+                               const ServerContext *serverContext)
 {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.displayName = *lt;
@@ -240,19 +240,19 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         if (!dataType)
         {
             // try it with custom types
-            dataType = NodesetLoader_getCustomDataType(server, &attr.dataType);
+            dataType = NodesetLoader_getCustomDataType(ServerContext_getServerObject(serverContext), &attr.dataType);
             // try it with parent
             if (!dataType)
             {
-                const UA_NodeId parent = getParentType(server, attr.dataType);
+                const UA_NodeId parent = getParentType(ServerContext_getServerObject(serverContext), attr.dataType);
                 dataType = UA_findDataType(&parent);
             }
         }
 
-        UA_ServerConfig *config = UA_Server_getConfig(server);
+        UA_ServerConfig *config = UA_Server_getConfig(ServerContext_getServerObject(serverContext));
         const UA_DataTypeArray *types = config->customDataTypes;
 
-        data = Value_getData(node->value, dataType, types->types);
+        data = Value_getData(node->value, dataType, types->types, serverContext);
 
         if (data)
         {
@@ -274,7 +274,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
     }
 
-    UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
+    UA_Server_addNode_begin(ServerContext_getServerObject(serverContext), UA_NODECLASS_VARIABLE, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &attr,
                             &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
                             node->extension, NULL);
@@ -370,7 +370,7 @@ static void handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
                               attr, node->extension, NULL);
 }
 
-static void addNode(UA_Server *server, const NL_Node *node)
+static void addNode(ServerContext *serverContext, const NL_Node *node)
 {
     UA_NodeId id = getNodeIdFromChars(node->id);
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
@@ -386,52 +386,57 @@ static void addNode(UA_Server *server, const NL_Node *node)
     {
     case NODECLASS_OBJECT:
         handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
-                         &parentReferenceId, &lt, &qn, &description, server);
+                         &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(serverContext));
         break;
 
     case NODECLASS_METHOD:
         handleMethodNode((const NL_MethodNode *)node, &id, &parentId,
-                         &parentReferenceId, &lt, &qn, &description, server);
+                         &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(serverContext));
         break;
 
     case NODECLASS_OBJECTTYPE:
         handleObjectTypeNode((const NL_ObjectTypeNode *)node, &id, &parentId,
                              &parentReferenceId, &lt, &qn, &description,
-                             server);
+                             ServerContext_getServerObject(serverContext));
         break;
 
     case NODECLASS_REFERENCETYPE:
         handleReferenceTypeNode((const NL_ReferenceTypeNode *)node, &id,
                                 &parentId, &parentReferenceId, &lt, &qn,
-                                &description, server);
+                                &description, ServerContext_getServerObject(serverContext));
         break;
 
     case NODECLASS_VARIABLETYPE:
         handleVariableTypeNode((const NL_VariableTypeNode *)node, &id, &parentId,
                                &parentReferenceId, &lt, &qn, &description,
-                               server);
+                               ServerContext_getServerObject(serverContext));
         break;
 
     case NODECLASS_VARIABLE:
         handleVariableNode((const NL_VariableNode *)node, &id, &parentId,
-                           &parentReferenceId, &lt, &qn, &description, server);
+                           &parentReferenceId, &lt, &qn, &description, serverContext);
         break;
     case NODECLASS_DATATYPE:
         handleDataTypeNode((const NL_DataTypeNode *)node, &id, &parentId,
-                           &parentReferenceId, &lt, &qn, &description, server);
+                           &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(serverContext));
         break;
     case NODECLASS_VIEW:
         handleViewNode((const NL_ViewNode *)node, &id, &parentId,
-                       &parentReferenceId, &lt, &qn, &description, server);
+                       &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(serverContext));
         break;
     }
 }
 
 int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
 {
-    int idx =
-        (int)UA_Server_addNamespace((UA_Server *)userContext, namespaceUri);
-    return idx;
+    ServerContext *serverContext = (ServerContext *)userContext;
+
+    UA_UInt16 idx =
+        UA_Server_addNamespace(ServerContext_getServerObject(serverContext), namespaceUri);
+
+    ServerContext_addNamespaceIdx(serverContext, idx);
+
+    return (int)idx;
 }
 
 static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
@@ -532,7 +537,7 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
     }
 }
 
-static void addNodes(NodesetLoader *loader, UA_Server *server,
+static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
                      NodesetLoader_Logger *logger)
 {
     const NL_NodeClass order[NL_NODECLASS_COUNT] = {
@@ -544,11 +549,11 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
     {
         const NL_NodeClass classToImport = order[i];
         size_t cnt =
-            NodesetLoader_forEachNode(loader, classToImport, server,
+            NodesetLoader_forEachNode(loader, classToImport, serverContext,
                                       (NodesetLoader_forEachNode_Func)addNode);
         if (classToImport == NODECLASS_DATATYPE)
         {
-            importDataTypes(loader, server);
+            importDataTypes(loader, ServerContext_getServerObject(serverContext));
         }
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                     "imported %ss: %zu", NL_NODECLASS_NAME[classToImport], cnt);
@@ -558,7 +563,7 @@ static void addNodes(NodesetLoader *loader, UA_Server *server,
     {
         const NL_NodeClass classToImport = order[i];
         NodesetLoader_forEachNode(
-            loader, classToImport, server,
+            loader, classToImport, ServerContext_getServerObject(serverContext),
             (NodesetLoader_forEachNode_Func)addNonHierachicalRefs);
     }
 }
@@ -574,9 +579,12 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     {
         return false;
     }
+
+    ServerContext *serverContext = ServerContext_new(server);
+
     NL_FileContext handler;
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
-    handler.userContext = server;
+    handler.userContext = serverContext;
     handler.file = path;
     handler.extensionHandling = extensionHandling;
 
@@ -595,7 +603,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     bool status = importStatus && sortStatus;
     if (status && sortStatus)
     {
-        addNodes(loader, server, logger);
+        addNodes(loader, serverContext, logger);
     }
     else
     {
@@ -604,6 +612,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     }
     RefServiceImpl_delete(refService);
     NodesetLoader_delete(loader);
+    ServerContext_delete(serverContext);
     free(logger);
     return status;
 }

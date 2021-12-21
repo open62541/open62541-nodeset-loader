@@ -10,6 +10,8 @@
 #include <open62541/types.h>
 #include <NodesetLoader/NodesetLoader.h>
 
+struct ServerContext;
+
 struct RawData;
 struct RawData
 {
@@ -22,6 +24,6 @@ struct RawData
 typedef struct RawData RawData;
 void RawData_delete(RawData *data);
 
-RawData *Value_getData(const NL_Value *value, const UA_DataType* type, const UA_DataType* customTypes);
+RawData *Value_getData(const NL_Value *value, const UA_DataType* type, const UA_DataType* customTypes, const struct ServerContext *serverContext);
 
 #endif

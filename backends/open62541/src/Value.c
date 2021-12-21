@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <open62541/types_generated.h>
 #include "base64.h"
+#include "ServerContext.h"
 
 typedef struct TypeList TypeList;
 struct TypeList
@@ -158,17 +159,21 @@ static void setDateTime(const NL_Data *value, RawData *data)
     data->offset = data->offset + sizeof(UA_DateTime);
 }
 
-static void setQualifiedName(const NL_Data *value, RawData *data)
+static void setQualifiedName(const NL_Data *value, RawData *data, const ServerContext *serverContext)
 {
+    uintptr_t adr = (uintptr_t)data->mem + data->offset;
 
     setScalarValueWithAddress(
-        data->offset + (uintptr_t) &
-            ((UA_QualifiedName *)data->mem)->namespaceIndex,
+        (uintptr_t)&((UA_QualifiedName*)adr)->namespaceIndex,
         UA_DATATYPEKIND_UINT16,
         value->val.complexData.members[0]->val.primitiveData.value);
+    
+    // Translate namespace index
+    ((UA_QualifiedName*)adr)->namespaceIndex = 
+        ServerContext_translateToServerIdx(serverContext, ((UA_QualifiedName*)adr)->namespaceIndex);        
 
     setScalarValueWithAddress(
-        data->offset + (uintptr_t) & ((UA_QualifiedName *)data->mem)->name,
+        (uintptr_t)&((UA_QualifiedName*)adr)->name,
         UA_DATATYPEKIND_STRING,
         value->val.complexData.members[1]->val.primitiveData.value);
 
@@ -198,13 +203,17 @@ static void setLocalizedText(const NL_Data *value, RawData *data)
     data->offset += sizeof(UA_LocalizedText);
 }
 
-static void setNodeId(const NL_Data *value, RawData *data)
+static void setNodeId(const NL_Data *value, RawData *data, const ServerContext *serverContext)
 {
-    // TODO: translate namespaceIndex?
     assert(value->val.complexData.membersSize == 1);
     *(UA_NodeId *)((uintptr_t)data->mem + data->offset) =
         extractNodeId((char *)(uintptr_t)value->val.complexData.members[0]
                           ->val.primitiveData.value);
+
+    // Translate namespace index
+    (*(UA_NodeId *)((uintptr_t)data->mem + data->offset)).namespaceIndex =
+        ServerContext_translateToServerIdx(serverContext, (*(UA_NodeId *)((uintptr_t)data->mem + data->offset)).namespaceIndex);
+
     data->offset += sizeof(UA_NodeId);
 }
 
@@ -225,9 +234,9 @@ static void setByteString(const NL_Data* value, RawData*data)
 }
 
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
-                      const UA_DataType *customTypes);
+                      const UA_DataType *customTypes, const ServerContext *serverContext);
 static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
-                     const UA_DataType *customTypes);
+                     const UA_DataType *customTypes, const ServerContext *serverContext);
 
 #ifdef USE_MEMBERTYPE_INDEX
 static const UA_DataType* getMemberType(const UA_DataTypeMember* m, const UA_DataType* customTypes)
@@ -253,7 +262,7 @@ static const UA_DataType *getMemberType(const UA_DataTypeMember *m, const UA_Dat
 #endif
 
 static void setStructure(const NL_Data *value, const UA_DataType *type,
-                         RawData *data, const UA_DataType *customTypes)
+                         RawData *data, const UA_DataType *customTypes, const ServerContext *serverContext)
 {
     assert(value->type == DATATYPE_COMPLEX);
     // there can be less members specified then the type requires
@@ -274,7 +283,7 @@ static void setStructure(const NL_Data *value, const UA_DataType *type,
             RawData *rawdata = RawData_new(data);
             rawdata->mem = calloc(memberData->val.complexData.membersSize,
                                   memberType->memSize);
-            setArray(memberData, memberType, rawdata, customTypes);
+            setArray(memberData, memberType, rawdata, customTypes, serverContext);
             size_t *size = (size_t *)((uintptr_t)data->mem + data->offset);
             *size = memberData->val.complexData.membersSize;
             data->offset += sizeof(size_t);
@@ -284,13 +293,13 @@ static void setStructure(const NL_Data *value, const UA_DataType *type,
         }
         else
         {
-            setScalar(memberData, memberType, data, customTypes);
+            setScalar(memberData, memberType, data, customTypes, serverContext);
         }
     }
 }
 
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
-                      const UA_DataType *customTypes)
+                      const UA_DataType *customTypes, const ServerContext *serverContext)
 {
     if (type->typeKind < CONVERSION_TABLE_SIZE)
     {
@@ -303,11 +312,11 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     }
     else if (type->typeKind == UA_DATATYPEKIND_NODEID)
     {
-        setNodeId(value, data);
+        setNodeId(value, data, serverContext);
     }
     else if (type->typeKind == UA_DATATYPEKIND_QUALIFIEDNAME)
     {
-        setQualifiedName(value, data);
+        setQualifiedName(value, data, serverContext);
     }
     else if (type->typeKind == UA_DATATYPEKIND_LOCALIZEDTEXT)
     {
@@ -325,7 +334,7 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     }
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
-        setStructure(value, type, data, customTypes);
+        setStructure(value, type, data, customTypes, serverContext);
     }
     else
     {
@@ -334,16 +343,16 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
 }
 
 static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
-                     const UA_DataType *customTypes)
+                     const UA_DataType *customTypes, const ServerContext *serverContext)
 {
     for (size_t i = 0; i < value->val.complexData.membersSize; i++)
     {
-        setScalar(value->val.complexData.members[i], type, data, customTypes);
+        setScalar(value->val.complexData.members[i], type, data, customTypes, serverContext);
     }
 }
 
 RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
-                       const UA_DataType *customTypes)
+                       const UA_DataType *customTypes, const ServerContext *serverContext)
 {
     if (!type)
     {
@@ -361,13 +370,13 @@ RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
         {
             data->mem =
                 calloc(value->data->val.complexData.membersSize, type->memSize);
-            setArray(value->data, type, data, customTypes);            
+            setArray(value->data, type, data, customTypes, serverContext);            
         }
     }
     else
     {
         data->mem = calloc(1, type->memSize);
-        setScalar(value->data, type, data, customTypes);
+        setScalar(value->data, type, data, customTypes, serverContext);
     }
 
     return data;
