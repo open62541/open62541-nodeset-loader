@@ -224,6 +224,13 @@ static void setByteString(const NL_Data* value, RawData*data)
     data->additionalMem = val;
 }
 
+static void setGuid(const NL_Data* value, RawData*data)
+{
+    uintptr_t adr = (uintptr_t)data->mem + data->offset;
+    *(UA_Guid*)adr = UA_GUID((const char *)(value->val.complexData.members[0]->val.primitiveData.value));
+    data->offset = data->offset + sizeof(UA_Guid);
+}
+
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes);
 static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
@@ -326,6 +333,10 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
         setStructure(value, type, data, customTypes);
+    }
+    else if (type->typeKind == UA_DATATYPEKIND_GUID)
+    {
+        setGuid(value, data);
     }
     else
     {
