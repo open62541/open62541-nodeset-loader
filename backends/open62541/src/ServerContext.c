@@ -73,12 +73,18 @@ UA_UInt16 ServerContext_translateToServerIdx(const ServerContext *serverContext,
     if (!serverContext)
         return UA_UINT16_MAX;
 
-    if ((nodesetIdx > 0) && ((size_t)nodesetIdx <= serverContext->namespaceCnt))
+    if (nodesetIdx == 0)
+    {
+        // Zero is always 0, no need for translation
+        return 0;
+    }
+    else if ((nodesetIdx > 0) && ((size_t)nodesetIdx <= serverContext->namespaceCnt))
     {
         return serverContext->namespaceIdxMapping[nodesetIdx - 1];
     }
     else
     {
+        // Error case. Should it rather be handled by assert(false)?
         return UA_UINT16_MAX;
     }
 }
