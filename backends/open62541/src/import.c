@@ -40,7 +40,7 @@ static bool isKnownParent(const UA_NodeId typeId)
 {
     if (typeId.namespaceIndex == 0 &&
         typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
-        typeId.identifier.numeric <= 30)
+        typeId.identifier.numeric <= 29)
     {
         return true;
     }

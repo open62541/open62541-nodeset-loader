@@ -233,10 +233,28 @@ static void setByteString(const NL_Data* value, RawData*data)
     data->additionalMem = val;
 }
 
+static void setGuid(const NL_Data* value, RawData*data)
+{
+    uintptr_t adr = (uintptr_t)data->mem + data->offset;
+    *(UA_Guid*)adr = UA_GUID((const char *)(value->val.complexData.members[0]->val.primitiveData.value));
+    data->offset = data->offset + sizeof(UA_Guid);
+}
+
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes, const ServerContext *serverContext);
 static void setArray(const NL_Data *value, const UA_DataType *type, RawData *data,
                      const UA_DataType *customTypes, const ServerContext *serverContext);
+
+static const char* getEnumValuePos(const char *string)
+{
+    // Enum value is either on <symbol>_<value> or <value> format
+    char *enumSepPos = strchr(string, '_');
+    if (enumSepPos)
+    {
+        return ++enumSepPos;
+    }
+    return string;
+}
 
 #ifdef USE_MEMBERTYPE_INDEX
 static const UA_DataType* getMemberType(const UA_DataTypeMember* m, const UA_DataType* customTypes)
@@ -328,13 +346,17 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     }
     else if (type->typeKind == UA_DATATYPEKIND_ENUM)
     {
-        setPrimitiveValue(data, value->val.primitiveData.value,
+        setPrimitiveValue(data, getEnumValuePos(value->val.primitiveData.value),
                           UA_DATATYPEKIND_INT32,
                           UA_TYPES[UA_TYPES_INT32].memSize);
     }
     else if (type->typeKind == UA_DATATYPEKIND_STRUCTURE)
     {
         setStructure(value, type, data, customTypes, serverContext);
+    }
+    else if (type->typeKind == UA_DATATYPEKIND_GUID)
+    {
+        setGuid(value, data);
     }
     else
     {
@@ -370,7 +392,7 @@ RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
         {
             data->mem =
                 calloc(value->data->val.complexData.membersSize, type->memSize);
-            setArray(value->data, type, data, customTypes, serverContext);            
+            setArray(value->data, type, data, customTypes, serverContext);
         }
     }
     else
