@@ -100,6 +100,13 @@ START_TEST(Server_LoadNS0Values) {
     ck_assert(var.type == &UA_TYPES[UA_TYPES_QUALIFIEDNAME]);
     ck_assert_uint_eq(((UA_QualifiedName *)var.data)->namespaceIndex, 2);
     UA_Variant_clear(&var);
+    // Guid
+    UA_Guid guid = UA_GUID("72962B91-FA75-4AE6-8D28-B404DC7DAF63");
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1011), &var);
+    ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
+    ck_assert(var.type == &UA_TYPES[UA_TYPES_GUID]);
+    ck_assert(UA_Guid_equal(&guid, (UA_Guid *)var.data));
+    UA_Variant_clear(&var);
 }
 END_TEST
 
