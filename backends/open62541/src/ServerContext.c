@@ -57,7 +57,7 @@ void ServerContext_addNamespaceIdx(ServerContext *serverContext, UA_UInt16 serve
         return;
 
     void *newNamespaceIdxMapping =
-        realloc(serverContext->namespaceIdxMapping, sizeof(UA_UInt16) * serverContext->namespaceCnt + 1 );
+        realloc(serverContext->namespaceIdxMapping, sizeof(UA_UInt16) * (serverContext->namespaceCnt + 1));
     
     if (newNamespaceIdxMapping)
     {
