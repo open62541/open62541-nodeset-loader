@@ -64,7 +64,7 @@ START_TEST(Server_loadNodeset)
     retval =
         UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
-    UA_NodeId test = UA_NODEID_NUMERIC(1, 234);
+    UA_NodeId test = UA_NODEID_NUMERIC(2, 234);
     ck_assert(UA_NodeId_equal(&test, (UA_NodeId*)var.data));
     UA_Variant_clear(&var);
     retval =
