@@ -244,16 +244,19 @@ bool Nodeset_sort(Nodeset *nodeset)
     // first we have to figure out, if there are reference types, for which we
     // cannot state if they are hierachical or nonhierachical
     lookupReferenceTypes(nodeset);
-    // all hierachical should be known at this point
+    // all hierachical references of a node should be known at this point
+    // if there are nodes with unknown references, the import will be aborted
     for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++)
     {
         bool result = lookupUnknownReferences(
             nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
         if (!result)
         {
-            nodeset->logger->log(nodeset->logger->context,
-                                 NODESETLOADER_LOGLEVEL_ERROR,
-                                 "node with unresolved reference");
+            nodeset->logger->log(
+                nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                "node with unresolved reference(s): NodeId(%d, %s)",
+                nodeset->nodesWithUnknownRefs->nodes[i]->id.nsIdx,
+                nodeset->nodesWithUnknownRefs->nodes[i]->id.id);
             return false;
         }
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
