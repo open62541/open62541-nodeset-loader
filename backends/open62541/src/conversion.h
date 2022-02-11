@@ -79,17 +79,7 @@ static inline UA_DateTime UA_DateTime_fromString(const char *dateString)
 {
     UA_DateTimeStruct dt;
     memset(&dt, 0, sizeof(UA_DateTimeStruct));
-    int y, M, d, h, m;
-    float s;
-    sscanf(dateString, "%d-%d-%dT%d:%d:%fZ", &y, &M, &d, &h, &m, &s);
-    dt.year = (UA_UInt16)y;
-    dt.month = (UA_UInt16)M;
-    dt.day = (UA_UInt16)d;
-    dt.hour = (UA_UInt16)h;
-    dt.min = (UA_UInt16)m;
-    dt.sec = (UA_UInt16)s;
-
-
+    sscanf(dateString, "%hu-%hu-%huT%hu:%hu:%huZ", &dt.year, &dt.month, &dt.day, &dt.hour, &dt.min, &dt.sec);
     UA_DateTime dateTime = UA_DateTime_fromStruct(dt);
     return dateTime;
 }
