@@ -79,7 +79,13 @@ static inline UA_DateTime UA_DateTime_fromString(const char *dateString)
 {
     UA_DateTimeStruct dt;
     memset(&dt, 0, sizeof(UA_DateTimeStruct));
+    //open62541 uses an unsigned integer for the year in versions 1.1, 1.2, on master an signed integer
+#ifdef USE_MEMBERTYPE_INDEX
     sscanf(dateString, "%hu-%hu-%huT%hu:%hu:%huZ", &dt.year, &dt.month, &dt.day, &dt.hour, &dt.min, &dt.sec);
+#else
+    sscanf(dateString, "%hd-%hu-%huT%hu:%hu:%huZ", &dt.year, &dt.month, &dt.day,
+           &dt.hour, &dt.min, &dt.sec);
+#endif
     UA_DateTime dateTime = UA_DateTime_fromStruct(dt);
     return dateTime;
 }
