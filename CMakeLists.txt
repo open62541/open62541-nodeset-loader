@@ -58,10 +58,8 @@ if(MSVC)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
-    set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror 
-                        -Wno-static-in-inline # clang doesn't like the use of static inline methods inside static inline methods
-                        -Wno-overlength-strings # may happen in the nodeset compiler when complex values are directly encoded
-                        -Wno-unused-parameter # some methods may require unused arguments to cast to a method pointer
+    set(C_COMPILE_DEFS -std=c99 -pipe -Wall -Wextra -Wpedantic -Werror
+                        -Wno-unused-parameter
                         -Wmissing-prototypes -Wstrict-prototypes -Wredundant-decls
                         -Wformat -Wformat-security -Wformat-nonliteral
                         -Wuninitialized -Winit-self
@@ -74,7 +72,6 @@ if(CMAKE_COMPILER_IS_GNUCC OR "x${CMAKE_C_COMPILER_ID}" STREQUAL "xClang")
                         -Wsign-conversion
                         -Wconversion
                         -Wshadow
-                        -fno-strict-aliasing # fewer compiler assumptions about pointer types
                         -fexceptions
                         -Wswitch-enum)
 
