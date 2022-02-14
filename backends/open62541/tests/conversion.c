@@ -26,12 +26,21 @@ START_TEST(dateTime)
 } 
 END_TEST
 
+START_TEST(dateTime2022)
+{
+    UA_DateTime dt = UA_DateTime_fromString("2022-02-11T19:02:01Z");
+    UA_DateTime fromUnix = UA_DateTime_fromUnixTime(1644606121LL);
+    ck_assert_int_eq(dt, fromUnix);
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("conversion");
     TCase *tc_server = tcase_create("conversion");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, dateTime);
+    tcase_add_test(tc_server, dateTime2022);
     suite_add_tcase(s, tc_server);
     return s;
 }
