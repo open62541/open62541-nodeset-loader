@@ -104,4 +104,28 @@
             </uax:ListOfExtensionObject>
         </Value>
     </UAVariable>
+    <UAVariable DataType="UInt32" ValueRank="2" ArrayDimensions="2,3" NodeId="ns=1;i=6007" BrowseName="1:MultiDimensionalArray" AccessLevel="3">
+        <DisplayName>MultiDimensionalArray</DisplayName>
+        <References>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+        </References>
+        <!-- TODO: Example test value. To be tested when importing multi-dimensional array values is supported.
+        <Value>		
+            <uax:Matrix>
+                <uax:Dimensions>
+                    <uax:Int32>2</uax:Int32>
+                    <uax:Int32>3</uax:Int32>
+                </uax:Dimensions>
+                <uax:Elements>
+                    <uax:UInt32>1</uax:UInt32>
+                    <uax:UInt32>2</uax:UInt32>
+                    <uax:UInt32>3</uax:UInt32>
+                    <uax:UInt32>4</uax:UInt32>
+                    <uax:UInt32>5</uax:UInt32>
+                    <uax:UInt32>6</uax:UInt32>
+                </uax:Elements>
+            </uax:Matrix>
+        </Value> -->
+    </UAVariable>
 </UANodeSet>

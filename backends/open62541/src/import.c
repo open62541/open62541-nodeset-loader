@@ -182,16 +182,16 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
     int val = atoi(s);
     arrSize++;
     *dims = (UA_UInt32 *)malloc(sizeof(UA_UInt32));
-    *dims[0] = (UA_UInt32)val;
+    (*dims)[0] = (UA_UInt32)val;
 
-    const char *subString = strchr(s, ';');
+    const char *subString = strchr(s, ',');
 
     while (subString != NULL)
     {
         arrSize++;
         *dims = (UA_UInt32 *)realloc(*dims, arrSize * sizeof(UA_UInt32));
-        *dims[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
-        subString = strchr(subString + 1, ';');
+        (*dims)[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
+        subString = strchr(subString + 1, ',');
     }
     return arrSize;
 }
