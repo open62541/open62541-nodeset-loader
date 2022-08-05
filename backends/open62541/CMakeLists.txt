@@ -16,6 +16,4 @@ target_include_directories(NodesetLoader PUBLIC
 if(ENABLE_TESTING)
     add_subdirectory(tests)
 endif()
-if(${NL_BUILD_EXAMPLES})
-    add_subdirectory(examples)
-endif()
+add_subdirectory(examples)
