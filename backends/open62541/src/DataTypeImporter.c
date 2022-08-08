@@ -352,7 +352,9 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 #endif
         // copy over parent members, if no members (abstract type), nothing is
         // done
-        if (parentType->members)
+        // First need to check if parentType exists at all. NodesetCompiler in
+        // open62541 would not generate a type if it had no members.
+        if (parentType && parentType->members)
         {
             UA_DataTypeMember *members = (UA_DataTypeMember *)calloc(
                 (size_t)(parentType->membersSize + type->membersSize),
