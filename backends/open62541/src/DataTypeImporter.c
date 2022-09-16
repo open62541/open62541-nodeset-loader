@@ -154,6 +154,8 @@ static void setPaddingMemsize(UA_DataType *type,
 
     UA_UInt16 biggestMemberSize = 0;
 
+    UA_Boolean hasArrayMember = false;
+
     for (UA_DataTypeMember *tm = type->members;
          tm < type->members + type->membersSize; tm++)
     {
@@ -190,6 +192,8 @@ static void setPaddingMemsize(UA_DataType *type,
             {
                 biggestMemberSize = sizeof(void *);
             }
+
+            hasArrayMember = true;
         }
         else if (tm->isOptional)
         {
@@ -208,14 +212,14 @@ static void setPaddingMemsize(UA_DataType *type,
         }
         else
         {
-            if (type->typeKind == UA_DATATYPEKIND_UNION && tm > type->members)
+            // add the switchfield to the padding of the first datatype member
+            if (type->typeKind == UA_DATATYPEKIND_UNION && tm == type->members)
             {
 #ifdef USE_MEMBERTYPE_INDEX
-                tm->padding = (UA_Byte)sizeof(UA_UInt32);
+                tm->padding = (UA_Byte)sizeof(UA_Int32);
 #else
-                tm->padding = (UA_Byte)sizeof(UA_UInt32);
+                tm->padding = (UA_Byte)sizeof(UA_Int32);
 #endif
-                
             }
             else
             {
@@ -245,6 +249,10 @@ static void setPaddingMemsize(UA_DataType *type,
         int padding = getPadding(alignof(UA_Int32), 0);
         type->memSize = (UA_UInt16)(type->memSize + padding);
         type->memSize = (UA_UInt16)(type->memSize + biggestMemberSize);
+        if(hasArrayMember)
+        {
+            type->memSize = (UA_UInt16)(type->memSize + sizeof(size_t));
+        }
         endPadding = getPadding(alignof(size_t), type->memSize);
         type->memSize = (UA_UInt16)(type->memSize + endPadding);
     }
