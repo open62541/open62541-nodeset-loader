@@ -95,10 +95,32 @@ START_TEST(Server_LoadNS0Values) {
     ck_assert(UA_String_equal(&((UA_LocalizedText*)var.data)[1].text, &s));
     UA_Variant_clear(&var);
     // QualifiedName
+    UA_QualifiedName qualifiedName = UA_QUALIFIEDNAME(2, "qualifiedName");
     retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1009), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert(var.type == &UA_TYPES[UA_TYPES_QUALIFIEDNAME]);
-    ck_assert_uint_eq(((UA_QualifiedName *)var.data)->namespaceIndex, 2);
+    ck_assert(UA_QualifiedName_equal(&qualifiedName, (UA_QualifiedName *)var.data));
+    UA_Variant_clear(&var);
+    // NodeId
+    UA_NodeId nodeId = UA_NODEID_NUMERIC(2, 1234);
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1012), &var);
+    ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
+    ck_assert(var.type == &UA_TYPES[UA_TYPES_NODEID]);
+    ck_assert(UA_NodeId_equal(&nodeId, (UA_NodeId *)var.data));
+    UA_Variant_clear(&var);
+    // NodeId (NS0)
+    UA_NodeId nodeIdNs0 = UA_NODEID_NUMERIC(0, 1234);
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1013), &var);
+    ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
+    ck_assert(var.type == &UA_TYPES[UA_TYPES_NODEID]);
+    ck_assert(UA_NodeId_equal(&nodeIdNs0, (UA_NodeId *)var.data));
+    UA_Variant_clear(&var);
+    // Guid
+    UA_Guid guid = UA_GUID("72962B91-FA75-4AE6-8D28-B404DC7DAF63");
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(nsIdx, 1011), &var);
+    ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
+    ck_assert(var.type == &UA_TYPES[UA_TYPES_GUID]);
+    ck_assert(UA_Guid_equal(&guid, (UA_Guid *)var.data));
     UA_Variant_clear(&var);
 }
 END_TEST

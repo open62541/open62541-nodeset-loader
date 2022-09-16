@@ -62,6 +62,21 @@ START_TEST(import_ValueRank)
               UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6006), &var));
     ck_assert(1 == *((int *)var.data));
     UA_Variant_clear(&var);
+
+    // Test import of multi-dimensional arrays.
+    // Test only ValueRank and ArrayDimensions attributes.
+    // TODO: test also imported value when importing multi-dimensional array values is supported.
+    UA_Int32 valueRank;
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValueRank(server, UA_NODEID_NUMERIC(2, 6007), &valueRank));
+    ck_assert(valueRank == 2);
+    UA_Variant dimensions;
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readArrayDimensions(server, UA_NODEID_NUMERIC(2, 6007), &dimensions));
+    ck_assert(dimensions.arrayLength == 2);
+    ck_assert(((UA_Int32 *)dimensions.data)[0] == 2);
+    ck_assert(((UA_Int32 *)dimensions.data)[1] == 3);
+    UA_Variant_clear(&dimensions);
 }
 END_TEST
 
