@@ -5,4 +5,9 @@
   <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="1" Name="x"/>
   <opc:Field SwitchField="SwitchField" TypeName="opc:Int16" SwitchValue="2" Name="y"/>
  </opc:StructuredType>
+ <opc:StructuredType BaseType="ua:Union" Name="UnionWithArrayField">
+  <opc:Field TypeName="opc:UInt32" Name="SwitchField"/>
+  <opc:Field SwitchField="SwitchField" TypeName="opc:Int32" SwitchValue="1" Name="NoOffield1"/>
+  <opc:Field LengthField="NoOffield1" SwitchField="SwitchField" TypeName="opc:Double" SwitchValue="1" Name="field1"/>
+ </opc:StructuredType>
 </opc:TypeDictionary>

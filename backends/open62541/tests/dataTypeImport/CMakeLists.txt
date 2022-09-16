@@ -138,14 +138,14 @@ add_test(NAME compareAbstractDataTypeMember_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareAbstractDataTypeMember "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml")
 
-#add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
-#add_dependencies(compareUnion open62541-generator-ns-union2)
-#target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-#target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
+add_dependencies(compareUnion open62541-generator-ns-union2)
+target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
-#add_test(NAME compareUnion_Test
-#    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-#    COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
+add_test(NAME compareUnion_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
 
 #ua_generate_nodeset_and_datatypes(
 #    NAME "optionset2"
