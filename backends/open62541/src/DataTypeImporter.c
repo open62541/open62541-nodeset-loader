@@ -212,8 +212,8 @@ static void setPaddingMemsize(UA_DataType *type,
         }
         else
         {
-            // add the switchfield to the padding of the first datatype member
-            if (type->typeKind == UA_DATATYPEKIND_UNION && tm == type->members)
+            // add the switchfield to the padding of all datatype members
+            if (type->typeKind == UA_DATATYPEKIND_UNION)
             {
 #ifdef USE_MEMBERTYPE_INDEX
                 tm->padding = (UA_Byte)sizeof(UA_Int32);

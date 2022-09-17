@@ -56,12 +56,42 @@ START_TEST(compareUnion)
 }
 END_TEST
 
+START_TEST(readUnionValue)
+{
+    UA_Variant var;
+    UA_Variant_init(&var);
+
+    UA_StatusCode status =
+        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6018), &var);
+    ck_assert(status == UA_STATUSCODE_GOOD);
+
+    UA_MyUnion u;
+    u = *(UA_MyUnion*)var.data;
+
+    ck_assert(u.switchField==UA_MYUNIONSWITCH_X);
+    ck_assert_int_eq(u.fields.x, 70000);
+
+    UA_Variant_clear(&var);
+
+    status =
+        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6021), &var);
+    ck_assert(status == UA_STATUSCODE_GOOD);
+
+    u = *(UA_MyUnion *)var.data;
+
+    ck_assert(u.switchField == UA_MYUNIONSWITCH_Y);
+    ck_assert_int_eq(u.fields.y, -1000);
+    UA_Variant_clear(&var);
+}
+END_TEST
+
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
     tcase_add_test(tc_server, compareUnion);
+    tcase_add_test(tc_server, readUnionValue);
     suite_add_tcase(s, tc_server);
     return s;
 }
