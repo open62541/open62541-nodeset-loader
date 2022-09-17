@@ -84,10 +84,6 @@ void typesAreMatching(const UA_DataType *t1, const UA_DataType *t2, const UA_Dat
     ck_assert(!strcmp(t1->typeName, t2->typeName));
     size_t cnt =0;
     UA_UInt32 mSize = t1->membersSize;
-    if (t1->typeKind == UA_DATATYPEKIND_UNION)
-    {
-        mSize--;
-    }
     for(const UA_DataTypeMember* m = t1->members; m!=t1->members+mSize; m++)
     {
         memberTypeMatching(m, &t2->members[cnt], generatedTypes, customTypes);
