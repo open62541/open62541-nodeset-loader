@@ -340,7 +340,7 @@ static void setUnion(const NL_Data *value, const UA_DataType *type, RawData *dat
     // Write out the switchField value
     *(UA_UInt32 *)((uintptr_t)data->mem + data->offset) = switchField;
     // Insert the field padding
-    data->offset += type->members[switchField - 1].padding;
+    data->offset += sizeof(switchField);
     // For convenience setup direct pointers to data and type
     NL_Data *memberData = value->val.complexData.members[1];
     const UA_DataType* memberType = getMemberType(&type->members[switchField - 1], customTypes);

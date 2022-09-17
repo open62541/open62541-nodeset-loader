@@ -16,6 +16,7 @@
         <Alias Alias="String">i=12</Alias>
         <Alias Alias="DateTime">i=13</Alias>
         <Alias Alias="ByteString">i=15</Alias>
+        <Alias Alias="Organizes">i=35</Alias>
         <Alias Alias="HasEncoding">i=38</Alias>
         <Alias Alias="HasDescription">i=39</Alias>
         <Alias Alias="HasTypeDefinition">i=40</Alias>
@@ -24,10 +25,11 @@
         <Alias Alias="HasComponent">i=47</Alias>
         <Alias Alias="IdType">i=256</Alias>
         <Alias Alias="NumericRange">i=291</Alias>
+        <Alias Alias="MyUnion">ns=1;i=3003</Alias>
     </Aliases>
     <Extensions>
         <Extension>
-            <ua:ModelInfo Tool="UaModeler" Hash="VbBlrcnI0A9jOzMXGCCxQw==" Version="1.6.7"/>
+            <ua:ModelInfo Tool="UaModeler" Hash="dYZboYJ20Cvgqv5AiQIR6g==" Version="1.6.7"/>
         </Extension>
     </Extensions>
     <UADataType NodeId="ns=1;i=3003" BrowseName="1:MyUnion">
@@ -271,6 +273,46 @@
             <Reference ReferenceType="HasTypeDefinition">i=68</Reference>
             <Reference ReferenceType="HasProperty" IsForward="false">ns=1;i=5004</Reference>
         </References>
+    </UAVariable>
+    <UAVariable DataType="MyUnion" NodeId="ns=1;i=6018" BrowseName="1:Union_Field1" AccessLevel="3">
+        <DisplayName>Union_Field1</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5006</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <MyUnion xmlns="http://yourorganisation.org/union/Types.xsd">
+                        <SwitchField>1</SwitchField>
+                        <x>70000</x>
+                    </MyUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
+    </UAVariable>
+    <UAVariable DataType="MyUnion" NodeId="ns=1;i=6021" BrowseName="1:Union_Field2" AccessLevel="3">
+        <DisplayName>Union_Field2</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">i=63</Reference>
+            <Reference ReferenceType="Organizes" IsForward="false">i=85</Reference>
+        </References>
+        <Value>
+            <uax:ExtensionObject>
+                <uax:TypeId>
+                    <uax:Identifier>ns=1;i=5006</uax:Identifier>
+                </uax:TypeId>
+                <uax:Body>
+                    <MyUnion xmlns="http://yourorganisation.org/union/Types.xsd">
+                        <SwitchField>2</SwitchField>
+                        <y>-1000</y>
+                    </MyUnion>
+                </uax:Body>
+            </uax:ExtensionObject>
+        </Value>
     </UAVariable>
     <UAObject SymbolicName="DefaultBinary" NodeId="ns=1;i=5001" BrowseName="Default Binary">
         <DisplayName>Default Binary</DisplayName>
