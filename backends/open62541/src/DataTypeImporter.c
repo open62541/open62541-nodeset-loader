@@ -123,19 +123,31 @@ static int getAlignment(const UA_DataType *type,
         return alignof(UA_Variant);
     case UA_DATATYPEKIND_ENUM:
         return alignof(UA_Int32);
+    case UA_DATATYPEKIND_EXTENSIONOBJECT:
+        return alignof(UA_ExtensionObject);
+    case UA_DATATYPEKIND_UNION:
+        return 0;
+    case UA_DATATYPEKIND_GUID:
+        return alignof(UA_Guid);
     case UA_DATATYPEKIND_STRUCTURE:
     case UA_DATATYPEKIND_OPTSTRUCT:
         // here we have to take a look on the first member
         assert(type->members);
+        int retAlignment = 0;
+        for (int i = 0; i < type->membersSize; i++) {
 #ifdef USE_MEMBERTYPE_INDEX
-        const UA_DataType *memberType =
-            getDataType(type->members[0].namespaceZero,
-                         type->members[0].memberTypeIndex, customTypes);
+            const UA_DataType *memberType =
+                getDataType(type->members[i].namespaceZero,
+                            type->members[i].memberTypeIndex, customTypes);
 #else
-        const UA_DataType *memberType = type->members[0].memberType;
-
+            const UA_DataType *memberType = type->members[i].memberType;
 #endif
-        return getAlignment(memberType, customTypes);
+            int tmp = getAlignment(memberType, customTypes);
+            if (tmp > retAlignment) {
+                retAlignment = tmp;
+            }
+        }
+        return retAlignment;
     }
 
     assert(false && "typeKind not handled");
@@ -213,13 +225,9 @@ static void setPaddingMemsize(UA_DataType *type,
         else
         {
             // add the switchfield to the padding of the first datatype member
-            if (type->typeKind == UA_DATATYPEKIND_UNION && tm == type->members)
+            if (type->typeKind == UA_DATATYPEKIND_UNION)
             {
-#ifdef USE_MEMBERTYPE_INDEX
-                tm->padding = (UA_Byte)sizeof(UA_Int32);
-#else
-                tm->padding = (UA_Byte)sizeof(UA_Int32);
-#endif
+                tm->padding = (UA_Byte)sizeof(UA_UInt32);
             }
             else
             {
@@ -229,16 +237,17 @@ static void setPaddingMemsize(UA_DataType *type,
 #else
                 tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
 #endif
-                offset = offset + tm->padding + memberType->memSize;
-                // padding after struct at end is needed
-                if (memberType->memSize > sizeof(size_t))
-                {
-                    endPadding = memberType->memSize % sizeof(size_t);
-                }
-                if (memberType->memSize > biggestMemberSize)
-                {
-                    biggestMemberSize = memberType->memSize;
-                }
+            }
+
+            offset = offset + tm->padding + memberType->memSize;
+            // padding after struct at end is needed
+            if (memberType->memSize > sizeof(size_t))
+            {
+                endPadding = memberType->memSize % sizeof(size_t);
+            }
+            if (memberType->memSize > biggestMemberSize)
+            {
+                biggestMemberSize = memberType->memSize;
             }
         }
     }
@@ -548,6 +557,9 @@ static void calcMemSize(DataTypeImporter *importer)
         {
             // we can calculate the memsize if the memsize of all membertypes is
             // known
+#ifdef ENABLE_BACKEND_OPEN62541
+            setPaddingMemsize(type, importer->types);
+#else
             if (readyForMemsizeCalc(type, importer->types->types))
             {
                 setPaddingMemsize(type, importer->types);
@@ -556,6 +568,7 @@ static void calcMemSize(DataTypeImporter *importer)
             {
                 allTypesFinished = false;
             }
+#endif
         }
     }
 }

@@ -13,7 +13,7 @@ if(${ENABLE_CONAN})
         "${CMAKE_BINARY_DIR}/bin/DI/"
         "${CMAKE_BINARY_DIR}/bin/refServer_DI" 
         "${CMAKE_BINARY_DIR}/bin/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
 
 
     add_test(IntegrationTest_DI_PLCOpen ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/start_test.sh 
@@ -21,8 +21,8 @@ if(${ENABLE_CONAN})
         "${CMAKE_BINARY_DIR}/bin/DI_PLCopen/"
         "${CMAKE_BINARY_DIR}/bin/refServer_DI_PLCopen" 
         "${CMAKE_BINARY_DIR}/bin/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
-        "${open62541_NODESET_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml"
         )
 
 
@@ -31,7 +31,7 @@ if(${ENABLE_CONAN})
         "${CMAKE_BINARY_DIR}/bin/DI_Euromap_83_77"
         "${CMAKE_BINARY_DIR}/bin/refServer_DI_Euromap_83_77" 
         "${CMAKE_BINARY_DIR}/bin/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
         "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
         "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
         )
@@ -41,7 +41,7 @@ else()
         "${CMAKE_CURRENT_BINARY_DIR}/Output/DI/"
         "${CMAKE_CURRENT_BINARY_DIR}/reference_server/refServer_DI" 
         "${CMAKE_CURRENT_BINARY_DIR}/test_server/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
 
 
     add_test(IntegrationTest_DI_PLCOpen ${BASH_PROGRAM} ${CMAKE_CURRENT_SOURCE_DIR}/start_test.sh 
@@ -49,8 +49,8 @@ else()
         "${CMAKE_CURRENT_BINARY_DIR}/Output/DI_PLCopen/"
         "${CMAKE_CURRENT_BINARY_DIR}/reference_server/refServer_DI_PLCopen" 
         "${CMAKE_CURRENT_BINARY_DIR}/test_server/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
-        "${open62541_NODESET_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml"
         )
 
 
@@ -59,7 +59,7 @@ else()
         "${CMAKE_CURRENT_BINARY_DIR}/Output/DI_Euromap_83_77"
         "${CMAKE_CURRENT_BINARY_DIR}/reference_server/refServer_DI_Euromap_83_77" 
         "${CMAKE_CURRENT_BINARY_DIR}/test_server/testServer"
-        "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+        "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
         "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
         "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
         )

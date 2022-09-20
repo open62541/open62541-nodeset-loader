@@ -19,10 +19,10 @@ add_test(NAME subDataType_Test
 if(${USE_MEMBERTYPE_INDEX})
     ua_generate_nodeset_and_datatypes(
         NAME "di"
-        FILE_CSV "${open62541_NODESET_DIR}/DI/OpcUaDiModel.csv"
-        FILE_BSD "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.Types.bsd"
+        FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/OpcUaDiModel.csv"
+        FILE_BSD "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.Types.bsd"
         NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
-        FILE_NS "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+        FILE_NS "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
         INTERNAL
     )
 
@@ -33,7 +33,7 @@ if(${USE_MEMBERTYPE_INDEX})
 
     add_test(NAME compareDITypes_Test
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-        COMMAND compareDITypes "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
+        COMMAND compareDITypes "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
 endif()
 
 ua_generate_nodeset_and_datatypes(
