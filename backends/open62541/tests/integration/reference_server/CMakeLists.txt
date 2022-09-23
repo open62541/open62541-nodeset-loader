@@ -1,21 +1,20 @@
 # build reference server with several nodesets using nodeset-compiler
 message("Info: open62541 UA_NAMESPACE_ZERO=Full build option is required for this test")
 
-
 # Generate types and namespace for DI
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_di"
-    FILE_CSV "${open62541_NODESET_DIR}/DI/OpcUaDiModel.csv"
-    FILE_BSD "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.Types.bsd"
+    FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/OpcUaDiModel.csv"
+    FILE_BSD "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.Types.bsd"
     NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
-    FILE_NS "${open62541_NODESET_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
+    FILE_NS "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
     INTERNAL
 )
 
 # generate PLCopen namespace which is using DI
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_plc"
-    FILE_NS "${open62541_NODESET_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml" # PLCopen does not define custom types. Only generate the nodeset
+    FILE_NS "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml" # PLCopen does not define custom types. Only generate the nodeset
     DEPENDS "integration_test_di" # PLCopen depends on the di nodeset, which must be generated before
     INTERNAL
 )
@@ -36,7 +35,7 @@ ua_generate_nodeset_and_datatypes(
     NAME "integration_test_euromap_83"
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
-    IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
+    IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
     NAMESPACE_MAP "3:http://opcfoundation.org/UA/PlasticsRubber/GeneralTypes/"
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
     DEPENDS "integration_test_di"
@@ -48,7 +47,7 @@ ua_generate_nodeset_and_datatypes(
     NAME "integration_test_euromap_77"
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.bsd"
-    IMPORT_BSD "UA_TYPES#${open62541_NODESET_DIR}/Schema/Opc.Ua.Types.bsd"
+    IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
     NAMESPACE_MAP "4:http://opcfoundation.org/UA/PlasticsRubber/IMM2MES/"
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
     DEPENDS "integration_test_euromap_83"

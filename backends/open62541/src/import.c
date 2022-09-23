@@ -12,7 +12,7 @@
 #include <NodesetLoader/NodesetLoader.h>
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
-#include <RefServiceImpl.h>
+#include "RefServiceImpl.h"
 #include <assert.h>
 #include <open62541/server.h>
 

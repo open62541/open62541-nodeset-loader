@@ -80,6 +80,11 @@ endif()
 
 if(${ENABLE_BACKEND_OPEN62541})
     find_package(open62541 REQUIRED)
+    if(open62541_VERSION VERSION_LESS "1.3")
+        set(open62541_NODESET_BASE_DIR "${open62541_NODESET_DIR}")
+    else()
+        set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
+    endif()
 endif()
 find_package(LibXml2 REQUIRED)
 

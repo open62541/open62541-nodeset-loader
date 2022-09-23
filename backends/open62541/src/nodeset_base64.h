@@ -1,6 +1,6 @@
 /*
   https://github.com/superwills/NibbleAndAHalf
-  base64.h -- Fast base64 encoding and decoding.
+  nodeset_base64.h -- Fast base64 encoding and decoding.
   version 1.0.0, April 17, 2013 143a
   Copyright (C) 2013 William Sherif
   This software is provided 'as-is', without any express or implied
@@ -20,8 +20,8 @@
   will.sherif@gmail.com
   YWxsIHlvdXIgYmFzZSBhcmUgYmVsb25nIHRvIHVz
 */
-#ifndef BASE64_H
-#define BASE64_H
+#ifndef NODESET_BASE64_H
+#define NODESET_BASE64_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -218,4 +218,4 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
     return bin;
 }
 
-#endif
+#endif /* NODESET_BASE64_H */

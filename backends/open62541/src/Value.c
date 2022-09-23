@@ -10,7 +10,7 @@
 #include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <open62541/types_generated.h>
-#include "base64.h"
+#include "nodeset_base64.h"
 #include "ServerContext.h"
 
 typedef struct TypeList TypeList;
