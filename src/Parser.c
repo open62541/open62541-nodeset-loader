@@ -43,6 +43,7 @@ int Parser_run(Parser *parser, FILE *file, Parser_callbackStart start,
     hdl.startElementNs = (startElementNsSAX2Func)start;
     hdl.endElementNs = (endElementNsSAX2Func)end;
     hdl.characters = (charactersSAXFunc)onChars;
+    xmlInitParser(); // Fix memory leak: https://gitlab.gnome.org/GNOME/libxml2/-/issues/9
     xmlParserCtxtPtr ctxt =
         xmlCreatePushParserCtxt(&hdl, parser->context, chars, res, NULL);
     while ((res = (int)fread(chars, 1, sizeof(chars), file)) > 0)
