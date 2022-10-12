@@ -29,8 +29,14 @@ static void teardown(void)
 {
 
     UA_Server_run_shutdown(server);
-    cleanupCustomTypes(UA_Server_getConfig(server)->customDataTypes);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes;
+#endif
     UA_Server_delete(server);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
 }
 
 START_TEST(compareDI)

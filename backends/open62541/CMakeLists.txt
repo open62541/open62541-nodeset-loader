@@ -1,19 +1,29 @@
-target_sources(NodesetLoader
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c 
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.c
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.c
-)
+set(NODESETLOADER_BACKEND_OPEN62541_SOURCES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.c
+    PARENT_SCOPE)
 
-target_include_directories(NodesetLoader PUBLIC 
+set(NODESETLOADER_BACKEND_OPEN62541_PUBLIC_INCLUDES
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
-    PRIVATE src)
+    PARENT_SCOPE)
 
-if(ENABLE_TESTING)
+set(NODESETLOADER_BACKEND_OPEN62541_PRIVATE_INCLUDES
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    PARENT_SCOPE)
+
+set(NODESETLOADER_BACKEND_OPEN62541_DEPS_LIBS "" PARENT_SCOPE)
+
+set(NODESETLOADER_BACKEND_OPEN62541_PUBLIC_HEADERS
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/NodesetLoader/backendOpen62541.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/NodesetLoader/dataTypes.h
+    PARENT_SCOPE)
+
+if(${ENABLE_TESTING})
     add_subdirectory(tests)
 endif()
 if(${ENABLE_EXAMPLES})

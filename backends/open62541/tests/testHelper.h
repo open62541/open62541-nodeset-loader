@@ -4,40 +4,6 @@
 #include <open62541/types.h>
 #include <open62541/types_generated.h>
 
-static void cleanupCustomTypes(const UA_DataTypeArray *types)
-{
-    while (types)
-    {
-        const UA_DataTypeArray *next = types->next;
-        if (types->types)
-        {
-            for (const UA_DataType *type = types->types;
-                 type != types->types + types->typesSize; type++)
-            {
-                free((void*)(uintptr_t)type->typeName);
-                UA_UInt32 mSize =
-                    type->membersSize;
-                //if(type->typeKind == UA_DATATYPEKIND_UNION)
-                //{
-                //    mSize--;
-                //}
-                for (UA_DataTypeMember *m = type->members;
-                                           m !=
-                                           type->members + mSize;
-                                           m++)
-                {
-                    free((void *)m->memberName);
-                    m->memberName = NULL;
-                }
-                free(type->members);
-            }
-        }
-        free((void *)(uintptr_t)types->types);
-        free((void *)types);
-        types = next;
-    }
-}
-
 UA_NodeId getTypeId(UA_UInt16 typeIndex, UA_Boolean isNamespaceZero, const UA_DataType* customTypes)
 {
     const UA_DataType* types[2] = {&UA_TYPES[0], customTypes};

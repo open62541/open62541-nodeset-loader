@@ -86,8 +86,8 @@ UA_Boolean BrowseReferences(UA_Client *pClient, const UA_NodeId &Id,
         ret = UA_FALSE;
     }
 
-    UA_BrowseRequest_deleteMembers(&bReq);
-    UA_BrowseResponse_deleteMembers(&bResp);
+    UA_BrowseRequest_clear(&bReq);
+    UA_BrowseResponse_clear(&bResp);
 
     return ret;
 }
@@ -147,7 +147,7 @@ UA_Boolean IsSubType(UA_Client *pClient, const UA_NodeId &BaseType,
     {
         cout << "Error IsSubType(): BrowseRequest failed" << endl;
     }
-    UA_BrowseRequest_deleteMembers(&bReq);
-    UA_BrowseResponse_deleteMembers(&bResp);
+    UA_BrowseRequest_clear(&bReq);
+    UA_BrowseResponse_clear(&bResp);
     return bFoundBaseType;
 }

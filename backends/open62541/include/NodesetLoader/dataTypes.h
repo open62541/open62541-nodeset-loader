@@ -32,6 +32,8 @@ struct UA_Server;
 LOADER_EXPORT const struct UA_DataType *
 NodesetLoader_getCustomDataType(struct UA_Server *server,
                                 const UA_NodeId *typeId);
+LOADER_EXPORT void
+NodesetLoader_cleanupCustomDataTypes(const UA_DataTypeArray *customTypes);
 
 #ifdef __cplusplus
 }

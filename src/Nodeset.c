@@ -56,7 +56,7 @@ const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL};
 const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL};
 const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, "0"};
 const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
-const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
+const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-2"};
 const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
 const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
 const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};

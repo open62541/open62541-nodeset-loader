@@ -1,3 +1,9 @@
+if(${USE_MEMBERTYPE_INDEX})
+    set(PLCOPEN_NODESET_PATH "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml")
+else()
+    set(PLCOPEN_NODESET_PATH "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml")
+endif()
+
 add_subdirectory(client)
 add_subdirectory(reference_server)
 add_subdirectory(test_server)
@@ -22,7 +28,7 @@ if(${ENABLE_CONAN})
         "${CMAKE_BINARY_DIR}/bin/refServer_DI_PLCopen" 
         "${CMAKE_BINARY_DIR}/bin/testServer"
         "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
-        "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml"
+        "${PLCOPEN_NODESET_PATH}"
         )
 
 
@@ -50,7 +56,7 @@ else()
         "${CMAKE_CURRENT_BINARY_DIR}/reference_server/refServer_DI_PLCopen" 
         "${CMAKE_CURRENT_BINARY_DIR}/test_server/testServer"
         "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
-        "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml"
+        "${PLCOPEN_NODESET_PATH}"
         )
 
 

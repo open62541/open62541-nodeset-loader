@@ -14,7 +14,7 @@ ua_generate_nodeset_and_datatypes(
 # generate PLCopen namespace which is using DI
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_plc"
-    FILE_NS "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml" # PLCopen does not define custom types. Only generate the nodeset
+    FILE_NS "${PLCOPEN_NODESET_PATH}" # PLCopen does not define custom types. Only generate the nodeset
     DEPENDS "integration_test_di" # PLCopen depends on the di nodeset, which must be generated before
     INTERNAL
 )
@@ -22,7 +22,7 @@ ua_generate_nodeset_and_datatypes(
 # standard-defined data types
 ua_generate_datatypes(
     INTERNAL
-    IMPORT_BSD "UA_TYPES#/home/matzy/git/open62541/deps/ua-nodeset/Schema/Opc.Ua.Types.bsd"
+    IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
     NAME "types83"
     TARGET_SUFFIX "types83"
     NAMESPACE_MAP "3:http://opcfoundation.org/EM83/"
