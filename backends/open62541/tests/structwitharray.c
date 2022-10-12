@@ -11,6 +11,7 @@
 
 #include "testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -28,7 +29,9 @@ static void teardown(void)
     UA_Server_run_shutdown(server);
     const UA_DataTypeArray* customTypes = UA_Server_getConfig(server)->customDataTypes;
     UA_Server_delete(server);
-    cleanupCustomTypes(customTypes);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
 }
 
 START_TEST(Server_loadNodeset)

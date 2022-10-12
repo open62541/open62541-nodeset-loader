@@ -117,8 +117,8 @@ UA_Boolean BrowseServerAddressspace(UA_Client *pClient,
         ret = DoBrowseRecursive(pClient, StartId, bNextResp.resultsSize,
                                 bNextResp.results, NodeIdContainer);
 
-        UA_BrowseNextRequest_deleteMembers(&bNextReq);
-        UA_BrowseNextResponse_deleteMembers(&bNextResp);
+        UA_BrowseNextRequest_clear(&bNextReq);
+        UA_BrowseNextResponse_clear(&bNextResp);
     }
     else
     {
@@ -138,8 +138,8 @@ UA_Boolean BrowseServerAddressspace(UA_Client *pClient,
         ret = DoBrowseRecursive(pClient, StartId, bResp.resultsSize,
                                 bResp.results, NodeIdContainer);
 
-        UA_BrowseRequest_deleteMembers(&bReq);
-        UA_BrowseResponse_deleteMembers(&bResp);
+        UA_BrowseRequest_clear(&bReq);
+        UA_BrowseResponse_clear(&bResp);
     }
     return ret;
 }

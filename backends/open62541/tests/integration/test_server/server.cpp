@@ -80,7 +80,14 @@ int main(int argc, const char *argv[])
         if (!NodesetLoader_loadFile(server, argv[cnt], NULL))
         {
             printf("nodeset could not be loaded, exit\n");
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+            const UA_DataTypeArray *customTypes =
+                UA_Server_getConfig(server)->customDataTypes;
+#endif
             UA_Server_delete(server);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+            NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
             return EXIT_FAILURE;
         }
     }
@@ -89,12 +96,26 @@ int main(int argc, const char *argv[])
     {
         UA_LOG_ERROR(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
                      "Adding DI structure variables failed.");
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+        const UA_DataTypeArray *customTypes =
+            UA_Server_getConfig(server)->customDataTypes;
+#endif
         UA_Server_delete(server);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+        NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
         return EXIT_FAILURE;
     }
 
     UA_StatusCode retval = UA_Server_run(server, &running);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes;
+#endif
     UA_Server_delete(server);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
 
     return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
 }

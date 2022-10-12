@@ -1,4 +1,5 @@
 #include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
 #include <assert.h>
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/plugin/log_stdout.h>
@@ -128,5 +129,12 @@ int main(int argc, const char *argv[])
     addStructWithPointArray(server);
 
     UA_Server_run(server, &running);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes;
+#endif
     UA_Server_delete(server);
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    NodesetLoader_cleanupCustomDataTypes(customTypes);
+#endif
 }

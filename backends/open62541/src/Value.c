@@ -340,30 +340,36 @@ static void setUnion(const NL_Data *value, const UA_DataType *type, RawData *dat
     // Write out the switchField value
     *(UA_UInt32 *)((uintptr_t)data->mem + data->offset) = switchField;
     // Insert the field padding
-    data->offset += type->members[switchField - 1].padding;
-    // For convenience setup direct pointers to data and type
-    NL_Data *memberData = value->val.complexData.members[1];
-    const UA_DataType* memberType = getMemberType(&type->members[switchField - 1], customTypes);
-    // Write out the field value
-    if (type->members[switchField - 1].isArray)
-    {
-        RawData *rawdata = RawData_new(data);
-        rawdata->mem = calloc(memberData->val.complexData.membersSize,
-                                memberType->memSize);
-        setArray(memberData, memberType, rawdata, customTypes, serverContext);
-        size_t *size = (size_t *)((uintptr_t)data->mem + data->offset);
-        *size = memberData->val.complexData.membersSize;
-        data->offset += sizeof(size_t);
-        void **d = (void **)((uintptr_t)data->mem + data->offset);
-        *d = rawdata->mem;
-        data->offset += sizeof(void *);
+
+    // If the switch field is 0 then no field is present.
+    // A Union with no fields present has the same meaning as a NULL value.
+    // See: https://reference.opcfoundation.org/v104/Core/docs/Part6/5.2.8/
+    if (switchField != 0) {
+        data->offset += type->members[switchField - 1].padding;
+        // For convenience setup direct pointers to data and type
+        NL_Data *memberData = value->val.complexData.members[1];
+        const UA_DataType* memberType = getMemberType(&type->members[switchField - 1], customTypes);
+        // Write out the field value
+        if (type->members[switchField - 1].isArray)
+        {
+            RawData *rawdata = RawData_new(data);
+            rawdata->mem = calloc(memberData->val.complexData.membersSize,
+                                    memberType->memSize);
+            setArray(memberData, memberType, rawdata, customTypes, serverContext);
+            size_t *size = (size_t *)((uintptr_t)data->mem + data->offset);
+            *size = memberData->val.complexData.membersSize;
+            data->offset += sizeof(size_t);
+            void **d = (void **)((uintptr_t)data->mem + data->offset);
+            *d = rawdata->mem;
+            data->offset += sizeof(void *);
+        }
+        else
+        {
+            setScalar(memberData, memberType, data, customTypes, serverContext);
+        }
+        // Overwrite the offset using the size of the complete union, which includes also "end padding" of a C structure.
+        data->offset = unionOffset + type->memSize;
     }
-    else
-    {
-        setScalar(memberData, memberType, data, customTypes, serverContext);
-    }
-    // Overwrite the offset using the size of the complete union, which includes also "end padding" of a C structure.
-    data->offset = unionOffset + type->memSize;
 }
 
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
