@@ -105,10 +105,41 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
 endif()
 
 if(${ENABLE_BUILD_INTO_OPEN62541})
-    string(REPLACE "-" ";" MAIN_VERSION_OPEN62541_LIST ${OPEN62541_VERSION})
-    list(GET MAIN_VERSION_OPEN62541_LIST 0 MAIN_VERSION_OPEN62541)
-    if(NOT ${MAIN_VERSION_OPEN62541} MATCHES "v1.3.2")
-        message(FATAL_ERROR "This version of nodesetLoader can be built with open62541 v1.3.2")
+    # Examples for the ${OPEN62541_VERSION} string are:
+    # v1.2
+    # v1.2.3
+    # v1.2.3-rc1
+    # v1.2.3-rc1-dirty
+    # v1.2.3-5-g4538abcd
+    # v1.2.3-5-g4538abcd-dirty
+    string(FIND ${OPEN62541_VERSION} "v" MAIN_VERSIONS_OPEN62541_BEGIN)
+    string(FIND ${OPEN62541_VERSION} "-" MAIN_VERSIONS_OPEN62541_END)
+    math(EXPR
+         MAIN_VERSIONS_OPEN62541_BEGIN
+         "${MAIN_VERSIONS_OPEN62541_BEGIN} + 1"
+    )
+    math(EXPR
+         MAIN_VERSIONS_OPEN62541_END
+         "${MAIN_VERSIONS_OPEN62541_END} - ${MAIN_VERSIONS_OPEN62541_BEGIN}"
+    )
+    string(SUBSTRING
+           ${OPEN62541_VERSION}
+           ${MAIN_VERSIONS_OPEN62541_BEGIN}
+           ${MAIN_VERSIONS_OPEN62541_END}
+           MAIN_VERSION_OPEN62541
+    )
+
+    string(REPLACE "." ";" MAIN_VERSIONS_OPEN62541_LIST ${MAIN_VERSION_OPEN62541})
+    list(GET MAIN_VERSIONS_OPEN62541_LIST 0 OPEN62541_MAJOR)
+    list(GET MAIN_VERSIONS_OPEN62541_LIST 1 OPEN62541_MINOR)
+    list(GET MAIN_VERSIONS_OPEN62541_LIST 2 OPEN62541_SUBMINOR)
+
+    if(NOT(${OPEN62541_MAJOR} EQUAL "1" AND
+       ${OPEN62541_MINOR} EQUAL "3" AND
+       ${OPEN62541_SUBMINOR} GREATER_EQUAL "2"))
+        message(FATAL_ERROR "This version of nodesetLoader can be built with open62541 >= v1.3.2")
+    else()
+        message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
     endif()
 elseif(${ENABLE_BACKEND_OPEN62541})
     find_package(open62541 REQUIRED)
