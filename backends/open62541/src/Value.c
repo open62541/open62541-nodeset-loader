@@ -311,7 +311,9 @@ static void setStructure(const NL_Data *value, const UA_DataType *type,
         }
         else
         {
+            size_t structOffset = data->offset + memberType->memSize;
             setScalar(memberData, memberType, data, customTypes, serverContext);
+            data->offset = structOffset;
         }
     }
 }
@@ -429,6 +431,7 @@ static void setArray(const NL_Data *value, const UA_DataType *type, RawData *dat
 {
     for (size_t i = 0; i < value->val.complexData.membersSize; i++)
     {
+        data->offset = i * type->memSize;
         setScalar(value->val.complexData.members[i], type, data, customTypes, serverContext);
     }
 }
