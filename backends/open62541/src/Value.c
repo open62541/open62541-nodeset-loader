@@ -418,6 +418,12 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     {
         setUnion(value, type, data, customTypes, serverContext);
     }
+    else if (type->typeKind == UA_DATATYPEKIND_STATUSCODE)
+    {
+        setPrimitiveValue(data, value->val.primitiveData.value,
+                          UA_DATATYPEKIND_UINT32,
+                          UA_TYPES[UA_TYPES_UINT32].memSize);
+    }
     else
     {
         assert(false && "conversion not implemented");
