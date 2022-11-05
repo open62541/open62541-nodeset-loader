@@ -56,6 +56,15 @@ if(${ENABLE_CONAN})
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
+# LibXML2 is always required
+find_package(LibXml2 REQUIRED)
+
+# open62541 ia always required.
+# But we need to avoid a cyclic dependency if the loader is built into open62541.
+if(${ENABLE_BUILD_INTO_OPEN62541})
+    find_package(open62541 REQUIRED)
+endif()
+
 if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
     #link against this library to gather coverage info
     add_library(coverageLib INTERFACE)
@@ -142,7 +151,6 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
         message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
     endif()
 elseif(${ENABLE_BACKEND_OPEN62541})
-    find_package(open62541 REQUIRED)
     if(open62541_VERSION VERSION_LESS "1.3.x")
         set(USE_MEMBERTYPE_INDEX on)
         set(open62541_NODESET_BASE_DIR "${open62541_NODESET_DIR}")
@@ -151,7 +159,6 @@ elseif(${ENABLE_BACKEND_OPEN62541})
         set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
     endif()
 endif()
-find_package(LibXml2 REQUIRED)
 
 if(${ENABLE_TESTING})
     find_package(Check REQUIRED)
@@ -210,25 +217,23 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
     add_library(NodesetLoader ${NODESETLOADER_SOURCES})
 
     target_include_directories(NodesetLoader
-        PUBLIC  ${NODESETLOADER_PUBLIC_INCLUDES}
-        PRIVATE ${NODESETLOADER_PRIVATE_INCLUDES})
+                               PUBLIC ${NODESETLOADER_PUBLIC_INCLUDES}
+                               PRIVATE ${NODESETLOADER_PRIVATE_INCLUDES})
+    target_include_directories(NodesetLoader PRIVATE ${OPEN62541_INCLUDE_DIR})
 
     target_link_libraries(NodesetLoader PRIVATE ${NODESETLOADER_DEPS_LIBS})
+    target_link_libraries(NodesetLoader PRIVATE ${OPEN62541_LIBRARIES})
+
     if(${CALC_COVERAGE})
         target_link_libraries(NodesetLoader PUBLIC coverageLib)
     endif()
 
-    if(${ENABLE_BACKEND_OPEN62541})
-        target_include_directories(NodesetLoader PRIVATE open62541::open62541)
-        target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
-        if(${USE_MEMBERTYPE_INDEX})
-            target_compile_definitions(NodesetLoader PUBLIC -DUSE_MEMBERTYPE_INDEX=1)
-        endif()
+    if(${ENABLE_BACKEND_OPEN62541} AND "${USE_MEMBERTYPE_INDEX}")
+        target_compile_definitions(NodesetLoader PUBLIC -DUSE_MEMBERTYPE_INDEX=1)
     endif()
 
     # TODO: Speficy cleanup of custom data types for a specific open62541 version
     target_compile_definitions(NodesetLoader PUBLIC -DUSE_CLEANUP_CUSTOM_DATATYPES=1)
-
     target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
     set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
     if(${ENABLE_ASAN})
