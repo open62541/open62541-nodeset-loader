@@ -16,7 +16,7 @@
 #include <assert.h>
 #include <open62541/server.h>
 
-int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
+unsigned short NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
 static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 {
@@ -68,7 +68,7 @@ static UA_NodeId getReferenceTypeId(const NL_Reference *ref)
     {
         return UA_NODEID_NULL;
     }
-    return getNodeIdFromChars(ref->refType);
+    return ref->refType;
 }
 
 static UA_NodeId getReferenceTarget(const NL_Reference *ref)
@@ -77,7 +77,7 @@ static UA_NodeId getReferenceTarget(const NL_Reference *ref)
     {
         return UA_NODEID_NULL;
     }
-    return getNodeIdFromChars(ref->target);
+    return ref->target;
 }
 
 static NL_Reference *getHierachicalInverseReference(const NL_Node *node)
@@ -101,8 +101,7 @@ static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
 
     if(NodesetLoader_isInstanceNode(node))
     {
-        parentId =
-            getNodeIdFromChars(((const NL_InstanceNode*)node)->parentNodeId);
+        parentId = ((const NL_InstanceNode*)node)->parentNodeId;
     }
     NL_Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);
@@ -127,7 +126,7 @@ handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
     UA_NodeId typeDefId = UA_NODEID_NULL;
     if (node->refToTypeDef)
     {
-        typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+        typeDefId = node->refToTypeDef->target;
     }
 
     // addNode_begin is used, otherwise all mandatory childs from type are
@@ -206,7 +205,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
 {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.displayName = *lt;
-    attr.dataType = getNodeIdFromChars(node->datatype);
+    attr.dataType = node->datatype;
     attr.valueRank = atoi(node->valueRank);
     UA_UInt32 *arrDims = NULL;
     attr.arrayDimensionsSize =
@@ -271,7 +270,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     UA_NodeId typeDefId = UA_NODEID_NULL;
     if (node->refToTypeDef)
     {
-        typeDefId = getNodeIdFromChars(node->refToTypeDef->target);
+        typeDefId = node->refToTypeDef->target;
     }
 
     UA_Server_addNode_begin(ServerContext_getServerObject(serverContext), UA_NODECLASS_VARIABLE, *id, *parentId,
@@ -332,7 +331,7 @@ static void handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *i
 {
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
     attr.displayName = *lt;
-    attr.dataType = getNodeIdFromChars(node->datatype);
+    attr.dataType = node->datatype;
     attr.description = *description;
     attr.valueRank = atoi(node->valueRank);
     attr.isAbstract = isTrue(node->isAbstract);
@@ -372,7 +371,7 @@ static void handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
 
 static void addNode(ServerContext *serverContext, const NL_Node *node)
 {
-    UA_NodeId id = getNodeIdFromChars(node->id);
+    UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
     UA_LocalizedText lt =
@@ -427,8 +426,8 @@ static void addNode(ServerContext *serverContext, const NL_Node *node)
     }
 }
 
-int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri)
-{
+unsigned short
+NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri) {
     ServerContext *serverContext = (ServerContext *)userContext;
 
     UA_UInt16 idx =
@@ -436,7 +435,7 @@ int NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *n
 
     ServerContext_addNamespaceIdx(serverContext, idx);
 
-    return (int)idx;
+    return idx;
 }
 
 static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
@@ -475,7 +474,7 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
     const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
     while (r)
     {
-        if (!NodesetLoader_NodeId_cmp(&r->source, &node->id))
+        if (UA_NodeId_equal(&r->source, &node->id))
         {
             NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;
@@ -489,7 +488,7 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
         r = r->next;
     }
     const UA_NodeId parent =
-        getParentType(ctx->server, getNodeIdFromChars(node->id));
+        getParentType(ctx->server, node->id);
     DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node,
                                        parent);
 }
@@ -517,10 +516,10 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
     while (ref)
     {
 
-        UA_NodeId src = getNodeIdFromChars(node->id);
+        UA_NodeId src = node->id;
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
-        target.nodeId = getNodeIdFromChars(ref->target);
-        UA_NodeId refType = getNodeIdFromChars(ref->refType);
+        target.nodeId = ref->target;
+        UA_NodeId refType = ref->refType;
         UA_Server_addReference(server, src, refType, target, ref->isForward);
         ref = ref->next;
     }
@@ -528,10 +527,10 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
     ref = node->hierachicalRefs;
     while (ref)
     {
-        UA_NodeId src = getNodeIdFromChars(node->id);
+        UA_NodeId src = node->id;
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
-        target.nodeId = getNodeIdFromChars(ref->target);
-        UA_NodeId refType = getNodeIdFromChars(ref->refType);
+        target.nodeId = ref->target;
+        UA_NodeId refType = ref->refType;
         UA_Server_addReference(server, src, refType, target, ref->isForward);
         ref = ref->next;
     }

@@ -29,16 +29,13 @@ struct DataTypeImporter
     size_t firstNewDataType;
 };
 
-static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
-{
-    NL_NodeId encodingRefType = {0, "i=38"};
-
+static UA_NodeId
+getBinaryEncodingId(const NL_DataTypeNode *node) {
+    UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
     NL_Reference *ref = node->nonHierachicalRefs;
-    while (ref)
-    {
-        if (!NodesetLoader_NodeId_cmp(&encodingRefType, &ref->refType))
-        {
-            UA_NodeId id = getNodeIdFromChars(ref->target);
+    while (ref) {
+        if (UA_NodeId_equal(&encodingRefType, &ref->refType)) {
+            UA_NodeId id = ref->target;
             return id;
         }
         ref = ref->next;
@@ -311,19 +308,15 @@ static UA_UInt16 getTypeIndex(const DataTypeImporter *importer,
 }
 #endif
 
-static NL_NodeId getParentNode(const NL_DataTypeNode *node)
-{
+static UA_NodeId
+getParentNode(const NL_DataTypeNode *node) {
     NL_Reference *ref = node->hierachicalRefs;
-    while (ref)
-    {
+    while(ref) {
         if (!ref->isForward)
-        {
             return ref->target;
-        }
         ref = ref->next;
     }
-    NL_NodeId nullId = {0, NULL};
-    return nullId;
+    return UA_NODEID_NULL;
 }
 
 static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
@@ -331,7 +324,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
                                         const NL_DataTypeNode *node)
 {
     // member of supertype have to be added, if there is one
-    UA_NodeId parent = getNodeIdFromChars(getParentNode(node));
+    UA_NodeId parent = getParentNode(node);
     UA_NodeId structId = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);
     size_t memberOffset = 0;
     if (!UA_NodeId_equal(&parent, &structId))
@@ -386,10 +379,8 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 
     size_t i = 0;
     for (UA_DataTypeMember *member = type->members + memberOffset;
-         member != type->members + type->membersSize; member++)
-    {
-        UA_NodeId memberTypeId =
-            getNodeIdFromChars(node->definition->fields[i].dataType);
+         member != type->members + type->membersSize; member++) {
+        UA_NodeId memberTypeId = node->definition->fields[i].dataType;
 #ifdef USE_MEMBERTYPE_INDEX
         member->memberTypeIndex = getTypeIndex(importer, &memberTypeId);
 #else
@@ -420,9 +411,9 @@ static void addDataTypeMembers(const UA_DataTypeArray *customTypes,
         UA_DataTypeMember *member = type->members + i;
         member->isArray = node->definition->fields[i].valueRank >= 0;
 #ifdef USE_MEMBERTYPE_INDEX
-        member->namespaceZero = node->definition->fields[i].dataType.nsIdx == 0;
+        member->namespaceZero = node->definition->fields[i].dataType.namespaceIndex == 0;
 #else
-        UA_NodeId typeId = getNodeIdFromChars(node->definition->fields[i].dataType);
+        UA_NodeId typeId = node->definition->fields[i].dataType;
         member->memberType = getDataType(&typeId, customTypes);
 #endif
 
@@ -456,7 +447,7 @@ static void StructureDataType_init(const DataTypeImporter *importer,
 #ifdef USE_MEMBERTYPE_INDEX
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
 #else
-    type->typeId = getNodeIdFromChars(node->id);
+    type->typeId = node->id;
 #endif
     type->binaryEncodingId = getBinaryEncodingId(node);
     type->pointerFree = true;
@@ -474,7 +465,7 @@ static void EnumDataType_init(const DataTypeImporter *importer,
 #ifdef USE_MEMBERTYPE_INDEX
     enumType->typeIndex = (UA_UInt16)importer->types->typesSize;
 #else
-    enumType->typeId = getNodeIdFromChars(node->id);
+    enumType->typeId = node->id;
 #endif
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
     enumType->binaryEncodingId = UA_NODEID_NULL;
@@ -496,7 +487,7 @@ static void SubtypeOfBase_init(const DataTypeImporter *importer,
 #ifdef USE_MEMBERTYPE_INDEX
     type->typeIndex = (UA_UInt16)importer->types->typesSize;
 #else
-    type->typeId = getNodeIdFromChars(node->id);
+    type->typeId = node->id;
 #endif
     type->binaryEncodingId = parentType->binaryEncodingId;
     type->members = NULL;
@@ -607,7 +598,7 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
     UA_DataType *type = (UA_DataType *)(uintptr_t)&importer->types
                             ->types[importer->types->typesSize];
     memset(type, 0, sizeof(UA_DataType));
-    type->typeId = getNodeIdFromChars(node->id);
+    type->typeId = node->id;
     if (node->browseName.name)
     {
         size_t len = strlen(node->browseName.name);

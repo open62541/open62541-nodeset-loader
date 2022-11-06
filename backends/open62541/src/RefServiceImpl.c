@@ -7,7 +7,6 @@
 
 #include "RefServiceImpl.h"
 #include <NodesetLoader/NodesetLoader.h>
-#include <NodesetLoader/NodeId.h>
 #include <assert.h>
 #include <open62541/server.h>
 #include <stdlib.h>
@@ -15,7 +14,7 @@
 struct RefContainer
 {
     size_t size;
-    NL_NodeId *ids;
+    UA_NodeId *ids;
 };
 typedef struct RefContainer RefContainer;
 
@@ -26,11 +25,10 @@ struct RefServiceImpl
     RefContainer hasTypeDefRefs;
 };
 
-static void RefContainer_clear(RefContainer *c)
-{
-    for (NL_NodeId *id = c->ids; id != c->ids + c->size; id++)
-    {
-        free(id->id);
+static void
+RefContainer_clear(RefContainer *c) {
+    for (UA_NodeId *id = c->ids; id != c->ids + c->size; id++) {
+        UA_NodeId_clear(id);
     }
     free(c->ids);
 }
@@ -64,42 +62,12 @@ static void iterate(UA_Server *server, const UA_NodeId *startId, browseFnc fnc,
     UA_BrowseResult_clear(&br);
 }
 
-static void addTNodeIdToRefs(RefContainer *refs, const NL_NodeId id)
+static void
+addToRefs(RefContainer *refs, const UA_NodeId id)
 {
-    refs->ids =
-        (NL_NodeId *)realloc(refs->ids, sizeof(NL_NodeId) * (refs->size + 1));
-    NL_NodeId *newId = refs->ids + refs->size;
-    newId->nsIdx = id.nsIdx;
-    size_t len = strlen(id.id);
-    newId->id = (char *)calloc(len + 1, sizeof(char));
-    memcpy(newId->id, id.id, len);
-    refs->size++;
-}
-
-static void addToRefs(RefContainer *refs, const UA_NodeId id)
-{
-    refs->ids =
-        (NL_NodeId *)realloc(refs->ids, sizeof(NL_NodeId) * (refs->size + 1));
-    NL_NodeId *newId = refs->ids + refs->size;
-    newId->nsIdx = id.namespaceIndex;
-    if (id.identifierType == UA_NODEIDTYPE_NUMERIC)
-    {
-        char *str = (char *)calloc(10, sizeof(char));
-        sprintf(str, "i=%d", id.identifier.numeric);
-        newId->id = str;
-    }
-    else if (id.identifierType == UA_NODEIDTYPE_STRING)
-    {
-        char *str =
-            (char *)calloc(id.identifier.string.length + 1, sizeof(char));
-        sprintf(str, "s=%.*s", (int)id.identifier.string.length,
-                id.identifier.string.data);
-        newId->id = str;
-    }
-    else
-    {
-        assert(false);
-    }
+    refs->ids = (UA_NodeId *)realloc(refs->ids, sizeof(UA_NodeId) * (refs->size + 1));
+    UA_NodeId *newId = refs->ids + refs->size;
+    UA_NodeId_copy(&id, newId);
     refs->size++;
 }
 
@@ -124,14 +92,12 @@ static void getRefs(UA_Server *server, RefServiceImpl *impl,
     iterate(server, &startId, fn, impl);
 }
 
-static bool isInContainer(const RefContainer c, const NL_Reference *ref)
-{
-    for (const NL_NodeId *id = c.ids; id != c.ids + c.size; id++)
+static bool
+isInContainer(const RefContainer c, const NL_Reference *ref) {
+    for (const UA_NodeId *id = c.ids; id != c.ids + c.size; id++)
     {
-        if (!NodesetLoader_NodeId_cmp(&ref->refType, id))
-        {
+        if (UA_NodeId_equal(&ref->refType, id))
             return true;
-        }
     }
     return false;
 }
@@ -157,33 +123,23 @@ static void addnewRefType(RefServiceImpl *service, NL_ReferenceTypeNode *node)
 {
     NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
-    while (ref)
-    {
-        if (!ref->isForward)
-        {
-            for (size_t i = 0; i < service->hierachicalRefs.size; i++)
-            {
-                if (!NodesetLoader_NodeId_cmp(&service->hierachicalRefs.ids[i],
-                                 &ref->target))
-                {
-                    addTNodeIdToRefs(&service->hierachicalRefs, node->id);
+    while (ref) {
+        if (!ref->isForward) {
+            for (size_t i = 0; i < service->hierachicalRefs.size; i++) {
+                if (UA_NodeId_equal(&service->hierachicalRefs.ids[i], &ref->target)) {
+                    addToRefs(&service->hierachicalRefs, node->id);
                     isHierachical = true;
                 }
             }
-            for (size_t i = 0; i < service->hasTypeDefRefs.size; i++)
-            {
-                if (!NodesetLoader_NodeId_cmp(&service->hasTypeDefRefs.ids[i], &ref->target))
-                {
-                    addTNodeIdToRefs(&service->hasTypeDefRefs, node->id);
-                }
+            for (size_t i = 0; i < service->hasTypeDefRefs.size; i++) {
+                if (UA_NodeId_equal(&service->hasTypeDefRefs.ids[i], &ref->target))
+                    addToRefs(&service->hasTypeDefRefs, node->id);
             }
         }
         ref = ref->next;
     }
     if (!isHierachical)
-    {
-        addTNodeIdToRefs(&service->nonHierachicalRefs, node->id);
-    }
+        addToRefs(&service->nonHierachicalRefs, node->id);
 }
 
 NL_ReferenceService *RefServiceImpl_new(struct UA_Server *server)

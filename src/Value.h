@@ -6,7 +6,6 @@
  */
 
 #include <NodesetLoader/NodesetLoader.h>
-#include <NodesetLoader/NodeId.h>
 #include <stdbool.h>
 #include <stddef.h>
 

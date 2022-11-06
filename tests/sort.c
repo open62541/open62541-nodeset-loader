@@ -10,7 +10,10 @@ struct Nodeset;
 
 static void sortCallback(struct Nodeset* nodeset, NL_Node *node) 
 { 
-    printf("%s\n", node->id.id);
+    UA_String idStr = {0};
+    UA_NodeId_print(&node->id, &idStr);
+    printf("%.*s\n", (int)idStr.length, (char*)idStr.data);
+    UA_String_clear(&idStr);
     sortedNodes[sortedNodesCnt] = node;
     sortedNodesCnt++;
 }
@@ -26,7 +29,7 @@ START_TEST(singleNode) {
 
     NL_VariableNode a;
     initNode(&a);
-    a.id.id = "nodeA";
+    a.id = UA_NODEID_STRING(0, "nodeA");
     a.nodeClass = NODECLASS_VARIABLE;
 
     Sort_addNode(ctx, (NL_Node *)&a);
@@ -43,15 +46,15 @@ START_TEST(sortNodes) {
 
     NL_VariableNode a;
     initNode(&a);
-    a.id.id = "nodeA";
+    a.id = UA_NODEID_STRING(0, "nodeA");
     a.nodeClass = NODECLASS_VARIABLE;
     NL_VariableNode b;
     initNode(&b);
-    b.id.id = "nodeB";
+    b.id = UA_NODEID_STRING(0, "nodeB");
     b.nodeClass = NODECLASS_VARIABLE;
     NL_VariableNode c;
     initNode(&c);
-    c.id.id = "nodeC";
+    c.id = UA_NODEID_STRING(0, "nodeC");
     c.nodeClass = NODECLASS_VARIABLE;
 
     Sort_addNode(ctx, (NL_Node*)&a);
@@ -72,7 +75,7 @@ START_TEST(nodeWithRefs_1) {
 
     NL_VariableNode a;
     initNode(&a);
-    a.id.id = "nodeA";
+    a.id = UA_NODEID_STRING(0, "nodeA");
     a.nodeClass = NODECLASS_VARIABLE;
 
     NL_Reference ref;
@@ -83,15 +86,15 @@ START_TEST(nodeWithRefs_1) {
     NL_VariableNode b;
     initNode(&b);
     b.hierachicalRefs = &ref;
-    b.id.id = "nodeB";
+    b.id = UA_NODEID_STRING(0, "nodeB");
     b.nodeClass = NODECLASS_VARIABLE;
 
     Sort_addNode(ctx, (NL_Node *)&b);
     Sort_addNode(ctx, (NL_Node *)&a);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt==2);
-    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[0]->id, &a.id));
-    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[1]->id, &b.id));
+    ck_assert(UA_NodeId_equal(&sortedNodes[0]->id, &a.id));
+    ck_assert(UA_NodeId_equal(&sortedNodes[1]->id, &b.id));
     Sort_cleanup(ctx);
 }
 END_TEST
@@ -105,7 +108,7 @@ START_TEST(nodeWithRefs_2) {
 
     NL_VariableNode a;
     initNode(&a);
-    a.id.id = "nodeA";
+    a.id = UA_NODEID_STRING(0, "nodeA");
 
     NL_Reference ref;
     ref.isForward = false;
@@ -115,15 +118,14 @@ START_TEST(nodeWithRefs_2) {
     NL_VariableNode b;
     initNode(&b);
     b.hierachicalRefs = &ref;
-    b.id.nsIdx=0;
-    b.id.id = "nodeB";
+    b.id = UA_NODEID_STRING(0, "nodeB");
 
     Sort_addNode(ctx, (NL_Node *)&a);
     Sort_addNode(ctx, (NL_Node *)&b);
     Sort_start(ctx, NULL, sortCallback, NULL);
     ck_assert(sortedNodesCnt == 2);
-    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[0]->id, &a.id));
-    ck_assert(!NodesetLoader_NodeId_cmp(&sortedNodes[1]->id, &b.id));
+    ck_assert(UA_NodeId_equal(&sortedNodes[0]->id, &a.id));
+    ck_assert(UA_NodeId_equal(&sortedNodes[1]->id, &b.id));
     Sort_cleanup(ctx);
 }
 END_TEST
@@ -136,13 +138,11 @@ START_TEST(cycleDetect) {
 
     NL_VariableNode a;
     initNode(&a);
-    a.id.nsIdx = 1;
-    a.id.id = "nodeA";
+    a.id = UA_NODEID_STRING(1, "nodeA");
 
     NL_VariableNode b;
     initNode(&b);
-    b.id.id = "nodeB";
-    b.id.nsIdx = 1;
+    b.id = UA_NODEID_STRING(1, "nodeB");
 
     NL_Reference ref_AToB;
     ref_AToB.isForward = false;

@@ -6,12 +6,12 @@
  */
 
 #include "Sort.h"
-#include <NodesetLoader/NodesetLoader.h>
+
 #include <assert.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 
 struct edge
@@ -24,7 +24,7 @@ typedef struct edge edge;
 
 struct node
 {
-    const NL_NodeId *id;
+    const UA_NodeId *id;
     struct node *left, *right;
     int balance;
     struct node *qlink;
@@ -43,13 +43,11 @@ struct SortContext
     size_t keyCnt;
 };
 
-static node *new_node(const NL_NodeId *id)
+static node *new_node(const UA_NodeId *id)
 {
     node *k = (node *)calloc(1, sizeof(node));
     if(!k)
-    {
         return NULL;
-    }
 
     k->id = id;
     k->left = k->right = NULL;
@@ -62,100 +60,79 @@ static node *new_node(const NL_NodeId *id)
     return k;
 }
 
-static node *search_node(node *rootNode, const NL_NodeId *nodeId)
-{
+static node *
+search_node(node *rootNode, const UA_NodeId *nodeId) {
     if(!rootNode)
-    {
         return NULL;
-    }
+
     node *p, *q, *r, *s, *t;
 
-    if (rootNode->right == NULL)
+    if(rootNode->right == NULL)
         return (rootNode->right = new_node(nodeId));
 
     t = rootNode;
     s = p = rootNode->right;
 
-    while (true)
-    {
-        int a = NodesetLoader_NodeId_cmp(nodeId, p->id);
-        if (a == 0)
+    while (true) {
+        UA_Order a = UA_NodeId_order(nodeId, p->id);
+        if (a == UA_ORDER_EQ)
             return p;
 
-        if (a < 0)
+        if (a == UA_ORDER_LESS)
             q = p->left;
         else
             q = p->right;
 
-        if (q == NULL)
-        {
+        if (q == NULL) {
             q = new_node(nodeId);
-
-            if (a < 0)
+            if (a == UA_ORDER_LESS)
                 p->left = q;
             else
                 p->right = q;
 
-            assert(NodesetLoader_NodeId_cmp(nodeId, s->id));
-            if (NodesetLoader_NodeId_cmp(nodeId, s->id) < 0)
-            {
+            assert(!UA_NodeId_equal(nodeId, s->id));
+            if(UA_NodeId_order(nodeId, s->id) == UA_ORDER_LESS) {
                 r = p = s->left;
-                a = -1;
-            }
-            else
-            {
+                a = UA_ORDER_LESS;
+            } else {
                 r = p = s->right;
-                a = 1;
+                a = UA_ORDER_MORE;
             }
 
-            while (p != q)
-            {
-                assert(NodesetLoader_NodeId_cmp(nodeId, p->id));
-                if (NodesetLoader_NodeId_cmp(nodeId, p->id) < 0)
-                {
+            while (p != q) {
+                assert(!UA_NodeId_equal(nodeId, p->id));
+                if (UA_NodeId_order(nodeId, p->id) == UA_ORDER_LESS) {
                     p->balance = -1;
                     p = p->left;
-                }
-                else
-                {
+                } else {
                     p->balance = 1;
                     p = p->right;
                 }
             }
 
-            if (s->balance == 0 || s->balance == -a)
-            {
+            if (s->balance == 0 || s->balance == -a) {
                 s->balance += a;
                 return q;
             }
 
-            if (r->balance == a)
-            {
+            if (r->balance == a) {
                 p = r;
-                if (a < 0)
-                {
+                if (a == UA_ORDER_LESS) {
                     s->left = r->right;
                     r->right = s;
-                }
-                else
-                {
+                } else {
                     s->right = r->left;
                     r->left = s;
                 }
                 s->balance = r->balance = 0;
-            }
-            else
-            {
-                if (a < 0)
-                {
+            } else {
+                if (a == UA_ORDER_LESS) {
                     p = r->right;
                     r->right = p->left;
                     p->left = r;
                     s->left = p->right;
                     p->right = s;
-                }
-                else
-                {
+                } else {
                     p = r->left;
                     r->left = p->right;
                     p->right = r;
@@ -176,12 +153,10 @@ static node *search_node(node *rootNode, const NL_NodeId *nodeId)
                 t->right = p;
             else
                 t->left = p;
-
             return q;
         }
 
-        if (q->balance)
-        {
+        if (q->balance) {
             t = p;
             s = q;
         }
@@ -190,21 +165,19 @@ static node *search_node(node *rootNode, const NL_NodeId *nodeId)
     }
 }
 
-static void record_relation(node *from, node *to)
-{
-    if (NodesetLoader_NodeId_cmp(from->id, to->id))
-    {
-        to->edgeCount++;
-        struct edge *e;
-        e = (edge *)calloc(1, sizeof(edge));
-        if(!e)
-        {
-            return;
-        }
-        e->dest = to;
-        e->next = from->edges;
-        from->edges = e;
-    }
+static void
+record_relation(node *from, node *to) {
+    if(UA_NodeId_equal(from->id, to->id))
+        return;
+
+    struct edge *e = (edge *)calloc(1, sizeof(edge));
+    if(!e)
+        return;
+
+    to->edgeCount++;
+    e->dest = to;
+    e->next = from->edges;
+    from->edges = e;
 }
 
 static bool count_items(SortContext *ctx, node *unused)
@@ -294,59 +267,41 @@ void Sort_cleanup(SortContext *ctx)
     free(ctx);
 }
 
-void Sort_addNode(SortContext *ctx, NL_Node *data)
-{
+void Sort_addNode(SortContext *ctx, NL_Node *data) {
     node *j = NULL;
     // add node, no matter if there are references on it
     j = search_node(ctx->root1, &data->id);
     j->data = data;
     NL_Reference *hierachicalRef = data->hierachicalRefs;
-    if (hierachicalRef)
-    {
-        while (hierachicalRef)
-        {
-            if (!hierachicalRef->isForward)
-            {
-
+    if (hierachicalRef) {
+        while (hierachicalRef) {
+            if (!hierachicalRef->isForward) {
                 node *k = search_node(ctx->root1, &hierachicalRef->target);
                 record_relation(k, j);
-            }
-            else
-            {
+            } else {
                 node *k = search_node(ctx->root1, &hierachicalRef->target);
                 record_relation(j, k);
             }
-
             hierachicalRef = hierachicalRef->next;
         }
-    }
-    else
-    {
+    } else {
         // there are no hierachical refs on it, can we find the nodes
         // referencing it? -> try it with parentNodeId
-        if (NodesetLoader_isInstanceNode(data))
-        {
+        if (NodesetLoader_isInstanceNode(data)) {
             NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
-            if (instanceNode->parentNodeId.id != NULL)
-            {
-                node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
-                if (k->data)
-                {
-                    NL_Reference *r = k->data->hierachicalRefs;
-                    while (r)
-                    {
-                        if (!NodesetLoader_NodeId_cmp(&r->target, &data->id))
-                        {
-                            NL_Reference *newRef =
-                                (NL_Reference *)calloc(1, sizeof(NL_Reference));
-                            newRef->isForward = !r->isForward;
-                            newRef->target = k->data->id;
-                            newRef->refType = r->refType;
-                            data->hierachicalRefs = newRef;
-                            break;
-                        }
-                        r = r->next;
+            node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
+            if (k->data) {
+                NL_Reference *r = k->data->hierachicalRefs;
+                while (r) {
+                    if (UA_NodeId_equal(&r->target, &data->id)) {
+                        NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
+                        newRef->isForward = !r->isForward;
+                        newRef->target = k->data->id;
+                        newRef->refType = r->refType;
+                        data->hierachicalRefs = newRef;
+                        break;
                     }
+                    r = r->next;
                 }
             }
         }
