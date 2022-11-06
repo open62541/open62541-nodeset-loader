@@ -17,7 +17,7 @@ typedef struct Namespace Namespace;
 
 struct Namespace
 {
-    int idx;
+    short unsigned idx;
     const char *name;
 };
 

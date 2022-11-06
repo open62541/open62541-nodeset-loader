@@ -40,24 +40,19 @@ Alias *AliasList_newAlias(AliasList *list, char *name)
         return NULL;
     }
     list->data[list->size].name = name;
-    list->data[list->size].id.id = NULL;
-    list->data[list->size].id.nsIdx = 0;
+    UA_NodeId_init(&list->data[list->size].id);
     list->size++;
     return &list->data[list->size - 1];
 }
 
-const NL_NodeId *AliasList_getNodeId(const AliasList *list, const char *name)
-{
+const UA_NodeId *
+    AliasList_getNodeId(const AliasList *list, const char *name) {
     if(!name)
-    {
         return NULL;
-    }
-    for (Alias* alias = list->data; alias != list->data + list->size; alias++)
-    {
+
+    for(Alias* alias = list->data; alias != list->data + list->size; alias++) {
         if (!strcmp(name, alias->name))
-        {
             return &alias->id;
-        }
     }
     return NULL;
 }

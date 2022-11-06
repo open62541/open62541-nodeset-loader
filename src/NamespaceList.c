@@ -45,7 +45,7 @@ Namespace *NamespaceList_newNamespace(NamespaceList *list, void *userContext,
                                       const char *uri)
 {
     // ask backend to create/get overall namespaceIndex
-    int globalIdx = list->cb(userContext, uri);
+    short unsigned globalIdx = list->cb(userContext, uri);
     list->size++;
     list->data =
         (Namespace *)realloc(list->data, sizeof(Namespace) * list->size);

@@ -21,22 +21,21 @@ typedef struct InternalRefService InternalRefService;
 
 #define MAX_HIERACHICAL_REFS 50
 NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
-    {
-        NODECLASS_REFERENCETYPE,
-        {0, "i=35"},
-        {0, "Organizes"},
-        {NULL, NULL},
-        {NULL, NULL},
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        {NULL, NULL},
-        NULL,
+    {NODECLASS_REFERENCETYPE,
+     {0, UA_NODEIDTYPE_NUMERIC, {35}},
+     {0, "Organizes"},
+     {NULL, NULL},
+     {NULL, NULL},
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     NULL,
+     {NULL, NULL},
+     NULL,
     },
     {NODECLASS_REFERENCETYPE,
-     {0, "i=36"},
+     {0, UA_NODEIDTYPE_NUMERIC, {36}},
      {0, "HasEventSource"},
      {NULL, NULL},
      {NULL, NULL},
@@ -48,7 +47,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=48"},
+     {0, UA_NODEIDTYPE_NUMERIC, {48}},
      {0, "HasNotifier"},
      {NULL, NULL},
      {NULL, NULL},
@@ -60,7 +59,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=44"},
+     {0, UA_NODEIDTYPE_NUMERIC, {44}},
      {0, "Aggregates"},
      {NULL, NULL},
      {NULL, NULL},
@@ -72,7 +71,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=45"},
+     {0, UA_NODEIDTYPE_NUMERIC, {45}},
      {0, "HasSubtype"},
      {NULL, NULL},
      {NULL, NULL},
@@ -84,7 +83,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=47"},
+     {0, UA_NODEIDTYPE_NUMERIC, {47}},
      {0, "HasComponent"},
      {NULL, NULL},
      {NULL, NULL},
@@ -96,7 +95,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=46"},
+     {0, UA_NODEIDTYPE_NUMERIC, {46}},
      {0, "HasProperty"},
      {NULL, NULL},
      {NULL, NULL},
@@ -108,7 +107,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=47"},
+     {0, UA_NODEIDTYPE_NUMERIC, {38}},
      {0, "HasEncoding"},
      {NULL, NULL},
      {NULL, NULL},
@@ -120,8 +119,8 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      {NULL, NULL},
      NULL},
     {NODECLASS_REFERENCETYPE,
-     {0, "i=33"},
-     {0, "HasEncoding"},
+     {0, UA_NODEIDTYPE_NUMERIC, {33}},
+     {0, "HierarchicalReferences"},
      {NULL, NULL},
      {NULL, NULL},
      NULL,
@@ -133,57 +132,46 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
      NULL},
 };
 
-static bool isNonHierachicalRef(const InternalRefService *service,
-                                const NL_Reference *ref)
-{
+static bool
+isNonHierachicalRef(const InternalRefService *service,
+                    const NL_Reference *ref) {
     // TODO: nonHierachicalrefs should also be imported first
     // we state that we know all references from namespace 0
-    if (ref->refType.nsIdx == 0)
-    {
+    if (ref->refType.namespaceIndex == 0)
         return true;
-    }
-    for (size_t i = 0; i < service->nonHierachicalRefs->size; i++)
-    {
-        if (!NodesetLoader_NodeId_cmp(&ref->refType,
-                         &service->nonHierachicalRefs->nodes[i]->id))
-        {
+
+    for (size_t i = 0; i < service->nonHierachicalRefs->size; i++) {
+        if (UA_NodeId_equal(&ref->refType,
+                            &service->nonHierachicalRefs->nodes[i]->id))
             return true;
-        }
     }
     return false;
 }
 
-static bool isHierachicalReference(const InternalRefService *service,
-                                   const NL_Reference *ref)
-{
-    for (size_t i = 0; i < service->hierachicalRefsSize; i++)
-    {
-        if (!NodesetLoader_NodeId_cmp(&ref->refType, &service->hierachicalRefs[i].id))
-        {
+static bool
+isHierachicalReference(const InternalRefService *service,
+                       const NL_Reference *ref) {
+    for (size_t i = 0; i < service->hierachicalRefsSize; i++) {
+        if (UA_NodeId_equal(&ref->refType, &service->hierachicalRefs[i].id))
             return true;
-        }
     }
     return false;
 }
 
-static bool isTypeDefRef(const InternalRefService* service, const NL_Reference* ref)
-{
-    NL_NodeId hasTypeDefId = {0, "i=40"};
-    return !(NodesetLoader_NodeId_cmp(&ref->refType, &hasTypeDefId));
+static bool
+isTypeDefRef(const InternalRefService* service, const NL_Reference* ref) {
+    UA_NodeId hasTypeDefId = UA_NODEID_NUMERIC(0, 40);
+    return UA_NodeId_equal(&ref->refType, &hasTypeDefId);
 }
 
-static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node)
-{
+static void
+addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node) {
     NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
-    while (ref)
-    {
-        if (!ref->isForward)
-        {
-            for (size_t i = 0; i < service->hierachicalRefsSize; i++)
-            {
-                if (!NodesetLoader_NodeId_cmp(&service->hierachicalRefs[i].id, &ref->target))
-                {
+    while (ref) {
+        if (!ref->isForward) {
+            for (size_t i = 0; i < service->hierachicalRefsSize; i++) {
+                if (UA_NodeId_equal(&service->hierachicalRefs[i].id, &ref->target)) {
                     service->hierachicalRefs[service->hierachicalRefsSize++] =
                         *(NL_ReferenceTypeNode *)node;
                     isHierachical = true;
@@ -193,8 +181,7 @@ static void addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *nod
         }
         ref = ref->next;
     }
-    if (!isHierachical)
-    {
+    if (!isHierachical) {
         NodeContainer_add(service->nonHierachicalRefs, (NL_Node *)node);
     }
 }

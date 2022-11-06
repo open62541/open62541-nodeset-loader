@@ -52,6 +52,8 @@ static void deleteRef(NL_Reference *ref)
     while (ref)
     {
         NL_Reference *tmp = ref->next;
+        UA_NodeId_clear(&ref->target);
+        UA_NodeId_clear(&ref->refType);
         free(ref);
         ref = tmp;
     }
@@ -59,6 +61,7 @@ static void deleteRef(NL_Reference *ref)
 
 void Node_delete(NL_Node *node)
 {
+    UA_NodeId_clear(&node->id);
     deleteRef(node->hierachicalRefs);
     deleteRef(node->nonHierachicalRefs);
     if (node->nodeClass == NODECLASS_DATATYPE)

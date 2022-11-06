@@ -7,10 +7,14 @@
 
 #ifndef NODESETLOADER_NODESETLOADER_H
 #define NODESETLOADER_NODESETLOADER_H
+
+#include <open62541/types.h>
+#include <open62541/types_generated.h>
+#include <open62541/types_generated_handling.h>
+
 #include "Extension.h"
 #include "Logger.h"
 #include "ReferenceService.h"
-#include "NodeId.h"
 #include "arch.h"
 #include <stdbool.h>
 #include <stdint.h>
@@ -48,8 +52,8 @@ typedef struct NL_Reference NL_Reference;
 struct NL_Reference
 {
     bool isForward;
-    NL_NodeId refType;
-    NL_NodeId target;
+    UA_NodeId refType;
+    UA_NodeId target;
     NL_Reference *next;
 };
 
@@ -57,9 +61,9 @@ struct NL_BiDirectionalReference;
 typedef struct NL_BiDirectionalReference NL_BiDirectionalReference;
 struct NL_BiDirectionalReference
 {
-    NL_NodeId source;
-    NL_NodeId target;
-    NL_NodeId refType;
+    UA_NodeId source;
+    UA_NodeId target;
+    UA_NodeId refType;
     NL_BiDirectionalReference *next;
 };
 
@@ -72,7 +76,7 @@ typedef struct NL_LocalizedText NL_LocalizedText;
 
 #define NL_NODE_ATTRIBUTES                                                        \
     NL_NodeClass nodeClass;                                                      \
-    NL_NodeId id;                                                                \
+    UA_NodeId id;                                                                \
     NL_BrowseName browseName;                                                    \
     NL_LocalizedText displayName;                                                \
     NL_LocalizedText description;                                                \
@@ -82,7 +86,7 @@ typedef struct NL_LocalizedText NL_LocalizedText;
     NL_Reference *unknownRefs;                                                    \
     void *extension;
 
-#define NL_NODE_INSTANCE_ATTRIBUTES NL_NodeId parentNodeId;
+#define NL_NODE_INSTANCE_ATTRIBUTES UA_NodeId parentNodeId;
 
 struct NL_Node
 {
@@ -117,7 +121,7 @@ struct NL_VariableTypeNode
 {
     NL_NODE_ATTRIBUTES
     char *isAbstract;
-    NL_NodeId datatype;
+    UA_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
 };
@@ -164,7 +168,7 @@ struct NL_Value
     bool isArray;
     bool isExtensionObject;
     const char *type;
-    NL_NodeId typeId;
+    UA_NodeId typeId;
     NL_Data *data;
 };
 typedef struct NL_Value NL_Value;
@@ -172,7 +176,7 @@ struct NL_VariableNode
 {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
-    NL_NodeId datatype;
+    UA_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
     char *accessLevel;
@@ -186,7 +190,7 @@ typedef struct NL_VariableNode NL_VariableNode;
 typedef struct
 {
     char *name;
-    NL_NodeId dataType;
+    UA_NodeId dataType;
     int valueRank;
     int value;
     bool isOptional;
@@ -235,7 +239,7 @@ struct NL_ViewNode
 };
 typedef struct NL_ViewNode NL_ViewNode;
 
-typedef int (*NL_addNamespaceCallback)(void *userContext, const char *);
+typedef unsigned short (*NL_addNamespaceCallback)(void *userContext, const char *);
 
 struct NL_FileContext
 {

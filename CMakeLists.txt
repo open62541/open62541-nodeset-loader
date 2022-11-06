@@ -178,7 +178,6 @@ set(NODESETLOADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/DataTypeNode.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/NodeContainer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/InstanceNode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/NodeId.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/PrintfLogger.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c

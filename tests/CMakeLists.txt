@@ -1,15 +1,9 @@
 add_executable(sort sort.c 
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/NodeId.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/InstanceNode.c)
 target_include_directories(sort PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib ${OPEN62541_LIBRARIES})
 add_test(NAME sort_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND sort ${CMAKE_CURRENT_LIST_DIR})
-
-add_executable(nodeId NodeId.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/NodeId.c)
-target_include_directories(nodeId PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(nodeId PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
-add_test(NAME nodeId_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeId ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(nodeContainer 
     NodeContainer.c 
@@ -19,21 +13,21 @@ add_executable(nodeContainer
     ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c
     )
 target_include_directories(nodeContainer PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(nodeContainer PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_link_libraries(nodeContainer PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib ${OPEN62541_LIBRARIES})
 add_test(NAME nodeContainer_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeContainer ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(value ValueTest.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Value.c)
 target_include_directories(value PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include)
-target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_link_libraries(value PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib ${OPEN62541_LIBRARIES})
 add_test(NAME value_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND value ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(allocator allocator.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/CharAllocator.c)
 target_include_directories(allocator PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib ${OPEN62541_LIBRARIES})
 add_test(NAME allocatorTest WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND allocator ${CMAKE_CURRENT_LIST_DIR})
 
 add_executable(parser parser.c)
-target_link_libraries(parser PRIVATE NodesetLoader ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib)
+target_link_libraries(parser PRIVATE NodesetLoader ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib ${OPEN62541_LIBRARIES})
 target_include_directories(parser PRIVATE ${CHECK_INCLUDE_DIR})
 add_test(NAME parser_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 

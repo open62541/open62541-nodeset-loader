@@ -16,9 +16,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s);
-static NL_NodeId alias2Id(const Nodeset *nodeset, char *name);
-static NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id);
+static UA_NodeId extractNodedId(const NamespaceList *namespaces, char *s);
+static UA_NodeId alias2Id(const Nodeset *nodeset, char *name);
+static UA_NodeId translateNodeId(const NamespaceList *namespaces, UA_NodeId id);
 static NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
                                          NL_BrowseName id);
 NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
@@ -77,13 +77,10 @@ const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
-NL_NodeId translateNodeId(const NamespaceList *namespaces, NL_NodeId id)
-{
-    if (id.nsIdx > 0)
-    {
-        id.nsIdx = (int)NamespaceList_getNamespace(namespaces, id.nsIdx)->idx;
-        return id;
-    }
+UA_NodeId
+translateNodeId(const NamespaceList *namespaces, UA_NodeId id) {
+    if(id.namespaceIndex > 0)
+        id.namespaceIndex = NamespaceList_getNamespace(namespaces, id.namespaceIndex)->idx;
     return id;
 }
 
@@ -103,28 +100,16 @@ NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
     return bn;
 }
 
-NL_NodeId extractNodedId(const NamespaceList *namespaces, char *s)
-{
-    if (s == NULL)
-    {
-        NL_NodeId id;
-        id.id = NULL;
-        id.nsIdx = 0;
+UA_NodeId
+extractNodedId(const NamespaceList *namespaces, char *s) {
+    UA_NodeId id = UA_NODEID_NULL;
+    if(s == NULL)
         return id;
-    }
-    NL_NodeId id;
-    id.nsIdx = 0;
-    char *idxSemi = strchr(s, ';');
-    if (idxSemi == NULL)
-    {
-        id.id = s;
+
+    UA_StatusCode res = UA_NodeId_parse(&id, UA_STRING(s));
+    if(res != UA_STATUSCODE_GOOD)
         return id;
-    }
-    else
-    {
-        id.nsIdx = atoi(&s[3]);
-        id.id = idxSemi + 1;
-    }
+    
     return translateNodeId(namespaces, id);
 }
 
@@ -146,9 +131,9 @@ NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
     return translateBrowseName(namespaces, bn);
 }
 
-static NL_NodeId alias2Id(const Nodeset *nodeset, char *name)
+static UA_NodeId alias2Id(const Nodeset *nodeset, char *name)
 {
-    const NL_NodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
+    const UA_NodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
     if (!alias)
     {
         return extractNodedId(nodeset->namespaces, name);
@@ -252,11 +237,13 @@ bool Nodeset_sort(Nodeset *nodeset)
             nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
         if (!result)
         {
+            UA_String nodeIdStr = {0};
+            UA_NodeId_print(&nodeset->nodesWithUnknownRefs->nodes[i]->id, &nodeIdStr);
             nodeset->logger->log(
                 nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                "node with unresolved reference(s): NodeId(%d, %s)",
-                nodeset->nodesWithUnknownRefs->nodes[i]->id.nsIdx,
-                nodeset->nodesWithUnknownRefs->nodes[i]->id.id);
+                "node with unresolved reference(s): NodeId(%.*s)",
+                (int)nodeIdStr.length, (char*)nodeIdStr.data);
+            UA_String_clear(&nodeIdStr);
             return false;
         }
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
@@ -279,9 +266,11 @@ void Nodeset_cleanup(Nodeset *nodeset)
     NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
     NL_BiDirectionalReference *ref = nodeset->hasEncodingRefs;
-    while (ref)
-    {
+    while (ref) {
         NL_BiDirectionalReference *tmp = ref->next;
+        UA_NodeId_clear(&ref->source);
+        UA_NodeId_clear(&ref->target);
+        UA_NodeId_clear(&ref->refType);
         free(ref);
         ref = tmp;
     }
@@ -511,20 +500,21 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
     }
 }
 
-void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref,
-                                NL_Node *node, char *targetId)
-{
+void
+Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref,
+                           NL_Node *node, char *targetId) {
+    UA_NodeId_clear(&ref->target);
     ref->target = alias2Id(nodeset, targetId);
+
     // handle hasEncoding in a special way
-    NL_NodeId hasEncodingRef = {0, "i=38"};
-    if (!NodesetLoader_NodeId_cmp(&ref->refType, &hasEncodingRef) &&
-        !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
-    {
-        NL_BiDirectionalReference *newRef = (NL_BiDirectionalReference *)calloc(
-            1, sizeof(NL_BiDirectionalReference));
-        newRef->source = ref->target;
-        newRef->target = node->id;
-        newRef->refType = ref->refType;
+    UA_NodeId hasEncodingRef = UA_NODEID("i=38");
+    if (UA_NodeId_equal(&ref->refType, &hasEncodingRef) &&
+        !strcmp(node->browseName.name, "Default Binary") && !ref->isForward) {
+        NL_BiDirectionalReference *newRef = (NL_BiDirectionalReference *)
+            calloc(1, sizeof(NL_BiDirectionalReference));
+        UA_NodeId_copy(&ref->target, &newRef->source);
+        UA_NodeId_copy(&node->id, &newRef->target);
+        UA_NodeId_copy(&ref->refType, &newRef->refType);
 
         NL_BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
         nodeset->hasEncodingRefs = newRef;

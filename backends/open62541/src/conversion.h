@@ -38,25 +38,6 @@ static inline UA_Boolean isTrue(const char *s)
     return UA_TRUE;
 }
 
-static inline UA_NodeId getNodeIdFromChars(NL_NodeId tid)
-{
-    UA_NodeId id = UA_NODEID_NULL;
-    if (!tid.id)
-    {
-        return UA_NODEID_NULL;
-    }
-    UA_String idString;
-    idString.length = strlen(tid.id);
-    idString.data = (UA_Byte*)tid.id;
-    UA_StatusCode result = UA_NodeId_parse(&id, idString);
-    if (result != UA_STATUSCODE_GOOD)
-    {
-        return id;
-    }
-    id.namespaceIndex = (UA_UInt16)tid.nsIdx;
-    return id;
-}
-
 static inline UA_NodeId extractNodeId(char *s)
 {
     UA_NodeId id = UA_NODEID_NULL;
