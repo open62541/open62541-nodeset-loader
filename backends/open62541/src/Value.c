@@ -256,31 +256,15 @@ static const char* getEnumValuePos(const char *string)
     return string;
 }
 
-#ifdef USE_MEMBERTYPE_INDEX
-static const UA_DataType* getMemberType(const UA_DataTypeMember* m, const UA_DataType* customTypes)
-{
-    const UA_DataType *memberType = NULL;
-    if (m->namespaceZero)
-    {
-        memberType = &UA_TYPES[m->memberTypeIndex];
-    }
-    else
-    {
-        memberType = customTypes + m->memberTypeIndex;
-    }
-    return memberType;
-}
-#else
 static const UA_DataType *getMemberType(const UA_DataTypeMember *m, const UA_DataType* customTypes)
 {
     (void)customTypes;
     return m->memberType;
 }
 
-#endif
-
 static void setStructure(const NL_Data *value, const UA_DataType *type,
-                         RawData *data, const UA_DataType *customTypes, const ServerContext *serverContext)
+                         RawData *data, const UA_DataType *customTypes,
+                         const ServerContext *serverContext)
 {
     assert(value->type == DATATYPE_COMPLEX);
     // there can be less members specified then the type requires

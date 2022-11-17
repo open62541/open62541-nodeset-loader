@@ -1,8 +1,4 @@
-if(${USE_MEMBERTYPE_INDEX})
-    set(PLCOPEN_NODESET_PATH "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.Plc.NodeSet2.xml")
-else()
-    set(PLCOPEN_NODESET_PATH "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml")
-endif()
+set(PLCOPEN_NODESET_PATH "${open62541_NODESET_BASE_DIR}/PLCopen/Opc.Ua.PLCopen.NodeSet2_V1.02.xml")
 
 add_subdirectory(client)
 add_subdirectory(reference_server)

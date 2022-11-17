@@ -1,5 +1,3 @@
 add_executable(parserDemo main.c dump.c)
 target_link_libraries(parserDemo PRIVATE NodesetLoader)
-if(${ENABLE_BACKEND_OPEN62541})
-    target_link_libraries(parserDemo PRIVATE open62541::open62541)
-endif()
+target_link_libraries(parserDemo PRIVATE open62541::open62541)
