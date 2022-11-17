@@ -11,11 +11,9 @@ Supported operating systems: Linux, Windows (rudimentary)
 
 #### Backend open62541
 
-Supported open62541 version: 1.2.x \
+Supported open62541 version: 1.3.x
 Support for loading values with datatypes from namespace 0 or custom namespaces
 Support parsing of extensions (via a callback interface)
-
-Open62541 from master branch can be used when disabling the cmake option USE_MEMBERTYPE_INDEX.
 
 ## Contribution
 Feel free to work on issues or providing further tests to improve the quality of this library. You can start by forking this repository and opening pull requests on it.
@@ -82,7 +80,7 @@ int main(int argc, const char *argv[]) {
 
 ### build
 
-build with cmake option ENABLE_BACKEND_OPEN62541
+Build with cmake.
 
 There is an example in the open backend, can be started with
 backends/open62541/examples/server <pathToNodeset>

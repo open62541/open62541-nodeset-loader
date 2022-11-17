@@ -60,25 +60,6 @@ static UA_Boolean addDataTypeArray(UA_DataTypeArray *pDataTypeArray,
     }
     memcpy(newTypes + pDataTypeArray->typesSize, pNewDataTypes,
            newDataTypesSize * sizeof(UA_DataType));
-#ifdef USE_MEMBERTYPE_INDEX
-    // increment the typeIndex of the members
-    // ATTENTION: this is only working because there are no dependencies between
-    // typeMembers between non namespace nodesets
-    for (UA_DataType *type = newTypes + pDataTypeArray->typesSize;
-         type != newTypes + pDataTypeArray->typesSize + newDataTypesSize;
-         type++)
-    {
-
-        for (UA_DataTypeMember *m = type->members;
-             m != type->members + type->membersSize; m++)
-        {
-            if (!m->namespaceZero)
-            {
-                m->memberTypeIndex += (UA_UInt16)pDataTypeArray->typesSize;
-            }
-        }
-    }
-#endif
 
     // ugly
     size_t *typesSize = const_cast<size_t *>(&pDataTypeArray->typesSize);
@@ -310,11 +291,7 @@ int main()
     for (UA_DataType *type = (UA_DataType *)(uintptr_t)pDataTypeArray->types;
          type != pDataTypeArray->types + pDataTypeArray->typesSize; type++)
     {
-#ifdef USE_MEMBERTYPE_INDEX
-        type->typeIndex = idx;
-#else
         type->typeId.identifier.numeric = idx;
-#endif
         idx++;
     }
 

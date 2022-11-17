@@ -16,26 +16,6 @@ add_test(NAME subDataType_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND subDataType ${CMAKE_CURRENT_SOURCE_DIR}/subDataType.xml)
 
-if(${USE_MEMBERTYPE_INDEX})
-    ua_generate_nodeset_and_datatypes(
-        NAME "di"
-        FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/OpcUaDiModel.csv"
-        FILE_BSD "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.Types.bsd"
-        NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
-        FILE_NS "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
-        INTERNAL
-    )
-
-    add_executable(compareDITypes compareDITypes.c ${UA_TYPES_DI_SOURCES})
-    add_dependencies(compareDITypes open62541-generator-ns-di)
-    target_link_libraries(compareDITypes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-    target_include_directories(compareDITypes PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
-
-    add_test(NAME compareDITypes_Test
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-        COMMAND compareDITypes "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml")
-endif()
-
 ua_generate_nodeset_and_datatypes(
     NAME "struct"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/struct.csv"
@@ -138,32 +118,29 @@ add_test(NAME compareAbstractDataTypeMember_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareAbstractDataTypeMember "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml")
 
-if(NOT ${USE_MEMBERTYPE_INDEX})
-    add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
-    add_dependencies(compareUnion open62541-generator-ns-union2)
-    target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-    target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
+add_dependencies(compareUnion open62541-generator-ns-union2)
+target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
-    add_test(NAME compareUnion_Test
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-        COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
+add_test(NAME compareUnion_Test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+  COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
 
-    ua_generate_nodeset_and_datatypes(
-        NAME "optionset2"
-        FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionset.csv"
-        FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionset.bsd"
-        NAMESPACE_MAP "2:http://yourorganisation.org/optionSet/"
-        FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml"
-        INTERNAL
-    )
+ua_generate_nodeset_and_datatypes(
+    NAME "optionset2"
+    FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionset.csv"
+    FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionset.bsd"
+    NAMESPACE_MAP "2:http://yourorganisation.org/optionSet/"
+    FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml"
+    INTERNAL
+)
 
-    add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
-    add_dependencies(compareOptionset open62541-generator-ns-optionset2)
-    target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-    target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
+add_dependencies(compareOptionset open62541-generator-ns-optionset2)
+target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 
-    add_test(NAME compareOptionset_Test
-        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-        COMMAND compareOptionset "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml")
-
-endif()
+add_test(NAME compareOptionset_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND compareOptionset "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml")

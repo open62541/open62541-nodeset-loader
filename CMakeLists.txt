@@ -6,10 +6,9 @@ include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(ENABLE_CONAN "use conan for consuming dependencies" on)
+option(ENABLE_CONAN "use conan for consuming dependencies" off)
 option(ENABLE_TESTING "enable tests" off)
 option(ENABLE_EXAMPLES "enable examples" on)
-option(ENABLE_BACKEND_OPEN62541 "backend for open62541" on)
 option(ENABLE_BACKEND_STDOUT "backend for stdout" on)
 option(ENABLE_ASAN "build with address sanitizer enabled" off)
 option(ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
@@ -36,7 +35,6 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     # TODO: Enable nodesetLoader examples within open62541
     set(ENABLE_EXAMPLES off)
 
-    set(ENABLE_BACKEND_OPEN62541 on)
     set(ENABLE_BACKEND_STDOUT off)
 endif()
 
@@ -56,20 +54,15 @@ if(${ENABLE_CONAN})
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
-# LibXML2 is always required
-find_package(LibXml2 REQUIRED)
-
-# open62541 ia always required.
-# But we need to avoid a cyclic dependency if the loader is built into open62541.
-if(${ENABLE_BUILD_INTO_OPEN62541})
-    find_package(open62541 REQUIRED)
-endif()
+add_library(coverageLib INTERFACE)
 
 if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
-    #link against this library to gather coverage info
-    add_library(coverageLib INTERFACE)
+  # open62541 ia always required.
+  # But we need to avoid a cyclic dependency if the loader is built into open62541.
+  find_package(open62541 REQUIRED)
 
     if(${CALC_COVERAGE})
+      #link against this library to gather coverage info
         #set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
 
         message(STATUS "Code coverage is enabled.")
@@ -150,15 +143,16 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     else()
         message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
     endif()
-elseif(${ENABLE_BACKEND_OPEN62541})
+else()
     if(open62541_VERSION VERSION_LESS "1.3.x")
-        set(USE_MEMBERTYPE_INDEX on)
         set(open62541_NODESET_BASE_DIR "${open62541_NODESET_DIR}")
     else()
-        set(USE_MEMBERTYPE_INDEX off)
         set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
     endif()
 endif()
+
+# LibXML2 is always required
+find_package(LibXml2 REQUIRED)
 
 if(${ENABLE_TESTING})
     find_package(Check REQUIRED)
@@ -219,16 +213,11 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
                                PUBLIC ${NODESETLOADER_PUBLIC_INCLUDES}
                                PRIVATE ${NODESETLOADER_PRIVATE_INCLUDES})
     target_include_directories(NodesetLoader PRIVATE ${OPEN62541_INCLUDE_DIR})
-
     target_link_libraries(NodesetLoader PRIVATE ${NODESETLOADER_DEPS_LIBS})
-    target_link_libraries(NodesetLoader PRIVATE ${OPEN62541_LIBRARIES})
+    target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 
     if(${CALC_COVERAGE})
         target_link_libraries(NodesetLoader PUBLIC coverageLib)
-    endif()
-
-    if(${ENABLE_BACKEND_OPEN62541} AND "${USE_MEMBERTYPE_INDEX}")
-        target_compile_definitions(NodesetLoader PUBLIC -DUSE_MEMBERTYPE_INDEX=1)
     endif()
 
     # TODO: Speficy cleanup of custom data types for a specific open62541 version
