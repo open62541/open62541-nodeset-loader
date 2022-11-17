@@ -328,7 +328,7 @@ static void setUnion(const NL_Data *value, const UA_DataType *type, RawData *dat
         data->offset += type->members[switchField - 1].padding;
         // For convenience setup direct pointers to data and type
         NL_Data *memberData = value->val.complexData.members[1];
-        const UA_DataType* memberType = &type->members[switchField - 1].memberType;
+        const UA_DataType* memberType = type->members[switchField - 1].memberType;
 
         // Write out the field value
         if (type->members[switchField - 1].isArray)
