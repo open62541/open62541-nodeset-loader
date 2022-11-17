@@ -256,12 +256,6 @@ static const char* getEnumValuePos(const char *string)
     return string;
 }
 
-static const UA_DataType *getMemberType(const UA_DataTypeMember *m, const UA_DataType* customTypes)
-{
-    (void)customTypes;
-    return m->memberType;
-}
-
 static void setStructure(const NL_Data *value, const UA_DataType *type,
                          RawData *data, const UA_DataType *customTypes,
                          const ServerContext *serverContext)
@@ -271,7 +265,7 @@ static void setStructure(const NL_Data *value, const UA_DataType *type,
     for (const UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
-        const UA_DataType* memberType = getMemberType(m, customTypes);
+        const UA_DataType* memberType = m->memberType;
 
         data->offset += m->padding;
         NL_Data *memberData = lookupMember(value, m->memberName);
@@ -334,7 +328,8 @@ static void setUnion(const NL_Data *value, const UA_DataType *type, RawData *dat
         data->offset += type->members[switchField - 1].padding;
         // For convenience setup direct pointers to data and type
         NL_Data *memberData = value->val.complexData.members[1];
-        const UA_DataType* memberType = getMemberType(&type->members[switchField - 1], customTypes);
+        const UA_DataType* memberType = &type->members[switchField - 1].memberType;
+
         // Write out the field value
         if (type->members[switchField - 1].isArray)
         {
