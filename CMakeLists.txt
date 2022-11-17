@@ -54,6 +54,9 @@ if(${ENABLE_CONAN})
     include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
 endif()
 
+# LibXML2 is always required
+find_package(LibXml2 REQUIRED)
+
 add_library(coverageLib INTERFACE)
 
 if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
@@ -150,9 +153,6 @@ else()
         set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
     endif()
 endif()
-
-# LibXML2 is always required
-find_package(LibXml2 REQUIRED)
 
 if(${ENABLE_TESTING})
     find_package(Check REQUIRED)

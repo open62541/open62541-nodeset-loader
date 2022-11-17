@@ -29,7 +29,7 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Build nodesetLoader
-      run: cd ./nodesetLoader && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON . && cmake --build .
+      run: cd ./nodesetLoader && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DENABLE_CONAN=ON . && cmake --build .
 
     - name: Test
       shell: cmd
