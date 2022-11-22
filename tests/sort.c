@@ -1,6 +1,6 @@
 #include "Sort.h"
-#include <NodesetLoader/NodesetLoader.h>
-#include <check.h>
+#include "NodesetLoader/NodesetLoader.h"
+#include "check.h"
 #include <stdio.h>
 
 static const NL_Node* sortedNodes[100];

@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include "unistd.h"
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
@@ -72,10 +71,10 @@ START_TEST(extensions)
 {
     NodesetLoader_ExtensionInterface extIf;
     extIf.userContext = NULL;
-    extIf.newExtension = Extension_new;
-    extIf.start = startExtension;
-    extIf.end = endExtension;
-    extIf.finish = finishExtension;
+    extIf.newExtension = (NodesetLoader_newExtensionCb)Extension_new;
+    extIf.start = (NodesetLoader_startExtensionCb)startExtension;
+    extIf.end = (NodesetLoader_endExtensionCb)endExtension;
+    extIf.finish = (NodesetLoader_finishExtensionCb)finishExtension;
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, &extIf));
     ck_assert(UA_NODECLASS_VARIABLE ==
               getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)));

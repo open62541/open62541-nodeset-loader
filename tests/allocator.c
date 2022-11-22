@@ -1,5 +1,5 @@
 #include "CharAllocator.h"
-#include <check.h>
+#include "check.h"
 
 START_TEST(simpleMalloc)
 {

@@ -7,7 +7,6 @@
 #include <open62541/types.h>
 
 #include "check.h"
-#include "unistd.h"
 
 #include "../testHelper.h"
 #include "open62541/types_di_generated.h"

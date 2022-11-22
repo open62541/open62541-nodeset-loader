@@ -7,8 +7,6 @@
 
 #include "ServerContext.h"
 
-typedef struct UA_Server UA_Server;
-
 struct ServerContext
 {
     UA_Server *server;

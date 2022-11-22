@@ -7,7 +7,7 @@
 
 #ifndef DATATYPENODE_H
 #define DATATYPENODE_H
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 
 void DataTypeNode_clear(NL_DataTypeNode *node);
 NL_DataTypeDefinition *DataTypeDefinition_new(NL_DataTypeNode *node);

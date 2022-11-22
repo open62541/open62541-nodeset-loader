@@ -5,10 +5,12 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#include "RefServiceImpl.h"
-#include <NodesetLoader/NodesetLoader.h>
-#include <assert.h>
 #include <open62541/server.h>
+
+#include "RefServiceImpl.h"
+#include "NodesetLoader/NodesetLoader.h"
+
+#include <assert.h>
 #include <stdlib.h>
 
 struct RefContainer
@@ -108,7 +110,7 @@ static bool isNonHierachicalRef(const RefServiceImpl *service,
     return isInContainer(service->nonHierachicalRefs, ref);
 }
 
-static bool isHierachicalReference(const RefServiceImpl *service,
+static bool isHierachicalRef(const RefServiceImpl *service,
                                    const NL_Reference *ref)
 {
     return isInContainer(service->hierachicalRefs, ref);
@@ -174,9 +176,9 @@ NL_ReferenceService *RefServiceImpl_new(struct UA_Server *server)
     refService->addNewReferenceType =
         (RefService_addNewReferenceType)addnewRefType;
     refService->isHierachicalRef =
-        (RefService_isHierachicalRef)isHierachicalReference;
+        (RefService_isRefHierachical)isHierachicalRef;
     refService->isNonHierachicalRef =
-        (RefService_isNonHierachicalRef)isNonHierachicalRef;
+        (RefService_isRefNonHierachical)isNonHierachicalRef;
     refService->isHasTypeDefRef = (RefService_isHasTypeDefRef)isTypeDefRef;
     return refService;
 }

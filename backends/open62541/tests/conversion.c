@@ -4,7 +4,6 @@
 
 #include "../src/conversion.h"
 #include "check.h"
-#include "unistd.h"
 #include <open62541/types.h>
 
 #include "testHelper.h"

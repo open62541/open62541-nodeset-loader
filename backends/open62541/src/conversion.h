@@ -7,8 +7,10 @@
 
 #ifndef CONVERSION_H
 #define CONVERSION_H
-#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/types.h>
+
+#include "NodesetLoader/NodesetLoader.h"
+
 #include <time.h>
 
 static inline UA_Boolean isNodeId(const char *s)
@@ -25,7 +27,7 @@ static inline UA_Boolean isNodeId(const char *s)
     return UA_FALSE;
 }
 
-static inline UA_Boolean isTrue(const char *s)
+static inline UA_Boolean isValTrue(const char *s)
 {
     if (!s)
     {

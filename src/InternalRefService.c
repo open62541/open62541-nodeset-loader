@@ -7,7 +7,7 @@
 
 #include "InternalRefService.h"
 #include "nodes/NodeContainer.h"
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 #include <stdlib.h>
 
 struct InternalRefService
@@ -133,7 +133,7 @@ NL_ReferenceTypeNode hierachicalRefs[MAX_HIERACHICAL_REFS] = {
 };
 
 static bool
-isNonHierachicalRef(const InternalRefService *service,
+isRefNonHierachical(const InternalRefService *service,
                     const NL_Reference *ref) {
     // TODO: nonHierachicalrefs should also be imported first
     // we state that we know all references from namespace 0
@@ -149,7 +149,7 @@ isNonHierachicalRef(const InternalRefService *service,
 }
 
 static bool
-isHierachicalReference(const InternalRefService *service,
+isReferenceHierachical(const InternalRefService *service,
                        const NL_Reference *ref) {
     for (size_t i = 0; i < service->hierachicalRefsSize; i++) {
         if (UA_NodeId_equal(&ref->refType, &service->hierachicalRefs[i].id))
@@ -159,13 +159,13 @@ isHierachicalReference(const InternalRefService *service,
 }
 
 static bool
-isTypeDefRef(const InternalRefService* service, const NL_Reference* ref) {
+isRefTypeDef(const InternalRefService* service, const NL_Reference* ref) {
     UA_NodeId hasTypeDefId = UA_NODEID_NUMERIC(0, 40);
     return UA_NodeId_equal(&ref->refType, &hasTypeDefId);
 }
 
 static void
-addnewRefType(InternalRefService *service, NL_ReferenceTypeNode *node) {
+addnewRefTypeImpl(InternalRefService *service, NL_ReferenceTypeNode *node) {
     NL_Reference *ref = node->hierachicalRefs;
     bool isHierachical = false;
     while (ref) {
@@ -206,12 +206,12 @@ NL_ReferenceService *InternalRefService_new()
     }
     refService->context = service;
     refService->addNewReferenceType =
-        (RefService_addNewReferenceType)addnewRefType;
+        (RefService_addNewReferenceType)addnewRefTypeImpl;
     refService->isHierachicalRef =
-        (RefService_isHierachicalRef)isHierachicalReference;
+        (RefService_isRefHierachical)isReferenceHierachical;
     refService->isNonHierachicalRef =
-        (RefService_isNonHierachicalRef)isNonHierachicalRef;
-    refService->isHasTypeDefRef = (RefService_isHasTypeDefRef)isTypeDefRef;
+        (RefService_isRefNonHierachical)isRefNonHierachical;
+    refService->isHasTypeDefRef = (RefService_isHasTypeDefRef)isRefTypeDef;
     return refService;
 }
 

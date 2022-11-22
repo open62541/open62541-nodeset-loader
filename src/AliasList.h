@@ -8,7 +8,7 @@
 #ifndef ALIASLIST_H
 #define ALIASLIST_H
 
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 
 struct Alias
 {

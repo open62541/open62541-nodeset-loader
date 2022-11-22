@@ -14,38 +14,38 @@
 
 #define STREQ(a, b) (strcmp((a), (b)) == 0)
 
-struct edge
+struct S_Edge
 {
-    struct node *dest;
-    struct edge *next;
+    struct S_Node *dest;
+    struct S_Edge *next;
 };
 
-typedef struct edge edge;
+typedef struct S_Edge S_Edge;
 
-struct node
+struct S_Node
 {
     const UA_NodeId *id;
-    struct node *left, *right;
+    struct S_Node *left, *right;
     int balance;
-    struct node *qlink;
-    struct edge *edges;
+    struct S_Node *qlink;
+    struct S_Edge *edges;
     size_t edgeCount;
     NL_Node *data;
 };
 
-typedef struct node node;
+typedef struct S_Node S_Node;
 
 struct SortContext
 {
-    node *head;
-    node *zeros;
-    node *root1;
+    S_Node *head;
+    S_Node *zeros;
+    S_Node *root1;
     size_t keyCnt;
 };
 
-static node *new_node(const UA_NodeId *id)
+static S_Node *new_node(const UA_NodeId *id)
 {
-    node *k = (node *)calloc(1, sizeof(node));
+    S_Node *k = (S_Node *)calloc(1, sizeof(S_Node));
     if(!k)
         return NULL;
 
@@ -60,12 +60,12 @@ static node *new_node(const UA_NodeId *id)
     return k;
 }
 
-static node *
-search_node(node *rootNode, const UA_NodeId *nodeId) {
+static S_Node *
+search_node(S_Node *rootNode, const UA_NodeId *nodeId) {
     if(!rootNode)
         return NULL;
 
-    node *p, *q, *r, *s, *t;
+    S_Node *p, *q, *r, *s, *t;
 
     if(rootNode->right == NULL)
         return (rootNode->right = new_node(nodeId));
@@ -100,13 +100,15 @@ search_node(node *rootNode, const UA_NodeId *nodeId) {
             }
 
             while (p != q) {
-                assert(!UA_NodeId_equal(nodeId, p->id));
-                if (UA_NodeId_order(nodeId, p->id) == UA_ORDER_LESS) {
-                    p->balance = -1;
-                    p = p->left;
-                } else {
-                    p->balance = 1;
-                    p = p->right;
+                if (p) {
+                    assert(!UA_NodeId_equal(nodeId, p->id));
+                    if (UA_NodeId_order(nodeId, p->id) == UA_ORDER_LESS) {
+                        p->balance = -1;
+                        p = p->left;
+                    } else {
+                        p->balance = 1;
+                        p = p->right;
+                    }
                 }
             }
 
@@ -115,38 +117,46 @@ search_node(node *rootNode, const UA_NodeId *nodeId) {
                 return q;
             }
 
-            if (r->balance == a) {
-                p = r;
-                if (a == UA_ORDER_LESS) {
-                    s->left = r->right;
-                    r->right = s;
+            if (r) {
+                if (r->balance == a) {
+                    p = r;
+                    if (a == UA_ORDER_LESS) {
+                        s->left = r->right;
+                        r->right = s;
+                    } else {
+                        s->right = r->left;
+                        r->left = s;
+                    }
+                    s->balance = r->balance = 0;
                 } else {
-                    s->right = r->left;
-                    r->left = s;
-                }
-                s->balance = r->balance = 0;
-            } else {
-                if (a == UA_ORDER_LESS) {
-                    p = r->right;
-                    r->right = p->left;
-                    p->left = r;
-                    s->left = p->right;
-                    p->right = s;
-                } else {
-                    p = r->left;
-                    r->left = p->right;
-                    p->right = r;
-                    s->right = p->left;
-                    p->left = s;
-                }
+                    if (a == UA_ORDER_LESS) {
+                        if (r->right) {
+                            p = r->right;
+                            r->right = p->left;
+                            p->left = r;
+                            s->left = p->right;
+                            p->right = s;
+                        }
+                    } else {
+                        if (r->left) {
+                            p = r->left;
+                            r->left = p->right;
+                            p->right = r;
+                            s->right = p->left;
+                            p->left = s;
+                        }
+                    }
 
-                s->balance = 0;
-                r->balance = 0;
-                if (p->balance == a)
-                    s->balance = -a;
-                else if (p->balance == -a)
-                    r->balance = a;
-                p->balance = 0;
+                    s->balance = 0;
+                    r->balance = 0;
+                    if (p) {
+                        if (p->balance == a)
+                            s->balance = -a;
+                        else if (p->balance == -a)
+                            r->balance = a;
+                        p->balance = 0;
+                    }
+                }
             }
 
             if (s == t->right)
@@ -166,11 +176,11 @@ search_node(node *rootNode, const UA_NodeId *nodeId) {
 }
 
 static void
-record_relation(node *from, node *to) {
+record_relation(S_Node *from, S_Node *to) {
     if(UA_NodeId_equal(from->id, to->id))
         return;
 
-    struct edge *e = (edge *)calloc(1, sizeof(edge));
+    struct S_Edge *e = (S_Edge *)calloc(1, sizeof(S_Edge));
     if(!e)
         return;
 
@@ -180,13 +190,13 @@ record_relation(node *from, node *to) {
     from->edges = e;
 }
 
-static bool count_items(SortContext *ctx, node *unused)
+static bool count_items(SortContext *ctx, S_Node *unused)
 {
     ctx->keyCnt++;
     return false;
 }
 
-static bool scan_zeros(SortContext *ctx, node *k)
+static bool scan_zeros(SortContext *ctx, S_Node *k)
 {
     if (k->edgeCount == 0 && k->id)
     {
@@ -201,8 +211,8 @@ static bool scan_zeros(SortContext *ctx, node *k)
     return false;
 }
 
-static bool recurse_tree(SortContext *ctx, node *rootNode,
-                         bool (*action)(SortContext *ctx, node *))
+static bool recurse_tree(SortContext *ctx, S_Node *rootNode,
+                         bool (*action)(SortContext *ctx, S_Node *))
 {
     if (rootNode->left == NULL && rootNode->right == NULL)
         return (*action)(ctx, rootNode);
@@ -221,8 +231,8 @@ static bool recurse_tree(SortContext *ctx, node *rootNode,
     return false;
 }
 
-static void walk_tree(SortContext *ctx, node *rootNode,
-                      bool (*action)(SortContext *ctx, node *))
+static void walk_tree(SortContext *ctx, S_Node *rootNode,
+                      bool (*action)(SortContext *ctx, S_Node *))
 {
     if (rootNode->right)
         recurse_tree(ctx, rootNode->right, action);
@@ -235,18 +245,18 @@ SortContext *Sort_init()
     return ctx;
 }
 
-static void cleanupEdges(edge *e)
+static void cleanupEdges(S_Edge *e)
 {
-    edge *tmp = e;
+    S_Edge *tmp = e;
     while (tmp)
     {
-        edge *next = tmp->next;
+        S_Edge *next = tmp->next;
         free(tmp);
         tmp = next;
     }
 }
 
-static void cleanupSubtree(node *n)
+static void cleanupSubtree(S_Node *n)
 {
     if (!n)
     {
@@ -268,7 +278,7 @@ void Sort_cleanup(SortContext *ctx)
 }
 
 void Sort_addNode(SortContext *ctx, NL_Node *data) {
-    node *j = NULL;
+    S_Node *j = NULL;
     // add node, no matter if there are references on it
     j = search_node(ctx->root1, &data->id);
     j->data = data;
@@ -276,10 +286,10 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
     if (hierachicalRef) {
         while (hierachicalRef) {
             if (!hierachicalRef->isForward) {
-                node *k = search_node(ctx->root1, &hierachicalRef->target);
+                S_Node *k = search_node(ctx->root1, &hierachicalRef->target);
                 record_relation(k, j);
             } else {
-                node *k = search_node(ctx->root1, &hierachicalRef->target);
+                S_Node *k = search_node(ctx->root1, &hierachicalRef->target);
                 record_relation(j, k);
             }
             hierachicalRef = hierachicalRef->next;
@@ -289,7 +299,7 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
         // referencing it? -> try it with parentNodeId
         if (NodesetLoader_isInstanceNode(data)) {
             NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
-            node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
+            S_Node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
             if (k->data) {
                 NL_Reference *r = k->data->hierachicalRefs;
                 while (r) {
@@ -319,7 +329,7 @@ bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
 
         while (ctx->head)
         {
-            edge *e = ctx->head->edges;
+            S_Edge *e = ctx->head->edges;
 
             if (ctx->head->data != NULL)
             {

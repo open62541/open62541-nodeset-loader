@@ -5,13 +5,15 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
+#include <open62541/types_generated.h>
+
 #include "Value.h"
 #include "conversion.h"
-#include <NodesetLoader/NodesetLoader.h>
-#include <assert.h>
-#include <open62541/types_generated.h>
+#include "NodesetLoader/NodesetLoader.h"
 #include "nodeset_base64.h"
 #include "ServerContext.h"
+
+#include <assert.h>
 
 typedef struct TypeList TypeList;
 struct TypeList
@@ -25,7 +27,7 @@ typedef void (*ConversionFn)(uintptr_t adr, const char *value);
 
 static void setBoolean(uintptr_t adr, const char *value)
 {
-    *(UA_Boolean *)adr = isTrue(value);
+    *(UA_Boolean *)adr = isValTrue(value);
 }
 
 static void setSByte(uintptr_t adr, const char *value)
@@ -99,7 +101,7 @@ setScalarValueWithAddress(uintptr_t adr, UA_UInt32 kind, const char *value)
     }
 }
 
-static RawData *RawData_new(RawData* old)
+RawData *RawData_new(RawData *old)
 {
     RawData *data = (RawData *)calloc(1, sizeof(RawData));
     if (!data)
@@ -421,33 +423,30 @@ static void setArray(const NL_Data *value, const UA_DataType *type, RawData *dat
     }
 }
 
-RawData *Value_getData(const NL_Value *value, const UA_DataType *type,
-                       const UA_DataType *customTypes, const ServerContext *serverContext)
+void Value_getData(RawData *outData, const NL_Value *value, const UA_DataType *type,
+                   const UA_DataType *customTypes, const ServerContext *serverContext)
 {
     if (!type)
     {
-        return NULL;
+        return;
     }
 
-    RawData *data = RawData_new(NULL);
     if (value->isArray)
     {
         if (value->data->val.complexData.membersSize == 0)
         {
-            data = NULL;
+            outData = NULL;
         }
         else
         {
-            data->mem =
+            outData->mem =
                 calloc(value->data->val.complexData.membersSize, type->memSize);
-            setArray(value->data, type, data, customTypes, serverContext);
+            setArray(value->data, type, outData, customTypes, serverContext);
         }
     }
     else
     {
-        data->mem = calloc(1, type->memSize);
-        setScalar(value->data, type, data, customTypes, serverContext);
+        outData->mem = calloc(1, type->memSize);
+        setScalar(value->data, type, outData, customTypes, serverContext);
     }
-
-    return data;
 }

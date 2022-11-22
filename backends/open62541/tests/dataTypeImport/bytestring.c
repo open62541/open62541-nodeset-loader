@@ -8,7 +8,9 @@
 
 #include "check.h"
 
-#include "testHelper.h"
+#include <stdio.h>
+
+#include "../testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
 
@@ -26,48 +28,28 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-    const UA_DataTypeArray* customTypes = UA_Server_getConfig(server)->customDataTypes;
+#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+    const UA_DataTypeArray *customTypes =
+        UA_Server_getConfig(server)->customDataTypes;
+#endif
     UA_Server_delete(server);
 #ifdef USE_CLEANUP_CUSTOM_DATATYPES
     NodesetLoader_cleanupCustomDataTypes(customTypes);
 #endif
 }
 
-START_TEST(Server_loadNodeset)
+START_TEST(TestByteString)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3002))==UA_NODECLASS_DATATYPE);
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6008)) ==
-              UA_NODECLASS_VARIABLE);
-    struct Point
-    {
-        UA_Int32 x;
-        UA_Int32 y;
-        size_t size;
-        UA_Int32* scaleFactors;
-    };
-
-    UA_Variant var;
-    UA_Variant_init(&var);
-
-    UA_StatusCode status = UA_Server_readValue(server, UA_NODEID_NUMERIC(2,6008), &var);
-    ck_assert(status == UA_STATUSCODE_GOOD);
-    struct Point* p = (struct Point*)var.data;
-    ck_assert(p->x==10);
-    ck_assert(p->y==20);
-    ck_assert(p->size==4);
-    ck_assert(p->scaleFactors[3]==23);
-
-    UA_Variant_clear(&var);
 }
 END_TEST
 
 static Suite *testSuite_Client(void)
 {
-    Suite *s = suite_create("server nodeset import");
+    Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, Server_loadNodeset);
+    tcase_add_test(tc_server, TestByteString);
     suite_add_tcase(s, tc_server);
     return s;
 }

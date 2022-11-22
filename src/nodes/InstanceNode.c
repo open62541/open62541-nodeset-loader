@@ -1,4 +1,4 @@
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 
 bool NodesetLoader_isInstanceNode(const NL_Node *baseNode)
 {

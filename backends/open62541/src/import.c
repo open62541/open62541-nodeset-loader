@@ -5,16 +5,19 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
+#include <open62541/server.h>
+
+#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/dataTypes.h>
+
 #include "DataTypeImporter.h"
 #include "Value.h"
 #include "ServerContext.h"
 #include "conversion.h"
-#include <NodesetLoader/NodesetLoader.h>
-#include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
+#include "NodesetLoader/NodesetLoader.h"
 #include "RefServiceImpl.h"
+
 #include <assert.h>
-#include <open62541/server.h>
 
 unsigned short NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
 
@@ -147,7 +150,7 @@ handleViewNode(const NL_ViewNode *node, UA_NodeId *id, const UA_NodeId *parentId
     attr.displayName = *lt;
     attr.description = *description;
     attr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
-    attr.containsNoLoops = isTrue(node->containsNoLoops);
+    attr.containsNoLoops = isValTrue(node->containsNoLoops);
     UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId, *qn, attr,
                           node->extension, NULL);
 }
@@ -159,8 +162,8 @@ handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
                  const UA_LocalizedText *description, UA_Server *server)
 {
     UA_MethodAttributes attr = UA_MethodAttributes_default;
-    attr.executable = isTrue(node->executable);
-    attr.userExecutable = isTrue(node->userExecutable);
+    attr.executable = isValTrue(node->executable);
+    attr.userExecutable = isValTrue(node->userExecutable);
     attr.displayName = *lt;
     attr.description = *description;
 
@@ -214,7 +217,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
     attr.description = *description;
-    attr.historizing = isTrue(node->historizing);
+    attr.historizing = isValTrue(node->historizing);
 
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
@@ -251,7 +254,8 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         UA_ServerConfig *config = UA_Server_getConfig(ServerContext_getServerObject(serverContext));
         const UA_DataTypeArray *types = config->customDataTypes;
 
-        data = Value_getData(node->value, dataType, types->types, serverContext);
+        data = RawData_new(data);
+        Value_getData(data, node->value, dataType, types->types, serverContext);
 
         if (data)
         {
@@ -295,7 +299,7 @@ static void handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
 {
     UA_ObjectTypeAttributes oAttr = UA_ObjectTypeAttributes_default;
     oAttr.displayName = *lt;
-    oAttr.isAbstract = isTrue(node->isAbstract);
+    oAttr.isAbstract = isValTrue(node->isAbstract);
     oAttr.description = *description;
 
     UA_Server_addObjectTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
@@ -311,7 +315,7 @@ static void handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                     UA_Server *server)
 {
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
-    attr.symmetric = isTrue(node->symmetric);
+    attr.symmetric = isValTrue(node->symmetric);
     attr.displayName = *lt;
     attr.description = *description;
     attr.inverseName =
@@ -334,7 +338,7 @@ static void handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *i
     attr.dataType = node->datatype;
     attr.description = *description;
     attr.valueRank = atoi(node->valueRank);
-    attr.isAbstract = isTrue(node->isAbstract);
+    attr.isAbstract = isValTrue(node->isAbstract);
     if (attr.valueRank >= 0)
     {
         if (!strcmp(node->arrayDimensions, ""))
@@ -363,13 +367,13 @@ static void handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
     attr.displayName = *lt;
     attr.description = *description;
-    attr.isAbstract = isTrue(node->isAbstract);
+    attr.isAbstract = isValTrue(node->isAbstract);
 
     UA_Server_addDataTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
                               attr, node->extension, NULL);
 }
 
-static void addNode(ServerContext *serverContext, const NL_Node *node)
+static void addNodeImpl(ServerContext *serverContext, const NL_Node *node)
 {
     UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
@@ -549,7 +553,7 @@ static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
         const NL_NodeClass classToImport = order[i];
         size_t cnt =
             NodesetLoader_forEachNode(loader, classToImport, serverContext,
-                                      (NodesetLoader_forEachNode_Func)addNode);
+                                      (NodesetLoader_forEachNode_Func)addNodeImpl);
         if (classToImport == NODECLASS_DATATYPE)
         {
             importDataTypes(loader, ServerContext_getServerObject(serverContext));
@@ -599,8 +603,8 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
                 "Start import nodeset: %s", path);
     bool importStatus = NodesetLoader_importFile(loader, &handler);
     bool sortStatus = NodesetLoader_sort(loader);
-    bool status = importStatus && sortStatus;
-    if (status && sortStatus)
+    bool retStatus = importStatus && sortStatus;
+    if (retStatus && sortStatus)
     {
         addNodes(loader, serverContext, logger);
     }
@@ -613,5 +617,5 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     NodesetLoader_delete(loader);
     ServerContext_delete(serverContext);
     free(logger);
-    return status;
+    return retStatus;
 }

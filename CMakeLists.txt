@@ -55,7 +55,7 @@ if(${ENABLE_CONAN})
 endif()
 
 # LibXML2 is always required
-find_package(LibXml2 REQUIRED)
+find_package(LibXml2 REQUIRED QUIET)
 
 add_library(coverageLib INTERFACE)
 
@@ -146,6 +146,42 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     else()
         message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
     endif()
+
+    if(${UA_FORCE_32BIT}) # add option to search for 32-bit libraries (Linux is only supported)
+        execute_process(COMMAND dpkg --print-architecture
+                        OUTPUT_VARIABLE ARCH_PREFIX)
+        if((NOT "${ARCH_PREFIX}" MATCHES "^armhf.$") AND
+           (NOT "${ARCH_PREFIX}" MATCHES "^i386.$"))
+            execute_process(COMMAND dpkg --print-foreign-architectures
+                            OUTPUT_VARIABLE ARCH_PREFIX)
+        endif()
+
+        if("${ARCH_PREFIX}" MATCHES "^armhf.$")
+            find_library(LIBXML2_LIBRARIES_32BIT
+                         NAMES xml2
+                         HINTS "/usr/lib/arm-linux-gnueabihf"
+                         NO_CACHE
+                         REQUIRED
+                         NO_DEFAULT_PATH
+                         NO_PACKAGE_ROOT_PATH
+                         NO_CMAKE_PATH
+                         NO_CMAKE_ENVIRONMENT_PATH)
+        elseif("${ARCH_PREFIX}" MATCHES "^i386.$")
+            find_library(LIBXML2_LIBRARIES_32BIT
+                         NAMES xml2
+                         PATHS "/usr/lib/i386-linux-gnu"
+                         NO_CACHE
+                         REQUIRED
+                         NO_DEFAULT_PATH
+                         NO_PACKAGE_ROOT_PATH
+                         NO_CMAKE_PATH
+                         NO_CMAKE_ENVIRONMENT_PATH)
+        else()
+            message(FATAL_ERROR "Not supported 32-bit compiler architecture")
+        endif()
+        unset(LIBXML2_LIBRARIES)
+        set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARIES_32BIT})
+    endif()
 else()
     if(open62541_VERSION VERSION_LESS "1.3.x")
         set(open62541_NODESET_BASE_DIR "${open62541_NODESET_DIR}")
@@ -162,20 +198,20 @@ endif()
 add_subdirectory(backends)
 
 set(NODESETLOADER_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/NodesetLoader.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/PrintfLogger.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CharAllocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AliasList.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NamespaceList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/Node.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/DataTypeNode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/NodeContainer.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/InstanceNode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/PrintfLogger.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/Node.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/NodeContainer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Parser.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/NodesetLoader.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/InstanceNode.c
     ${NODESETLOADER_BACKEND_SOURCES}
     CACHE INTERNAL "")
 
@@ -197,13 +233,28 @@ set(NODESETLOADER_DEPS_LIBS
     CACHE INTERNAL "")
 
 set(NODESETLOADER_PUBLIC_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodeId.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
+    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
     ${NODESETLOADER_BACKEND_PUBLIC_HEADERS}
+    CACHE INTERNAL "")
+
+set(NODESETLOADER_PRIVATE_HEADERS
+    ${PROJECT_SOURCE_DIR}/src/InternalLogger.h
+    ${PROJECT_SOURCE_DIR}/src/InternalRefService.h
+    ${PROJECT_SOURCE_DIR}/src/nodes/NodeContainer.h
+    ${PROJECT_SOURCE_DIR}/src/CharAllocator.h
+    ${PROJECT_SOURCE_DIR}/src/AliasList.h
+    ${PROJECT_SOURCE_DIR}/src/NamespaceList.h
+    ${PROJECT_SOURCE_DIR}/src/Sort.h
+    ${PROJECT_SOURCE_DIR}/src/nodes/DataTypeNode.h
+    ${PROJECT_SOURCE_DIR}/src/Value.h
+    ${PROJECT_SOURCE_DIR}/src/nodes/Node.h
+    ${PROJECT_SOURCE_DIR}/src/Nodeset.h
+    ${PROJECT_SOURCE_DIR}/src/Parser.h
+    ${NODESETLOADER_BACKEND_PRIVATE_HEADERS}
     CACHE INTERNAL "")
 
 if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
