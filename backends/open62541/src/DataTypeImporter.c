@@ -5,13 +5,15 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
+#include <open62541/server.h>
+#include <open62541/types.h>
+
 #include "DataTypeImporter.h"
 #include "conversion.h"
 #include "customDataType.h"
 #include "padding.h"
+
 #include <assert.h>
-#include <open62541/server.h>
-#include <open62541/types.h>
 
 #define alignof(type)                                                          \
     offsetof(                                                                  \
@@ -120,7 +122,7 @@ static int getAlignment(const UA_DataType *type,
         // here we have to take a look on the first member
         assert(type->members);
         int retAlignment = 0;
-        for (int i = 0; i < type->membersSize; i++) {
+        for (UA_UInt32 i = 0; i < type->membersSize; i++) {
             const UA_DataType *memberType = type->members[i].memberType;
             int tmp = getAlignment(memberType, customTypes);
             if (tmp > retAlignment) {

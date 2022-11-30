@@ -122,7 +122,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
     unsigned char *safeAsciiPtr;
     unsigned char *bin;
     int cb = 0;
-    int charNo;
+    int charNo = 0;
     int pad = 0;
 
     safeAsciiPtr = (unsigned char *)malloc((size_t)len);
@@ -154,6 +154,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
             {
                 puts("ERROR: You passed an invalid base64 string (illegal character). "
                      "You get NULL back.");
+                free(safeAsciiPtr);
                 *flen = 0;
                 return 0;
             }
@@ -167,6 +168,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
         puts("ERROR: You passed an invalid base64 string (too short). You get "
              "NULL back.");
         *flen = 0;
+        free(safeAsciiPtr);
         return 0;
     }
     if (safeAsciiPtr[len - 1] == '=')
@@ -180,6 +182,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
     {
         puts("ERROR: unbase64 could not allocate enough memory.");
         puts("I must stop because I could not get enough");
+        free(safeAsciiPtr);
         return 0;
     }
 
@@ -196,7 +199,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
         bin[cb++] = (unsigned char)(C << 6) | (D);
     }
 
-    if (pad == 1)
+    if (pad == 1 && (charNo + 2) < len)
     {
         unsigned char A = unb64[safeAsciiPtr[charNo]];
         unsigned char B = unb64[safeAsciiPtr[charNo + 1]];
@@ -205,7 +208,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
         bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
         bin[cb++] = (unsigned char)(B << 4) | (C >> 2);
     }
-    else if (pad == 2)
+    else if (pad == 2 && (charNo + 1) < len)
     {
         unsigned char A = (unsigned char)unb64[safeAsciiPtr[charNo]];
         unsigned char B = (unsigned char)unb64[safeAsciiPtr[charNo + 1]];
@@ -213,7 +216,7 @@ unsigned char *unbase64(const char *ascii, int len, int *flen)
         bin[cb++] = (unsigned char)(A << 2) | (B >> 4);
     }
 
-    free( safeAsciiPtr );
+    free(safeAsciiPtr);
 
     return bin;
 }

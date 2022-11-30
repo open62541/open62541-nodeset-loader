@@ -9,7 +9,7 @@
 #define SORT_H
 
 #include <stdbool.h>
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 
 #ifdef __cplusplus
 extern "C" {

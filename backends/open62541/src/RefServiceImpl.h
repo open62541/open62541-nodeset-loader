@@ -7,9 +7,10 @@
 
 #ifndef REFSERVICEIMPL_H
 #define REFSERVICEIMPL_H
-#include <NodesetLoader/ReferenceService.h>
 
-struct UA_Server;
+#include <open62541/server.h>
+#include "NodesetLoader/ReferenceService.h"
+
 NL_ReferenceService *RefServiceImpl_new(struct UA_Server *server);
 void RefServiceImpl_delete(NL_ReferenceService *service);
 #endif

@@ -3,7 +3,6 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include "unistd.h"
 
 #include "../testHelper.h"
 #include "../../src/padding.h"

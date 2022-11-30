@@ -13,7 +13,7 @@ printId(const UA_NodeId *id) {
     UA_String myStr = {0};
     UA_NodeId_print(id, &myStr);
     if(myStr.length >= 256)
-        myStr.length == 255;
+        myStr.length = 255;
     memcpy(nodeidDump, myStr.data, myStr.length);
     nodeidDump[myStr.length] = 0;
     UA_String_clear(&myStr);

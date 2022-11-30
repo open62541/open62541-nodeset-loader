@@ -8,8 +8,11 @@
 #ifndef PADDING_H
 #define PADDING_H
 
+#include <assert.h>
+
 static inline UA_Byte getPadding(int alignment, int offset)
 {
+    assert(alignment != 0);
     return (UA_Byte)((alignment - (offset % alignment)) % alignment);
 }
 

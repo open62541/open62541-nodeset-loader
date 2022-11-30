@@ -5,8 +5,9 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#include <NodesetLoader/dataTypes.h>
 #include <open62541/server.h>
+
+#include <NodesetLoader/dataTypes.h>
 #include "customDataType.h"
 
 const struct UA_DataType *findCustomDataType(const UA_NodeId *typeId,

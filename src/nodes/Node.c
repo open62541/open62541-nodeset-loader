@@ -8,43 +8,43 @@
 #include "Node.h"
 #include "DataTypeNode.h"
 #include <stdlib.h>
-#include "../Value.h"
+#include "Value.h"
 
 NL_Node *Node_new(NL_NodeClass nodeClass)
 {
-    NL_Node *node = NULL;
+    void *node = NULL;
     switch (nodeClass)
     {
     case NODECLASS_VARIABLE:
-        node = (NL_Node *)calloc(1, sizeof(NL_VariableNode));
+        node = calloc(1, sizeof(NL_VariableNode));
         break;
     case NODECLASS_OBJECT:
-        node = (NL_Node *)calloc(1, sizeof(NL_ObjectNode));
+        node = calloc(1, sizeof(NL_ObjectNode));
         break;
     case NODECLASS_OBJECTTYPE:
-        node = (NL_Node *)calloc(1, sizeof(NL_ObjectTypeNode));
+        node = calloc(1, sizeof(NL_ObjectTypeNode));
         break;
     case NODECLASS_REFERENCETYPE:
-        node = (NL_Node *)calloc(1, sizeof(NL_ReferenceTypeNode));
+        node = calloc(1, sizeof(NL_ReferenceTypeNode));
         break;
     case NODECLASS_VARIABLETYPE:
-        node = (NL_Node *)calloc(1, sizeof(NL_VariableTypeNode));
+        node = calloc(1, sizeof(NL_VariableTypeNode));
         break;
     case NODECLASS_DATATYPE:
-        node = (NL_Node *)calloc(1, sizeof(NL_DataTypeNode));
+        node = calloc(1, sizeof(NL_DataTypeNode));
         break;
     case NODECLASS_METHOD:
-        node = (NL_Node *)calloc(1, sizeof(NL_MethodNode));
+        node = calloc(1, sizeof(NL_MethodNode));
         break;
     case NODECLASS_VIEW:
-        node = (NL_Node *)calloc(1, sizeof(NL_ViewNode));
+        node = calloc(1, sizeof(NL_ViewNode));
         break;
     }
     if(!node)
     {
         return NULL;
     }
-    return node;
+    return (NL_Node*)node;
 }
 
 static void deleteRef(NL_Reference *ref)

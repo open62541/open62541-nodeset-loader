@@ -1,28 +1,33 @@
 add_executable(import import.c)
+target_include_directories(import PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(import PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME import_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND import ${PROJECT_SOURCE_DIR}/nodesets/testNodeset100nodes.xml)
 
 add_executable(namespaceZeroValues namespaceZeroValues.c)
+target_include_directories(namespaceZeroValues PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(namespaceZeroValues PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME namespaceZeroValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND namespaceZeroValues ${CMAKE_CURRENT_SOURCE_DIR}/namespaceZeroValues.xml)
 
 add_executable(customTypesWithValues customTypesWithValues.c)
+target_include_directories(customTypesWithValues PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(customTypesWithValues PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME customTypesWithValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND customTypesWithValues ${CMAKE_CURRENT_SOURCE_DIR}/customTypesWithValues.xml)
 
 add_executable(subDataTypes subDataTypes.c)
+target_include_directories(subDataTypes PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(subDataTypes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME subDataTypes_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND subDataTypes ${CMAKE_CURRENT_SOURCE_DIR}/subDataTypes.xml)
 
 add_executable(valueRank valueRank.c)
+target_include_directories(valueRank PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(valueRank PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME valueRank_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
@@ -43,12 +48,14 @@ add_test(NAME cornerCases_Test
     COMMAND cornerCases ${CMAKE_CURRENT_SOURCE_DIR}/cornerCases.xml)
 
 add_executable(extension extension.c)
+target_include_directories(extension PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(extension PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME extension_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND extension ${CMAKE_CURRENT_SOURCE_DIR}/extension.xml)
 
 add_executable(newHierachicalRef newHierachicalRef.c)
+target_include_directories(newHierachicalRef PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(newHierachicalRef PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME newHierachicalRef_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
@@ -56,36 +63,42 @@ add_test(NAME newHierachicalRef_Test
         ${CMAKE_CURRENT_SOURCE_DIR}/newHierachicalRef2.xml)
 
 add_executable(references references.c)
+target_include_directories(references PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(references PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME references_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND references ${CMAKE_CURRENT_SOURCE_DIR}/references.xml)
 
 add_executable(multipleNamespaces multipleNamespaces.c)
+target_include_directories(multipleNamespaces PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(multipleNamespaces PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME multipleNamespaces_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND multipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/multipleNamespaces.xml)
 
 add_executable(structMultipleNamespaces structMultipleNamespaces.c)
+target_include_directories(structMultipleNamespaces PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(structMultipleNamespaces PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME structMultipleNamespaces_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND structMultipleNamespaces ${CMAKE_CURRENT_SOURCE_DIR}/basestruct.xml ${CMAKE_CURRENT_SOURCE_DIR}/extendedstruct.xml)
 
 add_executable(structwitharray structwitharray.c)
+target_include_directories(structwitharray PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(structwitharray PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME structwitharray_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND structwitharray ${CMAKE_CURRENT_SOURCE_DIR}/structwitharray.xml)
 
 add_executable(nodeAttributes nodeAttributes.c)
+target_include_directories(nodeAttributes PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(nodeAttributes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME nodeAttributes_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND nodeAttributes ${CMAKE_CURRENT_SOURCE_DIR}/nodeAttributes.xml)
 
 add_executable(conversion conversion.c)
+target_include_directories(conversion PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(conversion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 add_test(NAME conversion_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 

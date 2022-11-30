@@ -5,7 +5,7 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#include <CharAllocator.h>
+#include "CharAllocator.h"
 #include <stdlib.h>
 #include <string.h>
 

@@ -10,9 +10,6 @@
 #include "Nodeset.h"
 #include "Parser.h"
 #include "Value.h"
-#include <CharAllocator.h>
-#include <NodesetLoader/Logger.h>
-#include <NodesetLoader/NodesetLoader.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -461,7 +458,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
                             "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
-    bool status = true;
+    bool retStatus = true;
     if (!loader->nodeset)
     {
         loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger,
@@ -476,14 +473,14 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR,
                             "NodesetLoader: file open error");
-        status = false;
+        retStatus = false;
         goto cleanup;
     }
 
     ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
     if (!ctx)
     {
-        status = false;
+        retStatus = false;
         goto cleanup;
     }
     ctx->nodeset = loader->nodeset;
@@ -500,7 +497,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     {
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
-        status = false;
+        retStatus = false;
     }
     Parser_delete(parser);
 
@@ -510,7 +507,7 @@ cleanup:
     {
         fclose(f);
     }
-    return status;
+    return retStatus;
 }
 
 bool NodesetLoader_sort(NodesetLoader *loader)

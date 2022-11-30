@@ -7,9 +7,12 @@
 
 #ifndef __NODESETLOADER_BACKEND_OPEN62541_H__
 #define __NODESETLOADER_BACKEND_OPEN62541_H__
+
+#include <open62541/server.h>
+#include "NodesetLoader/Extension.h"
+
 #include <stdbool.h>
 #include <stdio.h>
-#include <NodesetLoader/Extension.h>
 
 #if defined(_WIN32)
 #ifdef __GNUC__
@@ -29,7 +32,6 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-struct UA_Server;
 
 LOADER_EXPORT bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
                             NodesetLoader_ExtensionInterface *extensionHandling);

@@ -7,7 +7,7 @@
 
 #ifndef INTERNALREFSERVICE_H
 #define INTERNALREFSERVICE_H
-#include <NodesetLoader/ReferenceService.h>
+#include "NodesetLoader/ReferenceService.h"
 
 NL_ReferenceService *InternalRefService_new(void);
 void InternalRefService_delete(NL_ReferenceService *service);

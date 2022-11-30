@@ -5,7 +5,7 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 #include <stdbool.h>
 #include <stddef.h>
 

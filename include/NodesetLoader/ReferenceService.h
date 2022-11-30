@@ -11,15 +11,15 @@
 
 struct NL_Reference;
 struct NL_ReferenceTypeNode;
-typedef bool (*RefService_isHierachicalRef)(void* context, const struct NL_Reference* ref);
-typedef bool (*RefService_isNonHierachicalRef)(void* context, const struct NL_Reference *ref);
+typedef bool (*RefService_isRefHierachical)(void* context, const struct NL_Reference* ref);
+typedef bool (*RefService_isRefNonHierachical)(void* context, const struct NL_Reference *ref);
 typedef bool (*RefService_isHasTypeDefRef)(void *context, const struct NL_Reference *ref);
 typedef void (*RefService_addNewReferenceType)(void* context, const struct NL_ReferenceTypeNode* node);
 struct NL_ReferenceService
 {
     void* context;
-    RefService_isHierachicalRef isHierachicalRef;
-    RefService_isNonHierachicalRef isNonHierachicalRef;
+    RefService_isRefHierachical isHierachicalRef;
+    RefService_isRefNonHierachical isNonHierachicalRef;
     RefService_isHasTypeDefRef isHasTypeDefRef;
     RefService_addNewReferenceType addNewReferenceType;
 };

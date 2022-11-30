@@ -8,8 +8,8 @@
 #ifndef NODESET_H
 #define NODESET_H
 
-#include <CharAllocator.h>
-#include <NodesetLoader/NodesetLoader.h>
+#include "CharAllocator.h"
+#include "NodesetLoader/NodesetLoader.h"
 
 #include <stdbool.h>
 #include <stddef.h>

@@ -7,7 +7,7 @@
 
 #ifndef NODE_H
 #define NODE_H
-#include <NodesetLoader/NodesetLoader.h>
+#include "NodesetLoader/NodesetLoader.h"
 
 NL_Node *Node_new(NL_NodeClass nodeClass);
 void Node_delete(NL_Node *node);
