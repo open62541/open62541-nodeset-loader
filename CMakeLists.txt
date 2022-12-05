@@ -158,8 +158,8 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
 
         if("${ARCH_PREFIX}" MATCHES "^armhf.$")
             find_library(LIBXML2_LIBRARIES_32BIT
-                         NAMES xml2
-                         HINTS "/usr/lib/arm-linux-gnueabihf"
+                         NAMES xml2 libxml2
+                         HINTS "/lib/arm-linux-gnueabihf" "/usr/lib/arm-linux-gnueabihf"
                          NO_CACHE
                          REQUIRED
                          NO_DEFAULT_PATH
@@ -168,8 +168,8 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
                          NO_CMAKE_ENVIRONMENT_PATH)
         elseif("${ARCH_PREFIX}" MATCHES "^i386.$")
             find_library(LIBXML2_LIBRARIES_32BIT
-                         NAMES xml2
-                         PATHS "/usr/lib/i386-linux-gnu"
+                         NAMES xml2 libxml2
+                         PATHS "/lib/i386-linux-gnu" "/usr/lib/i386-linux-gnu"
                          NO_CACHE
                          REQUIRED
                          NO_DEFAULT_PATH
