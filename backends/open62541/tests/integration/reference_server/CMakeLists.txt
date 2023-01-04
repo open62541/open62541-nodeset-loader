@@ -4,7 +4,7 @@ message("Info: open62541 UA_NAMESPACE_ZERO=Full build option is required for thi
 # Generate types and namespace for DI
 ua_generate_nodeset_and_datatypes(
     NAME "integration_test_di"
-    FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/OpcUaDiModel.csv"
+    FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeIds.csv"
     FILE_BSD "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.Types.bsd"
     NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
     FILE_NS "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
