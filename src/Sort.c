@@ -294,25 +294,24 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
             }
             hierachicalRef = hierachicalRef->next;
         }
-    } else {
-        // there are no hierachical refs on it, can we find the nodes
-        // referencing it? -> try it with parentNodeId
-        if (NodesetLoader_isInstanceNode(data)) {
-            NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
-            S_Node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
-            if (k->data) {
-                NL_Reference *r = k->data->hierachicalRefs;
-                while (r) {
-                    if (UA_NodeId_equal(&r->target, &data->id)) {
-                        NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
-                        newRef->isForward = !r->isForward;
-                        newRef->target = k->data->id;
-                        newRef->refType = r->refType;
-                        data->hierachicalRefs = newRef;
-                        break;
-                    }
-                    r = r->next;
+    }
+    // there are no hierachical refs on it, can we find the nodes
+    // referencing it? -> try it with parentNodeId
+    if (NodesetLoader_isInstanceNode(data)) {
+        NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
+        S_Node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
+        if (k->data) {
+            NL_Reference *r = k->data->hierachicalRefs;
+            while (r) {
+                if (UA_NodeId_equal(&r->target, &data->id)) {
+                    NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
+                    newRef->isForward = !r->isForward;
+                    newRef->target = k->data->id;
+                    newRef->refType = r->refType;
+                    data->hierachicalRefs = newRef;
+                    break;
                 }
+                r = r->next;
             }
         }
     }
