@@ -28,7 +28,7 @@
         <DisplayName>Child</DisplayName>
         <References>
             <!--hierachical ref, but not to parent-->
-            <Reference ReferenceType="HasComponent" IsForward="true">ns=1;i=6000</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="true">ns=1;i=99999</Reference>
         </References>
     </UAObject>
     <UAObject NodeId="ns=1;i=6000" BrowseName="1:Child2">
