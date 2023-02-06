@@ -545,7 +545,7 @@ static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
 {
     const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
-        NODECLASS_VARIABLETYPE,  NODECLASS_OBJECT,   NODECLASS_METHOD,
+        NODECLASS_OBJECT,        NODECLASS_METHOD,   NODECLASS_VARIABLETYPE,
         NODECLASS_VARIABLE,      NODECLASS_VIEW};
 
     for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)

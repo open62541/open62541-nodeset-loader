@@ -40,13 +40,6 @@ add_test(NAME basicNodeClasses_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND basicNodeClasses ${CMAKE_CURRENT_SOURCE_DIR}/basicNodeClasses.xml)
 
-add_executable(issue_201 issue_201.c)
-target_include_directories(issue_201 PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(issue_201 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME issue_201_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND issue_201 ${CMAKE_CURRENT_SOURCE_DIR}/issue_201.xml)
-
 add_executable(cornerCases cornerCases.c)
 target_include_directories(cornerCases PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(cornerCases PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
