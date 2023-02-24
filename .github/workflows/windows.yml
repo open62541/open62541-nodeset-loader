@@ -32,7 +32,7 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Build nodesetLoader
-      run: cd ./nodesetLoader && conan install && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DENABLE_CONAN=OFF . && cmake --build .
+      run: cd ./nodesetLoader && conan install . && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DENABLE_CONAN=OFF . && cmake --build .
 
     - name: Test
       shell: cmd
