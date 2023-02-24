@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: install conan
-      run:  pip install conan
+      run:  pip install conan 1.59.0
       
     - name: create default conan profile
       run:  conan profile detect
@@ -32,7 +32,7 @@ jobs:
 
     - uses: ilammy/msvc-dev-cmd@v1
     - name: Build nodesetLoader
-      run: cd ./nodesetLoader && conan install . && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DENABLE_CONAN=OFF . && cmake --build .
+      run: cd ./nodesetLoader && cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_TESTING=ON -DENABLE_CONAN=ON . && cmake --build .
 
     - name: Test
       shell: cmd
