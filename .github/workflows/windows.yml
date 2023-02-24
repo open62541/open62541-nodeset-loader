@@ -21,7 +21,7 @@ jobs:
 
     steps:
     - name: install conan
-      run:  pip install conan 1.59.0
+      run:  pip install conan==1.59.0
       
     - name: create default conan profile
       run:  conan profile detect
