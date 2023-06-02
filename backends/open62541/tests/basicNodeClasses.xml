@@ -110,4 +110,11 @@
             <Reference ReferenceType="HasComponent" IsForward="false">i=87</Reference>
         </References>
     </UAView>
+    <UAObject NodeId="ns=1;s=ObjectWithStringNodeId" BrowseName="1:SimpleObjectWithStringNodeId">
+        <DisplayName>SimpleObject</DisplayName>
+        <References>
+            <Reference ReferenceType="HasTypeDefinition">ns=1;i=1002</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
+        </References>
+    </UAObject>
 </UANodeSet>
