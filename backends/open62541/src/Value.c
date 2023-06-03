@@ -83,8 +83,12 @@ static void setDouble(uintptr_t adr, const char *value)
 static void setString(uintptr_t adr, const char *value)
 {
     UA_String *s = (UA_String *)adr;
+
+    
     s->length = strlen(value);
-    s->data = (UA_Byte *)(uintptr_t)value;
+    s->data = (UA_Byte*)calloc(s->length, 1);
+    memcpy(s->data, value, s->length);
+    //s->data = (UA_Byte *)(uintptr_t)value;
 }
 
 #define CONVERSION_TABLE_SIZE 12
@@ -126,8 +130,7 @@ void RawData_delete(RawData *data)
     {
         RawData* tmp = data;
         data=data->next;
-        free(tmp->mem);
-        free(tmp->additionalMem);
+        //free(tmp->mem);
         free(tmp);
     }
 }
@@ -231,8 +234,7 @@ static void setByteString(const NL_Data* value, RawData*data)
     }
 
     s->length = (size_t)len;
-    s->data = (UA_Byte *)val;
-    data->additionalMem = val;
+    s->data = val;
 }
 
 static void setGuid(const NL_Data* value, RawData*data)

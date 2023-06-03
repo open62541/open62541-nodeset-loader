@@ -277,16 +277,17 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         typeDefId = node->refToTypeDef->target;
     }
 
+    //value is copied by open62541
     UA_Server_addNode_begin(ServerContext_getServerObject(serverContext), UA_NODECLASS_VARIABLE, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &attr,
                             &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
                             node->extension, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
+    UA_Variant_clear(&attr.value);
+    
     RawData_delete(data);
     UA_free(attr.arrayDimensions);
-
-
 }
 
 static void handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,

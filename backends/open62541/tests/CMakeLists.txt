@@ -47,6 +47,14 @@ add_test(NAME issue_201_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND issue_201 ${CMAKE_CURRENT_SOURCE_DIR}/issue_201.xml)
 
+add_executable(stringNodeId_issue_224 stringNodeId_issue_224.c)
+target_include_directories(stringNodeId_issue_224 PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(stringNodeId_issue_224 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME stringNodeId_issue_224
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+COMMAND stringNodeId_issue_224 ${CMAKE_CURRENT_SOURCE_DIR}/stringNodeId_issue_224.xml)
+    
+
 add_executable(cornerCases cornerCases.c)
 target_include_directories(cornerCases PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(cornerCases PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
