@@ -20,8 +20,6 @@ struct RawData
     void *mem;
     size_t offset;
     struct RawData* next;
-    //e.g. for ByteString
-    void* additionalMem;
 };
 typedef struct RawData RawData;
 RawData *RawData_new(RawData *old);
