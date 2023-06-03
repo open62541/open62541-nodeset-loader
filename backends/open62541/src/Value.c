@@ -234,9 +234,7 @@ static void setByteString(const NL_Data* value, RawData*data)
     }
 
     s->length = (size_t)len;
-    //have to copy, otherwise cannot be freed by open stack
-    s->data = (UA_Byte*)calloc(s->length, 1);
-    memcpy(s->data, val, s->length);
+    s->data = val;
 }
 
 static void setGuid(const NL_Data* value, RawData*data)
