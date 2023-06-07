@@ -79,8 +79,16 @@ const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
 UA_NodeId
 translateNodeId(const NamespaceList *namespaces, UA_NodeId id) {
-    if(id.namespaceIndex > 0)
-        id.namespaceIndex = NamespaceList_getNamespace(namespaces, id.namespaceIndex)->idx;
+    if(id.namespaceIndex == 0)
+    {
+        return id;
+    }
+        const Namespace * ns=
+            NamespaceList_getNamespace(namespaces, id.namespaceIndex);
+    if (ns)
+    {
+        id.namespaceIndex = ns->idx;
+    }
     return id;
 }
 
