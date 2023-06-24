@@ -305,8 +305,8 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
                 {
                     NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
                     newRef->isForward = !r->isForward;
-                    UA_NodeId_copy(&k->data->id, &newRef->target); //newRef->target = k->data->id;
-                    UA_NodeId_copy(&r->refType, &newRef->refType); //newRef->refType = r->refType;
+                    UA_NodeId_copy(&k->data->id, &newRef->target);
+                    UA_NodeId_copy(&r->refType, &newRef->refType);
                     newRef->next = data->hierachicalRefs;
                     data->hierachicalRefs = newRef;
                     break;
