@@ -72,6 +72,7 @@ void Node_delete(NL_Node *node)
     {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
+        UA_NodeId_clear(&varNode->parentNodeId);
         if(varNode->value)
         {
             Value_delete(varNode->value);
@@ -80,6 +81,7 @@ void Node_delete(NL_Node *node)
     if(node->nodeClass==NODECLASS_OBJECT)
     {
         NL_ObjectNode *objNode = (NL_ObjectNode *)node;
+        UA_NodeId_clear(&objNode->parentNodeId);
         free(objNode->refToTypeDef);
     }
     free(node);
