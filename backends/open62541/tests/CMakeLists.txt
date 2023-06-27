@@ -53,7 +53,13 @@ target_link_libraries(stringNodeId_issue_224 PRIVATE NodesetLoader open62541::op
 add_test(NAME stringNodeId_issue_224
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
 COMMAND stringNodeId_issue_224 ${CMAKE_CURRENT_SOURCE_DIR}/stringNodeId_issue_224.xml)
-    
+
+add_executable(orderingStringNodeIds orderingStringNodeIds.c)
+target_include_directories(orderingStringNodeIds PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(orderingStringNodeIds PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME orderingStringNodeIds
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+COMMAND orderingStringNodeIds ${CMAKE_CURRENT_SOURCE_DIR}/orderingStringNodeIds.xml)
 
 add_executable(cornerCases cornerCases.c)
 target_include_directories(cornerCases PRIVATE ${CHECK_INCLUDE_DIR})
