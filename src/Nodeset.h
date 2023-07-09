@@ -13,7 +13,6 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h> /* for sscanf */
 
 struct Nodeset;
 typedef struct Nodeset Nodeset;
