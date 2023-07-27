@@ -6,6 +6,7 @@
  */
 
 #include "ServerContext.h"
+#include <stdlib.h>
 
 struct ServerContext
 {
