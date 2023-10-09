@@ -236,7 +236,7 @@ static void handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         attr.arrayDimensionsSize = 1;
     }
     RawData *data = NULL;
-    if (node->value)
+    if (node->value && node->value->data != NULL)
     {
         const UA_DataType *dataType = UA_findDataType(&attr.dataType);
         if (!dataType)

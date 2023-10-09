@@ -118,6 +118,13 @@ add_test(NAME nodeAttributes_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND nodeAttributes ${CMAKE_CURRENT_SOURCE_DIR}/nodeAttributes.xml)
 
+add_executable(primitiveValues primitiveValues.c)
+target_include_directories(primitiveValues PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(primitiveValues PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME primitiveValues_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+    COMMAND primitiveValues ${CMAKE_CURRENT_SOURCE_DIR}/primitiveValues.xml)
+
 add_executable(conversion conversion.c)
 target_include_directories(conversion PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(conversion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})

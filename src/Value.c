@@ -229,6 +229,10 @@ static void ComplexData_clear(NL_Data *data)
 
 static void Data_clear(NL_Data *data)
 {
+    if(!data)
+    {
+        return;
+    }
     if (data->type == DATATYPE_PRIMITIVE)
     {
         PrimitiveData_clear(data);
