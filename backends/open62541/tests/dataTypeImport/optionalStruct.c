@@ -42,18 +42,26 @@ START_TEST(compareDI)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
+    setNamespaceIndexOfGeneratedStruct(
+        server, "http://yourorganisation.org/optionalStruct/",
+        UA_TYPES_OPTIONALSTRUCT, UA_TYPES_OPTIONALSTRUCT_COUNT);
+
     UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_OPTIONALSTRUCT_COUNT);
+    ck_assert(config->customDataTypes->typesSize ==
+              UA_TYPES_OPTIONALSTRUCT_COUNT);
 
     for (const UA_DataType *generatedType = UA_TYPES_OPTIONALSTRUCT;
-         generatedType != UA_TYPES_OPTIONALSTRUCT + UA_TYPES_OPTIONALSTRUCT_COUNT; generatedType++)
+         generatedType !=
+         UA_TYPES_OPTIONALSTRUCT + UA_TYPES_OPTIONALSTRUCT_COUNT;
+         generatedType++)
     {
         const UA_DataType *importedType =
             NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType, &UA_TYPES_OPTIONALSTRUCT[0],
+        typesAreMatching(generatedType, importedType,
+                         &UA_TYPES_OPTIONALSTRUCT[0],
                          config->customDataTypes->types);
     }
 }

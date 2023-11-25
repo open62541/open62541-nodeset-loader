@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "../testHelper.h"
-#include "open62541/types_optionset2_generated.h"
+#include "open62541/types_union_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
 #include <NodesetLoader/dataTypes.h>
 
@@ -26,7 +26,6 @@ static void setup(void)
 
 static void teardown(void)
 {
-
     UA_Server_run_shutdown(server);
 #ifdef USE_CLEANUP_CUSTOM_DATATYPES
     const UA_DataTypeArray *customTypes =
@@ -42,20 +41,23 @@ START_TEST(compareUnion)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
+    setNamespaceIndexOfGeneratedStruct(
+        server, "http://yourorganisation.org/union/",
+        UA_TYPES_UNION, UA_TYPES_UNION_COUNT);
+
     UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_OPTIONSET2_COUNT);
+    ck_assert(config->customDataTypes->typesSize == UA_TYPES_UNION_COUNT);
 
-    for (const UA_DataType *generatedType = UA_TYPES_OPTIONSET2;
-         generatedType !=
-         UA_TYPES_OPTIONSET2 + UA_TYPES_OPTIONSET2_COUNT;
+    for (const UA_DataType *generatedType = UA_TYPES_UNION;
+         generatedType != UA_TYPES_UNION + UA_TYPES_UNION_COUNT;
          generatedType++)
     {
         const UA_DataType *importedType =
             NodesetLoader_getCustomDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType, &UA_TYPES_OPTIONSET2[0],
+        typesAreMatching(generatedType, importedType, &UA_TYPES_UNION[0],
                          config->customDataTypes->types);
     }
 }

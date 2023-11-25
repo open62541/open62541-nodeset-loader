@@ -92,4 +92,18 @@ UA_NodeId getTypeDefinitionId(UA_Server *s, const UA_NodeId targetId)
     UA_BrowseResult_clear(&br);
     return id;
 }
+
+static void setNamespaceIndexOfGeneratedStruct(UA_Server *server,
+                                               const char *namespaceUri,
+                                               UA_DataType *types,
+                                               size_t typesSize)
+{
+    UA_UInt16 nsIdx = UA_Server_addNamespace(server, namespaceUri);
+
+    for (UA_DataType *type = types; type != types + typesSize; type++)
+    {
+        type->typeId.namespaceIndex = nsIdx;
+        type->binaryEncodingId.namespaceIndex = nsIdx;
+    }
+}
 #endif

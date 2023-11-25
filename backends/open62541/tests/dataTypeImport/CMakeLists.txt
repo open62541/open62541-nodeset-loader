@@ -99,13 +99,23 @@ add_test(NAME compareOptionalStruct_Test
     COMMAND compareOptionalStruct "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml")
 
 ua_generate_nodeset_and_datatypes(
-    NAME "union2"
+    NAME "union"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/union.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/union.bsd"
     NAMESPACE_MAP "2:http://yourorganisation.org/union/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/union.xml"
     INTERNAL
 )
+
+add_executable(compareUnion compareUnion.c ${UA_TYPES_UNION_SOURCES})
+add_dependencies(compareUnion open62541-generator-ns-union)
+target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
+target_include_directories(compareUnion PRIVATE ${CHECK_INCLUDE_DIR})
+
+add_test(NAME compareUnion_Test
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
+  COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
 
 ua_generate_nodeset_and_datatypes(
     NAME "abstractdatatypemember"
@@ -126,18 +136,10 @@ add_test(NAME compareAbstractDataTypeMember_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND compareAbstractDataTypeMember "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml")
 
-add_executable(compareUnion union2.c ${UA_TYPES_UNION2_SOURCES})
-add_dependencies(compareUnion open62541-generator-ns-union2)
-target_link_libraries(compareUnion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-target_include_directories(compareUnion PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
-target_include_directories(compareUnion PRIVATE ${CHECK_INCLUDE_DIR})
 
-add_test(NAME compareUnion_Test
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-  COMMAND compareUnion "${CMAKE_CURRENT_SOURCE_DIR}/union.xml")
 
 ua_generate_nodeset_and_datatypes(
-    NAME "optionset2"
+    NAME "optionsetgen"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionset.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionset.bsd"
     NAMESPACE_MAP "2:http://yourorganisation.org/optionSet/"
@@ -145,8 +147,8 @@ ua_generate_nodeset_and_datatypes(
     INTERNAL
 )
 
-add_executable(compareOptionset optionset.c ${UA_TYPES_OPTIONSET2_SOURCES})
-add_dependencies(compareOptionset open62541-generator-ns-optionset2)
+add_executable(compareOptionset compareOptionset.c ${UA_TYPES_OPTIONSETGEN_SOURCES})
+add_dependencies(compareOptionset open62541-generator-ns-optionsetgen)
 target_link_libraries(compareOptionset PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
 target_include_directories(compareOptionset PRIVATE ${CMAKE_BINARY_DIR}/src_generated)
 target_include_directories(compareOptionset PRIVATE ${CHECK_INCLUDE_DIR})
