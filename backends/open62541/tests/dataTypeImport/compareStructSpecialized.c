@@ -16,7 +16,7 @@
 
 UA_Server *server;
 char *nodeset1 = NULL;
-char * nodeset2 = NULL;
+char *nodeset2 = NULL;
 
 static void setup(void)
 {
@@ -45,6 +45,14 @@ START_TEST(compareSpecializedStruct)
     printf("%s \n", nodeset2);
     ck_assert(NodesetLoader_loadFile(server, nodeset1, NULL));
     ck_assert(NodesetLoader_loadFile(server, nodeset2, NULL));
+
+    setNamespaceIndexOfGeneratedStruct(server,
+                                       "http://yourorganisation.org/struct/",
+                                       UA_TYPES_STRUCT, UA_TYPES_STRUCT_COUNT);
+
+    setNamespaceIndexOfGeneratedStruct(
+        server, "http://yourorganisation.org/specializedStruct/",
+        UA_TYPES_SPECIALIZEDSTRUCT, UA_TYPES_SPECIALIZEDSTRUCT_COUNT);
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);

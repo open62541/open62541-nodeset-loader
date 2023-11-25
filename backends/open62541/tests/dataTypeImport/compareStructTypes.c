@@ -42,20 +42,27 @@ START_TEST(compareDI)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
-    UA_ServerConfig* config = UA_Server_getConfig(server);
+    setNamespaceIndexOfGeneratedStruct(server,
+                                       "http://yourorganisation.org/struct/",
+                                       UA_TYPES_STRUCT, UA_TYPES_STRUCT_COUNT);
+
+    UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 
     ck_assert(config->customDataTypes->typesSize == UA_TYPES_STRUCT_COUNT);
 
-    for(const UA_DataType* generatedType = UA_TYPES_STRUCT; generatedType!= UA_TYPES_STRUCT + UA_TYPES_STRUCT_COUNT; generatedType++)
+    for (const UA_DataType *generatedType = UA_TYPES_STRUCT;
+         generatedType != UA_TYPES_STRUCT + UA_TYPES_STRUCT_COUNT;
+         generatedType++)
     {
-        const UA_DataType* importedType = NodesetLoader_getCustomDataType(server, &generatedType->typeId);
-        ck_assert(importedType!=NULL);
-        typesAreMatching(generatedType, importedType, &UA_TYPES_STRUCT[0], config->customDataTypes->types);
+        const UA_DataType *importedType =
+            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
+        ck_assert(importedType != NULL);
+        typesAreMatching(generatedType, importedType, &UA_TYPES_STRUCT[0],
+                         config->customDataTypes->types);
     }
 }
 END_TEST
-
 
 static Suite *testSuite_Client(void)
 {
