@@ -42,6 +42,10 @@ START_TEST(compareDI)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
+    setNamespaceIndexOfGeneratedStruct(server,
+                                       "http://yourorganisation.org/struct/",
+                                       UA_TYPES_STRUCTEXTENDED, UA_TYPES_STRUCTEXTENDED_COUNT);
+
     UA_ServerConfig* config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 

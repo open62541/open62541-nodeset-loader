@@ -43,7 +43,7 @@ jobs:
     - uses: actions/checkout@master
       with:
         repository: open62541/open62541
-        ref: refs/tags/v1.3.4
+        ref: 1.4
         submodules: recursive
         path: ./openRoot
         

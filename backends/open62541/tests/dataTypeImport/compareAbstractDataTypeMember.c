@@ -38,22 +38,28 @@ static void teardown(void)
 #endif
 }
 
-START_TEST(compareDI)
+START_TEST(compareAbstractDataTypeMember)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
-    UA_ServerConfig* config = UA_Server_getConfig(server);
+    setNamespaceIndexOfGeneratedStruct(
+        server, "http://yourorganisation.org/AbstractDataTypeMember/",
+        UA_TYPES_ABSTRACTDATATYPEMEMBER, UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT);
+
+    UA_ServerConfig *config = UA_Server_getConfig(server);
     ck_assert(config->customDataTypes);
 
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT);
+    ck_assert(config->customDataTypes->typesSize ==
+              UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT);
 
     for (const UA_DataType *generatedType = UA_TYPES_ABSTRACTDATATYPEMEMBER;
          generatedType != UA_TYPES_ABSTRACTDATATYPEMEMBER +
                               UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT;
          generatedType++)
     {
-        const UA_DataType* importedType = NodesetLoader_getCustomDataType(server, &generatedType->typeId);
-        ck_assert(importedType!=NULL);
+        const UA_DataType *importedType =
+            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
+        ck_assert(importedType != NULL);
         typesAreMatching(generatedType, importedType,
                          &UA_TYPES_ABSTRACTDATATYPEMEMBER[0],
                          config->customDataTypes->types);
@@ -61,13 +67,12 @@ START_TEST(compareDI)
 }
 END_TEST
 
-
 static Suite *testSuite_Client(void)
 {
     Suite *s = suite_create("datatype Import");
     TCase *tc_server = tcase_create("server nodeset import");
     tcase_add_unchecked_fixture(tc_server, setup, teardown);
-    tcase_add_test(tc_server, compareDI);
+    tcase_add_test(tc_server, compareAbstractDataTypeMember);
     suite_add_tcase(s, tc_server);
     return s;
 }
