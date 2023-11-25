@@ -357,6 +357,19 @@ static void setUnion(const NL_Data *value, const UA_DataType *type, RawData *dat
     }
 }
 
+static void setStatusCode(const NL_Data *value, RawData *data)
+{
+    // StatusCode is a complex type with a primitive
+    assert(value->type == DATATYPE_COMPLEX);
+    if (value->val.complexData.membersSize == 1)
+    {
+        NL_Data *code = value->val.complexData.members[0];
+        setPrimitiveValue(
+            data, code->val.primitiveData.value, UA_DATATYPEKIND_UINT32,
+            UA_TYPES[UA_TYPES_UINT32].memSize);
+    }
+}
+
 static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *data,
                       const UA_DataType *customTypes, const ServerContext *serverContext)
 {
@@ -405,9 +418,7 @@ static void setScalar(const NL_Data *value, const UA_DataType *type, RawData *da
     }
     else if (type->typeKind == UA_DATATYPEKIND_STATUSCODE)
     {
-        setPrimitiveValue(data, value->val.primitiveData.value,
-                          UA_DATATYPEKIND_UINT32,
-                          UA_TYPES[UA_TYPES_UINT32].memSize);
+        setStatusCode(value, data);
     }
     else
     {
