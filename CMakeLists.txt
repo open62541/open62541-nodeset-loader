@@ -139,9 +139,7 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     list(GET MAIN_VERSIONS_OPEN62541_LIST 1 OPEN62541_MINOR)
     list(GET MAIN_VERSIONS_OPEN62541_LIST 2 OPEN62541_SUBMINOR)
 
-    if(NOT(${OPEN62541_MAJOR} EQUAL "1" AND
-       ${OPEN62541_MINOR} EQUAL "3" AND
-       ${OPEN62541_SUBMINOR} GREATER_EQUAL "2"))
+    if(NOT(${OPEN62541_MAJOR} GREATER_EQUAL "1" AND ${OPEN62541_MINOR} GREATER_EQUAL "3"))
         message(FATAL_ERROR "This version of nodesetLoader can be built with open62541 >= v1.3.2")
     else()
         message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
