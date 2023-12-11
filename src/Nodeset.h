@@ -71,5 +71,5 @@ void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text
 const NL_BiDirectionalReference *
 Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
 size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                           void *context, NodesetLoader_forEachNode_Func fn);
+                           void *context, void *extension, NodesetLoader_forEachNode_Func fn);
 #endif

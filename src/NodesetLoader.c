@@ -567,8 +567,8 @@ NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
 }
 
 size_t NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
-                               void *context,
+                               void *context, void *extension,
                                NodesetLoader_forEachNode_Func fn)
 {
-    return Nodeset_forEachNode(loader->nodeset, nodeClass, context, fn);
+    return Nodeset_forEachNode(loader->nodeset, nodeClass, context, extension, fn);
 }
