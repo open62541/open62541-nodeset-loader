@@ -39,7 +39,7 @@ START_TEST(Server_ImportBasicNodeClassTest)
 
     for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
-        NodesetLoader_forEachNode(loader, (NL_NodeClass)i, &nodeCount, NULL,
+        NodesetLoader_forEachNode(loader, (NL_NodeClass)i, &nodeCount,
                                   (NodesetLoader_forEachNode_Func)addNode);
     }
 
