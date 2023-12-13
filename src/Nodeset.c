@@ -632,7 +632,8 @@ void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node,
 }
 
 size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                           void *context, NodesetLoader_forEachNode_Func fn)
+                           void *context,
+                           NodesetLoader_forEachNode_Func fn)
 {
     NodeContainer *c = nodeset->nodes[nodeClass];
     for (NL_Node **node = c->nodes; node != c->nodes + c->size; node++)

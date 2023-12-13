@@ -139,6 +139,20 @@ add_test(NAME conversion_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND conversion)
 
+add_executable(issue_246 issue_246.c)
+target_include_directories(issue_246 PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(issue_246 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME issue_246_Test
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND issue_246 ${CMAKE_CURRENT_SOURCE_DIR}/issue_246.xml)
+
+add_executable(issue_246_2 issue_246_2.c)
+target_include_directories(issue_246_2 PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(issue_246_2 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME issue_246_2_Test
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND issue_246_2 ${CMAKE_CURRENT_SOURCE_DIR}/issue_246_2.xml)
+
 if(${ENABLE_DATATYPEIMPORT_TEST})
     add_subdirectory(dataTypeImport)
 endif()
