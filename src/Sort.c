@@ -240,7 +240,7 @@ static void walk_tree(SortContext *ctx, S_Node *rootNode,
         recurse_tree(ctx, rootNode->right, action);
 }
 
-SortContext *Sort_init()
+SortContext *Sort_init(void)
 {
     SortContext *ctx = (SortContext *)calloc(1, sizeof(SortContext));
     ctx->root1 = new_node(NULL);

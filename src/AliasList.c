@@ -17,7 +17,7 @@ struct AliasList
     size_t size;
 };
 
-AliasList *AliasList_new()
+AliasList *AliasList_new(void)
 {
     struct AliasList *list = (AliasList *)calloc(1, sizeof(*list));
     if(!list)

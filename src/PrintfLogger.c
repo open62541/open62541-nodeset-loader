@@ -21,7 +21,7 @@ static void logStdOut(void *context, enum NodesetLoader_LogLevel level,
     printf("NODESETLOADER: %s : %s\n", logLevel[level], message);
 }
 
-NodesetLoader_Logger *InternalLogger_new()
+NodesetLoader_Logger *InternalLogger_new(void)
 {
     NodesetLoader_Logger *logger =
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
