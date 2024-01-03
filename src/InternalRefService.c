@@ -186,7 +186,7 @@ addnewRefTypeImpl(InternalRefService *service, NL_ReferenceTypeNode *node) {
     }
 }
 
-NL_ReferenceService *InternalRefService_new()
+NL_ReferenceService *InternalRefService_new(void)
 {
     InternalRefService *service =
         (InternalRefService *)calloc(1, sizeof(InternalRefService));
