@@ -46,20 +46,34 @@ getBinaryEncodingId(const NL_DataTypeNode *node) {
 }
 
 static const UA_DataType *getDataType(const UA_NodeId *id,
-                                      const UA_DataTypeArray *customTypes)
+                                      const UA_DataTypeArray *customTypes,
+                                      const DataTypeImporter *importer)
 {
     const UA_DataType *type = UA_findDataType(id);
     if (type)
     {
         return type;
     }
-    // TODO: how to properly check if it is an abstract dataType?
     // if it is abstract, a Variant is returned
     if(id->namespaceIndex==0)
     {
         return &UA_TYPES[UA_TYPES_VARIANT];
     }
-    return findCustomDataType(id, customTypes);
+    type = findCustomDataType(id, customTypes);
+    if(type && importer)
+    {
+        for(size_t i = 0; i < importer->nodesSize; i++)
+        {
+            if(UA_NodeId_equal(&importer->nodes[i]->id, &type->typeId))
+            {
+                if(strcmp(importer->nodes[i]->isAbstract, "true") == 0)
+                {
+                    return &UA_TYPES[UA_TYPES_VARIANT];
+                }
+            }
+        }
+    }
+    return type;
 }
 
 static int getAlignment(const UA_DataType *type,
@@ -257,7 +271,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     size_t memberOffset = 0;
     if (!UA_NodeId_equal(&parent, &structId))
     {
-        const UA_DataType* parentType = getDataType(&parent, importer->types);
+        const UA_DataType* parentType = getDataType(&parent, importer->types, NULL);
         // copy over parent members, if no members (abstract type), nothing is
         // done
         // First need to check if parentType exists at all. NodesetCompiler in
@@ -296,7 +310,7 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     for (UA_DataTypeMember *member = type->members + memberOffset;
          member != type->members + type->membersSize; member++) {
         UA_NodeId memberTypeId = node->definition->fields[i].dataType;
-        member->memberType = getDataType(&memberTypeId, importer->types);
+        member->memberType = getDataType(&memberTypeId, importer->types, importer);
         i++;
     }
 }
@@ -322,7 +336,7 @@ static void addDataTypeMembers(const UA_DataTypeArray *customTypes,
         UA_DataTypeMember *member = type->members + i;
         member->isArray = node->definition->fields[i].valueRank >= 0;
         UA_NodeId typeId = node->definition->fields[i].dataType;
-        member->memberType = getDataType(&typeId, customTypes);
+        member->memberType = getDataType(&typeId, customTypes, NULL);
 
         char *memberNameCopy = (char *)UA_calloc(
             strlen(node->definition->fields[i].name) + 1, sizeof(char));
