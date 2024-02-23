@@ -6,7 +6,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "integration_test_di"
     FILE_CSV "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeIds.csv"
     FILE_BSD "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.Types.bsd"
-    NAMESPACE_MAP "2:http://opcfoundation.org/UA/DI/"
     FILE_NS "${open62541_NODESET_BASE_DIR}/DI/Opc.Ua.Di.NodeSet2.xml"
     INTERNAL
 )
@@ -25,7 +24,6 @@ ua_generate_datatypes(
     IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
     NAME "types83"
     TARGET_SUFFIX "types83"
-    NAMESPACE_MAP "3:http://opcfoundation.org/EM83/"
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
     FILES_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
 )
@@ -36,7 +34,6 @@ ua_generate_nodeset_and_datatypes(
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.bsd"
     IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
-    NAMESPACE_MAP "3:http://opcfoundation.org/UA/PlasticsRubber/GeneralTypes/"
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.GeneralTypes.NodeSet2.xml"
     DEPENDS "integration_test_di"
     INTERNAL
@@ -48,7 +45,6 @@ ua_generate_nodeset_and_datatypes(
     FILE_CSV "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.csv"
     FILE_BSD "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.bsd"
     IMPORT_BSD "UA_TYPES#${open62541_NODESET_BASE_DIR}/Schema/Opc.Ua.Types.bsd"
-    NAMESPACE_MAP "4:http://opcfoundation.org/UA/PlasticsRubber/IMM2MES/"
     FILE_NS "${PROJECT_SOURCE_DIR}/nodesets/euromap/Opc.Ua.PlasticsRubber.IMM2MES.NodeSet2.xml"
     DEPENDS "integration_test_euromap_83"
     INTERNAL

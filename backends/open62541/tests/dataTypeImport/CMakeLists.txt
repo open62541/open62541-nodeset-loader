@@ -23,7 +23,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "struct"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/struct.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/struct.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/struct/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/struct.xml"
     INTERNAL
 )
@@ -42,7 +41,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "structExtended"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/structExtended.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/structExtended.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/struct/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/structExtended.xml"
     INTERNAL
 )
@@ -61,8 +59,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "specializedStruct"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/struct/"
-    NAMESPACE_MAP "3:http://yourorganisation.org/specializedStruct/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/specializedstruct.xml"
     DEPENDS "struct"
     INTERNAL
@@ -83,7 +79,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "optionalstruct"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/optionalStruct/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionalstruct.xml"
     INTERNAL
 )
@@ -102,7 +97,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "union"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/union.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/union.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/union/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/union.xml"
     INTERNAL
 )
@@ -121,7 +115,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "abstractdatatypemember"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/AbstractDataTypeMember/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/abstractdatatypemember.xml"
     INTERNAL
 )
@@ -142,7 +135,6 @@ ua_generate_nodeset_and_datatypes(
     NAME "optionsetgen"
     FILE_CSV "${CMAKE_CURRENT_SOURCE_DIR}/optionset.csv"
     FILE_BSD "${CMAKE_CURRENT_SOURCE_DIR}/optionset.bsd"
-    NAMESPACE_MAP "2:http://yourorganisation.org/optionSet/"
     FILE_NS "${CMAKE_CURRENT_SOURCE_DIR}/optionset.xml"
     INTERNAL
 )
