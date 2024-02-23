@@ -1,3 +1,4 @@
+---
 name: GccDebugMemcheck
 
 on:
@@ -14,15 +15,17 @@ env:
 
 jobs:
   build:
-    # The CMake configure and build commands are platform agnostic and should work equally
-    # well on Windows or Mac.  You can convert this to a matrix build if you need
-    # cross-platform coverage.
+    # yamllint disable rule:line-length
+    # The CMake configure and build commands are platform agnostic and should
+    # work equally well on Windows or Mac. You can convert this to a matrix 
+    # build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    # yamllint enable rule:line-length
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2    
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4    
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
         
@@ -42,7 +45,7 @@ jobs:
       run: sudo apt-get install libxml2-dev
 
     ##open62541
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
       with:
         repository: open62541/open62541
         ref: 1.4
@@ -106,7 +109,7 @@ jobs:
       shell: bash
       run: cmake --build . --target coverage
 
-    - uses: codecov/codecov-action@v1
+    - uses: codecov/codecov-action@v4
       with:
         file: ${{runner.workspace}}/build/coverage/coverage.info # optional
         verbose: true # optional (default = false)

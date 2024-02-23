@@ -25,7 +25,7 @@ jobs:
     - name: install conan
       run:  pip install conan==1.59.0
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         path: ./nodesetLoader
 

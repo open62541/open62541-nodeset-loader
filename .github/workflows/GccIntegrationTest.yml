@@ -23,8 +23,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: '3.x' # Version range or exact version of a Python version to use, using SemVer's version range syntax
     
@@ -38,7 +38,7 @@ jobs:
       run: sudo apt-get install valgrind
 
     ##open62541
-    - uses: actions/checkout@master
+    - uses: actions/checkout@v4
       with:
         repository: open62541/open62541
         ref: 1.4
