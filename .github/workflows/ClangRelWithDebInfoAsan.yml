@@ -1,4 +1,10 @@
-name: ClangRelWithDebInfoAsan
+name: Clang RelWithDebInfoAsan
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
 
 permissions: read-all
 
