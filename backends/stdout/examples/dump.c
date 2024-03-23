@@ -40,6 +40,8 @@ void dumpNode(void *userContext, const NL_Node *node)
         printf("\tvalueRank: %s\n", ((const NL_VariableNode *)node)->valueRank);
         printf("\tarrayDimensions: %s\n",
                ((const NL_VariableNode *)node)->valueRank);
+        printf("\tminimumSamplingInterval: %s\n",
+               ((const NL_VariableNode *)node)->minimumSamplingInterval);
         break;
     case NODECLASS_OBJECTTYPE:
         break;
