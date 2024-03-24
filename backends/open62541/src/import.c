@@ -219,7 +219,7 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
     attr.description = *description;
     attr.historizing = isValTrue(node->historizing);
-    attr.minimumSamplingInterval = atoi(node->minimumSamplingInterval);
+    attr.minimumSamplingInterval = atof(node->minimumSamplingInterval);
 
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
