@@ -185,6 +185,7 @@ struct NL_VariableNode
     char *accessLevel;
     char *userAccessLevel;
     char *historizing;
+    char *minimumSamplingInterval;
     NL_Value *value;
     NL_Reference *refToTypeDef;
 };

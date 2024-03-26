@@ -33,6 +33,7 @@ NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
 #define ATTRIBUTE_VALUERANK "ValueRank"
 #define ATTRIBUTE_ARRAYDIMENSIONS "ArrayDimensions"
 #define ATTRIBUTE_HISTORIZING "Historizing"
+#define ATTRIBUTE_MINIMUMSAMPLINGINTERVAL "MinimumSamplingInterval"
 // UAObject
 #define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
 // UAObjectType
@@ -57,6 +58,7 @@ const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL};
 const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, "0"};
 const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
 const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
+const NodeAttribute attrMinimumSamplingInterval = {ATTRIBUTE_MINIMUMSAMPLINGINTERVAL, "-1"};
 const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
 const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
 const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};
@@ -343,6 +345,8 @@ static void extractAttributes(Nodeset *nodeset, const NamespaceList *namespaces,
         ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((NL_VariableNode *)node)->valueRank = getAttributeValue(
             nodeset, &attrValueRank, attributes, attributeSize);
+        ((NL_VariableNode *)node)->minimumSamplingInterval = getAttributeValue(
+            nodeset, &attrMinimumSamplingInterval, attributes, attributeSize);
         ((NL_VariableNode *)node)->arrayDimensions = getAttributeValue(
             nodeset, &attrArrayDimensions, attributes, attributeSize);
         ((NL_VariableNode *)node)->accessLevel = getAttributeValue(
