@@ -5,10 +5,6 @@
     </NamespaceUris>
     <UAObject>
     </UAObject>
-    <UAObject BrowseName="Invalid">
-    </UAObject>
     <UAObject BrowseName="1:">
-    </UAObject>
-    <UAObject BrowseName="1">
     </UAObject>
 </UANodeSet>
