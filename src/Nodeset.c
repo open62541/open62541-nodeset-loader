@@ -127,6 +127,8 @@ NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
 {
     NL_BrowseName bn;
     bn.nsIdx = 0;
+    bn.name = NULL;
+    if (!s) return bn;
     char *bnName = strchr(s, ':');
     if (bnName == NULL)
     {
