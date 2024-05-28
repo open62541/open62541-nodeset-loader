@@ -5,7 +5,6 @@
 #include "value_utils.h"
 #include <iostream>
 #include <open62541/client_highlevel.h>
-#include <open62541/types_generated_handling.h>
 #include <open62541/util.h>
 #include <string>
 #include <vector>
