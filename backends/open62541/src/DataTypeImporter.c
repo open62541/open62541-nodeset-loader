@@ -31,12 +31,14 @@ struct DataTypeImporter
     size_t firstNewDataType;
 };
 
-static UA_NodeId
-getBinaryEncodingId(const NL_DataTypeNode *node) {
+static UA_NodeId getBinaryEncodingId(const NL_DataTypeNode *node)
+{
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
     NL_Reference *ref = node->nonHierachicalRefs;
-    while (ref) {
-        if (UA_NodeId_equal(&encodingRefType, &ref->refType)) {
+    while (ref)
+    {
+        if (UA_NodeId_equal(&encodingRefType, &ref->refType))
+        {
             UA_NodeId id = ref->target;
             return id;
         }
@@ -55,18 +57,18 @@ static const UA_DataType *getDataType(const UA_NodeId *id,
         return type;
     }
     // if it is abstract, a Variant is returned
-    if(id->namespaceIndex==0)
+    if (id->namespaceIndex == 0)
     {
         return &UA_TYPES[UA_TYPES_VARIANT];
     }
     type = findCustomDataType(id, customTypes);
-    if(type && importer)
+    if (type && importer)
     {
-        for(size_t i = 0; i < importer->nodesSize; i++)
+        for (size_t i = 0; i < importer->nodesSize; i++)
         {
-            if(UA_NodeId_equal(&importer->nodes[i]->id, &type->typeId))
+            if (UA_NodeId_equal(&importer->nodes[i]->id, &type->typeId))
             {
-                if(strcmp(importer->nodes[i]->isAbstract, "true") == 0)
+                if (strcmp(importer->nodes[i]->isAbstract, "true") == 0)
                 {
                     return &UA_TYPES[UA_TYPES_VARIANT];
                 }
@@ -76,70 +78,188 @@ static const UA_DataType *getDataType(const UA_NodeId *id,
     return type;
 }
 
+typedef struct
+{
+    char c;
+    UA_Boolean member;
+} TempBoolean;
+typedef struct
+{
+    char c;
+    UA_SByte member;
+} TempSByte;
+typedef struct
+{
+    char c;
+    UA_Byte member;
+} TempByte;
+typedef struct
+{
+    char c;
+    UA_Int16 member;
+} TempInt16;
+typedef struct
+{
+    char c;
+    UA_UInt16 member;
+} TempUInt16;
+typedef struct
+{
+    char c;
+    UA_Int32 member;
+} TempInt32;
+typedef struct
+{
+    char c;
+    UA_UInt32 member;
+} TempUInt32;
+typedef struct
+{
+    char c;
+    UA_Int64 member;
+} TempInt64;
+typedef struct
+{
+    char c;
+    UA_UInt64 member;
+} TempUInt64;
+typedef struct
+{
+    char c;
+    UA_Float member;
+} TempFloat;
+typedef struct
+{
+    char c;
+    UA_Double member;
+} TempDouble;
+typedef struct
+{
+    char c;
+    UA_QualifiedName member;
+} TempQualifiedName;
+typedef struct
+{
+    char c;
+    UA_LocalizedText member;
+} TempLocalizedText;
+typedef struct
+{
+    char c;
+    UA_StatusCode member;
+} TempStatusCode;
+typedef struct
+{
+    char c;
+    UA_String member;
+} TempString;
+typedef struct
+{
+    char c;
+    UA_ByteString member;
+} TempByteString;
+typedef struct
+{
+    char c;
+    UA_DateTime member;
+} TempDateTime;
+typedef struct
+{
+    char c;
+    UA_ExpandedNodeId member;
+} TempExpandedNodeId;
+typedef struct
+{
+    char c;
+    UA_NodeId member;
+} TempNodeId;
+typedef struct
+{
+    char c;
+    UA_DiagnosticInfo member;
+} TempDiagnosticInfo;
+typedef struct
+{
+    char c;
+    UA_Variant member;
+} TempVariant;
+typedef struct
+{
+    char c;
+    UA_ExtensionObject member;
+} TempExtensionObject;
+typedef struct
+{
+    char c;
+    UA_Guid member;
+} TempGuid;
+
 static int getAlignment(const UA_DataType *type,
                         const UA_DataTypeArray *customTypes)
 {
     switch (type->typeKind)
     {
     case UA_DATATYPEKIND_BOOLEAN:
-        return alignof(UA_Boolean);
+        return offsetof(TempBoolean, member);
     case UA_DATATYPEKIND_SBYTE:
-        return alignof(UA_SByte);
+        return offsetof(TempSByte, member);
     case UA_DATATYPEKIND_BYTE:
-        return alignof(UA_Byte);
+        return offsetof(TempByte, member);
     case UA_DATATYPEKIND_INT16:
-        return alignof(UA_Int16);
+        return offsetof(TempInt16, member);
     case UA_DATATYPEKIND_UINT16:
-        return alignof(UA_UInt16);
+        return offsetof(TempUInt16, member);
     case UA_DATATYPEKIND_INT32:
-        return alignof(UA_Int32);
+        return offsetof(TempInt32, member);
     case UA_DATATYPEKIND_UINT32:
-        return alignof(UA_UInt32);
+        return offsetof(TempUInt32, member);
     case UA_DATATYPEKIND_INT64:
-        return alignof(UA_Int64);
+        return offsetof(TempInt64, member);
     case UA_DATATYPEKIND_UINT64:
-        return alignof(UA_UInt64);
+        return offsetof(TempUInt64, member);
     case UA_DATATYPEKIND_FLOAT:
-        return alignof(UA_Float);
+        return offsetof(TempFloat, member);
     case UA_DATATYPEKIND_DOUBLE:
-        return alignof(UA_Double);
+        return offsetof(TempDouble, member);
     case UA_DATATYPEKIND_QUALIFIEDNAME:
-        return alignof(UA_QualifiedName);
+        return offsetof(TempQualifiedName, member);
     case UA_DATATYPEKIND_LOCALIZEDTEXT:
-        return alignof(UA_LocalizedText);
+        return offsetof(TempLocalizedText, member);
     case UA_DATATYPEKIND_STATUSCODE:
-        return alignof(UA_StatusCode);
+        return offsetof(TempStatusCode, member);
     case UA_DATATYPEKIND_STRING:
-        return alignof(UA_String);
+        return offsetof(TempString, member);
     case UA_DATATYPEKIND_BYTESTRING:
-        return alignof(UA_ByteString);
+        return offsetof(TempByteString, member);
     case UA_DATATYPEKIND_DATETIME:
-        return alignof(UA_DateTime);
+        return offsetof(TempDateTime, member);
     case UA_DATATYPEKIND_EXPANDEDNODEID:
-        return alignof(UA_ExpandedNodeId);
+        return offsetof(TempExpandedNodeId, member);
     case UA_DATATYPEKIND_NODEID:
-        return alignof(UA_NodeId);
+        return offsetof(TempNodeId, member);
     case UA_DATATYPEKIND_DIAGNOSTICINFO:
-        return alignof(UA_DiagnosticInfo);
+        return offsetof(TempDiagnosticInfo, member);
     case UA_DATATYPEKIND_VARIANT:
-        return alignof(UA_Variant);
+        return offsetof(TempVariant, member);
     case UA_DATATYPEKIND_ENUM:
-        return alignof(UA_Int32);
+        return offsetof(TempInt32, member);
     case UA_DATATYPEKIND_EXTENSIONOBJECT:
-        return alignof(UA_ExtensionObject);
+        return offsetof(TempExtensionObject, member);
     case UA_DATATYPEKIND_UNION:
         return 0;
     case UA_DATATYPEKIND_GUID:
-        return alignof(UA_Guid);
+        return offsetof(TempGuid, member);
     case UA_DATATYPEKIND_STRUCTURE:
     case UA_DATATYPEKIND_OPTSTRUCT:
         // here we have to take a look on the first member
         assert(type->members);
         int retAlignment = 0;
-        for (UA_UInt32 i = 0; i < type->membersSize; i++) {
+        for (UA_UInt32 i = 0; i < type->membersSize; i++)
+        {
             const UA_DataType *memberType = type->members[i].memberType;
             int tmp = getAlignment(memberType, customTypes);
-            if (tmp > retAlignment) {
+            if (tmp > retAlignment)
+            {
                 retAlignment = tmp;
             }
         }
@@ -149,6 +269,17 @@ static int getAlignment(const UA_DataType *type,
     assert(false && "typeKind not handled");
     return 0;
 }
+
+typedef struct
+{
+    char c;
+    size_t member;
+} TempSizeT;
+typedef struct
+{
+    char c;
+    void *member;
+} TempVoidPtr;
 
 static void setPaddingMemsize(UA_DataType *type,
                               const UA_DataTypeArray *customTypes)
@@ -176,13 +307,12 @@ static void setPaddingMemsize(UA_DataType *type,
             // account if the open changes the implementation of array
             // serialization, we have a serious problem
             // we rely here that its an size_t
-            int align = alignof(size_t);
+            int align = offsetof(TempSizeT, member);
             tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
             offset = offset + tm->padding + (UA_Byte)sizeof(size_t);
             // the void* for data
-            align = alignof(void *);
-            int padding2 = 0;
-            padding2 = getPadding(align, offset);
+            align = offsetof(TempVoidPtr, member);
+            int padding2 = getPadding(align, offset);
             offset = offset + padding2 + (UA_Byte)sizeof(void *);
             // datatype is not pointerfree
             type->pointerFree = false;
@@ -196,7 +326,7 @@ static void setPaddingMemsize(UA_DataType *type,
         }
         else if (tm->isOptional)
         {
-            int align = alignof(void *);
+            int align = offsetof(TempVoidPtr, member);
             tm->padding = (UA_Byte)(0x3F & getPadding(align, offset));
             offset = offset + tm->padding + (UA_Byte)sizeof(void *);
             type->pointerFree = false;
@@ -234,14 +364,14 @@ static void setPaddingMemsize(UA_DataType *type,
     {
         // add the switch field
         type->memSize = sizeof(UA_Int32);
-        int padding = getPadding(alignof(UA_Int32), 0);
+        int padding = getPadding(offsetof(TempUInt32, member), 0);
         type->memSize = (UA_UInt16)(type->memSize + padding);
         type->memSize = (UA_UInt16)(type->memSize + biggestMemberSize);
-        if(hasArrayMember)
+        if (hasArrayMember)
         {
             type->memSize = (UA_UInt16)(type->memSize + sizeof(size_t));
         }
-        endPadding = getPadding(alignof(size_t), type->memSize);
+        endPadding = getPadding(offsetof(TempSizeT, member), type->memSize);
         type->memSize = (UA_UInt16)(type->memSize + endPadding);
     }
     else
@@ -250,10 +380,11 @@ static void setPaddingMemsize(UA_DataType *type,
     }
 }
 
-static UA_NodeId
-getParentNode(const NL_DataTypeNode *node) {
+static UA_NodeId getParentNode(const NL_DataTypeNode *node)
+{
     NL_Reference *ref = node->hierachicalRefs;
-    while(ref) {
+    while (ref)
+    {
         if (!ref->isForward)
             return ref->target;
         ref = ref->next;
@@ -271,7 +402,8 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
     size_t memberOffset = 0;
     if (!UA_NodeId_equal(&parent, &structId))
     {
-        const UA_DataType* parentType = getDataType(&parent, importer->types, NULL);
+        const UA_DataType *parentType =
+            getDataType(&parent, importer->types, NULL);
         // copy over parent members, if no members (abstract type), nothing is
         // done
         // First need to check if parentType exists at all. NodesetCompiler in
@@ -308,9 +440,11 @@ static void setDataTypeMembersTypeIndex(DataTypeImporter *importer,
 
     size_t i = 0;
     for (UA_DataTypeMember *member = type->members + memberOffset;
-         member != type->members + type->membersSize; member++) {
+         member != type->members + type->membersSize; member++)
+    {
         UA_NodeId memberTypeId = node->definition->fields[i].dataType;
-        member->memberType = getDataType(&memberTypeId, importer->types, importer);
+        member->memberType =
+            getDataType(&memberTypeId, importer->types, importer);
         i++;
     }
 }
@@ -423,7 +557,7 @@ static bool readyForMemsizeCalc(const UA_DataType *type,
     for (UA_DataTypeMember *m = type->members;
          m != type->members + type->membersSize; m++)
     {
-        if(m->memberType && m->memberType->memSize>0)
+        if (m->memberType && m->memberType->memSize > 0)
         {
             continue;
         }
