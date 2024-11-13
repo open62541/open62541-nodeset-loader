@@ -15,14 +15,6 @@
 
 #include <assert.h>
 
-#define alignof(type)                                                          \
-    offsetof(                                                                  \
-        struct {                                                               \
-            char c;                                                            \
-            type d;                                                            \
-        },                                                                     \
-        d)
-
 struct DataTypeImporter
 {
     UA_DataTypeArray *types;
