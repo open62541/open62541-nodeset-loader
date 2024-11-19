@@ -279,10 +279,15 @@ void Sort_cleanup(SortContext *ctx)
     free(ctx);
 }
 
-void Sort_addNode(SortContext *ctx, NL_Node *data) {
+bool Sort_addNode(SortContext *ctx, NL_Node *data) {
     S_Node *j = NULL;
     // add node, no matter if there are references on it
     j = search_node(ctx->root1, &data->id);
+    // entry already exists
+    if(j->data!=NULL)
+    {
+        return false;
+    }
     j->data = data;
     NL_Reference *hierachicalRef = data->hierachicalRefs;
     bool hierachicalRefRecorded = false;
@@ -303,7 +308,7 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
         NL_InstanceNode *instanceNode = (NL_InstanceNode *)data;
         if(UA_NodeId_equal(&instanceNode->parentNodeId, &UA_NODEID_NULL))
         {
-            return;
+            return true;
         }
 
         S_Node *k = search_node(ctx->root1, &instanceNode->parentNodeId);
@@ -339,6 +344,7 @@ void Sort_addNode(SortContext *ctx, NL_Node *data) {
             data->hierachicalRefs = newRef;
         }
     }
+    return true;
 }
 
 bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,

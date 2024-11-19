@@ -496,11 +496,22 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
 {
     if (!node->unknownRefs)
     {
-        Sort_addNode(nodeset->sortCtx, node);
-        if (node->nodeClass == NODECLASS_REFERENCETYPE)
+        if(!Sort_addNode(nodeset->sortCtx, node))
         {
-            nodeset->refService->addNewReferenceType(
-                nodeset->refService->context, (NL_ReferenceTypeNode *)node);
+            if (nodeset->logger)
+            {
+                nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                            "node was not added to sorting algorithm, already exists");
+            }
+            Node_delete(node);
+        }
+        else
+        {
+            if (node->nodeClass == NODECLASS_REFERENCETYPE)
+            {
+                nodeset->refService->addNewReferenceType(
+                    nodeset->refService->context, (NL_ReferenceTypeNode *)node);
+            }
         }
     }
     else
