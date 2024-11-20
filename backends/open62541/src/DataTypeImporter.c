@@ -153,6 +153,12 @@ typedef struct
     char c;
     UA_String member;
 } TempString;
+
+typedef struct
+{
+    char c;
+    UA_XmlElement member;
+} TempXmlElement;
 typedef struct
 {
     char c;
@@ -231,6 +237,8 @@ static int getAlignment(const UA_DataType *type,
         return offsetof(TempString, member);
     case UA_DATATYPEKIND_BYTESTRING:
         return offsetof(TempByteString, member);
+    case UA_DATATYPEKIND_XMLELEMENT:
+        return offsetof(TempXmlElement, member);
     case UA_DATATYPEKIND_DATETIME:
         return offsetof(TempDateTime, member);
     case UA_DATATYPEKIND_EXPANDEDNODEID:
