@@ -26,8 +26,8 @@ jobs:
 
     steps:
       - name: Install conan
-        run: pip install conan
-
+        run: pip install conan && conan profile detect
+        
       - uses: actions/checkout@v4
         with:
           path: ./nodesetLoader
