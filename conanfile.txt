@@ -9,6 +9,7 @@ open62541/1.4.6
 
 [options]
 libxml2*:shared=False
+libxml2*:iconv=False
 libcheck*:with_subunit=False
 
 
