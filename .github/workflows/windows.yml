@@ -26,8 +26,8 @@ jobs:
 
     steps:
       - name: Install conan
-        run: pip install conan && conan profile detect
-        
+        run: pip install conan && conan profile detect && conan profile update settings.compiler.
+
       - uses: actions/checkout@v4
         with:
           path: ./nodesetLoader
@@ -35,7 +35,7 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Build nodesetLoader
         run: |
-          cd ./nodesetLoader && cmake -DCMAKE_BUILD_TYPE=Release `
+          cd ./nodesetLoader && cmake -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=./cmake-conan/conan_provider.cmake -DCMAKE_BUILD_TYPE=Release `
                 -DENABLE_TESTING=ON `
                 -DENABLE_CONAN=ON . && `
           cmake --build .
