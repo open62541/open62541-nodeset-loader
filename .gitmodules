@@ -1,0 +1,3 @@
+[submodule "cmake-conan"]
+	path = cmake-conan
+	url = git@github.com:conan-io/cmake-conan.git

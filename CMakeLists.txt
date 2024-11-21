@@ -38,22 +38,6 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     set(ENABLE_BACKEND_STDOUT off)
 endif()
 
-if(${ENABLE_CONAN})
-    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
-    message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
-    file(DOWNLOAD "https://github.com/conan-io/cmake-conan/raw/v0.15/conan.cmake"
-                    "${CMAKE_BINARY_DIR}/conan.cmake")
-    endif()
-
-    include(${CMAKE_BINARY_DIR}/conan.cmake)
-    conan_cmake_run(CONANFILE conanfile.txt
-                    BASIC_SETUP
-                    CMAKE_TARGETS
-                    BUILD missing)
-
-    include(${CMAKE_BINARY_DIR}/conan_paths.cmake)
-endif()
-
 # LibXML2 is always required
 find_package(LibXml2 REQUIRED QUIET)
 
@@ -196,6 +180,9 @@ endif()
 
 if(${ENABLE_TESTING})
     find_package(Check REQUIRED)
+    if(NOT CHECK_LIBRARIES)
+        set(CHECK_LIBRARIES Check::check)
+    endif()
     include(CTest)
 endif()
 

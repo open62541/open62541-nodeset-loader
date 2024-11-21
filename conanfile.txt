@@ -1,14 +1,15 @@
 [generators]
-cmake_find_package
-cmake_paths
+CMakeDeps
+CMakeToolchain
 
 [requires]
 libxml2/2.9.9
 libcheck/0.15.2
-open62541/1.3.1
+open62541/1.4.6
 
 [options]
 libxml2*:shared=False
+libxml2*:iconv=False
 libcheck*:with_subunit=False
 
 
