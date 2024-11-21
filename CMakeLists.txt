@@ -6,7 +6,6 @@ include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(ENABLE_CONAN "use conan for consuming dependencies" off)
 option(ENABLE_TESTING "enable tests" off)
 option(ENABLE_EXAMPLES "enable examples" on)
 option(ENABLE_BACKEND_STDOUT "backend for stdout" on)
@@ -23,8 +22,6 @@ option(CALC_COVERAGE "calculate code coverage" off)
 set(ENABLE_INTEGRATION_TEST off)
 
 if(${ENABLE_BUILD_INTO_OPEN62541})
-    # Disable conan, since open62541 provider all integration dependencies
-    set(ENABLE_CONAN off)
 
     # Disble code coverage, since this will be covered within open62541
     set(CALC_COVERAGE off)
