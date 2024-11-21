@@ -180,6 +180,9 @@ endif()
 
 if(${ENABLE_TESTING})
     find_package(Check REQUIRED)
+    if(NOT CHECK_LIBRARIES)
+        set(CHECK_LIBRARIES Check::check)
+    endif()
     include(CTest)
 endif()
 
