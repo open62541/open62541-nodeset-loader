@@ -97,7 +97,6 @@ jobs:
         run: |
           cmake "$GITHUB_WORKSPACE" \
                 -DCMAKE_BUILD_TYPE=Debug \
-                -DENABLE_CONAN=OFF \
                 -DENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
                 -DENABLE_DATATYPEIMPORT_TEST=ON \
