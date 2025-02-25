@@ -684,7 +684,11 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     UA_ServerConfig *config = UA_Server_getConfig(server);
     NodesetLoader_Logger *logger =
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
+#if UA_OPEN62541_VER_MAJOR == 1 && UA_OPEN62541_VER_MINOR < 4
+    logger->context = (void*)(uintptr_t)&config->logger;
+#else
     logger->context = (void*)(uintptr_t)config->logging;
+#endif
     logger->log = &logToOpen;
     NL_ReferenceService *refService = RefServiceImpl_new(server);
 
