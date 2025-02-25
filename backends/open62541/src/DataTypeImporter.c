@@ -687,7 +687,7 @@ DataTypeImporter *DataTypeImporter_new(struct UA_Server *server)
         {
             return importer;
         }
-#ifndef USE_CLEANUP_CUSTOM_DATATYPES
+#ifndef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
         newCustomTypes->cleanup = UA_TRUE;
 #endif
         newCustomTypes->next = config->customDataTypes;

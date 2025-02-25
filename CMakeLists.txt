@@ -260,7 +260,7 @@ if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     endif()
 
     # TODO: Speficy cleanup of custom data types for a specific open62541 version
-    target_compile_definitions(NodesetLoader PUBLIC -DUSE_CLEANUP_CUSTOM_DATATYPES=1)
+    target_compile_definitions(NodesetLoader PUBLIC -DNODESETLOADER_CLEANUP_CUSTOM_DATATYPES=1)
     target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
     set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
     if(${NODESETLOADER_ENABLE_ASAN})
