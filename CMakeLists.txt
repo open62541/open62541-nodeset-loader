@@ -38,7 +38,7 @@ endif()
 # LibXML2 is always required
 find_package(LibXml2 REQUIRED QUIET)
 
-add_library(coverageLib INTERFACE)
+add_library(NodesetLoaderCoverage INTERFACE)
 
 if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
   # open62541 ia always required.
@@ -56,12 +56,12 @@ if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
         # compiling and -lgcov when linking
         #add_compile_options(--coverage -O0)
         #add_link_options(--coverage)
-        target_compile_options(coverageLib INTERFACE
+        target_compile_options(NodesetLoaderCoverage INTERFACE
             -O0        # no optimization
             -g         # generate debug info
             --coverage # sets all required flags)
         )
-        target_link_libraries(coverageLib INTERFACE --coverage)
+        target_link_libraries(NodesetLoaderCoverage INTERFACE --coverage)
     endif()
 
     if(MSVC)
@@ -256,7 +256,7 @@ if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 
     if(${NODESETLOADER_CALC_COVERAGE})
-        target_link_libraries(NodesetLoader PUBLIC coverageLib)
+        target_link_libraries(NodesetLoader PUBLIC NodesetLoaderCoverage)
     endif()
 
     # TODO: Speficy cleanup of custom data types for a specific open62541 version
