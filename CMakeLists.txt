@@ -193,7 +193,6 @@ set(NODESETLOADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NamespaceList.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/DataTypeNode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/Node.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/NodeContainer.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
@@ -238,7 +237,6 @@ set(NODESETLOADER_PRIVATE_HEADERS
     ${PROJECT_SOURCE_DIR}/src/NamespaceList.h
     ${PROJECT_SOURCE_DIR}/src/Sort.h
     ${PROJECT_SOURCE_DIR}/src/nodes/DataTypeNode.h
-    ${PROJECT_SOURCE_DIR}/src/Value.h
     ${PROJECT_SOURCE_DIR}/src/nodes/Node.h
     ${PROJECT_SOURCE_DIR}/src/Nodeset.h
     ${PROJECT_SOURCE_DIR}/src/Parser.h

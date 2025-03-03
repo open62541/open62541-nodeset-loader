@@ -9,7 +9,6 @@
 #include "InternalRefService.h"
 #include "Nodeset.h"
 #include "Parser.h"
-#include "Value.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -69,7 +68,7 @@ struct TParserCtx
     struct Alias *alias;
     char *onCharacters;
     size_t onCharLength;
-    NL_Value *val;
+    char *value;
     void *extensionData;
     NodesetLoader_ExtensionInterface *extIf;
     NL_Reference *ref;
@@ -213,7 +212,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         else if (!strcmp(localname, VALUE))
         {
-            pctx->val = Value_new(pctx->node);
             pctx->state = PARSER_STATE_VALUE;
         }
         else if (!strcmp(localname, EXTENSIONS))
@@ -254,16 +252,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
         break;
 
     case PARSER_STATE_VALUE:
-        // copy the name
-        {
-            size_t len = strlen(localname);
-            char *localNameCopy =
-                CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
-            memcpy(localNameCopy, localname, len);
-            Value_start(pctx->val, localNameCopy);
-            pctx->unknown_depth++;
-        }
-        break;
+        if(!strcmp(localname, VALUE))
+            pctx->unknown_depth++; /* Nested <Value> elements */
+        return; /* Don't reset the onCharacters buffer */
 
     case PARSER_STATE_EXTENSIONS:
         if (!strcmp(localname, EXTENSION))
@@ -363,19 +354,16 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
     }
     break;
     case PARSER_STATE_VALUE:
-        if (!strcmp(localname, VALUE) && pctx->unknown_depth == 0)
-        {
+        if(!strcmp(localname, VALUE) && pctx->unknown_depth == 0) {
+            /* Leaving the value element. Write the value */
             /* TODO: Enable VariableType to hold a valeu */
             if(pctx->node->nodeClass == NODECLASS_VARIABLE)
-                ((NL_VariableNode *)pctx->node)->value = pctx->val;
+                ((NL_VariableNode *)pctx->node)->value = pctx->onCharacters;
             pctx->state = PARSER_STATE_NODE;
+            break;
         }
-        else
-        {
-            Value_end(pctx->val, localname, pctx->onCharacters);
-            pctx->unknown_depth--;
-        }
-        break;
+        pctx->unknown_depth--;
+        return; /* Don't reset the onCharacters buffer */
     case PARSER_STATE_EXTENSION:
         if (!strcmp(localname, EXTENSION))
         {

@@ -8,7 +8,6 @@
 #include "Node.h"
 #include "DataTypeNode.h"
 #include <stdlib.h>
-#include "Value.h"
 
 NL_Node *Node_new(NL_NodeClass nodeClass)
 {
@@ -72,11 +71,7 @@ void Node_delete(NL_Node *node)
     {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
-        UA_NodeId_clear(&varNode->parentNodeId);
-        if(varNode->value)
-        {
-            Value_delete(varNode->value);
-        }
+        UA_NodeId_clear(&varNode->datatype);
     }
     if(node->nodeClass==NODECLASS_OBJECT)
     {

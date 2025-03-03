@@ -8,7 +8,7 @@
 #include "backend.h"
 
 static int namespaceIdx = 0;
-int addNamespace(void *userContext, const char *uri) { return namespaceIdx++; }
+int _addNamespace(void *userContext, const char *uri) { return namespaceIdx++; }
 
 void dumpNode(void *userContext, const NL_Node *node)
 {
