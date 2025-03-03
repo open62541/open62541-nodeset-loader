@@ -20,7 +20,7 @@ printId(const UA_NodeId *id) {
     return nodeidDump;
 }
 
-unsigned short addNamespace(void *userContext, const char *uri) { return 1; }
+unsigned short _addNamespace(void *userContext, const char *uri) { return 1; }
 
 void dumpNode(void *userContext, const NL_Node *node)
 {

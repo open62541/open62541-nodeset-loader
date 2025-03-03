@@ -11,7 +11,6 @@
 #include <NodesetLoader/dataTypes.h>
 
 #include "DataTypeImporter.h"
-#include "Value.h"
 #include "ServerContext.h"
 #include "conversion.h"
 #include "NodesetLoader/NodesetLoader.h"
@@ -221,6 +220,17 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
     attr.historizing = isValTrue(node->historizing);
     attr.minimumSamplingInterval = atof(node->minimumSamplingInterval);
 
+    if(node->value) {
+        UA_String xmlValue = UA_STRING(node->value);
+        UA_DecodeXmlOptions opts;
+        memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
+        opts.unwrapped = true;
+        UA_StatusCode ret =
+            UA_decodeXml(&xmlValue, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
+        if(ret != UA_STATUSCODE_GOOD)
+            return ret;
+    }
+
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
     if (attr.arrayDimensions == NULL && attr.valueRank == 1)
@@ -230,49 +240,14 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
         *attr.arrayDimensions = 0;
     }
 
-    if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
+    // set arraydimensions of none defined but value is an array
+    if (attr.arrayDimensionsSize == 0 && attr.value.arrayLength)
     {
         attr.arrayDimensions = UA_UInt32_new();
-        *attr.arrayDimensions =
-            (UA_UInt32)node->value->data->val.complexData.membersSize;
+        *attr.arrayDimensions = (UA_UInt32)attr.value.arrayLength;
         attr.arrayDimensionsSize = 1;
     }
-    RawData *data = NULL;
-    if (node->value && node->value->data != NULL)
-    {
-        const UA_DataType *dataType = UA_findDataType(&attr.dataType);
-        if (!dataType)
-        {
-            // try it with custom types
-            dataType = NodesetLoader_getCustomDataType(ServerContext_getServerObject(serverContext), &attr.dataType);
-            // try it with parent
-            if (!dataType)
-            {
-                const UA_NodeId parent = getParentType(ServerContext_getServerObject(serverContext), attr.dataType);
-                dataType = UA_findDataType(&parent);
-            }
-        }
 
-        UA_ServerConfig *config = UA_Server_getConfig(ServerContext_getServerObject(serverContext));
-        const UA_DataTypeArray *types = config->customDataTypes;
-
-        data = RawData_new(data);
-        Value_getData(data, node->value, dataType, types->types, serverContext);
-
-        if (data)
-        {
-            if (node->value->isArray)
-            {
-                UA_Variant_setArray(
-                    &attr.value, data->mem,
-                    node->value->data->val.complexData.membersSize, dataType);
-            }
-            else
-            {
-                UA_Variant_setScalar(&attr.value, data->mem, dataType);
-            }
-        }
-    }
     UA_NodeId typeDefId = UA_NODEID_NULL;
     if (node->refToTypeDef)
     {
@@ -280,15 +255,15 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
     }
 
     //value is copied by open62541
-    UA_StatusCode Status = UA_Server_addNode_begin(ServerContext_getServerObject(serverContext), UA_NODECLASS_VARIABLE, *id, *parentId,
-                            *parentReferenceId, *qn, typeDefId, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
-                            node->extension, NULL);
+    UA_StatusCode Status =
+        UA_Server_addNode_begin(ServerContext_getServerObject(serverContext),
+                                UA_NODECLASS_VARIABLE, *id, *parentId,
+                                *parentReferenceId, *qn, typeDefId, &attr,
+                                &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
+                                node->extension, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
     UA_Variant_clear(&attr.value);
-
-    RawData_delete(data);
     UA_free(attr.arrayDimensions);
     return Status;
 }

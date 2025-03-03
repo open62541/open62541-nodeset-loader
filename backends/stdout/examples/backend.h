@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-unsigned short addNamespace(void *userContext, const char *namespaceUri);
+unsigned short _addNamespace(void *userContext, const char *namespaceUri);
 void dumpNode(void *userContext, const NL_Node *node);
 
 #endif
