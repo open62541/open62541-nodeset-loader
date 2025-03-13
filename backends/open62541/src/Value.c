@@ -52,22 +52,22 @@ static void setUInt16(uintptr_t adr, const char *value)
 
 static void setInt32(uintptr_t adr, const char *value)
 {
-    *(UA_Int32 *)adr = atoi(value);
+    *(UA_Int32 *)adr = (UA_Int32)atol(value);
 }
 
 static void setUInt32(uintptr_t adr, const char *value)
 {
-    *(UA_UInt32 *)adr = (UA_UInt32)atoi(value);
+    *(UA_UInt32 *)adr = (UA_UInt32)atol(value);
 }
 
 static void setInt64(uintptr_t adr, const char *value)
 {
-    *(UA_Int64 *)adr = atoi(value);
+    *(UA_Int64 *)adr = (UA_Int64)atoll(value);
 }
 
 static void setUInt64(uintptr_t adr, const char *value)
 {
-    *(UA_UInt64 *)adr = (UA_UInt64)atoi(value);
+    *(UA_UInt64 *)adr = (UA_UInt64)atoll(value);
 }
 
 static void setFloat(uintptr_t adr, const char *value)
