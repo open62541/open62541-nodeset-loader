@@ -440,6 +440,8 @@ static void addNodeImpl(AddNodeContext *context, NL_Node *node)
         addedNodeStatus = handleViewNode((const NL_ViewNode *)node, &id, &parentId,
                                          &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(context->serverContext));
         break;
+    default:
+        addedNodeStatus = UA_STATUSCODE_BADNOTIMPLEMENTED;
     }
     // If a node was not added to the server due to an error, we add such a node
     // to a special node container. We can then try to add such nodes later.
