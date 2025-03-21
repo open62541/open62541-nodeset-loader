@@ -15,6 +15,16 @@ option(NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 "make nodesetLoader part of the
 option(NODESETLOADER_ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
 option(NODESETLOADER_CALC_COVERAGE "calculate code coverage" off)
 
+# deprecated options without project prefix
+if(DEFINED ENABLE_BACKEND_STDOUT)
+    message(WARNING "ENABLE_BACKEND_STDOUT is deprecated. Use NODESETLOADER_ENABLE_BACKEND_STDOUT instead.")
+    set(NODESETLOADER_ENABLE_BACKEND_STDOUT ${ENABLE_BACKEND_STDOUT} CACHE BOOL "backend for stdout" FORCE)
+endif()
+if(DEFINED ENABLE_BUILD_INTO_OPEN62541)
+    message(WARNING "ENABLE_BUILD_INTO_OPEN62541 is deprecated. Use NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 instead.")
+    set(NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 ${ENABLE_BUILD_INTO_OPEN62541} CACHE BOOL "make nodesetLoader part of the open62541 library" FORCE)
+endif()
+
 # TODO: Include integration tests after support for XML Data
 #       Encoding has been added to the open62541 >= 1.3.2.
 #       Currently, the integration tests will fail for
@@ -22,7 +32,6 @@ option(NODESETLOADER_CALC_COVERAGE "calculate code coverage" off)
 set(NODESETLOADER_ENABLE_INTEGRATION_TEST off)
 
 if(${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
-
     # Disble code coverage, since this will be covered within open62541
     set(NODESETLOADER_CALC_COVERAGE off)
 
