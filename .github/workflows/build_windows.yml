@@ -1,5 +1,5 @@
 ---
-name: WindowsBuildOnly
+name: Windows Build Only
 
 on:
   push:
@@ -35,6 +35,7 @@ jobs:
 
       - uses: ilammy/msvc-dev-cmd@v1
       - name: Build nodesetLoader
+        shell: bash
         run: |
           cd ./nodesetLoader && cmake "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=./cmake-conan/conan_provider.cmake" -DCMAKE_BUILD_TYPE=Debug `
                 -DUA_NAMESPACE_ZERO=FULL `

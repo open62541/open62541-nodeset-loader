@@ -1,5 +1,5 @@
 ---
-name: GccDebugMemcheck
+name: Build Debug & Memcheck
 
 on:
   push:
@@ -62,7 +62,7 @@ jobs:
         shell: bash
         working-directory: ./openRoot/build
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Debug \
+          cmake -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
                 -DUA_NAMESPACE_ZERO=FULL \
                 -DBUILD_SHARED_LIBS=ON \
                 -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON \
@@ -96,7 +96,8 @@ jobs:
         # Github Actions machines are (as of this writing) 3.28
         run: |
           cmake "$GITHUB_WORKSPACE" \
-                -DCMAKE_BUILD_TYPE=Debug \
+                -DCMAKE_BUILD_TYPE="$BUILD_TYPE" \
+                -DENABLE_CONAN=OFF \
                 -DENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
                 -DENABLE_DATATYPEIMPORT_TEST=ON \
