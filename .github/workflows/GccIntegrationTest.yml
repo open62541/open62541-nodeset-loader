@@ -92,9 +92,9 @@ jobs:
         run: |
           cmake "$GITHUB_WORKSPACE" \
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                -DENABLE_TESTING=ON \
+                -DNODESETLOADER_ENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
-                -DENABLE_INTEGRATION_TEST=ON \
+                -DNODESETLOADER_ENABLE_INTEGRATION_TEST=ON \
                 ..
 
       - name: Build

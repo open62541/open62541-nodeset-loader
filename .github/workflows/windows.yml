@@ -38,7 +38,7 @@ jobs:
         run: |
           cd ./nodesetLoader && cmake "-DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=./cmake-conan/conan_provider.cmake" -DCMAKE_BUILD_TYPE=Debug `
                 -DUA_NAMESPACE_ZERO=FULL `
-                -DENABLE_TESTING=ON . && `
+                -DNODESETLOADER_ENABLE_TESTING=ON . && `
           cmake --build .
 
       - name: Test
