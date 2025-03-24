@@ -397,7 +397,7 @@ static void addNodeImpl(AddNodeContext *context, NL_Node *node)
     UA_LocalizedText description =
         UA_LOCALIZEDTEXT(node->description.locale, node->description.text);
 
-    UA_StatusCode addedNodeStatus;
+    UA_StatusCode addedNodeStatus=UA_STATUSCODE_BADINTERNALERROR;
     switch (node->nodeClass)
     {
     case NODECLASS_OBJECT:
