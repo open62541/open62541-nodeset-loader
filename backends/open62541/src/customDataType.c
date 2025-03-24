@@ -32,7 +32,7 @@ const struct UA_DataType *findCustomDataType(const UA_NodeId *typeId,
     return NULL;
 }
 
-#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
 static void cleanupCustomTypes(const UA_DataTypeArray *types)
 {
     while (types)
@@ -69,7 +69,7 @@ NodesetLoader_getCustomDataType(struct UA_Server *server,
     return findCustomDataType(typeId, types);
 }
 
-#ifdef USE_CLEANUP_CUSTOM_DATATYPES
+#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
 void
 NodesetLoader_cleanupCustomDataTypes(const UA_DataTypeArray *customTypes)
 {

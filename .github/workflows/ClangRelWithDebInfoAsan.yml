@@ -64,9 +64,9 @@ jobs:
         run: |
           cmake "$GITHUB_WORKSPACE" \
                 -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                -DENABLE_TESTING=ON \
+                -DNODESETLOADER_ENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
-                -DENABLE_ASAN=ON ..
+                -DNODESETLOADER_ENABLE_ASAN=ON ..
 
       - name: Build
         shell: bash

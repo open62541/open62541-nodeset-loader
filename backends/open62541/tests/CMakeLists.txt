@@ -160,10 +160,10 @@ add_test(NAME issue_266_Test
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND issue_266 ${CMAKE_CURRENT_SOURCE_DIR}/issue266_TestData.NodeSet2.xml)
 
-if(${ENABLE_DATATYPEIMPORT_TEST})
+if(${NODESETLOADER_ENABLE_DATATYPEIMPORT_TEST})
     add_subdirectory(dataTypeImport)
 endif()
 
-if(${ENABLE_INTEGRATION_TEST})
+if(${NODESETLOADER_ENABLE_INTEGRATION_TEST})
     add_subdirectory(integration)
 endif()

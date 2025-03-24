@@ -97,10 +97,10 @@ jobs:
         run: |
           cmake "$GITHUB_WORKSPACE" \
                 -DCMAKE_BUILD_TYPE=Debug \
-                -DENABLE_TESTING=ON \
+                -DNODESETLOADER_ENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
-                -DENABLE_DATATYPEIMPORT_TEST=ON \
-                -DCALC_COVERAGE=ON \
+                -DNODESETLOADER_ENABLE_DATATYPEIMPORT_TEST=ON \
+                -DNODESETLOADER_CALC_COVERAGE=ON \
                 ..
 
       - name: Build
