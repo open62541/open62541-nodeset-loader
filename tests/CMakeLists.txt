@@ -1,16 +1,11 @@
-add_executable(sort sort.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/InstanceNode.c)
+add_executable(sort sort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Sort.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/Node.c)
 target_include_directories(sort PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 target_link_libraries(sort PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib open62541::open62541)
 add_test(NAME sort_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND sort ${CMAKE_CURRENT_LIST_DIR})
 
-add_executable(nodeContainer 
-    NodeContainer.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/NodeContainer.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/Node.c 
-    ${CMAKE_CURRENT_SOURCE_DIR}/../src/nodes/DataTypeNode.c
-    )
+add_executable(nodeContainer NodeContainer.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/Node.c)
 target_include_directories(nodeContainer PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../include ${CMAKE_CURRENT_SOURCE_DIR}/../src)
 target_link_libraries(nodeContainer PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib open62541::open62541)
 add_test(NAME nodeContainer_Test WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND nodeContainer ${CMAKE_CURRENT_LIST_DIR})

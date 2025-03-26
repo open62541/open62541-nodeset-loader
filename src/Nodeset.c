@@ -9,9 +9,7 @@
 #include "AliasList.h"
 #include "NamespaceList.h"
 #include "Sort.h"
-#include "nodes/DataTypeNode.h"
-#include "nodes/Node.h"
-#include "nodes/NodeContainer.h"
+#include "Node.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
