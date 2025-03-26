@@ -6,9 +6,8 @@
  */
 
 #include "InternalRefService.h"
-#include "nodes/NodeContainer.h"
+#include "Node.h"
 #include "NodesetLoader/NodesetLoader.h"
-#include <stdlib.h>
 
 struct InternalRefService
 {

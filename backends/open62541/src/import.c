@@ -15,7 +15,7 @@
 #include "conversion.h"
 #include "NodesetLoader/NodesetLoader.h"
 #include "RefServiceImpl.h"
-#include "nodes/NodeContainer.h"
+#include "Node.h"
 
 #include <assert.h>
 
