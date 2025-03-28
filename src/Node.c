@@ -101,6 +101,7 @@ deleteRef(NL_Reference *ref) {
 void
 Node_delete(NL_Node *node) {
     UA_NodeId_clear(&node->id);
+    UA_QualifiedName_clear(&node->browseName);
     deleteRef(node->hierachicalRefs);
     deleteRef(node->nonHierachicalRefs);
 
@@ -111,6 +112,7 @@ Node_delete(NL_Node *node) {
     if(node->nodeClass == NODECLASS_VARIABLE) {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
+        UA_Variant_clear(&varNode->value);
         UA_NodeId_clear(&varNode->datatype);
     }
 

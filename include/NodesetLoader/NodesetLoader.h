@@ -27,8 +27,7 @@ extern "C" {
 #endif
 
 #define NL_NODECLASS_COUNT 8
-typedef enum
-{
+typedef enum {
     NODECLASS_OBJECT = 0,
     NODECLASS_OBJECTTYPE = 1,
     NODECLASS_VARIABLE = 2,
@@ -42,95 +41,66 @@ typedef enum
 
 LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
-typedef struct
-{
-    uint16_t nsIdx;
-    char *name;
-} NL_BrowseName;
-
 struct NL_Reference;
-typedef struct NL_Reference NL_Reference;
-
-struct NL_Reference
-{
+typedef struct NL_Reference {
     bool isForward;
     UA_NodeId refType;
     UA_NodeId target;
-    NL_Reference *next;
-};
+    struct NL_Reference *next;
+} NL_Reference;
 
 struct NL_BiDirectionalReference;
-typedef struct NL_BiDirectionalReference NL_BiDirectionalReference;
-struct NL_BiDirectionalReference
-{
+typedef struct NL_BiDirectionalReference {
     UA_NodeId source;
     UA_NodeId target;
     UA_NodeId refType;
-    NL_BiDirectionalReference *next;
-};
+    struct NL_BiDirectionalReference *next;
+} NL_BiDirectionalReference;
 
-struct NL_LocalizedText
-{
-    char *locale;
-    char *text;
-};
-typedef struct NL_LocalizedText NL_LocalizedText;
-
-#define NL_NODE_ATTRIBUTES                                                        \
-    NL_NodeClass nodeClass;                                                      \
-    UA_NodeId id;                                                                \
-    NL_BrowseName browseName;                                                    \
-    NL_LocalizedText displayName;                                                \
-    NL_LocalizedText description;                                                \
-    char *writeMask;                                                           \
-    NL_Reference *hierachicalRefs;                                                \
-    NL_Reference *nonHierachicalRefs;                                             \
-    NL_Reference *unknownRefs;                                                    \
+#define NL_NODE_ATTRIBUTES                                              \
+    NL_NodeClass nodeClass;                                             \
+    UA_NodeId id;                                                       \
+    UA_QualifiedName browseName;                                        \
+    UA_LocalizedText displayName;                                       \
+    UA_LocalizedText description;                                       \
+    char *writeMask;                                                    \
+    NL_Reference *hierachicalRefs;                                      \
+    NL_Reference *nonHierachicalRefs;                                   \
+    NL_Reference *unknownRefs;                                          \
     void *extension;
 
 #define NL_NODE_INSTANCE_ATTRIBUTES UA_NodeId parentNodeId;
 
-struct NL_Node
-{
+typedef struct NL_Node {
     NL_NODE_ATTRIBUTES
-};
-typedef struct NL_Node NL_Node;
+} NL_Node;
 
-struct NL_InstanceNode
-{
+typedef struct NL_InstanceNode {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
-};
-typedef struct NL_InstanceNode NL_InstanceNode;
+} NL_InstanceNode;
 
-struct NL_ObjectNode
-{
+typedef struct NL_ObjectNode {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
     NL_Reference *refToTypeDef;
-};
-typedef struct NL_ObjectNode NL_ObjectNode;
+} NL_ObjectNode;
 
-struct NL_ObjectTypeNode
-{
+typedef struct NL_ObjectTypeNode {
     NL_NODE_ATTRIBUTES
     char *isAbstract;
-};
-typedef struct NL_ObjectTypeNode NL_ObjectTypeNode;
+} NL_ObjectTypeNode;
 
-struct NL_VariableTypeNode
-{
+typedef struct NL_VariableTypeNode {
     NL_NODE_ATTRIBUTES
     char *isAbstract;
     UA_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
-};
-typedef struct NL_VariableTypeNode NL_VariableTypeNode;
+} NL_VariableTypeNode;
 
-struct NL_VariableNode
-{
+typedef struct NL_VariableNode {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
     UA_NodeId datatype;
@@ -140,13 +110,11 @@ struct NL_VariableNode
     char *userAccessLevel;
     char *historizing;
     char *minimumSamplingInterval;
-    char *value;
+    UA_Variant value;
     NL_Reference *refToTypeDef;
-};
-typedef struct NL_VariableNode NL_VariableNode;
+} NL_VariableNode;
 
-typedef struct
-{
+typedef struct NL_DataTypeDefinitionField {
     char *name;
     UA_NodeId dataType;
     int valueRank;
@@ -154,8 +122,7 @@ typedef struct
     bool isOptional;
 } NL_DataTypeDefinitionField;
 
-typedef struct
-{
+typedef struct NL_DataTypeDefinition {
     NL_DataTypeDefinitionField *fields;
     size_t fieldCnt;
     bool isEnum;
@@ -163,67 +130,74 @@ typedef struct
     bool isOptionSet;
 } NL_DataTypeDefinition;
 
-struct NL_DataTypeNode
-{
+typedef struct NL_DataTypeNode {
     NL_NODE_ATTRIBUTES
     NL_DataTypeDefinition *definition;
     char *isAbstract;
-};
-typedef struct NL_DataTypeNode NL_DataTypeNode;
+} NL_DataTypeNode;
 
-struct NL_MethodNode
-{
+typedef struct NL_MethodNode {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
-};
-typedef struct NL_MethodNode NL_MethodNode;
+} NL_MethodNode;
 
-struct NL_ReferenceTypeNode
-{
+typedef struct NL_ReferenceTypeNode {
     NL_NODE_ATTRIBUTES
-    NL_LocalizedText inverseName;
+    UA_LocalizedText inverseName;
     char *symmetric;
-};
-typedef struct NL_ReferenceTypeNode NL_ReferenceTypeNode;
+} NL_ReferenceTypeNode;
 
-struct NL_ViewNode
-{
+typedef struct NL_ViewNode {
     NL_NODE_ATTRIBUTES
     NL_NODE_INSTANCE_ATTRIBUTES
     char *containsNoLoops;
     char *eventNotifier;
-};
-typedef struct NL_ViewNode NL_ViewNode;
+} NL_ViewNode;
 
-typedef unsigned short (*NL_addNamespaceCallback)(void *userContext, const char *);
+typedef void (*NL_addNamespaceCallback)(void *userContext,
+                                        size_t localNamespaceUrisSize,
+                                        UA_String *localNamespaceUris,
+                                        UA_NamespaceMapping *nsMapping);
 
-struct NL_FileContext
-{
+typedef struct NL_FileContext {
     void *userContext;
     const char *file;
     NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
-};
-typedef struct NL_FileContext NL_FileContext;
+} NL_FileContext;
 
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-LOADER_EXPORT NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                               struct NL_ReferenceService *refService);
-LOADER_EXPORT bool NodesetLoader_importFile(NodesetLoader *loader,
-                                            const NL_FileContext *fileContext);
-LOADER_EXPORT void NodesetLoader_delete(NodesetLoader *loader);
+LOADER_EXPORT NodesetLoader *
+NodesetLoader_new(NodesetLoader_Logger *logger,
+                  struct NL_ReferenceService *refService,
+                  const UA_DataTypeArray *customDataTypes);
+
+LOADER_EXPORT bool
+NodesetLoader_importFile(NodesetLoader *loader,
+                         const NL_FileContext *fileContext);
+
+LOADER_EXPORT void
+NodesetLoader_delete(NodesetLoader *loader);
+
 LOADER_EXPORT const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
-LOADER_EXPORT bool NodesetLoader_sort(NodesetLoader *loader);
+
+LOADER_EXPORT bool
+NodesetLoader_sort(NodesetLoader *loader);
+
 typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
+
 LOADER_EXPORT size_t
 NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
-LOADER_EXPORT bool NodesetLoader_isInstanceNode (const NL_Node *baseNode);
+
+LOADER_EXPORT bool
+NodesetLoader_isInstanceNode (const NL_Node *baseNode);
+
 #ifdef __cplusplus
 }
 #endif
