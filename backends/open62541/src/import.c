@@ -426,15 +426,14 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
     }
 }
 
-static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
-                      const char *message, ...)
-{
+static void
+logToOpen(void *context, enum NodesetLoader_LogLevel level,
+          const char *message, ...) {
     UA_Logger *logger = (UA_Logger *)context;
     va_list vl;
     va_start(vl, message);
     UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
-    switch (level)
-    {
+    switch (level) {
     case NODESETLOADER_LOGLEVEL_DEBUG:
         uaLevel = UA_LOGLEVEL_DEBUG;
         break;
@@ -449,21 +448,18 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     va_end(vl);
 }
 
-struct DataTypeImportCtx
-{
+struct DataTypeImportCtx {
     DataTypeImporter *importer;
     const NL_BiDirectionalReference *hasEncodingRef;
     UA_Server *server;
 };
 
-static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
-{
+static void
+addDataType(struct DataTypeImportCtx *ctx, NL_Node *node) {
     // add only the types
     const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
-    while (r)
-    {
-        if (UA_NodeId_equal(&r->source, &node->id))
-        {
+    while (r) {
+        if (UA_NodeId_equal(&r->source, &node->id)) {
             NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;
             ref->target = r->target;
@@ -490,7 +486,6 @@ importDataTypes(NodesetLoader *loader, UA_Server *server) {
     ctx.importer = importer;
     NodesetLoader_forEachNode(loader, NODECLASS_DATATYPE, &ctx,
                               (NodesetLoader_forEachNode_Func)addDataType);
-
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
 }

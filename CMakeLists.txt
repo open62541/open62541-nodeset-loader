@@ -190,7 +190,6 @@ set(NODESETLOADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CharAllocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AliasList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/NamespaceList.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Node.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
@@ -230,7 +229,6 @@ set(NODESETLOADER_PRIVATE_HEADERS
     ${PROJECT_SOURCE_DIR}/src/InternalRefService.h
     ${PROJECT_SOURCE_DIR}/src/CharAllocator.h
     ${PROJECT_SOURCE_DIR}/src/AliasList.h
-    ${PROJECT_SOURCE_DIR}/src/NamespaceList.h
     ${PROJECT_SOURCE_DIR}/src/Sort.h
     ${PROJECT_SOURCE_DIR}/src/Node.h
     ${PROJECT_SOURCE_DIR}/src/Nodeset.h

@@ -143,12 +143,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_NAMESPACEURIS:
-        if (!strcmp(localname, NAMESPACEURI))
-        {
+        if (!strcmp(localname, NAMESPACEURI)) {
             pctx->state = PARSER_STATE_URI;
-        }
-        else
-        {
+        } else {
             enterUnknownState(pctx);
         }
         break;
@@ -251,9 +248,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
     pctx->onCharLength = 0;
 }
 
-static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
-                           const char *URI)
-{
+static void
+OnEndElementNs(void *ctx, const char *localname,
+               const char *prefix, const char *URI) {
     TParserCtx *pctx = (TParserCtx *)ctx;
     switch (pctx->state)
     {
@@ -264,12 +261,9 @@ static void OnEndElementNs(void *ctx, const char *localname, const char *prefix,
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_URI:
-    {
-        Nodeset_newNamespaceFinish(pctx->nodeset, pctx->userContext,
-                                   pctx->onCharacters);
+        Nodeset_newNamespaceFinish(pctx->nodeset, pctx->userContext, pctx->onCharacters);
         pctx->state = PARSER_STATE_NAMESPACEURIS;
-    }
-    break;
+        break;
     case PARSER_STATE_NAMESPACEURIS:
         pctx->state = PARSER_STATE_INIT;
         break;
