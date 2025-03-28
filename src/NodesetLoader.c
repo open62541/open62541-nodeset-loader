@@ -37,11 +37,8 @@ const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
     "Object", "ObjectType",    "Variable",    "DataType",
     "Method", "ReferenceType", "VariableType", "View"};
 
-
-struct NodesetLoader
-{
+struct NodesetLoader {
     Nodeset *nodeset;
-    const UA_DataTypeArray *customDataTypes;
     NodesetLoader_Logger *logger;
     bool internalLogger;
     NL_ReferenceService *refService;
@@ -289,21 +286,14 @@ OnEndElementNs(void *ctx, const char *localname,
         if(!strcmp(localname, VALUE)) {
             pctx->value_depth--;
             if(pctx->value_depth == 0) {
-                /* Leaving the value element. Write the value */
+                /* Leaving the value element. Store the value */
                 /* TODO: Enable VariableType to hold a valeu */
                 if(pctx->node->nodeClass == NODECLASS_VARIABLE) {
                     long valueEnd = xmlByteConsumed(pctx->ctxt);
                     UA_String xmlValue;
                     xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
                     xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
-
-                    UA_DecodeXmlOptions opts;
-                    memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
-                    opts.unwrapped = true;
-                    opts.customTypes = pctx->nodeset->customDataTypes;
-                    opts.namespaceMapping = &pctx->nodeset->nsMapping;
-                    UA_decodeXml(&xmlValue, &((NL_VariableNode *)pctx->node)->value,
-                                 &UA_TYPES[UA_TYPES_VARIANT], &opts);
+                    UA_String_copy(&xmlValue, &((NL_VariableNode *)pctx->node)->value);
                 }
                 pctx->state = PARSER_STATE_NODE;
             }
@@ -377,7 +367,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
 
     if(!loader->nodeset) {
         loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger,
-                                      loader->refService, loader->customDataTypes);
+                                      loader->refService);
     }
 
     TParserCtx ctx;
@@ -398,9 +388,9 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     ctx.userContext = fileHandler->userContext;
     ctx.extIf = fileHandler->extensionHandling;
     ctx.nodeset = loader->nodeset;
+    ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
 
-    /* Set up the nodeset context for this particular file */
-    ctx.nodeset->fc = fileHandler;
+    /* Initialize the nodeset context with ns0 */
     if(loader->nodeset->localNamespaceUrisSize == 0) {
         UA_String ns0 = UA_STRING("http://opcfoundation.org/UA/");
         UA_StatusCode ret =
@@ -408,6 +398,10 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
                                 &ctx.nodeset->localNamespaceUrisSize,
                                 &ns0, &UA_TYPES[UA_TYPES_STRING]);
         (void)ret;
+
+        loader->nodeset->fc->nsMapping.remote2local = (UA_UInt16*)
+            UA_calloc(1, sizeof(UA_UInt16));
+        loader->nodeset->fc->nsMapping.remote2localSize = 1;
     }
 
     if(Parser_run(&ctx, f, OnStartElementNs, OnEndElementNs, OnCharacters)) {
@@ -417,7 +411,6 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     }
 
     /* Clean up values that were added on the fly */
-    UA_NamespaceMapping_clear(&loader->nodeset->nsMapping);
     UA_Array_delete(loader->nodeset->localNamespaceUris,
                     loader->nodeset->localNamespaceUrisSize,
                     &UA_TYPES[UA_TYPES_STRING]);
@@ -435,8 +428,7 @@ bool NodesetLoader_sort(NodesetLoader *loader) {
 }
 
 NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                 NL_ReferenceService *refService,
-                                 const UA_DataTypeArray *customDataTypes) {
+                                 NL_ReferenceService *refService) {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
@@ -455,7 +447,6 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
         loader->refService = refService;
     }
 
-    loader->customDataTypes = customDataTypes;
     return loader;
 }
 

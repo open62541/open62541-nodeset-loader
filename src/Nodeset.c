@@ -65,14 +65,14 @@ const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 static UA_NodeId
 parseNodeId(const Nodeset *nodeset, char *s) {
     UA_NodeId n;
-    UA_NodeId_parseEx(&n, UA_STRING(s), &nodeset->nsMapping);
+    UA_NodeId_parseEx(&n, UA_STRING(s), &nodeset->fc->nsMapping);
     return n;
 }
 
 static UA_QualifiedName
 parseQualifiedName(const Nodeset *nodeset, char *s) {
     UA_QualifiedName qn;
-    UA_QualifiedName_parseEx(&qn, UA_STRING(s), &nodeset->nsMapping);
+    UA_QualifiedName_parseEx(&qn, UA_STRING(s), &nodeset->fc->nsMapping);
     return qn;
 }
 
@@ -87,8 +87,7 @@ alias2Id(const Nodeset *nodeset, char *name) {
 Nodeset *
 Nodeset_new(NL_addNamespaceCallback nsCallback,
             NodesetLoader_Logger *logger,
-            NL_ReferenceService *refService,
-            const UA_DataTypeArray *customDataTypes) {
+            NL_ReferenceService *refService) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if(!nodeset)
         return NULL;
@@ -108,7 +107,6 @@ Nodeset_new(NL_addNamespaceCallback nsCallback,
     nodeset->refService = refService;
     nodeset->sortCtx = Sort_init();
     nodeset->logger = logger;
-    nodeset->customDataTypes = customDataTypes;
     return nodeset;
 }
 
@@ -234,7 +232,7 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
                   int attributeSize, const char **attributes) {
     node->id =
         parseNodeId(nodeset, getAttributeValue(nodeset, &attrNodeId,
-                                                  attributes, attributeSize));
+                                               attributes, attributeSize));
     node->browseName =
         parseQualifiedName(nodeset, getAttributeValue(nodeset, &attrBrowseName,
                                                       attributes, attributeSize));
@@ -404,7 +402,7 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
     nodeset->fc->addNamespace(nodeset->fc->userContext,
                               nodeset->localNamespaceUrisSize,
                               nodeset->localNamespaceUris,
-                              &nodeset->nsMapping);
+                              &nodeset->fc->nsMapping);
 }
 
 void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node) {

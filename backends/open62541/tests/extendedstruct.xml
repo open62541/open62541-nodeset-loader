@@ -157,7 +157,7 @@
         <Value>
             <uax:ExtensionObject>
                 <uax:TypeId>
-                    <uax:Identifier>ns=1;i=5002</uax:Identifier>
+                    <uax:Identifier>ns=1;i=3002</uax:Identifier>
                 </uax:TypeId>
                 <uax:Body>
                     <PointWithOffset xmlns="http://yourorganisation.org/extendedStruct/Types.xsd">

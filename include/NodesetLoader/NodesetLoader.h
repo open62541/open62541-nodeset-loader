@@ -110,7 +110,7 @@ typedef struct NL_VariableNode {
     char *userAccessLevel;
     char *historizing;
     char *minimumSamplingInterval;
-    UA_Variant value;
+    UA_String value;
     NL_Reference *refToTypeDef;
 } NL_VariableNode;
 
@@ -166,6 +166,7 @@ typedef struct NL_FileContext {
     const char *file;
     NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
+    UA_NamespaceMapping nsMapping;
 } NL_FileContext;
 
 struct NodesetLoader;
@@ -173,8 +174,7 @@ typedef struct NodesetLoader NodesetLoader;
 
 LOADER_EXPORT NodesetLoader *
 NodesetLoader_new(NodesetLoader_Logger *logger,
-                  struct NL_ReferenceService *refService,
-                  const UA_DataTypeArray *customDataTypes);
+                  struct NL_ReferenceService *refService);
 
 LOADER_EXPORT bool
 NodesetLoader_importFile(NodesetLoader *loader,

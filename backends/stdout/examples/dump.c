@@ -29,7 +29,7 @@ void _addNamespace(void *userContext,
 void dumpNode(void *userContext, const NL_Node *node)
 {
     printf("NodeId: %s BrowseName: %s DisplayName: %s\n", printId(&node->id),
-           node->browseName.name, node->displayName.text);
+           node->browseName.name.data, node->displayName.text.data);
 
     switch (node->nodeClass)
     {
