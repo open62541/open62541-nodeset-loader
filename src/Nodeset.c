@@ -3,49 +3,34 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2019 (c) Matthias Konnerth
+ *    Copyright 2025 (c) Fraunhofer IOSB (Author: Julius Pfrommer)
  */
 
 #include "Nodeset.h"
 #include "AliasList.h"
-#include "NamespaceList.h"
 #include "Sort.h"
 #include "Node.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-static UA_NodeId extractNodedId(const NamespaceList *namespaces, char *s);
-static UA_NodeId alias2Id(const Nodeset *nodeset, char *name);
-static UA_NodeId translateNodeId(const NamespaceList *namespaces, UA_NodeId id);
-static NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
-                                         NL_BrowseName id);
-NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s);
-
-// UANode
 #define ATTRIBUTE_NODEID "NodeId"
 #define ATTRIBUTE_BROWSENAME "BrowseName"
-// UAInstance
 #define ATTRIBUTE_PARENTNODEID "ParentNodeId"
-// UAVariable
 #define ATTRIBUTE_DATATYPE "DataType"
 #define ATTRIBUTE_VALUERANK "ValueRank"
 #define ATTRIBUTE_ARRAYDIMENSIONS "ArrayDimensions"
 #define ATTRIBUTE_HISTORIZING "Historizing"
 #define ATTRIBUTE_MINIMUMSAMPLINGINTERVAL "MinimumSamplingInterval"
-// UAObject
 #define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
-// UAObjectType
 #define ATTRIBUTE_ISABSTRACT "IsAbstract"
-// NL_Reference
 #define ATTRIBUTE_REFERENCETYPE "ReferenceType"
 #define ATTRIBUTE_ISFORWARD "IsForward"
 #define ATTRIBUTE_SYMMETRIC "Symmetric"
 #define ATTRIBUTE_ALIAS "Alias"
-// View
 #define ATTRIBUTE_CONTAINSNOLOOPS "ContainsNoLoops"
 
-typedef struct
-{
+typedef struct {
     const char *name;
     char *defaultValue;
 } NodeAttribute;
@@ -77,91 +62,38 @@ const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 
-UA_NodeId translateNodeId(const NamespaceList *namespaces, UA_NodeId id)
-{
-    if (id.namespaceIndex == 0)
-    {
-        return id;
-    }
-    const Namespace *ns =
-        NamespaceList_getNamespace(namespaces, id.namespaceIndex);
-    if (ns)
-    {
-        id.namespaceIndex = ns->idx;
-    }
-    return id;
+static UA_NodeId
+parseNodeId(const Nodeset *nodeset, char *s) {
+    UA_NodeId n;
+    UA_NodeId_parseEx(&n, UA_STRING(s), &nodeset->nsMapping);
+    return n;
 }
 
-NL_BrowseName translateBrowseName(const NamespaceList *namespaces,
-                                  NL_BrowseName bn)
-{
-    if (bn.nsIdx > 0)
-    {
-        const Namespace *ns = NamespaceList_getNamespace(namespaces, bn.nsIdx);
-        if (ns != NULL)
-        {
-            bn.nsIdx =
-                (uint16_t)NamespaceList_getNamespace(namespaces, bn.nsIdx)->idx;
-        }
-        return bn;
-    }
-    return bn;
+static UA_QualifiedName
+parseQualifiedName(const Nodeset *nodeset, char *s) {
+    UA_QualifiedName qn;
+    UA_QualifiedName_parseEx(&qn, UA_STRING(s), &nodeset->nsMapping);
+    return qn;
 }
 
-UA_NodeId extractNodedId(const NamespaceList *namespaces, char *s)
-{
-    UA_NodeId id = UA_NODEID_NULL;
-    if (s == NULL)
-        return id;
-
-    UA_StatusCode res = UA_NodeId_parse(&id, UA_STRING(s));
-    if (res != UA_STATUSCODE_GOOD)
-        return id;
-
-    return translateNodeId(namespaces, id);
-}
-
-NL_BrowseName extractBrowseName(const NamespaceList *namespaces, char *s)
-{
-    NL_BrowseName bn;
-    bn.nsIdx = 0;
-    bn.name = NULL;
-    if (!s) return bn;
-    char *bnName = strchr(s, ':');
-    if (bnName == NULL)
-    {
-        bn.name = s;
-        return bn;
-    }
-    else
-    {
-        bn.nsIdx = (uint16_t)atoi(&s[0]);
-        bn.name = bnName + 1;
-    }
-    return translateBrowseName(namespaces, bn);
-}
-
-static UA_NodeId alias2Id(const Nodeset *nodeset, char *name)
-{
+static UA_NodeId
+alias2Id(const Nodeset *nodeset, char *name) {
     const UA_NodeId *alias = AliasList_getNodeId(nodeset->aliasList, name);
-    if (!alias)
-    {
-        return extractNodedId(nodeset->namespaces, name);
-    }
+    if(!alias)
+        return parseNodeId(nodeset, name);
     return *alias;
 }
 
-Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
-                     NodesetLoader_Logger *logger,
-                     NL_ReferenceService *refService)
-{
+Nodeset *
+Nodeset_new(NL_addNamespaceCallback nsCallback,
+            NodesetLoader_Logger *logger,
+            NL_ReferenceService *refService,
+            const UA_DataTypeArray *customDataTypes) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
-    if (!nodeset)
-    {
+    if(!nodeset)
         return NULL;
-    }
+
     nodeset->aliasList = AliasList_new();
-    nodeset->namespaces = NamespaceList_new(nsCallback);
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024);
     nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000, true);
     nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000, true);
@@ -176,105 +108,92 @@ Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
     nodeset->refService = refService;
     nodeset->sortCtx = Sort_init();
     nodeset->logger = logger;
+    nodeset->customDataTypes = customDataTypes;
     return nodeset;
 }
 
-static void Nodeset_addNode(Nodeset *nodeset, NL_Node *node)
-{
+static void Nodeset_addNode(Nodeset *nodeset, NL_Node *node) {
     NodeContainer_add(nodeset->nodes[node->nodeClass], node);
 }
 
-static void insertElementAtFront(NL_Reference **toList, NL_Reference *elem)
-{
+static void insertElementAtFront(NL_Reference **toList, NL_Reference *elem) {
     elem->next = *toList;
     *toList = elem;
 }
 
-static bool lookupUnknownReferences(Nodeset *nodeset, NL_Node *node)
-{
-    while (node->unknownRefs)
-    {
+static bool
+lookupUnknownReferences(Nodeset *nodeset, NL_Node *node) {
+    while (node->unknownRefs) {
         NL_Reference *nextUnknown = node->unknownRefs->next;
         if (nodeset->refService->isHierachicalRef(nodeset->refService->context,
-                                                  node->unknownRefs))
-        {
+                                                  node->unknownRefs)) {
             insertElementAtFront(&node->hierachicalRefs, node->unknownRefs);
             node->unknownRefs = nextUnknown;
             continue;
         }
+
         if (nodeset->refService->isNonHierachicalRef(
-                nodeset->refService->context, node->unknownRefs))
-        {
+                nodeset->refService->context, node->unknownRefs)) {
             insertElementAtFront(&node->nonHierachicalRefs, node->unknownRefs);
             node->unknownRefs = nextUnknown;
             continue;
         }
+
         return false;
     }
+
     return true;
 }
 
-static void lookupReferenceTypes(Nodeset *nodeset)
-{
+static void
+lookupReferenceTypes(Nodeset *nodeset) {
     bool allRefTypesKnown = false;
-    while (!allRefTypesKnown)
-    {
+    while (!allRefTypesKnown) {
         allRefTypesKnown = true;
-        for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++)
-        {
-            allRefTypesKnown = lookupUnknownReferences(
-                nodeset, nodeset->refTypesWithUnknownRefs->nodes[i]);
+        for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++) {
+            allRefTypesKnown =
+                lookupUnknownReferences(nodeset, nodeset->refTypesWithUnknownRefs->nodes[i]);
         }
     }
 
-    for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++)
-    {
-        Sort_addNode(nodeset->sortCtx,
-                     nodeset->refTypesWithUnknownRefs->nodes[i]);
+    for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++) {
+        Sort_addNode(nodeset->sortCtx, nodeset->refTypesWithUnknownRefs->nodes[i]);
     }
 }
 
-bool Nodeset_sort(Nodeset *nodeset)
-{
+bool Nodeset_sort(Nodeset *nodeset) {
     // first we have to figure out, if there are reference types, for which we
     // cannot state if they are hierachical or nonhierachical
     lookupReferenceTypes(nodeset);
+
     // all hierachical references of a node should be known at this point
     // if there are nodes with unknown references, the import will be aborted
-    for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++)
-    {
+    for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++) {
         bool result = lookupUnknownReferences(
             nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
-        if (!result)
-        {
+        if (!result) {
             UA_String nodeIdStr = {0};
-            UA_NodeId_print(&nodeset->nodesWithUnknownRefs->nodes[i]->id,
-                            &nodeIdStr);
-            nodeset->logger->log(
-                nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                "node with unresolved reference(s): NodeId(%.*s)",
-                (int)nodeIdStr.length, (char *)nodeIdStr.data);
+            UA_NodeId_print(&nodeset->nodesWithUnknownRefs->nodes[i]->id, &nodeIdStr);
+            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
+                                 "node with unresolved reference(s): NodeId(%.*s)",
+                                 (int)nodeIdStr.length, (char *)nodeIdStr.data);
             UA_String_clear(&nodeIdStr);
             return false;
         }
         Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
     }
 
-    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode,
-                      nodeset->logger);
+    return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode, nodeset->logger);
 }
 
-void Nodeset_cleanup(Nodeset *nodeset)
-{
+void Nodeset_cleanup(Nodeset *nodeset) {
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
-    for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++)
-    {
+    for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++) {
         NodeContainer_delete(nodeset->nodes[cnt]);
     }
     NodeContainer_delete(nodeset->nodesWithUnknownRefs);
     NodeContainer_delete(nodeset->refTypesWithUnknownRefs);
-    NamespaceList_delete(nodeset->namespaces);
     Sort_cleanup(nodeset->sortCtx);
     NL_BiDirectionalReference *ref = nodeset->hasEncodingRefs;
     while (ref)
@@ -289,14 +208,13 @@ void Nodeset_cleanup(Nodeset *nodeset)
     free(nodeset);
 }
 
-static char *getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
-                               const char **attributes, int nb_attributes)
-{
+static char *
+getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
+                  const char **attributes, int nb_attributes) {
     const int fields = 5;
-    for (int i = 0; i < nb_attributes; i++)
-    {
+    for (int i = 0; i < nb_attributes; i++) {
         const char *localname = attributes[i * fields + 0];
-        if (strcmp((const char *)localname, attr->name))
+        if(strcmp((const char *)localname, attr->name))
             continue;
         const char *value_start = attributes[i * fields + 3];
         const char *value_end = attributes[i * fields + 4];
@@ -471,73 +389,69 @@ NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
     return newRef;
 }
 
-Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
-                        const char **attributes)
-{
-    return AliasList_newAlias(
-        nodeset->aliasList,
-        getAttributeValue(nodeset, &attrAlias, attributes, attributeSize));
+Alias *
+Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attributes) {
+    return AliasList_newAlias(nodeset->aliasList,
+                              getAttributeValue(nodeset, &attrAlias,
+                                                attributes, attributeSize));
 }
 
-void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString)
-{
-    alias->id = extractNodedId(nodeset->namespaces, idString);
+void
+Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString) {
+    alias->id = parseNodeId(nodeset, idString);
 }
 
-void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
-                                char *namespaceUri)
-{
-    NamespaceList_newNamespace(nodeset->namespaces, userContext, namespaceUri);
+void
+Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
+                           char *namespaceUri) {
+    UA_String uri = UA_STRING(namespaceUri);
+    UA_StatusCode ret =
+        UA_Array_appendCopy((void**)&nodeset->localNamespaceUris,
+                            &nodeset->localNamespaceUrisSize,
+                            &uri, &UA_TYPES[UA_TYPES_STRING]);
+    (void)ret;
+    nodeset->fc->addNamespace(nodeset->fc->userContext,
+                              nodeset->localNamespaceUrisSize,
+                              nodeset->localNamespaceUris,
+                              &nodeset->nsMapping);
 }
 
-void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node)
-{
-    if (!node->unknownRefs)
-    {
-        if(!Sort_addNode(nodeset->sortCtx, node))
-        {
-            if (nodeset->logger)
-            {
+void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node) {
+    if (!node->unknownRefs) {
+        if(!Sort_addNode(nodeset->sortCtx, node)) {
+            if (nodeset->logger) {
                 nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                            "node was not added to sorting algorithm, already exists");
+                                     "node was not added to sorting algorithm, already exists");
             }
             Node_delete(node);
-        }
-        else
-        {
-            if (node->nodeClass == NODECLASS_REFERENCETYPE)
-            {
+        } else {
+            if (node->nodeClass == NODECLASS_REFERENCETYPE) {
                 nodeset->refService->addNewReferenceType(
                     nodeset->refService->context, (NL_ReferenceTypeNode *)node);
             }
         }
-    }
-    else
-    {
-        if (node->nodeClass == NODECLASS_REFERENCETYPE)
-        {
+    } else {
+        if (node->nodeClass == NODECLASS_REFERENCETYPE) {
             NodeContainer_add(nodeset->refTypesWithUnknownRefs, node);
-        }
-        else
-        {
+        } else {
             NodeContainer_add(nodeset->nodesWithUnknownRefs, node);
         }
     }
 }
 
 void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref,
-                                NL_Node *node, char *targetId)
-{
+                                NL_Node *node, char *targetId) {
     UA_NodeId_clear(&ref->target);
     ref->target = alias2Id(nodeset, targetId);
 
     // handle hasEncoding in a special way
     UA_NodeId hasEncodingRef = UA_NODEID("i=38");
+    static UA_String defaultBinary = UA_STRING_STATIC("Default Binary");
     if (UA_NodeId_equal(&ref->refType, &hasEncodingRef) &&
-        !strcmp(node->browseName.name, "Default Binary") && !ref->isForward)
-    {
-        NL_BiDirectionalReference *newRef = (NL_BiDirectionalReference *)calloc(
-            1, sizeof(NL_BiDirectionalReference));
+        UA_String_equal(&node->browseName.name, &defaultBinary) &&
+        !ref->isForward) {
+        NL_BiDirectionalReference *newRef = (NL_BiDirectionalReference *)
+            calloc(1, sizeof(NL_BiDirectionalReference));
         UA_NodeId_copy(&ref->target, &newRef->source);
         UA_NodeId_copy(&node->id, &newRef->target);
         UA_NodeId_copy(&ref->refType, &newRef->refType);
@@ -597,62 +511,54 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
 }
 
 const NL_BiDirectionalReference *
-Nodeset_getBiDirectionalRefs(const Nodeset *nodeset)
-{
+Nodeset_getBiDirectionalRefs(const Nodeset *nodeset) {
     return nodeset->hasEncodingRefs;
 }
 
-void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                            const char **attributes)
-{
+void
+Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
+                       int attributeSize, const char **attributes) {
     node->displayName.locale =
-        getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
+        UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
 }
 
-void Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node,
-                               char *text)
-{
-    node->displayName.text = text;
+void
+Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+    node->displayName.text = UA_STRING(text);
 }
 
-void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                            const char **attributes)
-{
+void
+Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, int attributeSize,
+                       const char **attributes) {
     node->description.locale =
-        getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
+        UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
 }
 
-void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node,
-                               char *text)
-{
-    node->description.text = text;
+void
+Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+    node->description.text = UA_STRING(text);
 }
 
-void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                            const char **attributes)
-{
-    if (node->nodeClass == NODECLASS_REFERENCETYPE)
-    {
+void
+Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node,
+                       int attributeSize, const char **attributes) {
+    if (node->nodeClass == NODECLASS_REFERENCETYPE) {
         ((NL_ReferenceTypeNode *)node)->inverseName.locale =
-            getAttributeValue(nodeset, &attrLocale, attributes, attributeSize);
-    }
-}
-void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node,
-                               char *text)
-{
-    if (node->nodeClass == NODECLASS_REFERENCETYPE)
-    {
-        ((NL_ReferenceTypeNode *)node)->inverseName.text = text;
+            UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
     }
 }
 
-size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                           void *context,
-                           NodesetLoader_forEachNode_Func fn)
-{
+void
+Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+    if(node->nodeClass == NODECLASS_REFERENCETYPE)
+        ((NL_ReferenceTypeNode *)node)->inverseName.text = UA_STRING(text);
+}
+
+size_t
+Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
+                    void *context, NodesetLoader_forEachNode_Func fn) {
     NodeContainer *c = nodeset->nodes[nodeClass];
-    for (NL_Node **node = c->nodes; node != c->nodes + c->size; node++)
-    {
+    for(NL_Node **node = c->nodes; node != c->nodes + c->size; node++) {
         fn(context, *node);
     }
     return c->size;

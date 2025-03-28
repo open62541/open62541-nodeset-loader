@@ -12,7 +12,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-unsigned short _addNamespace(void *userContext, const char *namespaceUri);
+void _addNamespace(void *userContext,
+                   size_t localNamespaceUrisSize,
+                   UA_String *localNamespaceUris,
+                   UA_NamespaceMapping *nsMapping);
 void dumpNode(void *userContext, const NL_Node *node);
 
 #endif
