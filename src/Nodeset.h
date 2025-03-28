@@ -29,11 +29,9 @@ struct Nodeset {
     struct AliasList *aliasList;
     struct NodeContainer *nodes[NL_NODECLASS_COUNT];
 
-    const NL_FileContext *fc;
+    NL_FileContext *fc;
     size_t localNamespaceUrisSize;
     UA_String *localNamespaceUris;
-    UA_NamespaceMapping nsMapping;
-    const UA_DataTypeArray *customDataTypes;
 
     struct SortContext *sortCtx;
     NL_BiDirectionalReference *hasEncodingRefs;
@@ -45,8 +43,7 @@ struct Nodeset {
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
                      NodesetLoader_Logger* logger,
-                     NL_ReferenceService* refService,
-                     const UA_DataTypeArray *customDataTypes);
+                     NL_ReferenceService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,

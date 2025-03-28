@@ -38,9 +38,11 @@ Parser_run(TParserCtx *parser, FILE *file, Parser_callbackStart start,
     xmlInitParser(); // Fix memory leak: https://gitlab.gnome.org/GNOME/libxml2/-/issues/9
 
     parser->ctxt = xmlCreatePushParserCtxt(&hdl, parser, NULL, 0, NULL);
+    xmlCtxtUseOptions(parser->ctxt, XML_PARSE_HUGE);
     int ret = xmlParseChunk(parser->ctxt, parser->buf, (int)elems, 1);
     if(ret != 0) {
-        xmlParserError(parser->ctxt, "xmlParseChunk");
+        xmlError *err = xmlGetLastError();
+        xmlParserError(parser->ctxt, "xml parse error %i %s", ret, err->message);
         free(parser->buf);
         parser->buf = NULL;
         return 1;

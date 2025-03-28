@@ -42,7 +42,6 @@ struct TParserCtx {
     char *onCharacters;
     size_t onCharLength;
     long valueBegin;
-    UA_Variant value;
     void *extensionData;
     NodesetLoader_ExtensionInterface *extIf;
     NL_Reference *ref;

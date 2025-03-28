@@ -112,7 +112,7 @@ Node_delete(NL_Node *node) {
     if(node->nodeClass == NODECLASS_VARIABLE) {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
-        UA_Variant_clear(&varNode->value);
+        UA_String_clear(&varNode->value);
         UA_NodeId_clear(&varNode->datatype);
     }
 
