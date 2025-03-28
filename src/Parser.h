@@ -22,7 +22,6 @@ typedef enum {
     PARSER_STATE_DESCRIPTION,
     PARSER_STATE_INVERSENAME,
     PARSER_STATE_ALIAS,
-    PARSER_STATE_UNKNOWN,
     PARSER_STATE_NAMESPACEURIS,
     PARSER_STATE_URI,
     PARSER_STATE_VALUE,
@@ -35,7 +34,7 @@ typedef enum {
 struct TParserCtx {
     void *userContext;
     TParserState state;
-    TParserState prev_state;
+    size_t unknown_depth;
     size_t value_depth;
     NL_NodeClass nodeClass;
     NL_Node *node;
