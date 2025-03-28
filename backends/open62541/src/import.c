@@ -19,8 +19,6 @@
 
 #include <assert.h>
 
-unsigned short NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
-
 static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 {
     UA_BrowseDescription bd;
@@ -198,14 +196,14 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
     return arrSize;
 }
 
-static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
-                               const UA_NodeId *parentId,
-                               const UA_NodeId *parentReferenceId,
-                               const UA_LocalizedText *lt,
-                               const UA_QualifiedName *qn,
-                               const UA_LocalizedText *description,
-                               const ServerContext *serverContext)
-{
+static UA_StatusCode
+handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
+                   const UA_NodeId *parentId,
+                   const UA_NodeId *parentReferenceId,
+                   const UA_LocalizedText *lt,
+                   const UA_QualifiedName *qn,
+                   const UA_LocalizedText *description,
+                   const ServerContext *serverContext) {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.displayName = *lt;
     attr.dataType = node->datatype;
@@ -219,43 +217,30 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
     attr.description = *description;
     attr.historizing = isValTrue(node->historizing);
     attr.minimumSamplingInterval = atof(node->minimumSamplingInterval);
-
-    if(node->value) {
-        UA_String xmlValue = UA_STRING(node->value);
-        UA_DecodeXmlOptions opts;
-        memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
-        opts.unwrapped = true;
-        UA_StatusCode ret =
-            UA_decodeXml(&xmlValue, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
-        if(ret != UA_STATUSCODE_GOOD)
-            return ret;
-    }
+    attr.value = node->value;
 
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
-    if (attr.arrayDimensions == NULL && attr.valueRank == 1)
-    {
+    UA_UInt32 arrayDims;
+    if (attr.arrayDimensions == NULL && attr.valueRank == 1) {
         attr.arrayDimensionsSize = 1;
-        attr.arrayDimensions = UA_UInt32_new();
-        *attr.arrayDimensions = 0;
+        arrayDims = 0;
+        attr.arrayDimensions = &arrayDims;
     }
 
     // set arraydimensions of none defined but value is an array
-    if (attr.arrayDimensionsSize == 0 && attr.value.arrayLength)
-    {
-        attr.arrayDimensions = UA_UInt32_new();
-        *attr.arrayDimensions = (UA_UInt32)attr.value.arrayLength;
+    if (attr.arrayDimensionsSize == 0 && attr.value.arrayLength) {
+        arrayDims = (UA_UInt32)attr.value.arrayLength;
+        attr.arrayDimensions = &arrayDims;
         attr.arrayDimensionsSize = 1;
     }
 
     UA_NodeId typeDefId = UA_NODEID_NULL;
-    if (node->refToTypeDef)
-    {
+    if(node->refToTypeDef)
         typeDefId = node->refToTypeDef->target;
-    }
 
     //value is copied by open62541
-    UA_StatusCode Status =
+    UA_StatusCode res =
         UA_Server_addNode_begin(ServerContext_getServerObject(serverContext),
                                 UA_NODECLASS_VARIABLE, *id, *parentId,
                                 *parentReferenceId, *qn, typeDefId, &attr,
@@ -263,9 +248,9 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
                                 node->extension, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
-    UA_Variant_clear(&attr.value);
-    UA_free(attr.arrayDimensions);
-    return Status;
+    if(attr.arrayDimensions && attr.arrayDimensions != &arrayDims)
+        UA_free(attr.arrayDimensions);
+    return res;
 }
 
 static UA_StatusCode handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
@@ -291,15 +276,12 @@ static UA_StatusCode handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                     const UA_LocalizedText *lt,
                                     const UA_QualifiedName *qn,
                                     const UA_LocalizedText *description,
-                                    UA_Server *server)
-{
+                                    UA_Server *server) {
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
     attr.symmetric = isValTrue(node->symmetric);
     attr.displayName = *lt;
     attr.description = *description;
-    attr.inverseName =
-        UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
-
+    attr.inverseName = node->inverseName;
     return UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
                                    *qn, attr, node->extension, NULL);
 }
@@ -365,12 +347,9 @@ static void addNodeImpl(AddNodeContext *context, NL_Node *node)
     UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
-    UA_LocalizedText lt =
-        UA_LOCALIZEDTEXT(node->displayName.locale, node->displayName.text);
-    UA_QualifiedName qn =
-        UA_QUALIFIEDNAME(node->browseName.nsIdx, node->browseName.name);
-    UA_LocalizedText description =
-        UA_LOCALIZEDTEXT(node->description.locale, node->description.text);
+    UA_LocalizedText lt = node->displayName;
+    UA_QualifiedName qn = node->browseName;
+    UA_LocalizedText description = node->description;
 
     UA_StatusCode addedNodeStatus=UA_STATUSCODE_BADINTERNALERROR;
     switch (node->nodeClass)
@@ -424,16 +403,27 @@ static void addNodeImpl(AddNodeContext *context, NL_Node *node)
     }
 }
 
-unsigned short
-NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri) {
+static void
+NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
+                                            size_t localNamespaceUrisSize,
+                                            UA_String *localNamespaceUris,
+                                            UA_NamespaceMapping *nsMapping) {
     ServerContext *serverContext = (ServerContext *)userContext;
+    UA_Server *server = ServerContext_getServerObject(serverContext);
 
-    UA_UInt16 idx =
-        UA_Server_addNamespace(ServerContext_getServerObject(serverContext), namespaceUri);
+    /* Build up the mapping tables */
+    UA_NamespaceMapping_clear(nsMapping);
 
-    ServerContext_addNamespaceIdx(serverContext, idx);
+    nsMapping->remote2local = (UA_UInt16*)UA_calloc(localNamespaceUrisSize, sizeof(UA_UInt16));
+    nsMapping->remote2localSize = localNamespaceUrisSize;
 
-    return idx;
+    /* Add all the namespaces */
+    char nsbuf[256];
+    for(size_t i = 0; i < localNamespaceUrisSize; i++) {
+        memcpy(nsbuf, localNamespaceUris[i].data, localNamespaceUris[i].length);
+        nsbuf[localNamespaceUris[i].length] = 0;
+        nsMapping->remote2local[i] = UA_Server_addNamespace(server, nsbuf);
+    }
 }
 
 static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
@@ -485,15 +475,12 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
         }
         r = r->next;
     }
-    const UA_NodeId parent =
-        getParentType(ctx->server, node->id);
-    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node,
-                                       parent);
+    const UA_NodeId parent = getParentType(ctx->server, node->id);
+    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node, parent);
 }
 
-static void importDataTypes(NodesetLoader *loader, UA_Server *server)
-{
-    // add datatypes
+static void
+importDataTypes(NodesetLoader *loader, UA_Server *server) {
     const NL_BiDirectionalReference *hasEncodingRef =
         NodesetLoader_getBidirectionalRefs(loader);
     DataTypeImporter *importer = DataTypeImporter_new(server);
@@ -667,7 +654,7 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     logger->log = &logToOpen;
     NL_ReferenceService *refService = RefServiceImpl_new(server);
 
-    NodesetLoader *loader = NodesetLoader_new(logger, refService);
+    NodesetLoader *loader = NodesetLoader_new(logger, refService, config->customDataTypes);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
     bool importStatus = NodesetLoader_importFile(loader, &handler);

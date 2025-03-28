@@ -631,12 +631,9 @@ void DataTypeImporter_addCustomDataType(DataTypeImporter *importer,
                             ->types[importer->types->typesSize];
     memset(type, 0, sizeof(UA_DataType));
     type->typeId = node->id;
-    if (node->browseName.name)
-    {
-        size_t len = strlen(node->browseName.name);
-        type->typeName = (char *)calloc(len + 1, sizeof(char));
-        memcpy((void *)(uintptr_t)type->typeName, node->browseName.name, len);
-    }
+    size_t len = node->browseName.name.length;
+    type->typeName = (char *)calloc(len + 1, sizeof(char));
+    memcpy((void*)(uintptr_t)type->typeName, node->browseName.name.data, len);
 
     UA_NodeId enumeration = UA_NODEID_NUMERIC(0, UA_NS0ID_ENUMERATION);
     UA_NodeId structure = UA_NODEID_NUMERIC(0, UA_NS0ID_STRUCTURE);

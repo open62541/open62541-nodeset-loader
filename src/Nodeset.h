@@ -20,17 +20,21 @@ struct Alias;
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-struct NamespaceList;
-
 struct NodeContainer;
 struct AliasList;
 struct SortContext;
-struct Nodeset
-{
+
+struct Nodeset {
     CharArenaAllocator *charArena;
     struct AliasList *aliasList;
     struct NodeContainer *nodes[NL_NODECLASS_COUNT];
-    struct NamespaceList *namespaces;
+
+    const NL_FileContext *fc;
+    size_t localNamespaceUrisSize;
+    UA_String *localNamespaceUris;
+    UA_NamespaceMapping nsMapping;
+    const UA_DataTypeArray *customDataTypes;
+
     struct SortContext *sortCtx;
     NL_BiDirectionalReference *hasEncodingRefs;
     NodesetLoader_Logger* logger;
