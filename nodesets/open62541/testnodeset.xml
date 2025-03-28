@@ -252,7 +252,7 @@
             <uax:ListOfExtensionObject>
                 <uax:ExtensionObject>
                     <uax:TypeId>
-                        <uax:Identifier>i=0</uax:Identifier>
+                        <uax:Identifier>ns=1;i=10001</uax:Identifier>
                     </uax:TypeId>
                     <uax:Body>
                         <Point xmlns="http://yourorganisation.org/test/Types.xsd">
@@ -263,7 +263,7 @@
                 </uax:ExtensionObject>
                 <uax:ExtensionObject>
                     <uax:TypeId>
-                        <uax:Identifier>i=0</uax:Identifier>
+                        <uax:Identifier>ns=1;i=10001</uax:Identifier>
                     </uax:TypeId>
                     <uax:Body>
                         <Point xmlns="http://yourorganisation.org/test/Types.xsd">
@@ -274,7 +274,7 @@
                 </uax:ExtensionObject>
                 <uax:ExtensionObject>
                     <uax:TypeId>
-                        <uax:Identifier>i=0</uax:Identifier>
+                        <uax:Identifier>ns=1;i=10001</uax:Identifier>
                     </uax:TypeId>
                     <uax:Body>
                         <Point xmlns="http://yourorganisation.org/test/Types.xsd">
@@ -285,7 +285,7 @@
                 </uax:ExtensionObject>
                 <uax:ExtensionObject>
                     <uax:TypeId>
-                        <uax:Identifier>i=0</uax:Identifier>
+                        <uax:Identifier>ns=1;i=10001</uax:Identifier>
                     </uax:TypeId>
                     <uax:Body>
                         <Point xmlns="http://yourorganisation.org/test/Types.xsd">
@@ -624,7 +624,7 @@
             <Reference ReferenceType="Organizes" IsForward="false">ns=1;i=5100</Reference>
         </References>
 		<Value>
-            <uax:ListOfString>
+            <uax:ListOfGuid>
                 <uax:Guid>
 					<uax:String>7822a391-1111-4a59-b08d-b70bc63fecec</uax:String>
 				</uax:Guid>
@@ -634,7 +634,7 @@
 					<uax:Guid>
 					<uax:String>7822a391-3333-4a59-b08d-b70bc63fecec</uax:String>
 				</uax:Guid>
-            </uax:ListOfString>
+            </uax:ListOfGuid>
         </Value>
     </UAVariable>
     <UAVariable DataType="DataSetMetaDataType" ParentNodeId="ns=1;i=5001" NodeId="ns=1;i=6021" BrowseName="TestDataSetMetaData">
