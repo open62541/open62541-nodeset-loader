@@ -48,19 +48,19 @@ struct NodesetLoader
     bool internalRefService;
 };
 
-static void
-enterUnknownState(TParserCtx *ctx) {
-    ctx->prev_state = ctx->state;
-    ctx->state = PARSER_STATE_UNKNOWN;
-}
-
 static void OnStartElementNs(void *ctx, const char *localname,
                              const char *prefix, const char *URI,
                              int nb_namespaces, const char **namespaces,
                              int nb_attributes, int nb_defaulted,
-                             const char **attributes)
-{
+                             const char **attributes) {
     TParserCtx *pctx = (TParserCtx *)ctx;
+
+    /* We are below an unknown element */
+    if(pctx->unknown_depth > 0) {
+        pctx->unknown_depth++;
+        return;
+    }
+
     switch (pctx->state)
     {
     case PARSER_STATE_INIT:
@@ -139,19 +139,21 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         else
         {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_NAMESPACEURIS:
         if (!strcmp(localname, NAMESPACEURI)) {
             pctx->state = PARSER_STATE_URI;
         } else {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_URI:
-        enterUnknownState(pctx);
-        break;
+        pctx->unknown_depth++;
+        return;
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME)) {
             Nodeset_setDisplayName(pctx->nodeset, pctx->node, nb_attributes,
@@ -180,7 +182,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
             Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes,
                                    attributes);
         } else {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
@@ -189,12 +192,13 @@ static void OnStartElementNs(void *ctx, const char *localname,
                                      attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
         } else {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        enterUnknownState(pctx);
-        break;
+        pctx->unknown_depth++;
+        return;
 
     case PARSER_STATE_VALUE:
         if(!strcmp(localname, VALUE))
@@ -208,7 +212,8 @@ static void OnStartElementNs(void *ctx, const char *localname,
             }
             pctx->state = PARSER_STATE_EXTENSION;
         } else {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_EXTENSION:
@@ -223,26 +228,17 @@ static void OnStartElementNs(void *ctx, const char *localname,
             pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
                                              nb_attributes, attributes);
         } else {
-            enterUnknownState(pctx);
+            pctx->unknown_depth++;
+            return;
         }
         break;
     case PARSER_STATE_DESCRIPTION:
-        enterUnknownState(pctx);
-        break;
     case PARSER_STATE_ALIAS:
-        enterUnknownState(pctx);
-        break;
     case PARSER_STATE_DISPLAYNAME:
-        enterUnknownState(pctx);
-        break;
     case PARSER_STATE_REFERENCE:
-        enterUnknownState(pctx);
-        break;
     case PARSER_STATE_INVERSENAME:
-        enterUnknownState(pctx);
-        break;
-    case PARSER_STATE_UNKNOWN:
-        break;    
+        pctx->unknown_depth++;
+        return;
     }
     pctx->onCharacters = NULL;
     pctx->onCharLength = 0;
@@ -252,6 +248,12 @@ static void
 OnEndElementNs(void *ctx, const char *localname,
                const char *prefix, const char *URI) {
     TParserCtx *pctx = (TParserCtx *)ctx;
+
+    if(pctx->unknown_depth > 0) {
+        pctx->unknown_depth--;
+        return;
+    }
+
     switch (pctx->state)
     {
     case PARSER_STATE_INIT:
@@ -290,9 +292,6 @@ OnEndElementNs(void *ctx, const char *localname,
                 /* Leaving the value element. Write the value */
                 /* TODO: Enable VariableType to hold a valeu */
                 if(pctx->node->nodeClass == NODECLASS_VARIABLE) {
-                    //UA_Server *server = ServerContext_getServerObject(serverContext);
-                    //UA_ServerConfig *sc = UA_Server_getConfig(server);
-
                     long valueEnd = xmlByteConsumed(pctx->ctxt);
                     UA_String xmlValue;
                     xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
@@ -343,8 +342,6 @@ OnEndElementNs(void *ctx, const char *localname,
     case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
         pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         break;
-    case PARSER_STATE_UNKNOWN:
-        break;
     }
     pctx->onCharacters = NULL;
     pctx->onCharLength = 0;
@@ -383,9 +380,10 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
                                       loader->refService, loader->customDataTypes);
     }
 
+    TParserCtx ctx;
     bool retStatus = true;
-    TParserCtx *ctx = NULL;
     FILE *f = fopen(fileHandler->file, "r");
+    memset(&ctx, 0, sizeof(struct TParserCtx));
 
     if(!f) {
         loader->logger->log(loader->logger->context,
@@ -395,35 +393,24 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
         goto cleanup;
     }
 
-    ctx = (TParserCtx *)calloc(1, sizeof(TParserCtx));
-    if(!ctx) {
-        retStatus = false;
-        goto cleanup;
-    }
-    ctx->nodeset = loader->nodeset;
-    ctx->state = PARSER_STATE_INIT;
-    ctx->prev_state = PARSER_STATE_INIT;
-    ctx->value_depth = 0;
-    ctx->onCharacters = NULL;
-    ctx->onCharLength = 0;
-    ctx->userContext = fileHandler->userContext;
-    ctx->extIf = fileHandler->extensionHandling;
+    ctx.nodeset = loader->nodeset;
+    ctx.state = PARSER_STATE_INIT;
+    ctx.userContext = fileHandler->userContext;
+    ctx.extIf = fileHandler->extensionHandling;
+    ctx.nodeset = loader->nodeset;
 
     /* Set up the nodeset context for this particular file */
-    ctx->nodeset->fc = fileHandler;
+    ctx.nodeset->fc = fileHandler;
     if(loader->nodeset->localNamespaceUrisSize == 0) {
         UA_String ns0 = UA_STRING("http://opcfoundation.org/UA/");
         UA_StatusCode ret =
-            UA_Array_appendCopy((void**)&ctx->nodeset->localNamespaceUris,
-                                &ctx->nodeset->localNamespaceUrisSize,
+            UA_Array_appendCopy((void**)&ctx.nodeset->localNamespaceUris,
+                                &ctx.nodeset->localNamespaceUrisSize,
                                 &ns0, &UA_TYPES[UA_TYPES_STRING]);
         (void)ret;
     }
 
-    struct TParserCtx parser;
-    memset(&parser, 0, sizeof(struct TParserCtx));
-    parser.nodeset = loader->nodeset;
-    if(Parser_run(&parser, f, OnStartElementNs, OnEndElementNs, OnCharacters)) {
+    if(Parser_run(&ctx, f, OnStartElementNs, OnEndElementNs, OnCharacters)) {
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
         retStatus = false;
@@ -438,11 +425,8 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     loader->nodeset->localNamespaceUrisSize = 0;
 
 cleanup:
-    free(ctx);
-    if (f)
-    {
+    if(f)
         fclose(f);
-    }
     return retStatus;
 }
 
