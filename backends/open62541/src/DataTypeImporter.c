@@ -605,9 +605,7 @@ DataTypeImporter_new(struct UA_Server *server) {
             (UA_DataTypeArray *)UA_calloc(1, sizeof(UA_DataTypeArray));
         if (!newCustomTypes)
             return importer;
-#ifndef USE_CLEANUP_CUSTOM_DATATYPES
         newCustomTypes->cleanup = UA_TRUE;
-#endif
         newCustomTypes->next = config->customDataTypes;
         config->customDataTypes = newCustomTypes;
     }

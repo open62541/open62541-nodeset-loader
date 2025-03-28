@@ -6,7 +6,10 @@
 #include "NodesetLoader/NodesetLoader.h"
 #include <stdlib.h>
 
-unsigned short _addNamespace(void *userContext, const char *uri) { return 1; }
+void _addNamespace(void *userContext,
+                   size_t localNamespaceUrisSize,
+                   UA_String *localNamespaceUris,
+                   UA_NamespaceMapping *nsMapping) { }
 
 void _addNode(void *userContext, const NL_Node *node)
 {
