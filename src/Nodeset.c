@@ -73,6 +73,7 @@ static UA_QualifiedName
 parseQualifiedName(const Nodeset *nodeset, char *s) {
     UA_QualifiedName qn;
     UA_QualifiedName_parseEx(&qn, UA_STRING(s), &nodeset->fc->nsMapping);
+    qn.namespaceIndex = UA_NamespaceMapping_remote2Local(&nodeset->fc->nsMapping, qn.namespaceIndex);
     return qn;
 }
 
@@ -233,6 +234,7 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
     node->id =
         parseNodeId(nodeset, getAttributeValue(nodeset, &attrNodeId,
                                                attributes, attributeSize));
+    printf("%s\n", getAttributeValue(nodeset, &attrBrowseName, attributes, attributeSize));
     node->browseName =
         parseQualifiedName(nodeset, getAttributeValue(nodeset, &attrBrowseName,
                                                       attributes, attributeSize));
