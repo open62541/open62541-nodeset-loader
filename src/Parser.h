@@ -10,7 +10,7 @@
 
 #include "NodesetLoader/NodesetLoader.h"
 #include "Nodeset.h"
-#include <libxml/SAX.h>
+#include <libxml/SAX2.h>
 #include <stdio.h>
 
 typedef enum {

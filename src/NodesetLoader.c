@@ -165,7 +165,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         } else if (!strcmp(localname, VALUE)) {
             pctx->state = PARSER_STATE_VALUE;
             pctx->value_depth++;
-            pctx->valueBegin = xmlByteConsumed(pctx->ctxt);
+            pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
             while(pctx->buf[pctx->valueBegin] != '<')
                 pctx->valueBegin--;
         } else if (!strcmp(localname, EXTENSIONS)) {
@@ -289,7 +289,7 @@ OnEndElementNs(void *ctx, const char *localname,
                 /* Leaving the value element. Store the value */
                 /* TODO: Enable VariableType to hold a valeu */
                 if(pctx->node->nodeClass == NODECLASS_VARIABLE) {
-                    long valueEnd = xmlByteConsumed(pctx->ctxt);
+                    long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
                     UA_String xmlValue;
                     xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
                     xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
