@@ -28,7 +28,6 @@ set(NODESETLOADER_BACKEND_OPEN62541_PRIVATE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/padding.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodeset_base64.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.h
     PARENT_SCOPE)
 
