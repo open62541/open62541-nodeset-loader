@@ -29,8 +29,6 @@
 #define NAMESPACEURIS "NamespaceUris"
 #define NAMESPACEURI "Uri"
 #define VALUE "Value"
-#define EXTENSIONS "Extensions"
-#define EXTENSION "Extension"
 #define INVERSENAME "InverseName"
 
 const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
@@ -129,8 +127,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
             pctx->state = PARSER_STATE_ALIAS;
         }
         else if (!strcmp(localname, "UANodeSet") ||
-                 !strcmp(localname, "Aliases") ||
-                 !strcmp(localname, "Extensions"))
+                 !strcmp(localname, "Aliases"))
         {
             pctx->state = PARSER_STATE_INIT;
         }
@@ -168,8 +165,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
             pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
             while(pctx->buf[pctx->valueBegin] != '<')
                 pctx->valueBegin--;
-        } else if (!strcmp(localname, EXTENSIONS)) {
-            pctx->state = PARSER_STATE_EXTENSIONS;
         } else if (!strcmp(localname, "Definition")) {
             Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node, nb_attributes,
                                      attributes);
@@ -200,17 +195,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
     case PARSER_STATE_VALUE:
         if(!strcmp(localname, VALUE))
             pctx->value_depth++; /* Nested <Value> elements */
-        break;
-
-    case PARSER_STATE_EXTENSIONS:
-        if (!strcmp(localname, EXTENSION)) {
-            pctx->state = PARSER_STATE_EXTENSION;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_EXTENSION:
         break;
 
     case PARSER_STATE_REFERENCES:
@@ -292,11 +276,6 @@ OnEndElementNs(void *ctx, const char *localname,
                 pctx->state = PARSER_STATE_NODE;
             }
         }
-        break;
-    case PARSER_STATE_EXTENSION:
-        break;
-    case PARSER_STATE_EXTENSIONS:
-        pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DESCRIPTION:
         Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
