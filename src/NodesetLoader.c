@@ -204,9 +204,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
 
     case PARSER_STATE_EXTENSIONS:
         if (!strcmp(localname, EXTENSION)) {
-            if (pctx->extIf) {
-                pctx->extensionData = pctx->extIf->newExtension();
-            }
             pctx->state = PARSER_STATE_EXTENSION;
         } else {
             pctx->unknown_depth++;
@@ -214,9 +211,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        if (pctx->extIf) {
-            pctx->extIf->start(pctx->extensionData, localname, nb_attributes, attributes);
-        }
         break;
 
     case PARSER_STATE_REFERENCES:
@@ -300,18 +294,6 @@ OnEndElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        if (!strcmp(localname, EXTENSION)) {
-            if (pctx->extIf) {
-                pctx->extIf->finish(pctx->extensionData);
-                pctx->node->extension = pctx->extensionData;
-            }
-            pctx->state = PARSER_STATE_EXTENSIONS;
-        } else {
-            if (pctx->extIf) {
-                pctx->extIf->end(pctx->extensionData, localname,
-                                 pctx->onCharacters);
-            }
-        }
         break;
     case PARSER_STATE_EXTENSIONS:
         pctx->state = PARSER_STATE_NODE;
@@ -386,7 +368,6 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     ctx.nodeset = loader->nodeset;
     ctx.state = PARSER_STATE_INIT;
     ctx.userContext = fileHandler->userContext;
-    ctx.extIf = fileHandler->extensionHandling;
     ctx.nodeset = loader->nodeset;
     ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
 

@@ -43,7 +43,6 @@ struct TParserCtx {
     size_t onCharLength;
     long valueBegin;
     void *extensionData;
-    NodesetLoader_ExtensionInterface *extIf;
     NL_Reference *ref;
     Nodeset *nodeset;
     xmlParserCtxtPtr ctxt;

@@ -635,7 +635,7 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
 }
 
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            NodesetLoader_ExtensionInterface *extensionHandling) {
+                            void *options) {
     if (!server)
         return false;
 
@@ -649,7 +649,6 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = serverContext;
     handler.file = path;
-    handler.extensionHandling = extensionHandling;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     NodesetLoader_Logger *logger =

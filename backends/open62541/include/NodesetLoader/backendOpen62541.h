@@ -9,7 +9,6 @@
 #define __NODESETLOADER_BACKEND_OPEN62541_H__
 
 #include <open62541/server.h>
-#include "NodesetLoader/Extension.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -33,8 +32,9 @@
 extern "C" {
 #endif
 
-LOADER_EXPORT bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
-                            NodesetLoader_ExtensionInterface *extensionHandling);
+LOADER_EXPORT bool
+NodesetLoader_loadFile(struct UA_Server *, const char *path,
+                       void *options);
 
 #ifdef __cplusplus
 }

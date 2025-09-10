@@ -11,7 +11,6 @@
 #include <open62541/types.h>
 #include <open62541/types_generated.h>
 
-#include "Extension.h"
 #include "Logger.h"
 #include "ReferenceService.h"
 #include "arch.h"
@@ -165,7 +164,6 @@ typedef struct NL_FileContext {
     void *userContext;
     const char *file;
     NL_addNamespaceCallback addNamespace;
-    NodesetLoader_ExtensionInterface *extensionHandling;
     UA_NamespaceMapping nsMapping;
 } NL_FileContext;
 
