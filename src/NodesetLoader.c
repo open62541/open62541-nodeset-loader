@@ -5,7 +5,6 @@
  *    Copyright 2019 (c) Matthias Konnerth
  */
 
-#include "InternalLogger.h"
 #include "InternalRefService.h"
 #include "Nodeset.h"
 #include "Parser.h"
@@ -37,8 +36,7 @@ const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
 
 struct NodesetLoader {
     Nodeset *nodeset;
-    NodesetLoader_Logger *logger;
-    bool internalLogger;
+    UA_Logger *logger;
     NL_ReferenceService *refService;
     bool internalRefService;
 };
@@ -313,16 +311,12 @@ static void OnCharacters(void *ctx, const char *ch, int len) {
 bool NodesetLoader_importFile(NodesetLoader *loader,
                               const NL_FileContext *fileHandler) {
     if(!fileHandler) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: no filehandler - abort");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: no filehandler - abort");
         return false;
     }
 
     if(!fileHandler->addNamespace) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: fileHandler->addNamespace missing");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
 
@@ -337,9 +331,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     memset(&ctx, 0, sizeof(struct TParserCtx));
 
     if(!f) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: file open error");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: file open error");
         retStatus = false;
         goto cleanup;
     }
@@ -365,8 +357,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
     }
 
     if(Parser_run(&ctx, f, OnStartElementNs, OnEndElementNs, OnCharacters)) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: xml parsing error");
         retStatus = false;
     }
 
@@ -387,19 +378,13 @@ bool NodesetLoader_sort(NodesetLoader *loader) {
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
+NodesetLoader *NodesetLoader_new(UA_Logger *logger,
                                  NL_ReferenceService *refService) {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
 
-    if(!logger) {
-        loader->logger = InternalLogger_new();
-        loader->internalLogger = true;
-    } else {
-        loader->logger = logger;
-    }
-
+    loader->logger = logger;
     if(!refService) {
         loader->refService = InternalRefService_new();
         loader->internalRefService = true;
@@ -410,13 +395,8 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
     return loader;
 }
 
-void NodesetLoader_delete(NodesetLoader *loader)
-{
+void NodesetLoader_delete(NodesetLoader *loader) {
     Nodeset_cleanup(loader->nodeset);
-    if (loader->internalLogger)
-    {
-        free(loader->logger);
-    }
     if (loader->internalRefService)
     {
         InternalRefService_delete(loader->refService);

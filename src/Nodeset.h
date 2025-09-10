@@ -35,14 +35,14 @@ struct Nodeset {
 
     struct SortContext *sortCtx;
     NL_BiDirectionalReference *hasEncodingRefs;
-    NodesetLoader_Logger* logger;
+    UA_Logger *logger;
     struct NodeContainer *nodesWithUnknownRefs;
     struct NodeContainer *refTypesWithUnknownRefs;
     NL_ReferenceService* refService;
 };
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
-                     NodesetLoader_Logger* logger,
+                     UA_Logger *logger,
                      NL_ReferenceService* refService);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);

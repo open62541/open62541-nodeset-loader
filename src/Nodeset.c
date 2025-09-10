@@ -87,7 +87,7 @@ alias2Id(const Nodeset *nodeset, char *name) {
 
 Nodeset *
 Nodeset_new(NL_addNamespaceCallback nsCallback,
-            NodesetLoader_Logger *logger,
+            UA_Logger *logger,
             NL_ReferenceService *refService) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if(!nodeset)
@@ -173,8 +173,8 @@ bool Nodeset_sort(Nodeset *nodeset) {
         if (!result) {
             UA_String nodeIdStr = {0};
             UA_NodeId_print(&nodeset->nodesWithUnknownRefs->nodes[i]->id, &nodeIdStr);
-            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                                 "node with unresolved reference(s): NodeId(%.*s)",
+            UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                                 "NodesetLoader: Node with unresolved reference(s): NodeId(%.*s)",
                                  (int)nodeIdStr.length, (char *)nodeIdStr.data);
             UA_String_clear(&nodeIdStr);
             return false;
@@ -410,10 +410,8 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
 void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node) {
     if (!node->unknownRefs) {
         if(!Sort_addNode(nodeset->sortCtx, node)) {
-            if (nodeset->logger) {
-                nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                                     "node was not added to sorting algorithm, already exists");
-            }
+            UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                         "NodesetLoader: Node was not added to sorting algorithm, already exists");
             Node_delete(node);
         } else {
             if (node->nodeClass == NODECLASS_REFERENCETYPE) {

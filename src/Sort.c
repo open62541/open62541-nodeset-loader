@@ -8,6 +8,7 @@
 #include "Sort.h"
 
 #include <assert.h>
+#include <open62541/plugin/log.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -348,7 +349,7 @@ bool Sort_addNode(SortContext *ctx, NL_Node *data) {
 }
 
 bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
-                Sort_SortedNodeCallback callback, NodesetLoader_Logger *logger)
+                Sort_SortedNodeCallback callback, UA_Logger *logger)
 {
     walk_tree(ctx, ctx->root1, count_items);
 
@@ -382,11 +383,7 @@ bool Sort_start(SortContext *ctx, struct Nodeset *nodeset,
         }
         if (ctx->keyCnt > 0)
         {
-            if (logger)
-            {
-                logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                            "graph contains a loop, abort");
-            }
+            UA_LOG_ERROR(logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: graph contains a loop, abort");
             return false;
         }
     }

@@ -23,7 +23,7 @@ struct AddNodeContext {
     ServerContext *serverContext;
     NodeContainer *problemNodes;
     UA_NamespaceMapping *nsMapping;
-    NodesetLoader_Logger *logger;
+    UA_Logger *logger;
 };
 
 typedef struct AddNodeContext AddNodeContext;
@@ -243,10 +243,8 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     opts.namespaceMapping = context->nsMapping;
     UA_StatusCode ret =
         UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
-    if(ret != UA_STATUSCODE_GOOD) {
-        context->logger->log(context->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                             "Failed to parse the value of %s", buf);
-    }
+    if(ret != UA_STATUSCODE_GOOD)
+        UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: Failed to parse the value of %s", buf);
 
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
@@ -441,28 +439,6 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
     }
 }
 
-static void
-logToOpen(void *context, enum NodesetLoader_LogLevel level,
-          const char *message, ...) {
-    UA_Logger *logger = (UA_Logger *)context;
-    va_list vl;
-    va_start(vl, message);
-    UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
-    switch (level) {
-    case NODESETLOADER_LOGLEVEL_DEBUG:
-        uaLevel = UA_LOGLEVEL_DEBUG;
-        break;
-    case NODESETLOADER_LOGLEVEL_ERROR:
-        uaLevel = UA_LOGLEVEL_ERROR;
-        break;
-    case NODESETLOADER_LOGLEVEL_WARNING:
-        uaLevel = UA_LOGLEVEL_WARNING;
-        break;
-    }
-    logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
-    va_end(vl);
-}
-
 struct DataTypeImportCtx {
     DataTypeImporter *importer;
     const NL_BiDirectionalReference *hasEncodingRef;
@@ -533,7 +509,7 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
 
 static size_t
 secondChanceAddNodes(AddNodeContext *context,
-                     NodesetLoader_Logger *logger) {
+                     UA_Logger *logger) {
     const size_t attemptsNum = 10;
 
     NodeContainer *problemNodes = context->problemNodes;
@@ -558,7 +534,7 @@ secondChanceAddNodes(AddNodeContext *context,
         }
         size_t counterOfAdddedNodesForOneAttempt = problemNodes->size - local_badStatusNodes->size;
         numberOfAllAddedNodes += counterOfAdddedNodesForOneAttempt;
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
                     "attempt (%zu), imported nodes: %zu", attempt,
                     counterOfAdddedNodesForOneAttempt);
         if(problemNodes != context->problemNodes)
@@ -573,7 +549,7 @@ secondChanceAddNodes(AddNodeContext *context,
 
 static void
 addNodes(NodesetLoader *loader, NL_FileContext *handler,
-         ServerContext *serverContext, NodesetLoader_Logger *logger) {
+         ServerContext *serverContext, UA_Logger *logger) {
     const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_VARIABLETYPE,  NODECLASS_OBJECT,   NODECLASS_METHOD,
@@ -606,7 +582,7 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
 
         // Now we can see the nodes that could not be added and can calculate
         // and show the actual nodes added.
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+        UA_LOG_DEBUG(logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
                     "imported %ss: %zu", NL_NODECLASS_NAME[classToImport],
                     cnt - (badStatusNodes->size - previous_loop_badStatusNodes_size));
         previous_loop_badStatusNodes_size = badStatusNodes->size;
@@ -614,12 +590,12 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
 
     // second chance algorithm
     if (badStatusNodes->size != 0) {
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                    "Couldn't import: %zu. Let's try adding non-imported "
-                    "nodes a few more times.", badStatusNodes->size);
+        UA_LOG_WARNING(logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
+                       "Couldn't import: %zu. Let's try adding non-imported "
+                       "nodes a few more times.", badStatusNodes->size);
         size_t numberOfAllAddedNodes = secondChanceAddNodes(&context, logger);
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                    "imported after attempts: %zu", numberOfAllAddedNodes);
+        UA_LOG_WARNING(logger, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
+                       "imported after attempts: %zu", numberOfAllAddedNodes);
     }
 
     // Delete only reference and container. Not NL_Nodes objects.
@@ -651,32 +627,23 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.file = path;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
-    NodesetLoader_Logger *logger =
-        (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
-#if UA_OPEN62541_VER_MAJOR == 1 && UA_OPEN62541_VER_MINOR < 4
-    logger->context = (void*)(uintptr_t)&config->logger;
-#else
-    logger->context = (void*)(uintptr_t)config->logging;
-#endif
-    logger->log = &logToOpen;
     NL_ReferenceService *refService = RefServiceImpl_new(server);
 
-    NodesetLoader *loader = NodesetLoader_new(logger, refService);
-    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
+    NodesetLoader *loader = NodesetLoader_new(config->logging, refService);
+    UA_LOG_DEBUG(config->logging, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
                 "Start import nodeset: %s", path);
     bool importStatus = NodesetLoader_importFile(loader, &handler);
     bool sortStatus = NodesetLoader_sort(loader);
     bool retStatus = importStatus && sortStatus;
     if (retStatus && sortStatus) {
-        addNodes(loader, &handler, serverContext, logger);
+        addNodes(loader, &handler, serverContext, config->logging);
     } else {
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                    "importing the nodeset failed, nodes were not added");
+        UA_LOG_ERROR(config->logging, UA_LOGCATEGORY_SERVER, "NodesetLoader: "
+                     "importing the nodeset failed, nodes were not added");
     }
     RefServiceImpl_delete(refService);
     NodesetLoader_delete(loader);
     ServerContext_delete(serverContext);
     UA_NamespaceMapping_clear(&handler.nsMapping);
-    free(logger);
     return retStatus;
 }

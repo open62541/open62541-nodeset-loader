@@ -9,9 +9,9 @@
 #define NODESETLOADER_NODESETLOADER_H
 
 #include <open62541/types.h>
+#include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
-#include "Logger.h"
 #include "ReferenceService.h"
 #include "arch.h"
 
@@ -171,7 +171,7 @@ struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
 LOADER_EXPORT NodesetLoader *
-NodesetLoader_new(NodesetLoader_Logger *logger,
+NodesetLoader_new(UA_Logger *logger,
                   struct NL_ReferenceService *refService);
 
 LOADER_EXPORT bool
