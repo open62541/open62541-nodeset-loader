@@ -12,8 +12,6 @@
 #include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
-#include "arch.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -78,7 +76,7 @@ typedef enum {
     // eventtype is handled like a object type
 } NL_NodeClass;
 
-LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
+UA_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
 #define NL_NODE_ATTRIBUTES                                              \
     NL_NodeClass nodeClass;                                             \
@@ -198,30 +196,30 @@ typedef struct NL_FileContext {
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-LOADER_EXPORT NodesetLoader *
+UA_EXPORT NodesetLoader *
 NodesetLoader_new(UA_Logger *logger,
                   NL_ReferenceService *refService);
 
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_importFile(NodesetLoader *loader,
                          const NL_FileContext *fileContext);
 
-LOADER_EXPORT void
+UA_EXPORT void
 NodesetLoader_delete(NodesetLoader *loader);
 
-LOADER_EXPORT const NL_BiDirectionalReference *
+UA_EXPORT const NL_BiDirectionalReference *
 NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader);
 
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_sort(NodesetLoader *loader);
 
 typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
 
-LOADER_EXPORT size_t
+UA_EXPORT size_t
 NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
                           void *context, NodesetLoader_forEachNode_Func fn);
 
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_isInstanceNode (const NL_Node *baseNode);
 
 #ifdef __cplusplus
