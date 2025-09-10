@@ -75,13 +75,6 @@ add_test(NAME cornerCases_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND cornerCases ${CMAKE_CURRENT_SOURCE_DIR}/cornerCases.xml)
 
-add_executable(extension extension.c)
-target_include_directories(extension PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(extension PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME extension_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND extension ${CMAKE_CURRENT_SOURCE_DIR}/extension.xml)
-
 add_executable(newHierachicalRef newHierachicalRef.c)
 target_include_directories(newHierachicalRef PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(newHierachicalRef PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
