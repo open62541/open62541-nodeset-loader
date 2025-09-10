@@ -58,14 +58,4 @@ static inline UA_NodeId extractNodeId(char *s)
     return id;
 }
 
-static inline UA_DateTime UA_DateTime_fromString(const char *dateString)
-{
-    UA_DateTimeStruct dt;
-    memset(&dt, 0, sizeof(UA_DateTimeStruct));
-    sscanf(dateString, "%hi-%hu-%huT%hu:%hu:%huZ",
-           &dt.year, &dt.month, &dt.day, &dt.hour, &dt.min, &dt.sec);
-    UA_DateTime dateTime = UA_DateTime_fromStruct(dt);
-    return dateTime;
-}
-
 #endif
