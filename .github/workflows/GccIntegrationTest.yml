@@ -46,7 +46,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           repository: open62541/open62541
-          ref: 1.4
+          ref: c41ced4e471687a49c89a260bd6c27d1c922f76e
           submodules: recursive
           path: ./openRoot
         
