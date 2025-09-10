@@ -9,11 +9,14 @@
 #include <open62541/types.h>
 
 #include "DataTypeImporter.h"
-#include "conversion.h"
 #include "customDataType.h"
-#include "padding.h"
 
 #include <assert.h>
+
+static inline UA_Byte getPadding(int alignment, int offset) {
+    assert(alignment != 0);
+    return (UA_Byte)((alignment - (offset % alignment)) % alignment);
+}
 
 struct DataTypeImporter {
     UA_DataTypeArray *types;

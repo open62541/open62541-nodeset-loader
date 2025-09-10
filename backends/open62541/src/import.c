@@ -12,7 +12,6 @@
 
 #include "DataTypeImporter.h"
 #include "ServerContext.h"
-#include "conversion.h"
 #include "NodesetLoader/NodesetLoader.h"
 #include "RefServiceImpl.h"
 #include "Node.h"
