@@ -371,7 +371,7 @@ addNodeImpl(AddNodeContext *context, NL_Node *node) {
 
     UA_Server *server = ServerContext_getServerObject(context->serverContext);
 
-    UA_StatusCode res;
+    UA_StatusCode res = UA_STATUSCODE_BADNOTFOUND;
     switch (node->nodeClass) {
     case NODECLASS_OBJECT:
         res = handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
