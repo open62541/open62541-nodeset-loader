@@ -12,7 +12,6 @@
 #include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
-#include "ReferenceService.h"
 #include "arch.h"
 
 #include <stdbool.h>
@@ -25,20 +24,11 @@
 extern "C" {
 #endif
 
-#define NL_NODECLASS_COUNT 8
-typedef enum {
-    NODECLASS_OBJECT = 0,
-    NODECLASS_OBJECTTYPE = 1,
-    NODECLASS_VARIABLE = 2,
-    NODECLASS_DATATYPE = 3,
-    NODECLASS_METHOD = 4,
-    NODECLASS_REFERENCETYPE = 5,
-    NODECLASS_VARIABLETYPE = 6,
-    NODECLASS_VIEW = 7
-    // eventtype is handled like a object type
-} NL_NodeClass;
+/**********************/
+/* Reference Handling */
+/**********************/
 
-LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
+struct NL_ReferenceTypeNode;
 
 struct NL_Reference;
 typedef struct NL_Reference {
@@ -55,6 +45,40 @@ typedef struct NL_BiDirectionalReference {
     UA_NodeId refType;
     struct NL_BiDirectionalReference *next;
 } NL_BiDirectionalReference;
+
+/* This "Service" allows different backends to be queried on the ReferenceTypes
+ * encountered during the load */
+typedef bool (*RefService_isRefHierachical)(void* context, const struct NL_Reference* ref);
+typedef bool (*RefService_isRefNonHierachical)(void* context, const struct NL_Reference *ref);
+typedef bool (*RefService_isHasTypeDefRef)(void *context, const struct NL_Reference *ref);
+typedef void (*RefService_addNewReferenceType)(void* context, const struct NL_ReferenceTypeNode* node);
+
+typedef struct {
+    void* context;
+    RefService_isRefHierachical isHierachicalRef;
+    RefService_isRefNonHierachical isNonHierachicalRef;
+    RefService_isHasTypeDefRef isHasTypeDefRef;
+    RefService_addNewReferenceType addNewReferenceType;
+} NL_ReferenceService;
+
+/******************************/
+/* Node Classes in the Loader */
+/******************************/
+
+#define NL_NODECLASS_COUNT 8
+typedef enum {
+    NODECLASS_OBJECT = 0,
+    NODECLASS_OBJECTTYPE = 1,
+    NODECLASS_VARIABLE = 2,
+    NODECLASS_DATATYPE = 3,
+    NODECLASS_METHOD = 4,
+    NODECLASS_REFERENCETYPE = 5,
+    NODECLASS_VARIABLETYPE = 6,
+    NODECLASS_VIEW = 7
+    // eventtype is handled like a object type
+} NL_NodeClass;
+
+LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
 #define NL_NODE_ATTRIBUTES                                              \
     NL_NodeClass nodeClass;                                             \
@@ -155,6 +179,10 @@ typedef struct NL_ViewNode {
     char *eventNotifier;
 } NL_ViewNode;
 
+/*********************/
+/* NodesetLoader API */
+/*********************/
+
 typedef void (*NL_addNamespaceCallback)(void *userContext,
                                         size_t localNamespaceUrisSize,
                                         UA_String *localNamespaceUris,
@@ -172,7 +200,7 @@ typedef struct NodesetLoader NodesetLoader;
 
 LOADER_EXPORT NodesetLoader *
 NodesetLoader_new(UA_Logger *logger,
-                  struct NL_ReferenceService *refService);
+                  NL_ReferenceService *refService);
 
 LOADER_EXPORT bool
 NodesetLoader_importFile(NodesetLoader *loader,

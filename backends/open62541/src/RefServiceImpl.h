@@ -9,7 +9,7 @@
 #define REFSERVICEIMPL_H
 
 #include <open62541/server.h>
-#include "NodesetLoader/ReferenceService.h"
+#include "NodesetLoader/NodesetLoader.h"
 
 NL_ReferenceService *RefServiceImpl_new(struct UA_Server *server);
 void RefServiceImpl_delete(NL_ReferenceService *service);

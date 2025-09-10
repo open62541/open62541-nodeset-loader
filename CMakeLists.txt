@@ -215,7 +215,6 @@ set(NODESETLOADER_DEPS_LIBS
     CACHE INTERNAL "")
 
 set(NODESETLOADER_PUBLIC_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
     ${NODESETLOADER_BACKEND_PUBLIC_HEADERS}
