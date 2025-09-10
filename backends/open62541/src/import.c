@@ -27,6 +27,13 @@ struct AddNodeContext {
 
 typedef struct AddNodeContext AddNodeContext;
 
+static inline UA_Boolean isValTrue(const char *s) {
+    if(!s)
+        return UA_FALSE;
+    if(strcmp(s, "true"))
+        return false;
+    return true;
+}
 
 static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 {
