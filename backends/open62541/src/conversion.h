@@ -40,22 +40,4 @@ static inline UA_Boolean isValTrue(const char *s)
     return UA_TRUE;
 }
 
-static inline UA_NodeId extractNodeId(char *s)
-{
-    UA_NodeId id = UA_NODEID_NULL;
-    if(!s)
-    {
-        return id;
-    }    
-    UA_String idString;
-    idString.length=strlen(s);
-    idString.data = (UA_Byte*)s;
-    UA_StatusCode result = UA_NodeId_parse(&id, idString);
-    if(result!=UA_STATUSCODE_GOOD)
-    {
-        return id;
-    }
-    return id;
-}
-
 #endif
