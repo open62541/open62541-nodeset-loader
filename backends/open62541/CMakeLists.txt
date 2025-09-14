@@ -1,5 +1,4 @@
 set(NODESETLOADER_BACKEND_OPEN62541_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c
@@ -18,14 +17,10 @@ set(NODESETLOADER_BACKEND_OPEN62541_DEPS_LIBS "" PARENT_SCOPE)
 
 set(NODESETLOADER_BACKEND_OPEN62541_PUBLIC_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/include/NodesetLoader/backendOpen62541.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/NodesetLoader/dataTypes.h
     PARENT_SCOPE)
 
 set(NODESETLOADER_BACKEND_OPEN62541_PRIVATE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/conversion.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/padding.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/nodeset_base64.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.h
