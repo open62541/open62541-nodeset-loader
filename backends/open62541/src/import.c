@@ -8,7 +8,6 @@
 #include <open62541/server.h>
 
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 #include "DataTypeImporter.h"
 #include "ServerContext.h"

@@ -9,7 +9,6 @@
 #include <open62541/types.h>
 
 #include "DataTypeImporter.h"
-#include "customDataType.h"
 
 #include <assert.h>
 
@@ -50,7 +49,7 @@ getDataType(const UA_NodeId *id, const UA_DataTypeArray *customTypes,
     if (id->namespaceIndex == 0)
         return &UA_TYPES[UA_TYPES_VARIANT];
 
-    type = findCustomDataType(id, customTypes);
+    type = UA_findDataTypeWithCustom(id, customTypes);
     if (type && importer) {
         for (size_t i = 0; i < importer->nodesSize; i++) {
             if (UA_NodeId_equal(&importer->nodes[i]->id, &type->typeId)) {

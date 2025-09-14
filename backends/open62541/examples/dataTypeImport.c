@@ -3,7 +3,6 @@
 #include <open62541/server_config_default.h>
 
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 #include <assert.h>
 #include <signal.h>
@@ -35,9 +34,12 @@ void addPoint(UA_Server *server)
     
     struct Point p1 = {1, 2, 3};
 
+    UA_ServerConfig *config;
+
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &p1, NodesetLoader_getCustomDataType(server, &attr.dataType));
+    UA_Variant_setScalar(&var, &p1,
+                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1000), var);
 }
 
@@ -64,9 +66,12 @@ void addStructWithArray(UA_Server *server)
     s.valid = true;
     s.size = 3;
 
+    UA_ServerConfig *config;
+
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &s, NodesetLoader_getCustomDataType(server, &attr.dataType));
+    UA_Variant_setScalar(&var, &s,
+                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
 
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1001), var);
 }
@@ -102,8 +107,10 @@ void addStructWithPointArray(UA_Server *server)
     UA_Variant var;
     UA_Variant_init(&var);
 
+    UA_ServerConfig *config;
+
     UA_Variant_setScalar(&var, &structWithPointData,
-                         NodesetLoader_getCustomDataType(server, &attr.dataType));
+                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
 
     UA_StatusCode retval =
         UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1002), var);
