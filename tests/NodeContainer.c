@@ -10,8 +10,9 @@ static void initNode(NL_VariableNode* n)
 
 START_TEST(newEmptyContainer) {
 
-    NodeContainer* container = NodeContainer_new(100, true);
-    NodeContainer_delete(container);
+    NodeContainer container;
+    NodeContainer_init(&container, 100);
+    NodeContainer_clear(&container);
 }
 END_TEST
 
@@ -19,13 +20,15 @@ START_TEST(ownership) {
 
     NL_VariableNode varNode;
     initNode(&varNode);
+
+    NodeContainer container;
+    NodeContainer_init(&container, 100);
     
-    NodeContainer* container = NodeContainer_new(100, false);
     for(int i=0; i<100; i++)
     {
-        NodeContainer_add(container, (NL_Node*)&varNode);
+        NodeContainer_add(&container, (NL_Node*)&varNode);
     }
-    NodeContainer_delete(container);
+    NodeContainer_clear(&container);
 }
 END_TEST
 
