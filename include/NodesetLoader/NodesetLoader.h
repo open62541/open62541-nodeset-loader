@@ -105,25 +105,9 @@ typedef struct NL_VariableNode {
     UA_String value;
 } NL_VariableNode;
 
-typedef struct NL_DataTypeDefinitionField {
-    char *name;
-    UA_NodeId dataType;
-    int valueRank;
-    int value;
-    bool isOptional;
-} NL_DataTypeDefinitionField;
-
-typedef struct NL_DataTypeDefinition {
-    NL_DataTypeDefinitionField *fields;
-    size_t fieldCnt;
-    bool isEnum;
-    bool isUnion;
-    bool isOptionSet;
-} NL_DataTypeDefinition;
-
 typedef struct NL_DataTypeNode {
     NL_NODE_ATTRIBUTES
-    NL_DataTypeDefinition *definition;
+    UA_String typeDefinition;
     char *isAbstract;
 } NL_DataTypeNode;
 
@@ -157,7 +141,7 @@ typedef struct NL_FileContext {
     const char *file;
     NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
-    UA_NamespaceMapping nsMapping;
+    UA_NamespaceMapping *nsMapping;
 } NL_FileContext;
 
 struct NodesetLoader;
@@ -176,9 +160,10 @@ NodesetLoader_delete(NodesetLoader *loader);
 LOADER_EXPORT bool
 NodesetLoader_sort(NodesetLoader *loader);
 
-typedef void (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
+typedef bool (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
 
-LOADER_EXPORT void
+// Returns false in case of an error
+LOADER_EXPORT bool
 NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
                           NodesetLoader_forEachNode_Func fn);
 

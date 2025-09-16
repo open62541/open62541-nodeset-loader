@@ -132,13 +132,6 @@ add_test(NAME primitiveValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND primitiveValues ${CMAKE_CURRENT_SOURCE_DIR}/primitiveValues.xml)
 
-add_executable(conversion conversion.c)
-target_include_directories(conversion PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(conversion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME conversion_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND conversion)
-
 add_executable(issue_246 issue_246.c)
 target_include_directories(issue_246 PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(issue_246 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})

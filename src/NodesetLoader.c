@@ -184,9 +184,10 @@ OnStartElementNs(void *ctx, const char *localname,
         } else if (!strcmp(localname, EXTENSIONS)) {
             pctx->state = PARSER_STATE_EXTENSIONS;
         } else if (!strcmp(localname, "Definition")) {
-            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node,
-                                          (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+            pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
+            while(pctx->buf[pctx->valueBegin] != '<')
+                pctx->valueBegin--;
         } else if (!strcmp(localname, INVERSENAME)) {
             pctx->state = PARSER_STATE_INVERSENAME;
             Nodeset_setInverseName(pctx->nodeset, pctx->node,
@@ -196,19 +197,6 @@ OnStartElementNs(void *ctx, const char *localname,
             return;
         }
         break;
-    case PARSER_STATE_DATATYPE_DEFINITION:
-        if (!strcmp(localname, "Field")) {
-            Nodeset_addDataTypeField(pctx->nodeset, pctx->node,
-                                     (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        pctx->unknown_depth++;
-        return;
 
     case PARSER_STATE_VALUE:
         if(!strcmp(localname, VALUE))
@@ -242,11 +230,7 @@ OnStartElementNs(void *ctx, const char *localname,
             return;
         }
         break;
-    case PARSER_STATE_DESCRIPTION:
-    case PARSER_STATE_ALIAS:
-    case PARSER_STATE_DISPLAYNAME:
-    case PARSER_STATE_REFERENCE:
-    case PARSER_STATE_INVERSENAME:
+    default:
         pctx->unknown_depth++;
         return;
     }
@@ -265,7 +249,7 @@ OnEndElementNs(void *ctx, const char *localname,
     }
 
     switch (pctx->state) {
-    case PARSER_STATE_INIT:
+    default:
         break;
     case PARSER_STATE_ALIAS:
         Nodeset_newAliasFinish(pctx->nodeset, pctx->alias, pctx->onCharacters);
@@ -298,7 +282,6 @@ OnEndElementNs(void *ctx, const char *localname,
             pctx->value_depth--;
             if(pctx->value_depth == 0) {
                 /* Leaving the value element. Store the value */
-                /* TODO: Enable VariableType to hold a valeu */
                 if(pctx->node->nodeClass == NODECLASS_VARIABLE) {
                     long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
                     UA_String xmlValue;
@@ -327,20 +310,23 @@ OnEndElementNs(void *ctx, const char *localname,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DESCRIPTION:
-        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node,
-                                  pctx->onCharacters);
+        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node, pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_INVERSENAME:
-        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node,
-                                  pctx->onCharacters);
+        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node, pctx->onCharacters);
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
         pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
+        if(pctx->node->nodeClass == NODECLASS_DATATYPE) {
+            long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
+            UA_String xmlValue;
+            xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
+            xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
+            UA_String_copy(&xmlValue,
+                           &((NL_DataTypeNode *)pctx->node)->typeDefinition);
+        }
         break;
     }
     pctx->onCharacters = NULL;
@@ -451,10 +437,10 @@ NodesetLoader_importFile(NodesetLoader *loader,
                                 &ns0, &UA_TYPES[UA_TYPES_STRING]);
         (void)ret;
 
-        if(!loader->nodeset->fc->nsMapping.remote2local) {
-            loader->nodeset->fc->nsMapping.remote2local = (UA_UInt16*)
+        if(!loader->nodeset->fc->nsMapping->remote2local) {
+            loader->nodeset->fc->nsMapping->remote2local = (UA_UInt16*)
                 UA_calloc(1, sizeof(UA_UInt16));
-            loader->nodeset->fc->nsMapping.remote2localSize = 1;
+            loader->nodeset->fc->nsMapping->remote2localSize = 1;
         }
     }
 
@@ -500,8 +486,8 @@ NodesetLoader_delete(NodesetLoader *loader) {
     free(loader);
 }
 
-void
+bool
 NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
                           NodesetLoader_forEachNode_Func fn) {
-    Nodeset_forEachNode(loader->nodeset, context, fn);
+    return Nodeset_forEachNode(loader->nodeset, context, fn);
 }

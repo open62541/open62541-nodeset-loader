@@ -65,15 +65,15 @@ const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
 static UA_NodeId
 parseNodeId(const Nodeset *nodeset, char *s) {
     UA_NodeId n;
-    UA_NodeId_parseEx(&n, UA_STRING(s), &nodeset->fc->nsMapping);
+    UA_NodeId_parseEx(&n, UA_STRING(s), nodeset->fc->nsMapping);
     return n;
 }
 
 static UA_QualifiedName
 parseQualifiedName(const Nodeset *nodeset, char *s) {
     UA_QualifiedName qn;
-    UA_QualifiedName_parseEx(&qn, UA_STRING(s), &nodeset->fc->nsMapping);
-    qn.namespaceIndex = UA_NamespaceMapping_remote2Local(&nodeset->fc->nsMapping, qn.namespaceIndex);
+    UA_QualifiedName_parseEx(&qn, UA_STRING(s), nodeset->fc->nsMapping);
+    qn.namespaceIndex = UA_NamespaceMapping_remote2Local(nodeset->fc->nsMapping, qn.namespaceIndex);
     return qn;
 }
 
@@ -436,48 +436,7 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
     nodeset->fc->addNamespace(nodeset->fc->userContext,
                               nodeset->localNamespaceUrisSize,
                               nodeset->localNamespaceUris,
-                              &nodeset->fc->nsMapping);
-}
-
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
-                                   size_t attributeSize, const char **attributes) {
-    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
-    NL_DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
-    def->isUnion =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
-                                          attributes, attributeSize));
-    def->isOptionSet =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
-                                          attributes, attributeSize));
-}
-
-void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              size_t attributeSize, const char **attributes) {
-    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
-    if(dataTypeNode->definition->isOptionSet)
-        return;
-
-    NL_DataTypeDefinitionField *newField =
-        DataTypeNode_addDefinitionField(dataTypeNode->definition);
-    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
-                                       attributeSize);
-
-    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
-                                    attributeSize);
-    if (value) {
-        newField->value = atoi(value);
-        dataTypeNode->definition->isEnum =
-            !dataTypeNode->definition->isOptionSet;
-    } else {
-        newField->dataType = alias2Id(
-            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
-                                       attributes, attributeSize));
-        newField->valueRank = atoi(getAttributeValue(
-            nodeset, &attrValueRank, attributes, attributeSize));
-        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
-                                             attributes, attributeSize);
-        newField->isOptional = !strcmp("true", isOptional);
-    }
+                              nodeset->fc->nsMapping);
 }
 
 void
@@ -519,12 +478,15 @@ Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
         ((NL_ReferenceTypeNode *)node)->inverseName.text = UA_STRING(text);
 }
 
-void
+bool
 Nodeset_forEachNode(Nodeset *nodeset, void *context,
                     NodesetLoader_forEachNode_Func fn) {
     NodeContainer *c = &nodeset->sortedNodes;
     for(size_t i = 0; i < c->size; i++) {
         NL_Node *node = c->nodes[i];
-        fn(context, node);
+        bool res = fn(context, node);
+        if(!res)
+            return false;
     }
+    return true;
 }
