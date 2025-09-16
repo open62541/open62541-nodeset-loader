@@ -8,8 +8,9 @@
 #ifndef NODESET_H
 #define NODESET_H
 
-#include "CharAllocator.h"
 #include "NodesetLoader/NodesetLoader.h"
+#include "CharAllocator.h"
+#include "Node.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,12 +22,6 @@ struct Nodeset;
 typedef struct Nodeset Nodeset;
 struct Alias;
 struct AliasList;
-
-typedef struct {
-    NL_Node **nodes;
-    size_t size;
-    size_t capacity;
-} NodeContainer;
 
 struct Nodeset {
     CharArenaAllocator *charArena;
@@ -72,7 +67,7 @@ void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text
 void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-void Nodeset_forEachNode(Nodeset *nodeset, void *context,
+bool Nodeset_forEachNode(Nodeset *nodeset, void *context,
                          NodesetLoader_forEachNode_Func fn);
 
 #endif

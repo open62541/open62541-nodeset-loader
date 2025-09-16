@@ -83,8 +83,7 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
                             -Wsign-conversion
                             -Wconversion
                             -Wshadow
-                            -fexceptions
-                            -Wswitch-enum)
+                            -fexceptions)
 
         set(PTHREAD_LIB pthread)
     endif()

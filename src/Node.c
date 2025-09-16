@@ -97,10 +97,6 @@ Node_delete(NL_Node *node) {
     UA_QualifiedName_clear(&node->browseName);
     deleteRef(node->refs);
 
-    if(node->nodeClass == NODECLASS_DATATYPE) {
-        DataTypeNode_clear((NL_DataTypeNode *)node);
-    }
-
     if(node->nodeClass == NODECLASS_VARIABLE) {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         UA_String_clear(&varNode->value);
@@ -111,37 +107,10 @@ Node_delete(NL_Node *node) {
         NL_ObjectNode *objNode = (NL_ObjectNode *)node;
         UA_NodeId_clear(&objNode->parentNodeId);
     }
+
+    if(node->nodeClass==NODECLASS_DATATYPE) {
+        NL_DataTypeNode *dtNode = (NL_DataTypeNode *)node;
+        UA_String_clear(&dtNode->typeDefinition);
+    }
     free(node);
-}
-
-static NL_DataTypeDefinitionField *
-getNewField(NL_DataTypeDefinition *definition) {
-    definition->fieldCnt++;
-    definition->fields = (NL_DataTypeDefinitionField *)
-        realloc(definition->fields,
-                definition->fieldCnt * sizeof(NL_DataTypeDefinitionField));
-    if(!definition->fields)
-        return NULL;
-    return &definition->fields[definition->fieldCnt - 1];
-}
-
-NL_DataTypeDefinition *
-DataTypeDefinition_new(NL_DataTypeNode* node) {
-    node->definition = (NL_DataTypeDefinition *)
-        calloc(1, sizeof(NL_DataTypeDefinition));
-    if(!node->definition)
-        return NULL;
-    return node->definition;
-}
-
-NL_DataTypeDefinitionField *
-DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
-    return getNewField(def);
-}
-
-void
-DataTypeNode_clear(NL_DataTypeNode *node) {
-    if(node->definition)
-        free(node->definition->fields);
-    free(node->definition);
 }
