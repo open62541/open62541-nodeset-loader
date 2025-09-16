@@ -164,8 +164,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
             while(pctx->buf[pctx->valueBegin] != '<')
                 pctx->valueBegin--;
         } else if (!strcmp(localname, "Definition")) {
-            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node, nb_attributes,
-                                     attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         } else if (!strcmp(localname, INVERSENAME)) {
             pctx->state = PARSER_STATE_INVERSENAME;
@@ -176,19 +174,6 @@ static void OnStartElementNs(void *ctx, const char *localname,
             return;
         }
         break;
-    case PARSER_STATE_DATATYPE_DEFINITION:
-        if (!strcmp(localname, "Field")) {
-            Nodeset_addDataTypeField(pctx->nodeset, pctx->node, nb_attributes,
-                                     attributes);
-            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        pctx->unknown_depth++;
-        return;
 
     case PARSER_STATE_VALUE:
         if(!strcmp(localname, VALUE))
@@ -205,6 +190,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
             return;
         }
         break;
+    case PARSER_STATE_DATATYPE_DEFINITION:
     case PARSER_STATE_DESCRIPTION:
     case PARSER_STATE_ALIAS:
     case PARSER_STATE_DISPLAYNAME:
@@ -287,9 +273,6 @@ OnEndElementNs(void *ctx, const char *localname,
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
         pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         break;
     }
     pctx->onCharacters = NULL;

@@ -8,8 +8,9 @@
 #ifndef NODESET_H
 #define NODESET_H
 
-#include "CharAllocator.h"
 #include "NodesetLoader/NodesetLoader.h"
+#include "CharAllocator.h"
+#include "Node.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -20,14 +21,13 @@ struct Alias;
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-struct NodeContainer;
 struct AliasList;
 struct SortContext;
 
 struct Nodeset {
     CharArenaAllocator *charArena;
     struct AliasList *aliasList;
-    struct NodeContainer *nodes[NL_NODECLASS_COUNT];
+    NodeContainer nodes[NL_NODECLASS_COUNT];
 
     NL_FileContext *fc;
     size_t localNamespaceUrisSize;
@@ -36,9 +36,9 @@ struct Nodeset {
     struct SortContext *sortCtx;
     NL_BiDirectionalReference *hasEncodingRefs;
     UA_Logger *logger;
-    struct NodeContainer *nodesWithUnknownRefs;
-    struct NodeContainer *refTypesWithUnknownRefs;
-    NL_ReferenceService* refService;
+    NodeContainer nodesWithUnknownRefs;
+    NodeContainer refTypesWithUnknownRefs;
+    NL_ReferenceService * refService;
 };
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,

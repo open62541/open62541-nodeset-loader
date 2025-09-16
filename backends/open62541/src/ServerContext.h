@@ -9,26 +9,26 @@
 #define SERVERCONTEXT_H
 
 #include <open62541/server.h>
+#include "NodesetLoader/NodesetLoader.h"
+#include "Node.h"
 
-// ServerContext struct bundles the open62541's UA_Server object
-// and a table that maps indices used in the nodeset file to indices used in the server.
-struct ServerContext;
-typedef struct ServerContext ServerContext;
+typedef struct {
+    UA_Server *server;
+    NodeContainer problemNodes;
+    UA_NamespaceMapping nsMapping; // From the nodeset (local) to the server (remote)
+    UA_Logger *logger;
+    UA_DataTypeArray *customTypes; // To be added to the server
+} AddNodeContext;
 
-// ServerContext_new allocates memory that has to released by ServerContext_delete
-ServerContext *ServerContext_new(struct UA_Server *server);
+AddNodeContext * AddNodeContext_new(struct UA_Server *server);
+void AddNodeContext_delete(AddNodeContext *ctx);
 
-// Releases memory allocated by ServerContext_new
-void ServerContext_delete(ServerContext *serverContext);
+/* Moves the datatype into the addnodecontext */
+UA_StatusCode AddNodeContext_addDataType(AddNodeContext *ctx, UA_DataType *t);
 
-// Gets pointer to the UA_Server object
-struct UA_Server *ServerContext_getServerObject(const ServerContext *serverContext);
-
-// Use ServerContext_addNamespaceIdx to sequentially add namespaces as they appear in the
-// nodeset file.
-void ServerContext_addNamespaceIdx(ServerContext *serverContext, UA_UInt16 serverIdx);
-
-// Translates from an index used in the nodeset file to an index used in the server
-UA_UInt16 ServerContext_translateToServerIdx(const ServerContext *serverContext, UA_UInt16 nodesetIdx);
+// Use AddNodeContext_addNamespaceIdx to sequentially add namespaces as they
+// appear in the nodeset file. This adds the namespaces to the server also.
+// Returns the local mapping index, not the in-server mapping index.
+UA_UInt16 AddNodeContext_addNamespace(AddNodeContext *ctx, const UA_String nsUri);
 
 #endif
