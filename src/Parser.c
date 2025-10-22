@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2020 (c) Matthias Konnerth
+ *    Copyright 2025 (c) SICK AG (Author: Joerg Fischer)
  */
 
 #include "Parser.h"
@@ -41,7 +42,7 @@ Parser_run(TParserCtx *parser, FILE *file, Parser_callbackStart start,
     xmlCtxtUseOptions(parser->ctxt, XML_PARSE_HUGE);
     int ret = xmlParseChunk(parser->ctxt, parser->buf, (int)elems, 1);
     if(ret != 0) {
-        xmlError *err = xmlGetLastError();
+        const xmlError *err = xmlGetLastError();
         xmlParserError(parser->ctxt, "xml parse error %i %s", ret, err->message);
         free(parser->buf);
         parser->buf = NULL;
