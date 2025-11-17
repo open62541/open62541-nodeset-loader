@@ -11,16 +11,23 @@
 #include <NodesetLoader/dataTypes.h>
 
 #include "DataTypeImporter.h"
-#include "Value.h"
 #include "ServerContext.h"
 #include "conversion.h"
 #include "NodesetLoader/NodesetLoader.h"
 #include "RefServiceImpl.h"
-#include "nodes/NodeContainer.h"
+#include "Node.h"
 
 #include <assert.h>
 
-unsigned short NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri);
+struct AddNodeContext {
+    ServerContext *serverContext;
+    NodeContainer *problemNodes;
+    UA_NamespaceMapping *nsMapping;
+    NodesetLoader_Logger *logger;
+};
+
+typedef struct AddNodeContext AddNodeContext;
+
 
 static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
 {
@@ -199,14 +206,16 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
     return arrSize;
 }
 
-static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
-                               const UA_NodeId *parentId,
-                               const UA_NodeId *parentReferenceId,
-                               const UA_LocalizedText *lt,
-                               const UA_QualifiedName *qn,
-                               const UA_LocalizedText *description,
-                               const ServerContext *serverContext)
-{
+static UA_StatusCode
+handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
+                   const UA_NodeId *parentId,
+                   const UA_NodeId *parentReferenceId,
+                   const UA_LocalizedText *lt,
+                   const UA_QualifiedName *qn,
+                   const UA_LocalizedText *description,
+                   AddNodeContext *context) {
+    UA_Server *server = ServerContext_getServerObject(context->serverContext);
+
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.displayName = *lt;
     attr.dataType = node->datatype;
@@ -221,76 +230,57 @@ static UA_StatusCode handleVariableNode(const NL_VariableNode *node, UA_NodeId *
     attr.historizing = isValTrue(node->historizing);
     attr.minimumSamplingInterval = atof(node->minimumSamplingInterval);
 
+    char buf[128];
+    memset(buf, 0, 128);
+    UA_String idBuf = {128, (UA_Byte*)buf};
+    UA_NodeId_print(id, &idBuf);
+
+    UA_ServerConfig *sc = UA_Server_getConfig(server);
+    UA_DecodeXmlOptions opts;
+    memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
+    opts.unwrapped = true;
+    opts.customTypes = sc->customDataTypes;
+    opts.namespaceMapping = context->nsMapping;
+    UA_StatusCode ret =
+        UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
+    if(ret != UA_STATUSCODE_GOOD) {
+        context->logger->log(context->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
+                             "Failed to parse the value of %s", buf);
+    }
+
     // this case is only needed for the euromap83 comparison, think the nodeset
     // is not valid
-    if (attr.arrayDimensions == NULL && attr.valueRank == 1)
-    {
+    UA_UInt32 arrayDims;
+    if (attr.arrayDimensions == NULL && attr.valueRank == 1) {
         attr.arrayDimensionsSize = 1;
-        attr.arrayDimensions = UA_UInt32_new();
-        *attr.arrayDimensions = 0;
+        arrayDims = 0;
+        attr.arrayDimensions = &arrayDims;
     }
 
-    if (attr.arrayDimensionsSize == 0 && node->value && node->value->isArray)
-    {
-        attr.arrayDimensions = UA_UInt32_new();
-        *attr.arrayDimensions =
-            (UA_UInt32)node->value->data->val.complexData.membersSize;
+    // set arraydimensions of none defined but value is an array
+    if (attr.arrayDimensionsSize == 0 && attr.value.arrayLength) {
+        arrayDims = (UA_UInt32)attr.value.arrayLength;
+        attr.arrayDimensions = &arrayDims;
         attr.arrayDimensionsSize = 1;
     }
-    RawData *data = NULL;
-    if (node->value && node->value->data != NULL)
-    {
-        const UA_DataType *dataType = UA_findDataType(&attr.dataType);
-        if (!dataType)
-        {
-            // try it with custom types
-            dataType = NodesetLoader_getCustomDataType(ServerContext_getServerObject(serverContext), &attr.dataType);
-            // try it with parent
-            if (!dataType)
-            {
-                const UA_NodeId parent = getParentType(ServerContext_getServerObject(serverContext), attr.dataType);
-                dataType = UA_findDataType(&parent);
-            }
-        }
 
-        UA_ServerConfig *config = UA_Server_getConfig(ServerContext_getServerObject(serverContext));
-        const UA_DataTypeArray *types = config->customDataTypes;
-
-        data = RawData_new(data);
-        Value_getData(data, node->value, dataType, types->types, serverContext);
-
-        if (data)
-        {
-            if (node->value->isArray)
-            {
-                UA_Variant_setArray(
-                    &attr.value, data->mem,
-                    node->value->data->val.complexData.membersSize, dataType);
-            }
-            else
-            {
-                UA_Variant_setScalar(&attr.value, data->mem, dataType);
-            }
-        }
-    }
     UA_NodeId typeDefId = UA_NODEID_NULL;
-    if (node->refToTypeDef)
-    {
+    if(node->refToTypeDef)
         typeDefId = node->refToTypeDef->target;
-    }
 
     //value is copied by open62541
-    UA_StatusCode Status = UA_Server_addNode_begin(ServerContext_getServerObject(serverContext), UA_NODECLASS_VARIABLE, *id, *parentId,
-                            *parentReferenceId, *qn, typeDefId, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
-                            node->extension, NULL);
+    UA_StatusCode res =
+        UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
+                                *parentReferenceId, *qn, typeDefId, &attr,
+                                &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
+                                node->extension, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
-    UA_Variant_clear(&attr.value);
 
-    RawData_delete(data);
-    UA_free(attr.arrayDimensions);
-    return Status;
+    UA_Variant_clear(&attr.value);
+    if(attr.arrayDimensions && attr.arrayDimensions != &arrayDims)
+        UA_free(attr.arrayDimensions);
+    return res;
 }
 
 static UA_StatusCode handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
@@ -316,15 +306,12 @@ static UA_StatusCode handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                     const UA_LocalizedText *lt,
                                     const UA_QualifiedName *qn,
                                     const UA_LocalizedText *description,
-                                    UA_Server *server)
-{
+                                    UA_Server *server) {
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
     attr.symmetric = isValTrue(node->symmetric);
     attr.displayName = *lt;
     attr.description = *description;
-    attr.inverseName =
-        UA_LOCALIZEDTEXT(node->inverseName.locale, node->inverseName.text);
-
+    attr.inverseName = node->inverseName;
     return UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
                                    *qn, attr, node->extension, NULL);
 }
@@ -343,15 +330,11 @@ static UA_StatusCode handleVariableTypeNode(const NL_VariableTypeNode *node, UA_
     attr.description = *description;
     attr.valueRank = atoi(node->valueRank);
     attr.isAbstract = isValTrue(node->isAbstract);
-    if (attr.valueRank >= 0)
-    {
-        if (!strcmp(node->arrayDimensions, ""))
-        {
-            attr.arrayDimensionsSize = 1;
-            UA_UInt32 arrayDimensions[1];
-            arrayDimensions[0] = 0;
-            attr.arrayDimensions = &arrayDimensions[0];
-        }
+    UA_UInt32 arrayDimensions[1];
+    if (attr.valueRank >= 0 && !strcmp(node->arrayDimensions, "")) {
+        attr.arrayDimensionsSize = 1;
+        arrayDimensions[0] = 0;
+        attr.arrayDimensions = &arrayDimensions[0];
     }
 
    return UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
@@ -377,101 +360,97 @@ static UA_StatusCode handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *
                               attr, node->extension, NULL);
 }
 
-struct AddNodeContext
-{
-    ServerContext* serverContext;
-    NodeContainer* problemNodes;
-};
-
-typedef struct AddNodeContext AddNodeContext;
-
-static void addNodeImpl(AddNodeContext *context, NL_Node *node)
-{
+static void
+addNodeImpl(AddNodeContext *context, NL_Node *node) {
     UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
-    UA_LocalizedText lt =
-        UA_LOCALIZEDTEXT(node->displayName.locale, node->displayName.text);
-    UA_QualifiedName qn =
-        UA_QUALIFIEDNAME(node->browseName.nsIdx, node->browseName.name);
-    UA_LocalizedText description =
-        UA_LOCALIZEDTEXT(node->description.locale, node->description.text);
+    UA_LocalizedText lt = node->displayName;
+    UA_QualifiedName qn = node->browseName;
+    UA_LocalizedText description = node->description;
 
-    UA_StatusCode addedNodeStatus;
-    switch (node->nodeClass)
-    {
+    UA_Server *server = ServerContext_getServerObject(context->serverContext);
+
+    UA_StatusCode res = UA_STATUSCODE_BADNOTFOUND;
+    switch (node->nodeClass) {
     case NODECLASS_OBJECT:
-        addedNodeStatus = handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
-                                           &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(context->serverContext));
+        res = handleObjectNode((const NL_ObjectNode *)node, &id, &parentId,
+                               &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_METHOD:
-        addedNodeStatus = handleMethodNode((const NL_MethodNode *)node, &id, &parentId,
-                                           &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(context->serverContext));
+        res = handleMethodNode((const NL_MethodNode *)node, &id, &parentId,
+                               &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_OBJECTTYPE:
-        addedNodeStatus = handleObjectTypeNode((const NL_ObjectTypeNode *)node, &id, &parentId,
-                                               &parentReferenceId, &lt, &qn, &description,
-                                               ServerContext_getServerObject(context->serverContext));
+        res = handleObjectTypeNode((const NL_ObjectTypeNode *)node, &id, &parentId,
+                                   &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_REFERENCETYPE:
-        addedNodeStatus = handleReferenceTypeNode((const NL_ReferenceTypeNode *)node, &id,
-                                                  &parentId, &parentReferenceId, &lt, &qn,
-                                                  &description, ServerContext_getServerObject(context->serverContext));
+        res = handleReferenceTypeNode((const NL_ReferenceTypeNode *)node, &id, &parentId,
+                                      &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_VARIABLETYPE:
-        addedNodeStatus = handleVariableTypeNode((const NL_VariableTypeNode *)node, &id, &parentId,
-                                                 &parentReferenceId, &lt, &qn, &description,
-                                                 ServerContext_getServerObject(context->serverContext));
+        res = handleVariableTypeNode((const NL_VariableTypeNode *)node, &id, &parentId,
+                                     &parentReferenceId, &lt, &qn, &description, server);
         break;
 
     case NODECLASS_VARIABLE:
-        addedNodeStatus = handleVariableNode((const NL_VariableNode *)node, &id, &parentId,
-                                             &parentReferenceId, &lt, &qn, &description, context->serverContext);
+        res = handleVariableNode((const NL_VariableNode *)node, &id, &parentId,
+                                 &parentReferenceId, &lt, &qn, &description, context);
         break;
     case NODECLASS_DATATYPE:
-        addedNodeStatus = handleDataTypeNode((const NL_DataTypeNode *)node, &id, &parentId,
-                                             &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(context->serverContext));
+        res = handleDataTypeNode((const NL_DataTypeNode *)node, &id, &parentId,
+                                 &parentReferenceId, &lt, &qn, &description, server);
         break;
     case NODECLASS_VIEW:
-        addedNodeStatus = handleViewNode((const NL_ViewNode *)node, &id, &parentId,
-                                         &parentReferenceId, &lt, &qn, &description, ServerContext_getServerObject(context->serverContext));
+        res = handleViewNode((const NL_ViewNode *)node, &id, &parentId,
+                             &parentReferenceId, &lt, &qn, &description, server);
         break;
     default:
         addedNodeStatus = UA_STATUSCODE_BADNOTIMPLEMENTED;
     }
+
     // If a node was not added to the server due to an error, we add such a node
     // to a special node container. We can then try to add such nodes later.
-    if(context->problemNodes != NULL && UA_StatusCode_isBad(addedNodeStatus))
-    {
+    if(context->problemNodes != NULL && UA_StatusCode_isBad(res))
         NodeContainer_add(context->problemNodes, node);
+}
+
+static void
+NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
+                                            size_t localNamespaceUrisSize,
+                                            UA_String *localNamespaceUris,
+                                            UA_NamespaceMapping *nsMapping) {
+    ServerContext *serverContext = (ServerContext *)userContext;
+    UA_Server *server = ServerContext_getServerObject(serverContext);
+
+    /* Build up the mapping tables */
+    UA_NamespaceMapping_clear(nsMapping);
+
+    nsMapping->remote2local = (UA_UInt16*)UA_calloc(localNamespaceUrisSize, sizeof(UA_UInt16));
+    nsMapping->remote2localSize = localNamespaceUrisSize;
+
+    /* Add all the namespaces */
+    char nsbuf[256];
+    for(size_t i = 0; i < localNamespaceUrisSize; i++) {
+        memcpy(nsbuf, localNamespaceUris[i].data, localNamespaceUris[i].length);
+        nsbuf[localNamespaceUris[i].length] = 0;
+        nsMapping->remote2local[i] = UA_Server_addNamespace(server, nsbuf);
     }
 }
 
-unsigned short
-NodesetLoader_BackendOpen62541_addNamespace(void *userContext, const char *namespaceUri) {
-    ServerContext *serverContext = (ServerContext *)userContext;
-
-    UA_UInt16 idx =
-        UA_Server_addNamespace(ServerContext_getServerObject(serverContext), namespaceUri);
-
-    ServerContext_addNamespaceIdx(serverContext, idx);
-
-    return idx;
-}
-
-static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
-                      const char *message, ...)
-{
+static void
+logToOpen(void *context, enum NodesetLoader_LogLevel level,
+          const char *message, ...) {
     UA_Logger *logger = (UA_Logger *)context;
     va_list vl;
     va_start(vl, message);
     UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
-    switch (level)
-    {
+    switch (level) {
     case NODESETLOADER_LOGLEVEL_DEBUG:
         uaLevel = UA_LOGLEVEL_DEBUG;
         break;
@@ -486,21 +465,18 @@ static void logToOpen(void *context, enum NodesetLoader_LogLevel level,
     va_end(vl);
 }
 
-struct DataTypeImportCtx
-{
+struct DataTypeImportCtx {
     DataTypeImporter *importer;
     const NL_BiDirectionalReference *hasEncodingRef;
     UA_Server *server;
 };
 
-static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
-{
+static void
+addDataType(struct DataTypeImportCtx *ctx, NL_Node *node) {
     // add only the types
     const NL_BiDirectionalReference *r = ctx->hasEncodingRef;
-    while (r)
-    {
-        if (UA_NodeId_equal(&r->source, &node->id))
-        {
+    while (r) {
+        if (UA_NodeId_equal(&r->source, &node->id)) {
             NL_Reference *ref = (NL_Reference *)calloc(1, sizeof(NL_Reference));
             ref->refType = r->refType;
             ref->target = r->target;
@@ -512,15 +488,12 @@ static void addDataType(struct DataTypeImportCtx *ctx, NL_Node *node)
         }
         r = r->next;
     }
-    const UA_NodeId parent =
-        getParentType(ctx->server, node->id);
-    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node,
-                                       parent);
+    const UA_NodeId parent = getParentType(ctx->server, node->id);
+    DataTypeImporter_addCustomDataType(ctx->importer, (NL_DataTypeNode *)node, parent);
 }
 
-static void importDataTypes(NodesetLoader *loader, UA_Server *server)
-{
-    // add datatypes
+static void
+importDataTypes(NodesetLoader *loader, UA_Server *server) {
     const NL_BiDirectionalReference *hasEncodingRef =
         NodesetLoader_getBidirectionalRefs(loader);
     DataTypeImporter *importer = DataTypeImporter_new(server);
@@ -530,7 +503,6 @@ static void importDataTypes(NodesetLoader *loader, UA_Server *server)
     ctx.importer = importer;
     NodesetLoader_forEachNode(loader, NODECLASS_DATATYPE, &ctx,
                               (NodesetLoader_forEachNode_Func)addDataType);
-
     DataTypeImporter_initMembers(importer);
     DataTypeImporter_delete(importer);
 }
@@ -561,12 +533,13 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
     }
 }
 
-static size_t secondChanceAddNodes(ServerContext *serverContext,
-                                   NodeContainer **badStatusNodes,
-                                   const NodesetLoader_Logger *logger)
-{
+static size_t
+secondChanceAddNodes(AddNodeContext *context,
+                     NodesetLoader_Logger *logger) {
     const size_t attemptsNum = 10;
 
+    NodeContainer *problemNodes = context->problemNodes;
+    
     size_t numberOfAllAddedNodes = 0;
     // We will try to add all failed nodes in a certain number of attempts.
     // This gives us the opportunity to add a chain like Object(child) ->
@@ -574,34 +547,35 @@ static size_t secondChanceAddNodes(ServerContext *serverContext,
     // For example, this reference is used in the HasHistoricalConfiguration
     // reference type.
     size_t attempt = 1;
-    while (attempt != attemptsNum && (*badStatusNodes)->size != 0)
-    {
-        NodeContainer *local_badStatusNodes =
-            NodeContainer_new((*badStatusNodes)->size, false);
-        AddNodeContext context;
-        context.problemNodes = local_badStatusNodes;
-        context.serverContext = serverContext;
-        for (size_t counter = 0; counter < (*badStatusNodes)->size; counter++)
-        {
+    while (attempt != attemptsNum && problemNodes->size != 0) {
+        NodeContainer *local_badStatusNodes = NodeContainer_new(problemNodes->size, false);
+        AddNodeContext c2;
+        c2.problemNodes = local_badStatusNodes;
+        c2.serverContext = context->serverContext;
+        c2.nsMapping = context->nsMapping;
+        c2.logger = logger;
+        for (size_t counter = 0; counter < problemNodes->size; counter++) {
             // Import to server again
-            addNodeImpl(&context, (*badStatusNodes)->nodes[counter]);
+            addNodeImpl(&c2, problemNodes->nodes[counter]);
         }
-        size_t counterOfAdddedNodesForOneAttempt =
-            (*badStatusNodes)->size - local_badStatusNodes->size;
+        size_t counterOfAdddedNodesForOneAttempt = problemNodes->size - local_badStatusNodes->size;
         numberOfAllAddedNodes += counterOfAdddedNodesForOneAttempt;
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                     "attempt (%zu), imported nodes: %zu", attempt,
                     counterOfAdddedNodesForOneAttempt);
-        NodeContainer_delete((*badStatusNodes));
-        (*badStatusNodes) = local_badStatusNodes;
+        if(problemNodes != context->problemNodes)
+            NodeContainer_delete(problemNodes);
+        problemNodes = local_badStatusNodes;
         attempt++;
     }
+    if(problemNodes != context->problemNodes)
+        NodeContainer_delete(problemNodes);
     return numberOfAllAddedNodes;
 }
 
-static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
-                     NodesetLoader_Logger *logger)
-{
+static void
+addNodes(NodesetLoader *loader, NL_FileContext *handler,
+         ServerContext *serverContext, NodesetLoader_Logger *logger) {
     const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_VARIABLETYPE,  NODECLASS_OBJECT,   NODECLASS_METHOD,
@@ -620,14 +594,15 @@ static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
     AddNodeContext context;
     context.problemNodes = badStatusNodes;
     context.serverContext = serverContext;
-    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
-    {
+    context.nsMapping = &handler->nsMapping;
+    context.logger = logger;
+
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
         const NL_NodeClass classToImport = order[i];
         size_t cnt =
             NodesetLoader_forEachNode(loader, classToImport, &context,
                                       (NodesetLoader_forEachNode_Func)addNodeImpl);
-        if (classToImport == NODECLASS_DATATYPE)
-        {
+        if (classToImport == NODECLASS_DATATYPE) {
             importDataTypes(loader, ServerContext_getServerObject(serverContext));
         }
 
@@ -640,13 +615,11 @@ static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
     }
 
     // second chance algorithm
-    if (badStatusNodes->size != 0)
-    {
+    if (badStatusNodes->size != 0) {
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
                     "Couldn't import: %zu. Let's try adding non-imported "
                     "nodes a few more times.", badStatusNodes->size);
-        size_t numberOfAllAddedNodes =
-            secondChanceAddNodes(serverContext, &badStatusNodes, logger);
+        size_t numberOfAllAddedNodes = secondChanceAddNodes(&context, logger);
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
                     "imported after attempts: %zu", numberOfAllAddedNodes);
     }
@@ -664,20 +637,17 @@ static void addNodes(NodesetLoader *loader, ServerContext *serverContext,
 }
 
 bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            NodesetLoader_ExtensionInterface *extensionHandling)
-{
+                            NodesetLoader_ExtensionInterface *extensionHandling) {
     if (!server)
-    {
         return false;
-    }
+
     if (!path)
-    {
         return false;
-    }
 
     ServerContext *serverContext = ServerContext_new(server);
 
     NL_FileContext handler;
+    memset(&handler, 0, sizeof(NL_FileContext));
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = serverContext;
     handler.file = path;
@@ -686,7 +656,11 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     UA_ServerConfig *config = UA_Server_getConfig(server);
     NodesetLoader_Logger *logger =
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
+#if UA_OPEN62541_VER_MAJOR == 1 && UA_OPEN62541_VER_MINOR < 4
+    logger->context = (void*)(uintptr_t)&config->logger;
+#else
     logger->context = (void*)(uintptr_t)config->logging;
+#endif
     logger->log = &logToOpen;
     NL_ReferenceService *refService = RefServiceImpl_new(server);
 
@@ -696,18 +670,16 @@ bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     bool importStatus = NodesetLoader_importFile(loader, &handler);
     bool sortStatus = NodesetLoader_sort(loader);
     bool retStatus = importStatus && sortStatus;
-    if (retStatus && sortStatus)
-    {
-        addNodes(loader, serverContext, logger);
-    }
-    else
-    {
+    if (retStatus && sortStatus) {
+        addNodes(loader, &handler, serverContext, logger);
+    } else {
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
                     "importing the nodeset failed, nodes were not added");
     }
     RefServiceImpl_delete(refService);
     NodesetLoader_delete(loader);
     ServerContext_delete(serverContext);
+    UA_NamespaceMapping_clear(&handler.nsMapping);
     free(logger);
     return retStatus;
 }

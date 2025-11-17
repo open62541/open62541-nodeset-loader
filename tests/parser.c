@@ -6,9 +6,12 @@
 #include "NodesetLoader/NodesetLoader.h"
 #include <stdlib.h>
 
-unsigned short addNamespace(void *userContext, const char *uri) { return 1; }
+void _addNamespace(void *userContext,
+                   size_t localNamespaceUrisSize,
+                   UA_String *localNamespaceUris,
+                   UA_NamespaceMapping *nsMapping) { }
 
-void addNode(void *userContext, const NL_Node *node)
+void _addNode(void *userContext, const NL_Node *node)
 {
     (*((int*)userContext))++;
 }
@@ -28,7 +31,7 @@ static void teardown(void)
 START_TEST(Server_ImportBasicNodeClassTest)
 {
     NL_FileContext handler;
-    handler.addNamespace = addNamespace;
+    handler.addNamespace = _addNamespace;
 
     NodesetLoader *loader = NodesetLoader_new(NULL, NULL);
     handler.file = nodesetPath;
@@ -40,7 +43,7 @@ START_TEST(Server_ImportBasicNodeClassTest)
     for (int i = 0; i < NL_NODECLASS_COUNT; i++)
     {
         NodesetLoader_forEachNode(loader, (NL_NodeClass)i, &nodeCount,
-                                  (NodesetLoader_forEachNode_Func)addNode);
+                                  (NodesetLoader_forEachNode_Func)_addNode);
     }
 
     printf("Loaded %i nodes\n", nodeCount);

@@ -19,7 +19,8 @@ int main(int argc, char *argv[])
 
     int maxValueRank = -1;
     NL_FileContext handler;
-    handler.addNamespace = addNamespace;
+    memset(&handler, 0, sizeof(NL_FileContext));
+    handler.addNamespace = _addNamespace;
     handler.userContext = &maxValueRank;
 
     NodesetLoader *loader = NodesetLoader_new(NULL, NULL);

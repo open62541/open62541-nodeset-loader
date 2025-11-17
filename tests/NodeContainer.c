@@ -1,4 +1,4 @@
-#include "nodes/NodeContainer.h"
+#include "Node.h"
 #include "NodesetLoader/NodesetLoader.h"
 #include "check.h"
 #include <stdio.h>

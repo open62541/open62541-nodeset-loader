@@ -22,14 +22,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
-    const UA_DataTypeArray *customTypes =
-        UA_Server_getConfig(server)->customDataTypes;
-#endif
     UA_Server_delete(server);
-#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
-    NodesetLoader_cleanupCustomDataTypes(customTypes);
-#endif
 }
 
 START_TEST(Server_Issue_246)
@@ -39,7 +32,7 @@ START_TEST(Server_Issue_246)
     UA_NodeClass node_class;
     UA_NodeClass_init(&node_class);
     UA_StatusCode retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(2, "History1.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History1.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
@@ -47,7 +40,7 @@ START_TEST(Server_Issue_246)
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(2, "History2.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History2.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
@@ -55,7 +48,7 @@ START_TEST(Server_Issue_246)
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(2, "History3.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History3.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
@@ -64,7 +57,7 @@ START_TEST(Server_Issue_246)
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(2, "History4.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History4.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);

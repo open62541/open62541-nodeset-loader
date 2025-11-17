@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.13)
 
 project(nodesetLoader)
 
@@ -199,16 +199,11 @@ set(NODESETLOADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CharAllocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AliasList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/NamespaceList.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/DataTypeNode.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Value.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/Node.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/NodeContainer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/Node.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Parser.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NodesetLoader.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/nodes/InstanceNode.c
     ${NODESETLOADER_BACKEND_SOURCES}
     CACHE INTERNAL "")
 
@@ -241,14 +236,10 @@ set(NODESETLOADER_PUBLIC_HEADERS
 set(NODESETLOADER_PRIVATE_HEADERS
     ${PROJECT_SOURCE_DIR}/src/InternalLogger.h
     ${PROJECT_SOURCE_DIR}/src/InternalRefService.h
-    ${PROJECT_SOURCE_DIR}/src/nodes/NodeContainer.h
     ${PROJECT_SOURCE_DIR}/src/CharAllocator.h
     ${PROJECT_SOURCE_DIR}/src/AliasList.h
-    ${PROJECT_SOURCE_DIR}/src/NamespaceList.h
     ${PROJECT_SOURCE_DIR}/src/Sort.h
-    ${PROJECT_SOURCE_DIR}/src/nodes/DataTypeNode.h
-    ${PROJECT_SOURCE_DIR}/src/Value.h
-    ${PROJECT_SOURCE_DIR}/src/nodes/Node.h
+    ${PROJECT_SOURCE_DIR}/src/Node.h
     ${PROJECT_SOURCE_DIR}/src/Nodeset.h
     ${PROJECT_SOURCE_DIR}/src/Parser.h
     ${NODESETLOADER_BACKEND_PRIVATE_HEADERS}
@@ -268,8 +259,6 @@ if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
         target_link_libraries(NodesetLoader PUBLIC NodesetLoaderCoverage)
     endif()
 
-    # TODO: Speficy cleanup of custom data types for a specific open62541 version
-    target_compile_definitions(NodesetLoader PUBLIC -DNODESETLOADER_CLEANUP_CUSTOM_DATATYPES=1)
     target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
     set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
     if(${NODESETLOADER_ENABLE_ASAN})

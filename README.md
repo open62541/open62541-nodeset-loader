@@ -63,10 +63,7 @@ int main(int argc, const char *argv[]) {
   }
   UA_StatusCode retval = UA_Server_run(server, &running);
   //NodesetLoader is allocating memory for custom dataTypes, user has to manually clean up
-  const UA_DataTypeArray *customTypes =
-    UA_Server_getConfig(server)->customDataTypes;
   UA_Server_delete(server);
-  NodesetLoader_cleanupCustomDataTypes(customTypes);
   return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 ```

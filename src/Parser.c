@@ -7,56 +7,50 @@
 
 #include "Parser.h"
 #include <assert.h>
-#include <libxml/SAX.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct Parser
-{
-    void *context;
-};
+/* Read the entire file into a buffer. So we can access entire sub-xml trees
+ * via the "consumed" index. */
+int
+Parser_run(TParserCtx *parser, FILE *file, Parser_callbackStart start,
+           Parser_callbackEnd end, Parser_callbackChar onChars) {
+    fseek(file, 0, SEEK_END);
+    long fsize = ftell(file);
+    fseek(file, 0, SEEK_SET);
 
-Parser *Parser_new(void *context)
-{
-    Parser *parser = (Parser *)calloc(1, sizeof(Parser));
-    assert(parser);
-    parser->context = context;
-    return parser;
-}
-
-int Parser_run(Parser *parser, FILE *file, Parser_callbackStart start,
-               Parser_callbackEnd end, Parser_callbackChar onChars)
-{
-    char chars[1024];
-    int res = (int)fread(chars, 1, 4, file);
-    if (res <= 0)
-    {
+    parser->buf = (char*)malloc((size_t)(fsize + 1));
+    size_t elems = fread(parser->buf, 1, (size_t)fsize+1, file);
+    if (elems == 0)
         return 1;
-    }
 
     xmlSAXHandler hdl;
     memset(&hdl, 0, sizeof(xmlSAXHandler));
     hdl.initialized = XML_SAX2_MAGIC;
+
     // nodesets are encoded with UTF-8
     // this code does no transformation on the encoded text or interprets it
     // so it should be safe to cast xmlChar* to char*
     hdl.startElementNs = (startElementNsSAX2Func)start;
     hdl.endElementNs = (endElementNsSAX2Func)end;
     hdl.characters = (charactersSAXFunc)onChars;
+
     xmlInitParser(); // Fix memory leak: https://gitlab.gnome.org/GNOME/libxml2/-/issues/9
-    xmlParserCtxtPtr ctxt =
-        xmlCreatePushParserCtxt(&hdl, parser->context, chars, res, NULL);
-    while ((res = (int)fread(chars, 1, sizeof(chars), file)) > 0)
-    {
-        if (xmlParseChunk(ctxt, chars, res, 0))
-        {
-            xmlParserError(ctxt, "xmlParseChunk");
-            return 1;
-        }
+
+    parser->ctxt = xmlCreatePushParserCtxt(&hdl, parser, NULL, 0, NULL);
+    xmlCtxtUseOptions(parser->ctxt, XML_PARSE_HUGE);
+    int ret = xmlParseChunk(parser->ctxt, parser->buf, (int)elems, 1);
+    if(ret != 0) {
+        xmlError *err = xmlGetLastError();
+        xmlParserError(parser->ctxt, "xml parse error %i %s", ret, err->message);
+        free(parser->buf);
+        parser->buf = NULL;
+        return 1;
     }
-    xmlParseChunk(ctxt, chars, 0, 1);
-    xmlFreeParserCtxt(ctxt);
+
+    xmlFreeParserCtxt(parser->ctxt);
     xmlCleanupParser();
+    free(parser->buf);
+    parser->buf = NULL;
     return 0;
 }
-void Parser_delete(Parser *parser) { free(parser); }

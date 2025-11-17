@@ -20,12 +20,16 @@ printId(const UA_NodeId *id) {
     return nodeidDump;
 }
 
-unsigned short addNamespace(void *userContext, const char *uri) { return 1; }
+void _addNamespace(void *userContext,
+                   size_t localNamespaceUrisSize,
+                   UA_String *localNamespaceUris,
+                   UA_NamespaceMapping *nsMapping) {
+}
 
 void dumpNode(void *userContext, const NL_Node *node)
 {
     printf("NodeId: %s BrowseName: %s DisplayName: %s\n", printId(&node->id),
-           node->browseName.name, node->displayName.text);
+           node->browseName.name.data, node->displayName.text.data);
 
     switch (node->nodeClass)
     {

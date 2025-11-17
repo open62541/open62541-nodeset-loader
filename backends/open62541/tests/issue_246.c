@@ -22,14 +22,7 @@ static void setup(void)
 static void teardown(void)
 {
     UA_Server_run_shutdown(server);
-#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
-    const UA_DataTypeArray *customTypes =
-        UA_Server_getConfig(server)->customDataTypes;
-#endif
     UA_Server_delete(server);
-#ifdef NODESETLOADER_CLEANUP_CUSTOM_DATATYPES
-    NodesetLoader_cleanupCustomDataTypes(customTypes);
-#endif
 }
 
 START_TEST(Server_Issue_246)
@@ -40,7 +33,7 @@ START_TEST(Server_Issue_246)
     UA_Variant_init(&var);
     // Check if the last node in the chain exists. It should be.
     UA_StatusCode retval = UA_Server_readValue(
-        server, UA_NODEID_STRING(2, "Test.Var4"), &var);
+        server, UA_NODEID_STRING(3, "Test.Var4"), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     UA_Variant_clear(&var);
 }
