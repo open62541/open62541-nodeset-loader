@@ -32,9 +32,9 @@ set(NODESETLOADER_BACKEND_OPEN62541_PRIVATE_HEADERS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.h
     PARENT_SCOPE)
 
-if(${ENABLE_TESTING})
+if(${NODESETLOADER_ENABLE_TESTING})
     add_subdirectory(tests)
 endif()
-if(${ENABLE_EXAMPLES})
+if(${NODESETLOADER_ENABLE_EXAMPLES})
     add_subdirectory(examples)
 endif()

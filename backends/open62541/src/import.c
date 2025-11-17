@@ -410,6 +410,8 @@ addNodeImpl(AddNodeContext *context, NL_Node *node) {
         res = handleViewNode((const NL_ViewNode *)node, &id, &parentId,
                              &parentReferenceId, &lt, &qn, &description, server);
         break;
+    default:
+        addedNodeStatus = UA_STATUSCODE_BADNOTIMPLEMENTED;
     }
 
     // If a node was not added to the server due to an error, we add such a node

@@ -6,46 +6,55 @@ include(GNUInstallDirs)
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-option(ENABLE_TESTING "enable tests" off)
-option(ENABLE_EXAMPLES "enable examples" on)
-option(ENABLE_BACKEND_STDOUT "backend for stdout" on)
-option(ENABLE_ASAN "build with address sanitizer enabled" off)
-option(ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
-option(ENABLE_BUILD_INTO_OPEN62541 "make nodesetLoader part of the open62541 library" off)
-option(ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
-option(CALC_COVERAGE "calculate code coverage" off)
+option(NODESETLOADER_ENABLE_TESTING "enable tests" off)
+option(NODESETLOADER_ENABLE_EXAMPLES "enable examples" on)
+option(NODESETLOADER_ENABLE_BACKEND_STDOUT "backend for stdout" on)
+option(NODESETLOADER_ENABLE_ASAN "build with address sanitizer enabled" off)
+option(NODESETLOADER_ENABLE_INTEGRATION_TEST "run detailled tests to compare address spaces" off)
+option(NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 "make nodesetLoader part of the open62541 library" off)
+option(NODESETLOADER_ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" off)
+option(NODESETLOADER_CALC_COVERAGE "calculate code coverage" off)
+
+# deprecated options without project prefix
+if(DEFINED ENABLE_BACKEND_STDOUT)
+    message(WARNING "ENABLE_BACKEND_STDOUT is deprecated. Use NODESETLOADER_ENABLE_BACKEND_STDOUT instead.")
+    set(NODESETLOADER_ENABLE_BACKEND_STDOUT ${ENABLE_BACKEND_STDOUT} CACHE BOOL "backend for stdout" FORCE)
+endif()
+if(DEFINED ENABLE_BUILD_INTO_OPEN62541)
+    message(WARNING "ENABLE_BUILD_INTO_OPEN62541 is deprecated. Use NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 instead.")
+    set(NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541 ${ENABLE_BUILD_INTO_OPEN62541} CACHE BOOL "make nodesetLoader part of the open62541 library" FORCE)
+endif()
 
 # TODO: Include integration tests after support for XML Data
 #       Encoding has been added to the open62541 >= 1.3.2.
 #       Currently, the integration tests will fail for
 #       open62541 v1.3.2 and disable successful CI build.
-set(ENABLE_INTEGRATION_TEST off)
+set(NODESETLOADER_ENABLE_INTEGRATION_TEST off)
 
-if(${ENABLE_BUILD_INTO_OPEN62541})
-
+if(${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     # Disble code coverage, since this will be covered within open62541
-    set(CALC_COVERAGE off)
+    set(NODESETLOADER_CALC_COVERAGE off)
 
     # TODO: Enable nodesetLoader tests within open62541 test suite
-    set(ENABLE_TESTING off)
+    set(NODESETLOADER_ENABLE_TESTING off)
 
     # TODO: Enable nodesetLoader examples within open62541
-    set(ENABLE_EXAMPLES off)
+    set(NODESETLOADER_ENABLE_EXAMPLES off)
 
-    set(ENABLE_BACKEND_STDOUT off)
+    set(NODESETLOADER_ENABLE_BACKEND_STDOUT off)
 endif()
 
 # LibXML2 is always required
 find_package(LibXml2 REQUIRED QUIET)
 
-add_library(coverageLib INTERFACE)
+add_library(NodesetLoaderCoverage INTERFACE)
 
-if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
+if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
   # open62541 ia always required.
   # But we need to avoid a cyclic dependency if the loader is built into open62541.
   find_package(open62541 REQUIRED)
 
-    if(${CALC_COVERAGE})
+    if(${NODESETLOADER_CALC_COVERAGE})
       #link against this library to gather coverage info
         #set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
 
@@ -56,12 +65,12 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
         # compiling and -lgcov when linking
         #add_compile_options(--coverage -O0)
         #add_link_options(--coverage)
-        target_compile_options(coverageLib INTERFACE
+        target_compile_options(NodesetLoaderCoverage INTERFACE
             -O0        # no optimization
             -g         # generate debug info
             --coverage # sets all required flags)
         )
-        target_link_libraries(coverageLib INTERFACE --coverage)
+        target_link_libraries(NodesetLoaderCoverage INTERFACE --coverage)
     endif()
 
     if(MSVC)
@@ -90,7 +99,7 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
     endif()
 endif()
 
-if(${ENABLE_BUILD_INTO_OPEN62541})
+if(${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     # Examples for the ${OPEN62541_VERSION} string are:
     # v1.2
     # v1.2.3
@@ -175,7 +184,7 @@ else()
     endif()
 endif()
 
-if(${ENABLE_TESTING})
+if(${NODESETLOADER_ENABLE_TESTING})
     find_package(Check REQUIRED)
     if(NOT CHECK_LIBRARIES)
         set(CHECK_LIBRARIES Check::check)
@@ -236,7 +245,7 @@ set(NODESETLOADER_PRIVATE_HEADERS
     ${NODESETLOADER_BACKEND_PRIVATE_HEADERS}
     CACHE INTERNAL "")
 
-if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
+if(NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     add_library(NodesetLoader ${NODESETLOADER_SOURCES})
 
     target_include_directories(NodesetLoader
@@ -246,27 +255,27 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
     target_link_libraries(NodesetLoader PRIVATE ${NODESETLOADER_DEPS_LIBS})
     target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 
-    if(${CALC_COVERAGE})
-        target_link_libraries(NodesetLoader PUBLIC coverageLib)
+    if(${NODESETLOADER_CALC_COVERAGE})
+        target_link_libraries(NodesetLoader PUBLIC NodesetLoaderCoverage)
     endif()
 
     target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
     set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
-    if(${ENABLE_ASAN})
+    if(${NODESETLOADER_ENABLE_ASAN})
         target_link_libraries(NodesetLoader INTERFACE "-g -fno-omit-frame-pointer -fsanitize=address -fsanitize-address-use-after-scope -fsanitize-coverage=trace-pc-guard,trace-cmp -fsanitize=leak -fsanitize=undefined")
     endif()
 endif()
 
-if(${ENABLE_TESTING})
+if(${NODESETLOADER_ENABLE_TESTING})
     add_subdirectory(tests)
 endif()
 
-if(${CALC_COVERAGE})
+if(${NODESETLOADER_CALC_COVERAGE})
     add_subdirectory(coverage)
 endif()
 
 #install
-if(NOT ${CALC_COVERAGE} AND NOT ${ENABLE_BUILD_INTO_OPEN62541})
+if(NOT ${NODESETLOADER_CALC_COVERAGE} AND NOT ${NODESETLOADER_ENABLE_BUILD_INTO_OPEN62541})
     set_target_properties(NodesetLoader PROPERTIES PUBLIC_HEADER "${NODESETLOADER_PUBLIC_HEADERS}")
 
     install(TARGETS NodesetLoader
