@@ -13,7 +13,7 @@ struct InternalRefService
 {
     size_t hierachicalRefsSize;
     NL_ReferenceTypeNode *hierachicalRefs;
-    struct NodeContainer *nonHierachicalRefs;
+    NodeContainer nonHierachicalRefs;
 };
 
 typedef struct InternalRefService InternalRefService;
@@ -139,9 +139,9 @@ isRefNonHierachical(const InternalRefService *service,
     if (ref->refType.namespaceIndex == 0)
         return true;
 
-    for (size_t i = 0; i < service->nonHierachicalRefs->size; i++) {
+    for (size_t i = 0; i < service->nonHierachicalRefs.size; i++) {
         if (UA_NodeId_equal(&ref->refType,
-                            &service->nonHierachicalRefs->nodes[i]->id))
+                            &service->nonHierachicalRefs.nodes[i]->id))
             return true;
     }
     return false;
@@ -181,21 +181,19 @@ addnewRefTypeImpl(InternalRefService *service, NL_ReferenceTypeNode *node) {
         ref = ref->next;
     }
     if (!isHierachical) {
-        NodeContainer_add(service->nonHierachicalRefs, (NL_Node *)node);
+        NodeContainer_add(&service->nonHierachicalRefs, (NL_Node *)node);
     }
 }
 
 NL_ReferenceService *InternalRefService_new(void)
 {
-    InternalRefService *service =
-        (InternalRefService *)calloc(1, sizeof(InternalRefService));
+    InternalRefService *service = (InternalRefService *)calloc(1, sizeof(InternalRefService));
     if(!service)
-    {
         return NULL;
-    }
+
     service->hierachicalRefs = hierachicalRefs;
     service->hierachicalRefsSize = 9;
-    service->nonHierachicalRefs = NodeContainer_new(100, false);
+    NodeContainer_init(&service->nonHierachicalRefs, 100, false);
 
     NL_ReferenceService *refService = (NL_ReferenceService *)calloc(1, sizeof(NL_ReferenceService));
     if(!refService)
@@ -218,7 +216,7 @@ void InternalRefService_delete(NL_ReferenceService *refService)
 {
     InternalRefService *internalService =
         (InternalRefService *)refService->context;
-    NodeContainer_delete(internalService->nonHierachicalRefs);
+    NodeContainer_clear(&internalService->nonHierachicalRefs);
     free(internalService);
     free(refService);
 }

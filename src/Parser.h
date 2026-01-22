@@ -25,10 +25,7 @@ typedef enum {
     PARSER_STATE_NAMESPACEURIS,
     PARSER_STATE_URI,
     PARSER_STATE_VALUE,
-    PARSER_STATE_EXTENSION,
-    PARSER_STATE_EXTENSIONS,
     PARSER_STATE_DATATYPE_DEFINITION,
-    PARSER_STATE_DATATYPE_DEFINITION_FIELD
 } TParserState;
 
 struct TParserCtx {
@@ -43,7 +40,6 @@ struct TParserCtx {
     size_t onCharLength;
     long valueBegin;
     void *extensionData;
-    NodesetLoader_ExtensionInterface *extIf;
     NL_Reference *ref;
     Nodeset *nodeset;
     xmlParserCtxtPtr ctxt;

@@ -7,24 +7,16 @@
 
 #include "Node.h"
 
-NodeContainer *
-NodeContainer_new(size_t initialSize, bool owner) {
-    NodeContainer *container =
-        (NodeContainer *)calloc(1, sizeof(NodeContainer));
-    if(!container)
-        return NULL;
-
-    container->nodes =
-        (NL_Node **)calloc(initialSize, sizeof(NL_Node*));
-    if(!container->nodes) {
-        free(container);
-        return NULL;
-    }
+void
+NodeContainer_init(NodeContainer *container, size_t initialSize, bool owner) {
+    memset(container, 0, sizeof(NodeContainer));
+    container->nodes = (NL_Node **)calloc(initialSize, sizeof(NL_Node*));
+    if(!container->nodes)
+        return;
     container->size = 0;
     container->capacity = initialSize;
     container->incrementSize = initialSize;
     container->owner = owner;
-    return container;
 }
 
 void
@@ -42,13 +34,19 @@ NodeContainer_add(NodeContainer *container, NL_Node *node) {
 }
 
 void
-NodeContainer_delete(NodeContainer *container) {
-    if (container->owner) {
-        for (size_t i = 0; i < container->size; i++) {
+NodeContainer_clear(NodeContainer *container) {
+    if(container->owner) {
+        for (size_t i = 0; i < container->size; i++)
             Node_delete(container->nodes[i]);
-        }
     }
     free(container->nodes);
+    memset(container, 0, sizeof(NodeContainer));
+    container->nodes = NULL;
+}
+
+void
+NodeContainer_delete(NodeContainer *container) {
+    NodeContainer_clear(container);
     free(container);
 }
 
@@ -105,10 +103,6 @@ Node_delete(NL_Node *node) {
     deleteRef(node->hierachicalRefs);
     deleteRef(node->nonHierachicalRefs);
 
-    if(node->nodeClass == NODECLASS_DATATYPE) {
-        DataTypeNode_clear((NL_DataTypeNode *)node);
-    }
-
     if(node->nodeClass == NODECLASS_VARIABLE) {
         NL_VariableNode* varNode = (NL_VariableNode*)node;
         free(varNode->refToTypeDef);
@@ -130,36 +124,4 @@ NodesetLoader_isInstanceNode(const NL_Node *baseNode) {
             baseNode->nodeClass == NODECLASS_OBJECT ||
             baseNode->nodeClass == NODECLASS_METHOD ||
             baseNode->nodeClass == NODECLASS_VIEW);
-}
-
-static NL_DataTypeDefinitionField *
-getNewField(NL_DataTypeDefinition *definition) {
-    definition->fieldCnt++;
-    definition->fields = (NL_DataTypeDefinitionField *)
-        realloc(definition->fields,
-                definition->fieldCnt * sizeof(NL_DataTypeDefinitionField));
-    if(!definition->fields)
-        return NULL;
-    return &definition->fields[definition->fieldCnt - 1];
-}
-
-NL_DataTypeDefinition *
-DataTypeDefinition_new(NL_DataTypeNode* node) {
-    node->definition = (NL_DataTypeDefinition *)
-        calloc(1, sizeof(NL_DataTypeDefinition));
-    if(!node->definition)
-        return NULL;
-    return node->definition;
-}
-
-NL_DataTypeDefinitionField *
-DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
-    return getNewField(def);
-}
-
-void
-DataTypeNode_clear(NL_DataTypeNode *node) {
-    if(node->definition)
-        free(node->definition->fields);
-    free(node->definition);
 }

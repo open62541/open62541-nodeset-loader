@@ -186,7 +186,6 @@ endif()
 add_subdirectory(backends)
 
 set(NODESETLOADER_SOURCES
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/PrintfLogger.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/InternalRefService.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CharAllocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AliasList.c
@@ -216,16 +215,11 @@ set(NODESETLOADER_DEPS_LIBS
     CACHE INTERNAL "")
 
 set(NODESETLOADER_PUBLIC_HEADERS
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Extension.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/Logger.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/ReferenceService.h
-    ${PROJECT_SOURCE_DIR}/include/NodesetLoader/arch.h
     ${PROJECT_SOURCE_DIR}/include/NodesetLoader/NodesetLoader.h
     ${NODESETLOADER_BACKEND_PUBLIC_HEADERS}
     CACHE INTERNAL "")
 
 set(NODESETLOADER_PRIVATE_HEADERS
-    ${PROJECT_SOURCE_DIR}/src/InternalLogger.h
     ${PROJECT_SOURCE_DIR}/src/InternalRefService.h
     ${PROJECT_SOURCE_DIR}/src/CharAllocator.h
     ${PROJECT_SOURCE_DIR}/src/AliasList.h

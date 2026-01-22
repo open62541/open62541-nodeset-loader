@@ -4,7 +4,6 @@
 #include <open62541/util.h>
 
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 #include <signal.h>
 #include <stdlib.h>

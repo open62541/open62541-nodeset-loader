@@ -75,13 +75,6 @@ add_test(NAME cornerCases_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND cornerCases ${CMAKE_CURRENT_SOURCE_DIR}/cornerCases.xml)
 
-add_executable(extension extension.c)
-target_include_directories(extension PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(extension PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME extension_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND extension ${CMAKE_CURRENT_SOURCE_DIR}/extension.xml)
-
 add_executable(newHierachicalRef newHierachicalRef.c)
 target_include_directories(newHierachicalRef PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(newHierachicalRef PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
@@ -131,13 +124,6 @@ target_link_libraries(primitiveValues PRIVATE NodesetLoader open62541::open62541
 add_test(NAME primitiveValues_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND primitiveValues ${CMAKE_CURRENT_SOURCE_DIR}/primitiveValues.xml)
-
-add_executable(conversion conversion.c)
-target_include_directories(conversion PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(conversion PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME conversion_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND conversion)
 
 add_executable(issue_246 issue_246.c)
 target_include_directories(issue_246 PRIVATE ${CHECK_INCLUDE_DIR})

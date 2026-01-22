@@ -9,26 +9,21 @@
 #define NODE_H
 
 #include "NodesetLoader/NodesetLoader.h"
-#include "Nodeset.h"
 
-struct NodeContainer {
+typedef struct {
     NL_Node **nodes;
     size_t size;
     size_t capacity;
     size_t incrementSize;
     bool owner;
-};
-typedef struct NodeContainer NodeContainer;
+} NodeContainer;
 
-NodeContainer *NodeContainer_new(size_t initialSize, bool owner);
+void NodeContainer_init(NodeContainer *container, size_t initialSize, bool owner);
+void NodeContainer_clear(NodeContainer *container);
 void NodeContainer_delete(NodeContainer *container);
 void NodeContainer_add(NodeContainer *container, NL_Node *node);
 
 NL_Node *Node_new(NL_NodeClass nodeClass);
 void Node_delete(NL_Node *node);
-
-void DataTypeNode_clear(NL_DataTypeNode *node);
-NL_DataTypeDefinition *DataTypeDefinition_new(NL_DataTypeNode *node);
-NL_DataTypeDefinitionField *DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def);
 
 #endif

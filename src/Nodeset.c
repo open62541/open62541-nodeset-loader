@@ -87,7 +87,7 @@ alias2Id(const Nodeset *nodeset, char *name) {
 
 Nodeset *
 Nodeset_new(NL_addNamespaceCallback nsCallback,
-            NodesetLoader_Logger *logger,
+            UA_Logger *logger,
             NL_ReferenceService *refService) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if(!nodeset)
@@ -95,16 +95,16 @@ Nodeset_new(NL_addNamespaceCallback nsCallback,
 
     nodeset->aliasList = AliasList_new();
     nodeset->charArena = CharArenaAllocator_new(1024 * 1024);
-    nodeset->nodes[NODECLASS_OBJECT] = NodeContainer_new(10000, true);
-    nodeset->nodes[NODECLASS_VARIABLE] = NodeContainer_new(10000, true);
-    nodeset->nodes[NODECLASS_METHOD] = NodeContainer_new(1000, true);
-    nodeset->nodes[NODECLASS_OBJECTTYPE] = NodeContainer_new(100, true);
-    nodeset->nodes[NODECLASS_DATATYPE] = NodeContainer_new(100, true);
-    nodeset->nodes[NODECLASS_REFERENCETYPE] = NodeContainer_new(100, true);
-    nodeset->nodes[NODECLASS_VARIABLETYPE] = NodeContainer_new(100, true);
-    nodeset->nodes[NODECLASS_VIEW] = NodeContainer_new(10, true);
-    nodeset->nodesWithUnknownRefs = NodeContainer_new(100, false);
-    nodeset->refTypesWithUnknownRefs = NodeContainer_new(100, false);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_OBJECT], 10000, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_VARIABLE], 10000, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_METHOD], 10000, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_OBJECTTYPE], 100, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_DATATYPE], 100, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_REFERENCETYPE], 100, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_VARIABLETYPE], 100, true);
+    NodeContainer_init(&nodeset->nodes[NODECLASS_VIEW], 10, true);
+    NodeContainer_init(&nodeset->nodesWithUnknownRefs, 100, false);
+    NodeContainer_init(&nodeset->refTypesWithUnknownRefs, 100, false);
     nodeset->refService = refService;
     nodeset->sortCtx = Sort_init();
     nodeset->logger = logger;
@@ -112,7 +112,7 @@ Nodeset_new(NL_addNamespaceCallback nsCallback,
 }
 
 static void Nodeset_addNode(Nodeset *nodeset, NL_Node *node) {
-    NodeContainer_add(nodeset->nodes[node->nodeClass], node);
+    NodeContainer_add(&nodeset->nodes[node->nodeClass], node);
 }
 
 static void insertElementAtFront(NL_Reference **toList, NL_Reference *elem) {
@@ -149,14 +149,14 @@ lookupReferenceTypes(Nodeset *nodeset) {
     bool allRefTypesKnown = false;
     while (!allRefTypesKnown) {
         allRefTypesKnown = true;
-        for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++) {
+        for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs.size; i++) {
             allRefTypesKnown =
-                lookupUnknownReferences(nodeset, nodeset->refTypesWithUnknownRefs->nodes[i]);
+                lookupUnknownReferences(nodeset, nodeset->refTypesWithUnknownRefs.nodes[i]);
         }
     }
 
-    for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs->size; i++) {
-        Sort_addNode(nodeset->sortCtx, nodeset->refTypesWithUnknownRefs->nodes[i]);
+    for (size_t i = 0; i < nodeset->refTypesWithUnknownRefs.size; i++) {
+        Sort_addNode(nodeset->sortCtx, nodeset->refTypesWithUnknownRefs.nodes[i]);
     }
 }
 
@@ -167,19 +167,19 @@ bool Nodeset_sort(Nodeset *nodeset) {
 
     // all hierachical references of a node should be known at this point
     // if there are nodes with unknown references, the import will be aborted
-    for (size_t i = 0; i < nodeset->nodesWithUnknownRefs->size; i++) {
+    for (size_t i = 0; i < nodeset->nodesWithUnknownRefs.size; i++) {
         bool result = lookupUnknownReferences(
-            nodeset, nodeset->nodesWithUnknownRefs->nodes[i]);
+            nodeset, nodeset->nodesWithUnknownRefs.nodes[i]);
         if (!result) {
             UA_String nodeIdStr = {0};
-            UA_NodeId_print(&nodeset->nodesWithUnknownRefs->nodes[i]->id, &nodeIdStr);
-            nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                                 "node with unresolved reference(s): NodeId(%.*s)",
+            UA_NodeId_print(&nodeset->nodesWithUnknownRefs.nodes[i]->id, &nodeIdStr);
+            UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                                 "NodesetLoader: Node with unresolved reference(s): NodeId(%.*s)",
                                  (int)nodeIdStr.length, (char *)nodeIdStr.data);
             UA_String_clear(&nodeIdStr);
             return false;
         }
-        Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs->nodes[i]);
+        Sort_addNode(nodeset->sortCtx, nodeset->nodesWithUnknownRefs.nodes[i]);
     }
 
     return Sort_start(nodeset->sortCtx, nodeset, Nodeset_addNode, nodeset->logger);
@@ -189,10 +189,10 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
     for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++) {
-        NodeContainer_delete(nodeset->nodes[cnt]);
+        NodeContainer_clear(&nodeset->nodes[cnt]);
     }
-    NodeContainer_delete(nodeset->nodesWithUnknownRefs);
-    NodeContainer_delete(nodeset->refTypesWithUnknownRefs);
+    NodeContainer_clear(&nodeset->nodesWithUnknownRefs);
+    NodeContainer_clear(&nodeset->refTypesWithUnknownRefs);
     Sort_cleanup(nodeset->sortCtx);
     NL_BiDirectionalReference *ref = nodeset->hasEncodingRefs;
     while (ref)
@@ -288,6 +288,8 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
 
     case NODECLASS_DATATYPE:
         ((NL_DataTypeNode *)node)->isAbstract =
+            getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
+        ((NL_DataTypeNode *)node)->typeDefinition =
             getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
         break;
 
@@ -410,10 +412,8 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
 void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node) {
     if (!node->unknownRefs) {
         if(!Sort_addNode(nodeset->sortCtx, node)) {
-            if (nodeset->logger) {
-                nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                                     "node was not added to sorting algorithm, already exists");
-            }
+            UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                         "NodesetLoader: Node was not added to sorting algorithm, already exists");
             Node_delete(node);
         } else {
             if (node->nodeClass == NODECLASS_REFERENCETYPE) {
@@ -423,9 +423,9 @@ void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node) {
         }
     } else {
         if (node->nodeClass == NODECLASS_REFERENCETYPE) {
-            NodeContainer_add(nodeset->refTypesWithUnknownRefs, node);
+            NodeContainer_add(&nodeset->refTypesWithUnknownRefs, node);
         } else {
-            NodeContainer_add(nodeset->nodesWithUnknownRefs, node);
+            NodeContainer_add(&nodeset->nodesWithUnknownRefs, node);
         }
     }
 }
@@ -450,47 +450,6 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref,
         NL_BiDirectionalReference *lastRef = nodeset->hasEncodingRefs;
         nodeset->hasEncodingRefs = newRef;
         newRef->next = lastRef;
-    }
-}
-
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
-                                   int attributeSize, const char **attributes) {
-    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
-    NL_DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
-    def->isUnion =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
-                                          attributes, attributeSize));
-    def->isOptionSet =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
-                                          attributes, attributeSize));
-}
-
-void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              int attributeSize, const char **attributes) {
-    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
-    if(dataTypeNode->definition->isOptionSet)
-        return;
-
-    NL_DataTypeDefinitionField *newField =
-        DataTypeNode_addDefinitionField(dataTypeNode->definition);
-    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
-                                       attributeSize);
-
-    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
-                                    attributeSize);
-    if (value) {
-        newField->value = atoi(value);
-        dataTypeNode->definition->isEnum =
-            !dataTypeNode->definition->isOptionSet;
-    } else {
-        newField->dataType = alias2Id(
-            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
-                                       attributes, attributeSize));
-        newField->valueRank = atoi(getAttributeValue(
-            nodeset, &attrValueRank, attributes, attributeSize));
-        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
-                                             attributes, attributeSize);
-        newField->isOptional = !strcmp("true", isOptional);
     }
 }
 
@@ -541,7 +500,7 @@ Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
 size_t
 Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                     void *context, NodesetLoader_forEachNode_Func fn) {
-    NodeContainer *c = nodeset->nodes[nodeClass];
+    NodeContainer *c = &nodeset->nodes[nodeClass];
     for(NL_Node **node = c->nodes; node != c->nodes + c->size; node++) {
         fn(context, *node);
     }

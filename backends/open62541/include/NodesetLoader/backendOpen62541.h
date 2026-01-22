@@ -9,32 +9,17 @@
 #define __NODESETLOADER_BACKEND_OPEN62541_H__
 
 #include <open62541/server.h>
-#include "NodesetLoader/Extension.h"
 
 #include <stdbool.h>
 #include <stdio.h>
-
-#if defined(_WIN32)
-#ifdef __GNUC__
-#define LOADER_EXPORT __attribute__((dllexport))
-#else
-#define LOADER_EXPORT __declspec(dllexport)
-#endif
-#else /* non win32 */
-#if __GNUC__ || __clang__
-#define LOADER_EXPORT __attribute__((visibility("default")))
-#endif
-#endif
-#ifndef LOADER_EXPORT
-#define LOADER_EXPORT /* fallback to default */
-#endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-LOADER_EXPORT bool NodesetLoader_loadFile(struct UA_Server *, const char *path,
-                            NodesetLoader_ExtensionInterface *extensionHandling);
+UA_EXPORT bool
+NodesetLoader_loadFile(struct UA_Server *, const char *path,
+                       void *options);
 
 #ifdef __cplusplus
 }
