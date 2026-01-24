@@ -47,8 +47,8 @@ struct NodesetLoader {
 
 static void OnStartElementNs(void *ctx, const char *localname,
                              const char *prefix, const char *URI,
-                             int nb_namespaces, const char **namespaces,
-                             int nb_attributes, int nb_defaulted,
+                             size_t nb_namespaces, const char **namespaces,
+                             size_t nb_attributes, size_t nb_defaulted,
                              const char **attributes) {
     TParserCtx *pctx = (TParserCtx *)ctx;
 
@@ -214,8 +214,9 @@ static void OnStartElementNs(void *ctx, const char *localname,
         }
         break;
     case PARSER_STATE_EXTENSION:
-        if (pctx->extIf) {
-            pctx->extIf->start(pctx->extensionData, localname, nb_attributes, attributes);
+        if(pctx->extIf) {
+            pctx->extIf->start(pctx->extensionData, localname,
+                               (int)nb_attributes, attributes);
         }
         break;
 
@@ -337,16 +338,18 @@ OnEndElementNs(void *ctx, const char *localname,
     pctx->onCharLength = 0;
 }
 
-static void OnCharacters(void *ctx, const char *ch, int len) {
+static void
+OnCharacters(void *ctx, const char *ch, size_t len) {
     TParserCtx *pctx = (TParserCtx *)ctx;
     if (pctx->onCharacters == NULL) {
-        pctx->onCharacters = CharArenaAllocator_malloc(pctx->nodeset->charArena, (size_t)len + 1);
+        char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
+        pctx->onCharacters = newValue;
     } else {
         pctx->onCharacters = CharArenaAllocator_realloc(
-            pctx->nodeset->charArena, (size_t)len + 1);
+            pctx->nodeset->charArena, len + 1);
     }
-    memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
-    pctx->onCharLength += (size_t)len;
+    memcpy(pctx->onCharacters + pctx->onCharLength, ch, len);
+    pctx->onCharLength += len;
 }
 
 bool NodesetLoader_importFile(NodesetLoader *loader,

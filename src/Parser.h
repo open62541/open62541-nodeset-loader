@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2020 (c) Matthias Konnerth
+ *    Copyright 2026 (c) o6 Automation GmbH (Author: Julius Pfrommer)
  */
 
 #ifndef PARSER_H
@@ -50,18 +51,21 @@ struct TParserCtx {
     char *buf;
 };
 
+#include <stdio.h>
+
 typedef void (*Parser_callbackStart)(void *ctx, const char *localname,
                                      const char *prefix, const char *URI,
-                                     int nb_namespaces, const char **namespaces,
-                                     int nb_attributes, int nb_defaulted,
+                                     size_t nb_namespaces, const char **namespaces,
+                                     size_t nb_attributes, size_t nb_defaulted,
                                      const char **attributes);
 
 typedef void (*Parser_callbackEnd)(void *ctx, const char *localname,
                                    const char *prefix, const char *URI);
 
-typedef void (*Parser_callbackChar)(void *ctx, const char *ch, int len);
+typedef void (*Parser_callbackChar)(void *ctx, const char *ch, size_t len);
 
-int Parser_run(TParserCtx *parser, FILE *file, Parser_callbackStart start,
-               Parser_callbackEnd end, Parser_callbackChar onChars);
+int
+Parser_run(void *context, FILE *file, Parser_callbackStart start,
+           Parser_callbackEnd end, Parser_callbackChar onChars);
 
 #endif

@@ -47,29 +47,29 @@ Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                         int attributeSize, const char **attributes);
+                         size_t attributeSize, const char **attributes);
 void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node);
 NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
-                                   int attributeSize, const char **attributes);
+                                   size_t attributeSize, const char **attributes);
 void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *node,
                                 char *targetId);
-struct Alias *Nodeset_newAlias(Nodeset *nodeset, int attributeSize,
+struct Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
                                const char **attribute);
 void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias,
                             char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                                   const char **attributes);
-void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                              const char **attributes);
-void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                            const char **attributes);
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
+                                   size_t attributeSize, const char **attributes);
+void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
+                              size_t attributeSize, const char **attributes);
+void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
+                            size_t attributeSize, const char **attributes);
 void Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, int attributeSize,
+void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, int attributeSize,
+void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
 const NL_BiDirectionalReference * Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
