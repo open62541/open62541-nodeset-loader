@@ -209,9 +209,9 @@ void Nodeset_cleanup(Nodeset *nodeset) {
 
 static char *
 getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
-                  const char **attributes, int nb_attributes) {
-    const int fields = 5;
-    for (int i = 0; i < nb_attributes; i++) {
+                               const char **attributes, size_t nb_attributes) {
+    const size_t fields = 5;
+    for (size_t i = 0; i < nb_attributes; i++) {
         const char *localname = attributes[i * fields + 0];
         if(strcmp((const char *)localname, attr->name))
             continue;
@@ -230,7 +230,7 @@ getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
 
 static void
 extractAttributes(Nodeset *nodeset, NL_Node *node,
-                  int attributeSize, const char **attributes) {
+                  size_t attributeSize, const char **attributes) {
     node->id =
         parseNodeId(nodeset, getAttributeValue(nodeset, &attrNodeId,
                                                attributes, attributeSize));
@@ -323,14 +323,14 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
 
 static void
 initNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-         NL_Node *node, int nb_attributes, const char **attributes) {
+         NL_Node *node, size_t nb_attributes, const char **attributes) {
     node->nodeClass = nodeClass;
     extractAttributes(nodeset, node, nb_attributes, attributes);
 }
 
 NL_Node *
 Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                int nb_attributes, const char **attributes) {
+                size_t nb_attributes, const char **attributes) {
     NL_Node *node = Node_new(nodeClass);
     initNode(nodeset, nodeClass, node, nb_attributes, attributes);
     return node;
@@ -338,7 +338,7 @@ Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
 
 NL_Reference *
 Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
-                     int attributeSize, const char **attributes) {
+                     size_t attributeSize, const char **attributes) {
     NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
     if (!strcmp("true", getAttributeValue(nodeset, &attrIsForward, attributes,
                                           attributeSize))) {
@@ -381,7 +381,7 @@ Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
 }
 
 Alias *
-Nodeset_newAlias(Nodeset *nodeset, int attributeSize, const char **attributes) {
+Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize, const char **attributes) {
     return AliasList_newAlias(nodeset->aliasList,
                               getAttributeValue(nodeset, &attrAlias,
                                                 attributes, attributeSize));
@@ -454,7 +454,7 @@ void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref,
 }
 
 void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
-                                   int attributeSize, const char **attributes) {
+                                   size_t attributeSize, const char **attributes) {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     NL_DataTypeDefinition *def = DataTypeDefinition_new(dataTypeNode);
     def->isUnion =
@@ -466,7 +466,7 @@ void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
 }
 
 void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              int attributeSize, const char **attributes) {
+                              size_t attributeSize, const char **attributes) {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     if(dataTypeNode->definition->isOptionSet)
         return;
@@ -501,7 +501,7 @@ Nodeset_getBiDirectionalRefs(const Nodeset *nodeset) {
 
 void
 Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
-                       int attributeSize, const char **attributes) {
+                       size_t attributeSize, const char **attributes) {
     node->displayName.locale =
         UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
 }
@@ -512,8 +512,8 @@ Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
 }
 
 void
-Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, int attributeSize,
-                       const char **attributes) {
+Nodeset_setDescription(Nodeset *nodeset, NL_Node *node,
+                       size_t attributeSize, const char **attributes) {
     node->description.locale =
         UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
 }
@@ -525,7 +525,7 @@ Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
 
 void
 Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node,
-                       int attributeSize, const char **attributes) {
+                       size_t attributeSize, const char **attributes) {
     if (node->nodeClass == NODECLASS_REFERENCETYPE) {
         ((NL_ReferenceTypeNode *)node)->inverseName.locale =
             UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
