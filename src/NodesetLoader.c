@@ -85,12 +85,12 @@ struct TParserCtx {
     char *buf;
 };
 
-static void OnStartElementNs(void *ctx, const char *localname,
-                             const char *prefix, const char *URI,
-                             size_t nb_namespaces, const char **namespaces,
-                             size_t nb_attributes, size_t nb_defaulted,
-                             const char **attributes) {
-    TParserCtx *pctx = (TParserCtx *)ctx;
+static void
+OnStartElementNs(TParserCtx *pctx, const char *localname,
+                 const char *prefix, const char *URI,
+                 size_t nb_namespaces, const char **namespaces,
+                 size_t nb_attributes, size_t nb_defaulted,
+                 const char **attributes) {
 
     /* We are below an unknown element */
     if(pctx->unknown_depth > 0) {
@@ -98,8 +98,7 @@ static void OnStartElementNs(void *ctx, const char *localname,
         return;
     }
 
-    switch (pctx->state)
-    {
+    switch (pctx->state) {
     case PARSER_STATE_INIT:
         if (!strcmp(localname, VARIABLE))
         {
@@ -283,17 +282,14 @@ static void OnStartElementNs(void *ctx, const char *localname,
 }
 
 static void
-OnEndElementNs(void *ctx, const char *localname,
+OnEndElementNs(TParserCtx *pctx, const char *localname,
                const char *prefix, const char *URI) {
-    TParserCtx *pctx = (TParserCtx *)ctx;
-
     if(pctx->unknown_depth > 0) {
         pctx->unknown_depth--;
         return;
     }
 
-    switch (pctx->state)
-    {
+    switch (pctx->state) {
     case PARSER_STATE_INIT:
         break;
     case PARSER_STATE_ALIAS:
@@ -320,7 +316,8 @@ OnEndElementNs(void *ctx, const char *localname,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_REFERENCE:
-        Nodeset_newReferenceFinish(pctx->nodeset, pctx->ref, pctx->node, pctx->onCharacters);
+        Nodeset_newReferenceFinish(pctx->nodeset, pctx->ref, pctx->node,
+                                   pctx->onCharacters);
         pctx->state = PARSER_STATE_REFERENCES;
         break;
     case PARSER_STATE_VALUE:
@@ -379,8 +376,7 @@ OnEndElementNs(void *ctx, const char *localname,
 }
 
 static void
-OnCharacters(void *ctx, const char *ch, size_t len) {
-    TParserCtx *pctx = (TParserCtx *)ctx;
+OnCharacters(TParserCtx *pctx, const char *ch, size_t len) {
     if (pctx->onCharacters == NULL) {
         char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
         pctx->onCharacters = newValue;
@@ -393,7 +389,7 @@ OnCharacters(void *ctx, const char *ch, size_t len) {
 }
 
 static int
-Parser_run(void *context, FILE *file) {
+Parser_run(TParserCtx *context, FILE *file) {
     /* Read entire file into memory */
     fseek(file, 0, SEEK_END);
     long fsize = ftell(file);
