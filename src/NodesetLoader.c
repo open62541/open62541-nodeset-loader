@@ -7,7 +7,6 @@
  */
 
 #include "InternalLogger.h"
-#include "InternalRefService.h"
 #include "Nodeset.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -45,7 +44,6 @@ struct NodesetLoader {
     NodesetLoader_Logger *logger;
     bool internalLogger;
     NL_ReferenceService *refService;
-    bool internalRefService;
 };
 
 typedef enum {
@@ -219,7 +217,7 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
 
     case PARSER_STATE_EXTENSIONS:
         if (!strcmp(localname, EXTENSION)) {
-            if (pctx->extIf) {
+            if(pctx->extIf)
                 pctx->extensionData = pctx->extIf->newExtension();
             pctx->state = PARSER_STATE_EXTENSION;
         } else {
@@ -554,6 +552,9 @@ NodesetLoader_sort(NodesetLoader *loader) {
 NodesetLoader *
 NodesetLoader_new(NodesetLoader_Logger *logger,
                   NL_ReferenceService *refService) {
+    if(!refService)
+        return NULL;
+
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
@@ -564,13 +565,7 @@ NodesetLoader_new(NodesetLoader_Logger *logger,
         loader->logger = logger;
     }
 
-    if(!refService) {
-        loader->refService = InternalRefService_new();
-        loader->internalRefService = true;
-    } else {
-        loader->refService = refService;
-    }
-
+    loader->refService = refService;
     return loader;
 }
 
@@ -579,8 +574,6 @@ NodesetLoader_delete(NodesetLoader *loader) {
     Nodeset_cleanup(loader->nodeset);
     if(loader->internalLogger)
         free(loader->logger);
-    if(loader->internalRefService)
-        InternalRefService_delete(loader->refService);
     free(loader);
 }
 
