@@ -88,7 +88,6 @@
     <UAObject NodeId="ns=2;s=History1.HistoricalDataConfiguration" BrowseName="HA Configuration" ParentNodeId="ns=2;s=Demo.History.Historian_1">
         <DisplayName>HA Configuration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=2318</Reference>
             <Reference ReferenceType="HasComponent">ns=2;s=History1.HistoricalDataConfiguration.AggregateConfiguration</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History1.HistoricalDataConfiguration.Stepped</Reference>
             <Reference ReferenceType="HasHistoricalConfiguration" IsForward="false">ns=2;s=Demo.History.Historian_1</Reference>
@@ -97,7 +96,6 @@
     <UAObject NodeId="ns=2;s=History2.HistoricalDataConfiguration" BrowseName="HA Configuration" ParentNodeId="ns=2;s=Demo.History.Historian_2">
         <DisplayName>HA Configuration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=2318</Reference>
             <Reference ReferenceType="HasComponent">ns=2;s=History2.HistoricalDataConfiguration.AggregateConfiguration</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History2.HistoricalDataConfiguration.Stepped</Reference>
             <Reference ReferenceType="HasHistoricalConfiguration" IsForward="false">ns=2;s=Demo.History.Historian_2</Reference>
@@ -106,7 +104,6 @@
     <UAObject NodeId="ns=2;s=History3.HistoricalDataConfiguration" BrowseName="HA Configuration" ParentNodeId="ns=2;s=Demo.History.Historian_3">
         <DisplayName>HA Configuration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=2318</Reference>
             <Reference ReferenceType="HasComponent">ns=2;s=History3.HistoricalDataConfiguration.AggregateConfiguration</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History3.HistoricalDataConfiguration.Stepped</Reference>
             <Reference ReferenceType="HasHistoricalConfiguration" IsForward="false">ns=2;s=Demo.History.Historian_3</Reference>
@@ -115,7 +112,6 @@
     <UAObject NodeId="ns=2;s=History4.HistoricalDataConfiguration" BrowseName="HA Configuration" ParentNodeId="ns=2;s=Demo.History.Historian_4">
         <DisplayName>HA Configuration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=2318</Reference>
             <Reference ReferenceType="HasComponent">ns=2;s=History4.HistoricalDataConfiguration.AggregateConfiguration</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History4.HistoricalDataConfiguration.Stepped</Reference>
             <Reference ReferenceType="HasHistoricalConfiguration" IsForward="false">ns=2;s=Demo.History.Historian_4</Reference>
@@ -124,7 +120,6 @@
     <UAObject NodeId="ns=2;s=History1.HistoricalDataConfiguration.AggregateConfiguration" BrowseName="AggregateConfiguration" ParentNodeId="ns=2;s=History1.HistoricalDataConfiguration">
         <DisplayName>AggregateConfiguration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=11187</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History1.HistoricalDataConfiguration.AggregateConfiguration.PercentDataBad</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History1.HistoricalDataConfiguration.AggregateConfiguration.PercentDataGood</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History1.HistoricalDataConfiguration.AggregateConfiguration.TreatUncertainAsBad</Reference>
@@ -142,7 +137,6 @@
     <UAObject NodeId="ns=2;s=History2.HistoricalDataConfiguration.AggregateConfiguration" BrowseName="AggregateConfiguration" ParentNodeId="ns=2;s=History2.HistoricalDataConfiguration">
         <DisplayName>AggregateConfiguration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=11187</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History2.HistoricalDataConfiguration.AggregateConfiguration.PercentDataBad</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History2.HistoricalDataConfiguration.AggregateConfiguration.PercentDataGood</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History2.HistoricalDataConfiguration.AggregateConfiguration.TreatUncertainAsBad</Reference>
@@ -160,7 +154,6 @@
     <UAObject NodeId="ns=2;s=History3.HistoricalDataConfiguration.AggregateConfiguration" BrowseName="AggregateConfiguration" ParentNodeId="ns=2;s=History3.HistoricalDataConfiguration">
         <DisplayName>AggregateConfiguration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=11187</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History3.HistoricalDataConfiguration.AggregateConfiguration.PercentDataBad</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History3.HistoricalDataConfiguration.AggregateConfiguration.PercentDataGood</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History3.HistoricalDataConfiguration.AggregateConfiguration.TreatUncertainAsBad</Reference>
@@ -178,7 +171,6 @@
     <UAObject NodeId="ns=2;s=History4.HistoricalDataConfiguration.AggregateConfiguration" BrowseName="AggregateConfiguration" ParentNodeId="ns=2;s=History4.HistoricalDataConfiguration">
         <DisplayName>AggregateConfiguration</DisplayName>
         <References>
-            <Reference ReferenceType="HasTypeDefinition">i=11187</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History4.HistoricalDataConfiguration.AggregateConfiguration.PercentDataBad</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History4.HistoricalDataConfiguration.AggregateConfiguration.PercentDataGood</Reference>
             <Reference ReferenceType="HasProperty">ns=2;s=History4.HistoricalDataConfiguration.AggregateConfiguration.TreatUncertainAsBad</Reference>
