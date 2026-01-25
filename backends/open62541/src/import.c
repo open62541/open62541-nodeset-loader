@@ -543,6 +543,9 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
         // No progress. Bail out.
         if(context.addedCount == 0)
             return false;
+        logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
+                    "XXX Some nodes could not be added. "
+                    "Try again if the parents now exit.");
         goto add_nodes;
     }
 
