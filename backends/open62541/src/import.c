@@ -28,9 +28,8 @@ struct AddNodeContext {
 
 typedef struct AddNodeContext AddNodeContext;
 
-
-static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
-{
+static UA_NodeId
+getParentDataType(UA_Server *server, const UA_NodeId id) {
     UA_BrowseDescription bd;
     UA_BrowseDescription_init(&bd);
     bd.nodeId = id;
@@ -38,88 +37,69 @@ static UA_NodeId getParentDataType(UA_Server *server, const UA_NodeId id)
     bd.nodeClassMask = UA_NODECLASS_DATATYPE;
 
     UA_BrowseResult br = UA_Server_browse(server, 10, &bd);
-    if (br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
-    {
+    if(br.statusCode != UA_STATUSCODE_GOOD || br.referencesSize != 1)
         return UA_NODEID_NULL;
-    }
     UA_NodeId parentId = br.references[0].nodeId.nodeId;
     UA_BrowseResult_clear(&br);
     return parentId;
 }
 
-static bool isKnownParent(const UA_NodeId typeId)
-{
-    if (typeId.namespaceIndex == 0 &&
+static bool
+isKnownParent(const UA_NodeId typeId) {
+    if(typeId.namespaceIndex == 0 &&
         typeId.identifierType == UA_NODEIDTYPE_NUMERIC &&
         typeId.identifier.numeric <= 29)
-    {
         return true;
-    }
     UA_NodeId optionSetId = UA_NODEID_NUMERIC(0, UA_NS0ID_OPTIONSET);
-    if (UA_NodeId_equal(&typeId, &optionSetId))
-    {
+    if(UA_NodeId_equal(&typeId, &optionSetId))
         return true;
-    }
     return false;
 }
 
-static UA_NodeId getParentType(UA_Server *server, const UA_NodeId dataTypeId)
-{
+static UA_NodeId
+getParentType(UA_Server *server, const UA_NodeId dataTypeId) {
     UA_NodeId current = dataTypeId;
-    while (!isKnownParent(current))
-    {
+    while (!isKnownParent(current)) {
         current = getParentDataType(server, current);
     }
     return current;
 }
 
-static UA_NodeId getReferenceTypeId(const NL_Reference *ref)
-{
+static UA_NodeId
+getReferenceTypeId(const NL_Reference *ref) {
     if (!ref)
-    {
         return UA_NODEID_NULL;
-    }
     return ref->refType;
 }
 
-static UA_NodeId getReferenceTarget(const NL_Reference *ref)
-{
-    if (!ref)
-    {
+static UA_NodeId
+getReferenceTarget(const NL_Reference *ref) {
+    if(!ref)
         return UA_NODEID_NULL;
-    }
     return ref->target;
 }
 
-static NL_Reference *getHierachicalInverseReference(const NL_Node *node)
-{
-
+static NL_Reference *
+getHierachicalInverseReference(const NL_Node *node) {
     NL_Reference *hierachicalRef = node->hierachicalRefs;
-    while (hierachicalRef)
-    {
+    while (hierachicalRef) {
         if (!hierachicalRef->isForward)
-        {
             return hierachicalRef;
-        }
         hierachicalRef = hierachicalRef->next;
     }
     return NULL;
 }
 
-static UA_NodeId getParentId(const NL_Node *node, UA_NodeId *parentRefId)
-{
+static UA_NodeId
+getParentId(const NL_Node *node, UA_NodeId *parentRefId) {
     UA_NodeId parentId = UA_NODEID_NULL;
 
     if(NodesetLoader_isInstanceNode(node))
-    {
         parentId = ((const NL_InstanceNode*)node)->parentNodeId;
-    }
     NL_Reference *ref = getHierachicalInverseReference((const NL_Node *)node);
     *parentRefId = getReferenceTypeId(ref);
     if (UA_NodeId_equal(&parentId, &UA_NODEID_NULL))
-    {
         parentId = getReferenceTarget(ref);
-    }
     return parentId;
 }
 
@@ -127,8 +107,7 @@ static UA_StatusCode
 handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
-                 const UA_LocalizedText *description, UA_Server *server)
-{
+                 const UA_LocalizedText *description, UA_Server *server) {
     UA_ObjectAttributes oAttr = UA_ObjectAttributes_default;
     oAttr.displayName = *lt;
     oAttr.description = *description;
@@ -136,9 +115,7 @@ handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
 
     UA_NodeId typeDefId = UA_NODEID_NULL;
     if (node->refToTypeDef)
-    {
         typeDefId = node->refToTypeDef->target;
-    }
 
     // addNode_begin is used, otherwise all mandatory childs from type are
     // instantiated
@@ -152,42 +129,38 @@ static UA_StatusCode
 handleViewNode(const NL_ViewNode *node, UA_NodeId *id, const UA_NodeId *parentId,
                const UA_NodeId *parentReferenceId, const UA_LocalizedText *lt,
                const UA_QualifiedName *qn, const UA_LocalizedText *description,
-               UA_Server *server)
-{
+               UA_Server *server) {
     UA_ViewAttributes attr = UA_ViewAttributes_default;
     attr.displayName = *lt;
     attr.description = *description;
     attr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
     attr.containsNoLoops = isValTrue(node->containsNoLoops);
-    return UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId, *qn, attr,
-                          node->extension, NULL);
+    return UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId,
+                                 *qn, attr, node->extension, NULL);
 }
 
 static UA_StatusCode
 handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
                  const UA_NodeId *parentId, const UA_NodeId *parentReferenceId,
                  const UA_LocalizedText *lt, const UA_QualifiedName *qn,
-                 const UA_LocalizedText *description, UA_Server *server)
-{
+                 const UA_LocalizedText *description, UA_Server *server) {
     UA_MethodAttributes attr = UA_MethodAttributes_default;
     attr.executable = isValTrue(node->executable);
     attr.userExecutable = isValTrue(node->userExecutable);
     attr.displayName = *lt;
     attr.description = *description;
 
-    return UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId, *qn,
-                            attr, NULL, 0, NULL, 0, NULL, node->extension,
-                            NULL);
+    return UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId,
+                                   *qn, attr, NULL, 0, NULL, 0, NULL,
+                                   node->extension, NULL);
 }
 
-static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
-{
+static size_t
+getArrayDimensions(const char *s, UA_UInt32 **dims) {
     size_t length = strlen(s);
     size_t arrSize = 0;
     if (0 == length)
-    {
         return 0;
-    }
     // add the first one
     int val = atoi(s);
     arrSize++;
@@ -196,8 +169,7 @@ static size_t getArrayDimensions(const char *s, UA_UInt32 **dims)
 
     const char *subString = strchr(s, ',');
 
-    while (subString != NULL)
-    {
+    while (subString != NULL) {
         arrSize++;
         *dims = (UA_UInt32 *)realloc(*dims, arrSize * sizeof(UA_UInt32));
         (*dims)[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
@@ -283,30 +255,32 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     return res;
 }
 
-static UA_StatusCode handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
-                                 const UA_NodeId *parentId,
-                                 const UA_NodeId *parentReferenceId,
-                                 const UA_LocalizedText *lt,
-                                 const UA_QualifiedName *qn,
-                                 const UA_LocalizedText *description,
-                                 UA_Server *server)
-{
+static UA_StatusCode
+handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
+                     const UA_NodeId *parentId,
+                     const UA_NodeId *parentReferenceId,
+                     const UA_LocalizedText *lt,
+                     const UA_QualifiedName *qn,
+                     const UA_LocalizedText *description,
+                     UA_Server *server) {
     UA_ObjectTypeAttributes oAttr = UA_ObjectTypeAttributes_default;
     oAttr.displayName = *lt;
     oAttr.isAbstract = isValTrue(node->isAbstract);
     oAttr.description = *description;
 
-    return UA_Server_addObjectTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
-                                oAttr, node->extension, NULL);
+    return UA_Server_addObjectTypeNode(server, *id, *parentId,
+                                       *parentReferenceId, *qn,
+                                       oAttr, node->extension, NULL);
 }
 
-static UA_StatusCode handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
-                                    UA_NodeId *id, const UA_NodeId *parentId,
-                                    const UA_NodeId *parentReferenceId,
-                                    const UA_LocalizedText *lt,
-                                    const UA_QualifiedName *qn,
-                                    const UA_LocalizedText *description,
-                                    UA_Server *server) {
+static UA_StatusCode
+handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
+                        UA_NodeId *id, const UA_NodeId *parentId,
+                        const UA_NodeId *parentReferenceId,
+                        const UA_LocalizedText *lt,
+                        const UA_QualifiedName *qn,
+                        const UA_LocalizedText *description,
+                        UA_Server *server) {
     UA_ReferenceTypeAttributes attr = UA_ReferenceTypeAttributes_default;
     attr.symmetric = isValTrue(node->symmetric);
     attr.displayName = *lt;
@@ -316,14 +290,14 @@ static UA_StatusCode handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
                                    *qn, attr, node->extension, NULL);
 }
 
-static UA_StatusCode handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *id,
-                                   const UA_NodeId *parentId,
-                                   const UA_NodeId *parentReferenceId,
-                                   const UA_LocalizedText *lt,
-                                   const UA_QualifiedName *qn,
-                                   const UA_LocalizedText *description,
-                                   UA_Server *server)
-{
+static UA_StatusCode
+handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *id,
+                       const UA_NodeId *parentId,
+                       const UA_NodeId *parentReferenceId,
+                       const UA_LocalizedText *lt,
+                       const UA_QualifiedName *qn,
+                       const UA_LocalizedText *description,
+                       UA_Server *server) {
     UA_VariableTypeAttributes attr = UA_VariableTypeAttributes_default;
     attr.displayName = *lt;
     attr.dataType = node->datatype;
@@ -337,27 +311,29 @@ static UA_StatusCode handleVariableTypeNode(const NL_VariableTypeNode *node, UA_
         attr.arrayDimensions = &arrayDimensions[0];
     }
 
-   return UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE, *id, *parentId,
-                            *parentReferenceId, *qn, UA_NODEID_NULL, &attr,
-                            &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES],
-                            node->extension, NULL);
+   return UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLETYPE,
+                                  *id, *parentId, *parentReferenceId, *qn,
+                                  UA_NODEID_NULL, &attr,
+                                  &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES],
+                                  node->extension, NULL);
 }
 
-static UA_StatusCode handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
-                               const UA_NodeId *parentId,
-                               const UA_NodeId *parentReferenceId,
-                               const UA_LocalizedText *lt,
-                               const UA_QualifiedName *qn,
-                               const UA_LocalizedText *description,
-                               UA_Server *server)
-{
+static UA_StatusCode
+handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
+                   const UA_NodeId *parentId,
+                   const UA_NodeId *parentReferenceId,
+                   const UA_LocalizedText *lt,
+                   const UA_QualifiedName *qn,
+                   const UA_LocalizedText *description,
+                   UA_Server *server) {
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
     attr.displayName = *lt;
     attr.description = *description;
     attr.isAbstract = isValTrue(node->isAbstract);
 
-    return UA_Server_addDataTypeNode(server, *id, *parentId, *parentReferenceId, *qn,
-                              attr, node->extension, NULL);
+    return UA_Server_addDataTypeNode(server, *id, *parentId,
+                                     *parentReferenceId, *qn,
+                                     attr, node->extension, NULL);
 }
 
 static void
@@ -505,12 +481,10 @@ importDataTypes(NodesetLoader *loader, UA_Server *server) {
     DataTypeImporter_delete(importer);
 }
 
-static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
-{
+static void
+addNonHierachicalRefs(UA_Server *server, NL_Node *node) {
     NL_Reference *ref = node->nonHierachicalRefs;
-    while (ref)
-    {
-
+    while (ref) {
         UA_NodeId src = node->id;
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
         target.nodeId = ref->target;
@@ -520,8 +494,7 @@ static void addNonHierachicalRefs(UA_Server *server, NL_Node *node)
     }
     // brute force, maybe not the best way to do this
     ref = node->hierachicalRefs;
-    while (ref)
-    {
+    while (ref) {
         UA_NodeId src = node->id;
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
         target.nodeId = ref->target;
@@ -600,9 +573,8 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
         size_t cnt =
             NodesetLoader_forEachNode(loader, classToImport, &context,
                                       (NodesetLoader_forEachNode_Func)addNodeImpl);
-        if (classToImport == NODECLASS_DATATYPE) {
+        if(classToImport == NODECLASS_DATATYPE)
             importDataTypes(loader, ServerContext_getServerObject(serverContext));
-        }
 
         // Now we can see the nodes that could not be added and can calculate
         // and show the actual nodes added.
@@ -625,18 +597,18 @@ addNodes(NodesetLoader *loader, NL_FileContext *handler,
     // Delete only reference and container. Not NL_Nodes objects.
     NodeContainer_delete(badStatusNodes);
 
-    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
-    {
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
         const NL_NodeClass classToImport = order[i];
-        NodesetLoader_forEachNode(
-            loader, classToImport, ServerContext_getServerObject(serverContext),
+        NodesetLoader_forEachNode(loader, classToImport,
+                                  ServerContext_getServerObject(serverContext),
             (NodesetLoader_forEachNode_Func)addNonHierachicalRefs);
     }
 }
 
-bool NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                            NodesetLoader_ExtensionInterface *extensionHandling) {
-    if (!server)
+bool
+    NodesetLoader_loadFile(struct UA_Server *server, const char *path,
+                           NodesetLoader_ExtensionInterface *extensionHandling) {
+    if(!server)
         return false;
 
     if (!path)
