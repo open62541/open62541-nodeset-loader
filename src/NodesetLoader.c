@@ -6,7 +6,6 @@
  *    Copyright 2026 (c) o6 Automation GmbH (Author: Julius Pfrommer)
  */
 
-#include "InternalLogger.h"
 #include "Nodeset.h"
 #include <assert.h>
 #include <stdlib.h>
@@ -42,7 +41,6 @@ const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
 struct NodesetLoader {
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
-    bool internalLogger;
     NL_ReferenceService *refService;
 };
 
@@ -552,19 +550,13 @@ NodesetLoader_sort(NodesetLoader *loader) {
 NodesetLoader *
 NodesetLoader_new(NodesetLoader_Logger *logger,
                   NL_ReferenceService *refService) {
-    if(!refService)
+    if(!refService || !logger)
         return NULL;
 
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
-    if(!logger) {
-        loader->logger = InternalLogger_new();
-        loader->internalLogger = true;
-    } else {
-        loader->logger = logger;
-    }
-
+    loader->logger = logger;
     loader->refService = refService;
     return loader;
 }
@@ -572,8 +564,6 @@ NodesetLoader_new(NodesetLoader_Logger *logger,
 void
 NodesetLoader_delete(NodesetLoader *loader) {
     Nodeset_cleanup(loader->nodeset);
-    if(loader->internalLogger)
-        free(loader->logger);
     free(loader);
 }
 
