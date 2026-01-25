@@ -12,7 +12,7 @@
 #include <string.h>
 #include <stdio.h>
 
-#include <libxml/xmlreader.h>
+#include <libxml/parser.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -82,11 +82,13 @@ struct TParserCtx {
 };
 
 static void
-OnStartElementNs(TParserCtx *pctx, const char *localname,
+OnStartElementNs(void *ctx, const char *localname,
                  const char *prefix, const char *URI,
-                 size_t nb_namespaces, const char **namespaces,
-                 size_t nb_attributes, size_t nb_defaulted,
+                 int nb_namespaces, const char **namespaces,
+                 int nb_attributes, int nb_defaulted,
                  const char **attributes) {
+    TParserCtx *pctx = (TParserCtx*)ctx;
+
     /* We are below an unknown element */
     if(pctx->unknown_depth > 0) {
         pctx->unknown_depth++;
@@ -98,49 +100,50 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         if(!strcmp(localname, VARIABLE)) {
             pctx->nodeClass = NODECLASS_VARIABLE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, OBJECT)) {
             pctx->nodeClass = NODECLASS_OBJECT;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, OBJECTTYPE)) {
             pctx->nodeClass = NODECLASS_OBJECTTYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, DATATYPE)) {
             pctx->nodeClass = NODECLASS_DATATYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, METHOD)) {
             pctx->nodeClass = NODECLASS_METHOD;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, REFERENCETYPE)) {
             pctx->nodeClass = NODECLASS_REFERENCETYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, VARIABLETYPE)) {
             pctx->nodeClass = NODECLASS_VARIABLETYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, VIEW)) {
             pctx->nodeClass = NODECLASS_VIEW;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         nb_attributes, attributes);
+                                         (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
         } else if(!strcmp(localname, NAMESPACEURIS)) {
             pctx->state = PARSER_STATE_NAMESPACEURIS;
         } else if(!strcmp(localname, ALIAS)) {
             pctx->state = PARSER_STATE_ALIAS;
             pctx->node = NULL;
-            pctx->alias = Nodeset_newAlias(pctx->nodeset, nb_attributes, attributes);
+            pctx->alias = Nodeset_newAlias(pctx->nodeset, (size_t)nb_attributes,
+                                           attributes);
             pctx->state = PARSER_STATE_ALIAS;
         } else if(!strcmp(localname, "UANodeSet") ||
                   !strcmp(localname, "Aliases") ||
@@ -164,15 +167,15 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         return;
     case PARSER_STATE_NODE:
         if (!strcmp(localname, DISPLAYNAME)) {
-            Nodeset_setDisplayName(pctx->nodeset, pctx->node, nb_attributes,
-                                   attributes);
+            Nodeset_setDisplayName(pctx->nodeset, pctx->node,
+                                   (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_DISPLAYNAME;
         } else if (!strcmp(localname, REFERENCES)) {
             pctx->state = PARSER_STATE_REFERENCES;
         } else if (!strcmp(localname, DESCRIPTION)) {
             pctx->state = PARSER_STATE_DESCRIPTION;
-            Nodeset_setDescription(pctx->nodeset, pctx->node, nb_attributes,
-                                   attributes);
+            Nodeset_setDescription(pctx->nodeset, pctx->node,
+                                   (size_t)nb_attributes, attributes);
         } else if (!strcmp(localname, VALUE)) {
             pctx->state = PARSER_STATE_VALUE;
             pctx->value_depth++;
@@ -182,13 +185,13 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         } else if (!strcmp(localname, EXTENSIONS)) {
             pctx->state = PARSER_STATE_EXTENSIONS;
         } else if (!strcmp(localname, "Definition")) {
-            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node, nb_attributes,
-                                     attributes);
+            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node,
+                                          (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         } else if (!strcmp(localname, INVERSENAME)) {
             pctx->state = PARSER_STATE_INVERSENAME;
-            Nodeset_setInverseName(pctx->nodeset, pctx->node, nb_attributes,
-                                   attributes);
+            Nodeset_setInverseName(pctx->nodeset, pctx->node,
+                                   (size_t)nb_attributes, attributes);
         } else {
             pctx->unknown_depth++;
             return;
@@ -196,8 +199,8 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
         if (!strcmp(localname, "Field")) {
-            Nodeset_addDataTypeField(pctx->nodeset, pctx->node, nb_attributes,
-                                     attributes);
+            Nodeset_addDataTypeField(pctx->nodeset, pctx->node,
+                                     (size_t)nb_attributes, attributes);
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
         } else {
             pctx->unknown_depth++;
@@ -226,7 +229,7 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
     case PARSER_STATE_EXTENSION:
         if(pctx->extIf) {
             pctx->extIf->start(pctx->extensionData, localname,
-                               (int)nb_attributes, attributes);
+                               nb_attributes, attributes);
         }
         break;
 
@@ -234,7 +237,7 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         if(!strcmp(localname, REFERENCE)) {
             pctx->state = PARSER_STATE_REFERENCE;
             pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
-                                             nb_attributes, attributes);
+                                             (size_t)nb_attributes, attributes);
         } else {
             pctx->unknown_depth++;
             return;
@@ -253,8 +256,10 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
 }
 
 static void
-OnEndElementNs(TParserCtx *pctx, const char *localname,
+OnEndElementNs(void *ctx, const char *localname,
                const char *prefix, const char *URI) {
+    TParserCtx *pctx = (TParserCtx*)ctx;
+    
     if(pctx->unknown_depth > 0) {
         pctx->unknown_depth--;
         return;
@@ -346,16 +351,18 @@ OnEndElementNs(TParserCtx *pctx, const char *localname,
 }
 
 static void
-OnCharacters(TParserCtx *pctx, const char *ch, size_t len) {
+OnCharacters(void *ctx, const char *ch, int len) {
+    TParserCtx *pctx = (TParserCtx*)ctx;
     if(pctx->onCharacters == NULL) {
-        char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
+        char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena,
+                                                   (size_t) len + 1);
         pctx->onCharacters = newValue;
     } else {
         pctx->onCharacters = CharArenaAllocator_realloc(
-            pctx->nodeset->charArena, len + 1);
+                                   pctx->nodeset->charArena, (size_t)len + 1);
     }
-    memcpy(pctx->onCharacters + pctx->onCharLength, ch, len);
-    pctx->onCharLength += len;
+    memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
+    pctx->onCharLength += (size_t)len;
 }
 
 static int
@@ -371,96 +378,26 @@ Parser_run(TParserCtx *context, FILE *file) {
 
     size_t elems = fread(buf, 1, (size_t)fsize, file);
     buf[elems] = 0; /* Ensure null terminated */
+    context->buf = buf;
 
     xmlInitParser();
 
-    xmlTextReaderPtr reader =
-        xmlReaderForMemory(buf, (int)elems, NULL, "UTF-8", XML_PARSE_HUGE);
-    if(reader == NULL) {
-        free(buf);
-        return 1;
-    }
+    xmlSAXHandler hdl;
+    memset(&hdl, 0, sizeof(hdl));
+    hdl.initialized = XML_SAX2_MAGIC;
+    hdl.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
+    hdl.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
+    hdl.characters = (charactersSAXFunc)OnCharacters;
 
-    int ret;
-    while((ret = xmlTextReaderRead(reader)) == 1) {
-        int nodeType = xmlTextReaderNodeType(reader);
+    context->ctxt = xmlCreatePushParserCtxt(&hdl, context, NULL, 0, NULL);
+    xmlCtxtUseOptions(context->ctxt, XML_PARSE_HUGE);
 
-        if(nodeType == XML_READER_TYPE_ELEMENT) {
-            const char *local = (const char*)xmlTextReaderConstLocalName(reader);
-            const char *prefix = (const char*)xmlTextReaderConstPrefix(reader);
-            const char *uri = (const char*)xmlTextReaderConstNamespaceUri(reader);
+    /* single-chunk feed */
+    int ret = xmlParseChunk(context->ctxt, buf, (int)elems, 1);
 
-            /* namespace declarations:
-             * xmlTextReader does not directly expose declared ns on this node,
-             * but for most OPC UA nodesets (and SAX2 consumers),
-             * the namespaces array was rarely used beyond URI+prefix.
-             * We pass 0 here. If you need full ns scope, we can augment via
-             * xmlGetNsList(document,node). */
-            size_t nb_namespaces = 0;
-            const char **namespaces = NULL;
-
-            /* attributes */
-            size_t nb_attributes = 0;
-            size_t nb_defaulted = 0;
-
-            if(xmlTextReaderHasAttributes(reader)) {
-                xmlTextReaderMoveToFirstAttribute(reader);
-                do {
-                    nb_attributes++;
-                } while(xmlTextReaderMoveToNextAttribute(reader) == 1);
-
-                /* Now build classical SAX2 attributes array:
-                 * attributes is:
-                 *  [localname, prefix, URI, value, ...] 4-tuple repeated
-                 */
-                const char **attrs = (const char **)
-                    malloc(sizeof(char*) * nb_attributes * 5);
-                int idx = 0;
-
-                xmlTextReaderMoveToFirstAttribute(reader);
-                do {
-                    const char *_local  = (const char*)xmlTextReaderConstLocalName(reader);
-                    const char *_prefix = (const char*)xmlTextReaderConstPrefix(reader);
-                    const char *_uri    = (const char*)xmlTextReaderConstNamespaceUri(reader);
-                    const char *_value  = (const char*)xmlTextReaderConstValue(reader);
-                    attrs[idx++] = _local;
-                    attrs[idx++] = _prefix;
-                    attrs[idx++] = _uri;
-                    attrs[idx++] = _value;
-                    attrs[idx++] = _value ? (_value + strlen(_value)) : NULL;
-                } while(xmlTextReaderMoveToNextAttribute(reader) == 1);
-
-                OnStartElementNs(context, local, prefix, uri,
-                                 nb_namespaces, namespaces,
-                                 nb_attributes, nb_defaulted, attrs);
-
-                free(attrs);
-                xmlTextReaderMoveToElement(reader);
-            } else {
-                OnStartElementNs(context, local, prefix, uri,
-                                 nb_namespaces, namespaces,
-                                 nb_attributes, nb_defaulted, NULL);
-            }
-
-            if(xmlTextReaderIsEmptyElement(reader))
-                OnEndElementNs(context, local, prefix, uri);
-        } else if(nodeType == XML_READER_TYPE_END_ELEMENT) {
-            const char *local = (const char*)xmlTextReaderConstLocalName(reader);
-            const char *prefix = (const char*)xmlTextReaderConstPrefix(reader);
-            const char *uri = (const char*)xmlTextReaderConstNamespaceUri(reader);
-            OnEndElementNs(context, local, prefix, uri);
-        } else if(nodeType == XML_READER_TYPE_TEXT ||
-                nodeType == XML_READER_TYPE_SIGNIFICANT_WHITESPACE ||
-                nodeType == XML_READER_TYPE_WHITESPACE) {
-            const char *txt = (const char*)xmlTextReaderConstValue(reader);
-            if(txt && *txt)
-                OnCharacters(context, txt, strlen(txt));
-        }
-    }
-
-    xmlFreeTextReader(reader);
-    xmlCleanupParser();
+    xmlFreeParserCtxt(context->ctxt);
     free(buf);
+    xmlCleanupParser();
 
     if(ret < 0)
         return 1;
