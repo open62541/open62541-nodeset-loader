@@ -26,11 +26,10 @@
             <si:GeneratorExtension Hash="b55729a8b6d0a342b5dc3266e997133d"/>
         </Extension>
     </Extensions>
-    <UAObject SymbolicName="http___Nodesetloader_Test" NodeId="ns=1;i=5000" BrowseName="1:http://Nodesetloader_Test" ParentNodeId="i=11715">
+    <UAObject SymbolicName="http___Nodesetloader_Test" NodeId="ns=1;i=5000" BrowseName="1:http://Nodesetloader_Test" ParentNodeId="i=85">
         <DisplayName>http://Nodesetloader_Test</DisplayName>
         <References>
-            <Reference ReferenceType="HasComponent" IsForward="false">i=11715</Reference>
-            <Reference ReferenceType="HasTypeDefinition">i=11616</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">i=85</Reference>
         </References>
     </UAObject>
     <UAVariable DataType="Boolean" NodeId="ns=1;i=6000" BrowseName="IsNamespaceSubset" ParentNodeId="ns=1;i=5000">

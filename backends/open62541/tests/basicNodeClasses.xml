@@ -121,7 +121,7 @@
         <DisplayName>SimpleObject_2</DisplayName>
         <References>
             <Reference ReferenceType="HasTypeDefinition">ns=1;i=1002</Reference>
-            <Reference ReferenceType="HasComponent" IsForward="false">ns=27;s=ObjectWithStringNodeId3</Reference>
+            <Reference ReferenceType="HasComponent" IsForward="false">ns=1;s=ObjectWithStringNodeId</Reference>
         </References>
     </UAObject>
 </UANodeSet>

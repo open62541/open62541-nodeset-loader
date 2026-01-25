@@ -37,25 +37,18 @@ START_TEST(Server_Issue_246)
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
         server, UA_NODEID_STRING(3, "History2.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
         server, UA_NODEID_STRING(3, "History3.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
-
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    UA_NodeClass_init(&node_class);
     retval = UA_Server_readNodeClass(
         server, UA_NODEID_STRING(3, "History4.HistoricalDataConfiguration"), &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);

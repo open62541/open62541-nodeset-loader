@@ -56,6 +56,13 @@
     <Alias Alias="HasAddIn">i=17604</Alias>
     <Alias Alias="HasInterface">i=17603</Alias>
   </Aliases>
+  <UAReferenceType NodeId="i=9004" BrowseName="HasTrueSubState">
+    <DisplayName>HasTrueSubState</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
+    </References>
+    <InverseName>IsTrueSubStateOf</InverseName>
+  </UAReferenceType>
   <UAObjectType NodeId="ns=1;i=9371" BrowseName="1:GenerateValuesEventType">
     <DisplayName>GenerateValuesEventType</DisplayName>
     <References>
@@ -164,7 +171,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=9420</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=9436</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=9383</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasModellingRule">i=78</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=9383</Reference>
     </References>
@@ -5623,7 +5629,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10196</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10212</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10159</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10159</Reference>
     </References>
   </UAObject>
@@ -5723,7 +5728,6 @@
     <References>
       <Reference ReferenceType="HasProperty">ns=1;i=10176</Reference>
       <Reference ReferenceType="HasTrueSubState">ns=1;i=10196</Reference>
-      <Reference ReferenceType="HasTrueSubState">ns=1;i=10204</Reference>
       <Reference ReferenceType="HasTypeDefinition">i=8995</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10163</Reference>
     </References>
@@ -6226,7 +6230,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10280</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10296</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10243</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10243</Reference>
     </References>
   </UAObject>
@@ -6823,7 +6826,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10364</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10380</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10327</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10327</Reference>
     </References>
   </UAObject>
@@ -7385,7 +7387,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10443</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10459</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10406</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10406</Reference>
     </References>
   </UAObject>
@@ -7938,7 +7939,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10522</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10538</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10485</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10485</Reference>
     </References>
   </UAObject>
@@ -8532,7 +8532,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10657</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10673</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10620</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10620</Reference>
     </References>
   </UAObject>
@@ -12421,7 +12420,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10824</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10840</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10787</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10787</Reference>
     </References>
   </UAObject>
@@ -13027,7 +13025,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10908</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=10924</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10871</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10871</Reference>
     </References>
   </UAObject>
@@ -13627,7 +13624,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=10992</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11008</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=10955</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=10955</Reference>
     </References>
   </UAObject>
@@ -14192,7 +14188,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=11071</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11087</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=11034</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=11034</Reference>
     </References>
   </UAObject>
@@ -14748,7 +14743,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=11150</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11166</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=11113</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=11113</Reference>
     </References>
   </UAObject>
@@ -15345,7 +15339,6 @@
       <Reference ReferenceType="HasComponent">ns=1;i=11285</Reference>
       <Reference ReferenceType="HasComponent">ns=1;i=11301</Reference>
       <Reference ReferenceType="HasEventSource" IsForward="false">ns=1;i=11248</Reference>
-      <Reference ReferenceType="HasTypeDefinition">i=2881</Reference>
       <Reference ReferenceType="HasComponent" IsForward="false">ns=1;i=11248</Reference>
     </References>
   </UAObject>
