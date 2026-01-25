@@ -67,7 +67,8 @@ typedef struct NL_BiDirectionalReference {
     NL_Reference *hierachicalRefs;                                      \
     NL_Reference *nonHierachicalRefs;                                   \
     NL_Reference *unknownRefs;                                          \
-    void *extension;
+    void *extension;                                                    \
+    bool isDone; /* the node was successfully added in the backend */
 
 #define NL_NODE_INSTANCE_ATTRIBUTES UA_NodeId parentNodeId;
 

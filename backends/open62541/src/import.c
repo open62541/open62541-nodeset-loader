@@ -19,14 +19,13 @@
 
 #include <assert.h>
 
-struct AddNodeContext {
+typedef struct {
     ServerContext *serverContext;
-    NodeContainer *problemNodes;
+    size_t addedCount;
+    size_t errorCount;
     UA_NamespaceMapping *nsMapping;
     NodesetLoader_Logger *logger;
-};
-
-typedef struct AddNodeContext AddNodeContext;
+} AddNodeContext;
 
 static UA_NodeId
 getParentDataType(UA_Server *server, const UA_NodeId id) {
@@ -338,6 +337,9 @@ handleDataTypeNode(const NL_DataTypeNode *node, UA_NodeId *id,
 
 static void
 addNodeImpl(AddNodeContext *context, NL_Node *node) {
+    if(node->isDone)
+        return;
+
     UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(node, &parentReferenceId);
@@ -388,10 +390,12 @@ addNodeImpl(AddNodeContext *context, NL_Node *node) {
         break;
     }
 
-    // If a node was not added to the server due to an error, we add such a node
-    // to a special node container. We can then try to add such nodes later.
-    if(context->problemNodes != NULL && UA_StatusCode_isBad(res))
-        NodeContainer_add(context->problemNodes, node);
+    if (res == UA_STATUSCODE_GOOD) {
+        context->addedCount++;
+        node->isDone = true;
+    } else {
+        context->errorCount++;
+    }
 }
 
 static void
@@ -504,110 +508,57 @@ addNonHierachicalRefs(UA_Server *server, NL_Node *node) {
     }
 }
 
-static size_t
-secondChanceAddNodes(AddNodeContext *context,
-                     NodesetLoader_Logger *logger) {
-    const size_t attemptsNum = 10;
-
-    NodeContainer *problemNodes = context->problemNodes;
-    
-    size_t numberOfAllAddedNodes = 0;
-    // We will try to add all failed nodes in a certain number of attempts.
-    // This gives us the opportunity to add a chain like Object(child) ->
-    // Variable(parent).
-    // For example, this reference is used in the HasHistoricalConfiguration
-    // reference type.
-    size_t attempt = 1;
-    while (attempt != attemptsNum && problemNodes->size != 0) {
-        NodeContainer *local_badStatusNodes = NodeContainer_new(problemNodes->size, false);
-        AddNodeContext c2;
-        c2.problemNodes = local_badStatusNodes;
-        c2.serverContext = context->serverContext;
-        c2.nsMapping = context->nsMapping;
-        c2.logger = logger;
-        for (size_t counter = 0; counter < problemNodes->size; counter++) {
-            // Import to server again
-            addNodeImpl(&c2, problemNodes->nodes[counter]);
-        }
-        size_t counterOfAdddedNodesForOneAttempt = problemNodes->size - local_badStatusNodes->size;
-        numberOfAllAddedNodes += counterOfAdddedNodesForOneAttempt;
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "attempt (%zu), imported nodes: %zu", attempt,
-                    counterOfAdddedNodesForOneAttempt);
-        if(problemNodes != context->problemNodes)
-            NodeContainer_delete(problemNodes);
-        problemNodes = local_badStatusNodes;
-        attempt++;
-    }
-    if(problemNodes != context->problemNodes)
-        NodeContainer_delete(problemNodes);
-    return numberOfAllAddedNodes;
-}
-
-static void
+static bool
 addNodes(NodesetLoader *loader, NL_FileContext *handler,
          ServerContext *serverContext, NodesetLoader_Logger *logger) {
     const NL_NodeClass order[NL_NODECLASS_COUNT] = {
         NODECLASS_REFERENCETYPE, NODECLASS_DATATYPE, NODECLASS_OBJECTTYPE,
         NODECLASS_VARIABLETYPE,  NODECLASS_OBJECT,   NODECLASS_METHOD,
         NODECLASS_VARIABLE,      NODECLASS_VIEW};
-    const size_t containerInitialSize = 100;
-
-    // If we have a problem adding nodes to the server, let's add references
-    // to these nodes to the container.
-    NodeContainer* badStatusNodes = NodeContainer_new(containerInitialSize, false);
-    // Since every cycle we add one node class we need to save
-    // counter of previous badStatusNodes because badStatusNodes
-    // will always be adding new bad nodes to one list, and we have to calculate
-    // the real number of bad status nodes on every single cycle.
-    size_t previous_loop_badStatusNodes_size = 0;
 
     AddNodeContext context;
-    context.problemNodes = badStatusNodes;
     context.serverContext = serverContext;
     context.nsMapping = &handler->nsMapping;
     context.logger = logger;
 
+    // Ideally we do a linearization (graph sort) before adding the nodes in the
+    // right order. As a workaround we mark nodes as "done" and retry until all
+    // nodes are added or we cannot add more nodes. This handles cases where a
+    // child node appears first in the list. But we get to see some ugly log
+    // messages that would not be needed with the graph sort.
+ add_nodes:
+    context.addedCount = 0;
+    context.errorCount = 0;
     for (size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
         const NL_NodeClass classToImport = order[i];
-        size_t cnt =
-            NodesetLoader_forEachNode(loader, classToImport, &context,
-                                      (NodesetLoader_forEachNode_Func)addNodeImpl);
+        NodesetLoader_forEachNode(loader, classToImport, &context,
+                                  (NodesetLoader_forEachNode_Func)addNodeImpl);
         if(classToImport == NODECLASS_DATATYPE)
             importDataTypes(loader, ServerContext_getServerObject(serverContext));
-
-        // Now we can see the nodes that could not be added and can calculate
-        // and show the actual nodes added.
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                    "imported %ss: %zu", NL_NODECLASS_NAME[classToImport],
-                    cnt - (badStatusNodes->size - previous_loop_badStatusNodes_size));
-        previous_loop_badStatusNodes_size = badStatusNodes->size;
     }
 
-    // second chance algorithm
-    if (badStatusNodes->size != 0) {
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                    "Couldn't import: %zu. Let's try adding non-imported "
-                    "nodes a few more times.", badStatusNodes->size);
-        size_t numberOfAllAddedNodes = secondChanceAddNodes(&context, logger);
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                    "imported after attempts: %zu", numberOfAllAddedNodes);
+    // Errors remain.
+    // Maybe we needed to add the parents first. Retry.
+    if(context.errorCount > 0) {
+        // No progress. Bail out.
+        if(context.addedCount == 0)
+            return false;
+        goto add_nodes;
     }
 
-    // Delete only reference and container. Not NL_Nodes objects.
-    NodeContainer_delete(badStatusNodes);
-
+    // Add additional non-hierarchical references
     for (size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
         const NL_NodeClass classToImport = order[i];
         NodesetLoader_forEachNode(loader, classToImport,
                                   ServerContext_getServerObject(serverContext),
             (NodesetLoader_forEachNode_Func)addNonHierachicalRefs);
     }
+    return true;
 }
 
 bool
-    NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                           NodesetLoader_ExtensionInterface *extensionHandling) {
+NodesetLoader_loadFile(struct UA_Server *server, const char *path,
+                       NodesetLoader_ExtensionInterface *extensionHandling) {
     if(!server)
         return false;
 
@@ -637,19 +588,18 @@ bool
     NodesetLoader *loader = NodesetLoader_new(logger, refService);
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
-    bool importStatus = NodesetLoader_importFile(loader, &handler);
-    bool sortStatus = NodesetLoader_sort(loader);
-    bool retStatus = importStatus && sortStatus;
-    if (retStatus && sortStatus) {
-        addNodes(loader, &handler, serverContext, logger);
-    } else {
+    bool status = NodesetLoader_importFile(loader, &handler);
+    if(status)
+        status = NodesetLoader_sort(loader);
+    if(status)
+        status = addNodes(loader, &handler, serverContext, logger);
+    if(!status)
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                    "importing the nodeset failed, nodes were not added");
-    }
+                    "Importing the nodeset failed, nodes were not added");
     RefServiceImpl_delete(refService);
     NodesetLoader_delete(loader);
     ServerContext_delete(serverContext);
     UA_NamespaceMapping_clear(&handler.nsMapping);
     free(logger);
-    return retStatus;
+    return status;
 }
