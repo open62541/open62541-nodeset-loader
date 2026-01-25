@@ -12,21 +12,9 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-
-#include <libxml/xmlreader.h>
-
 #include <stdio.h>
 
-typedef void (*Parser_callbackStart)(void *ctx, const char *localname,
-                                     const char *prefix, const char *URI,
-                                     size_t nb_namespaces, const char **namespaces,
-                                     size_t nb_attributes, size_t nb_defaulted,
-                                     const char **attributes);
-
-typedef void (*Parser_callbackEnd)(void *ctx, const char *localname,
-                                   const char *prefix, const char *URI);
-
-typedef void (*Parser_callbackChar)(void *ctx, const char *ch, size_t len);
+#include <libxml/xmlreader.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -405,14 +393,7 @@ OnCharacters(void *ctx, const char *ch, size_t len) {
 }
 
 static int
-Parser_run(void *context, FILE *file,
-           Parser_callbackStart start,
-           Parser_callbackEnd end,
-           Parser_callbackChar onChars) {
-    assert(start);
-    assert(end);
-    assert(onChars);
-
+Parser_run(void *context, FILE *file) {
     /* Read entire file into memory */
     fseek(file, 0, SEEK_END);
     long fsize = ftell(file);
@@ -428,10 +409,7 @@ Parser_run(void *context, FILE *file,
     xmlInitParser();
 
     xmlTextReaderPtr reader =
-        xmlReaderForMemory(buf, (int)elems,
-                           NULL, /* Filename not needed */
-                           "UTF-8", XML_PARSE_HUGE);
-
+        xmlReaderForMemory(buf, (int)elems, NULL, "UTF-8", XML_PARSE_HUGE);
     if(reader == NULL) {
         free(buf);
         return 1;
@@ -486,29 +464,31 @@ Parser_run(void *context, FILE *file,
                     attrs[idx++] = _value ? (_value + strlen(_value)) : NULL;
                 } while(xmlTextReaderMoveToNextAttribute(reader) == 1);
 
-                start(context, local, prefix, uri, nb_namespaces, namespaces,
-                      nb_attributes, nb_defaulted, attrs);
+                OnStartElementNs(context, local, prefix, uri,
+                                 nb_namespaces, namespaces,
+                                 nb_attributes, nb_defaulted, attrs);
 
                 free(attrs);
                 xmlTextReaderMoveToElement(reader);
             } else {
-                start(context, local, prefix, uri, nb_namespaces, namespaces,
-                      nb_attributes, nb_defaulted, NULL);
+                OnStartElementNs(context, local, prefix, uri,
+                                 nb_namespaces, namespaces,
+                                 nb_attributes, nb_defaulted, NULL);
             }
 
             if(xmlTextReaderIsEmptyElement(reader))
-                end(context, local, prefix, uri);
+                OnEndElementNs(context, local, prefix, uri);
         } else if(nodeType == XML_READER_TYPE_END_ELEMENT) {
             const char *local = (const char*)xmlTextReaderConstLocalName(reader);
             const char *prefix = (const char*)xmlTextReaderConstPrefix(reader);
             const char *uri = (const char*)xmlTextReaderConstNamespaceUri(reader);
-            end(context, local, prefix, uri);
+            OnEndElementNs(context, local, prefix, uri);
         } else if(nodeType == XML_READER_TYPE_TEXT ||
                 nodeType == XML_READER_TYPE_SIGNIFICANT_WHITESPACE ||
                 nodeType == XML_READER_TYPE_WHITESPACE) {
             const char *txt = (const char*)xmlTextReaderConstValue(reader);
             if(txt && *txt)
-                onChars(context, txt, strlen(txt));
+                OnCharacters(context, txt, strlen(txt));
         }
     }
 
@@ -576,7 +556,7 @@ bool NodesetLoader_importFile(NodesetLoader *loader,
         loader->nodeset->fc->nsMapping.remote2localSize = 1;
     }
 
-    if(Parser_run(&ctx, f, OnStartElementNs, OnEndElementNs, OnCharacters)) {
+    if(Parser_run(&ctx, f)) {
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
         retStatus = false;
