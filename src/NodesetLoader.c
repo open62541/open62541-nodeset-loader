@@ -37,7 +37,7 @@
 #define INVERSENAME "InverseName"
 
 const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
-    "Object", "ObjectType",    "Variable",    "DataType",
+    "Object", "ObjectType", "Variable", "DataType",
     "Method", "ReferenceType", "VariableType", "View"};
 
 struct NodesetLoader {
@@ -91,7 +91,6 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
                  size_t nb_namespaces, const char **namespaces,
                  size_t nb_attributes, size_t nb_defaulted,
                  const char **attributes) {
-
     /* We are below an unknown element */
     if(pctx->unknown_depth > 0) {
         pctx->unknown_depth++;
@@ -100,81 +99,58 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
 
     switch (pctx->state) {
     case PARSER_STATE_INIT:
-        if (!strcmp(localname, VARIABLE))
-        {
+        if(!strcmp(localname, VARIABLE)) {
             pctx->nodeClass = NODECLASS_VARIABLE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, OBJECT))
-        {
+        } else if(!strcmp(localname, OBJECT)) {
             pctx->nodeClass = NODECLASS_OBJECT;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, OBJECTTYPE))
-        {
+        } else if(!strcmp(localname, OBJECTTYPE)) {
             pctx->nodeClass = NODECLASS_OBJECTTYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, DATATYPE))
-        {
+        } else if(!strcmp(localname, DATATYPE)) {
             pctx->nodeClass = NODECLASS_DATATYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, METHOD))
-        {
+        } else if(!strcmp(localname, METHOD)) {
             pctx->nodeClass = NODECLASS_METHOD;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, REFERENCETYPE))
-        {
+        } else if(!strcmp(localname, REFERENCETYPE)) {
             pctx->nodeClass = NODECLASS_REFERENCETYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, VARIABLETYPE))
-        {
+        } else if(!strcmp(localname, VARIABLETYPE)) {
             pctx->nodeClass = NODECLASS_VARIABLETYPE;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, VIEW))
-        {
+        } else if(!strcmp(localname, VIEW)) {
             pctx->nodeClass = NODECLASS_VIEW;
             pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
                                          nb_attributes, attributes);
             pctx->state = PARSER_STATE_NODE;
-        }
-        else if (!strcmp(localname, NAMESPACEURIS))
-        {
+        } else if(!strcmp(localname, NAMESPACEURIS)) {
             pctx->state = PARSER_STATE_NAMESPACEURIS;
-        }
-        else if (!strcmp(localname, ALIAS))
-        {
+        } else if(!strcmp(localname, ALIAS)) {
             pctx->state = PARSER_STATE_ALIAS;
             pctx->node = NULL;
             pctx->alias = Nodeset_newAlias(pctx->nodeset, nb_attributes, attributes);
             pctx->state = PARSER_STATE_ALIAS;
-        }
-        else if (!strcmp(localname, "UANodeSet") ||
-                 !strcmp(localname, "Aliases") ||
-                 !strcmp(localname, "Extensions"))
-        {
+        } else if(!strcmp(localname, "UANodeSet") ||
+                  !strcmp(localname, "Aliases") ||
+                  !strcmp(localname, "Extensions")) {
             pctx->state = PARSER_STATE_INIT;
-        }
-        else
-        {
+        } else {
             pctx->unknown_depth++;
             return;
         }
@@ -245,7 +221,6 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         if (!strcmp(localname, EXTENSION)) {
             if (pctx->extIf) {
                 pctx->extensionData = pctx->extIf->newExtension();
-            }
             pctx->state = PARSER_STATE_EXTENSION;
         } else {
             pctx->unknown_depth++;
@@ -260,7 +235,7 @@ OnStartElementNs(TParserCtx *pctx, const char *localname,
         break;
 
     case PARSER_STATE_REFERENCES:
-        if (!strcmp(localname, REFERENCE)) {
+        if(!strcmp(localname, REFERENCE)) {
             pctx->state = PARSER_STATE_REFERENCE;
             pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
                                              nb_attributes, attributes);
@@ -345,10 +320,9 @@ OnEndElementNs(TParserCtx *pctx, const char *localname,
             }
             pctx->state = PARSER_STATE_EXTENSIONS;
         } else {
-            if (pctx->extIf) {
+            if(pctx->extIf)
                 pctx->extIf->end(pctx->extensionData, localname,
                                  pctx->onCharacters);
-            }
         }
         break;
     case PARSER_STATE_EXTENSIONS:
@@ -377,7 +351,7 @@ OnEndElementNs(TParserCtx *pctx, const char *localname,
 
 static void
 OnCharacters(TParserCtx *pctx, const char *ch, size_t len) {
-    if (pctx->onCharacters == NULL) {
+    if(pctx->onCharacters == NULL) {
         char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena, len + 1);
         pctx->onCharacters = newValue;
     } else {
@@ -497,8 +471,9 @@ Parser_run(TParserCtx *context, FILE *file) {
     return 0;
 }
 
-bool NodesetLoader_importFile(NodesetLoader *loader,
-                              const NL_FileContext *fileHandler) {
+bool
+NodesetLoader_importFile(NodesetLoader *loader,
+                         const NL_FileContext *fileHandler) {
     if(!fileHandler) {
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR,
@@ -571,16 +546,17 @@ cleanup:
     return retStatus;
 }
 
-bool NodesetLoader_sort(NodesetLoader *loader) {
+bool
+NodesetLoader_sort(NodesetLoader *loader) {
     return Nodeset_sort(loader->nodeset);
 }
 
-NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
-                                 NL_ReferenceService *refService) {
+NodesetLoader *
+NodesetLoader_new(NodesetLoader_Logger *logger,
+                  NL_ReferenceService *refService) {
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
-
     if(!logger) {
         loader->logger = InternalLogger_new();
         loader->internalLogger = true;
@@ -598,29 +574,23 @@ NodesetLoader *NodesetLoader_new(NodesetLoader_Logger *logger,
     return loader;
 }
 
-void NodesetLoader_delete(NodesetLoader *loader)
-{
+void
+NodesetLoader_delete(NodesetLoader *loader) {
     Nodeset_cleanup(loader->nodeset);
-    if (loader->internalLogger)
-    {
+    if(loader->internalLogger)
         free(loader->logger);
-    }
-    if (loader->internalRefService)
-    {
+    if(loader->internalRefService)
         InternalRefService_delete(loader->refService);
-    }
     free(loader);
 }
 
 const NL_BiDirectionalReference *
-NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader)
-{
+NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader) {
     return Nodeset_getBiDirectionalRefs(loader->nodeset);
 }
 
-size_t NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
-                               void *context,
-                               NodesetLoader_forEachNode_Func fn)
-{
+size_t
+NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
+                          void *context, NodesetLoader_forEachNode_Func fn) {
     return Nodeset_forEachNode(loader->nodeset, nodeClass, context, fn);
 }
