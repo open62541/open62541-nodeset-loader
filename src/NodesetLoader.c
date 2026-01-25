@@ -3,15 +3,30 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2019 (c) Matthias Konnerth
+ *    Copyright 2026 (c) o6 Automation GmbH (Author: Julius Pfrommer)
  */
 
 #include "InternalLogger.h"
 #include "InternalRefService.h"
 #include "Nodeset.h"
-#include "Parser.h"
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include <libxml/xmlreader.h>
+
+#include <stdio.h>
+
+typedef void (*Parser_callbackStart)(void *ctx, const char *localname,
+                                     const char *prefix, const char *URI,
+                                     size_t nb_namespaces, const char **namespaces,
+                                     size_t nb_attributes, size_t nb_defaulted,
+                                     const char **attributes);
+
+typedef void (*Parser_callbackEnd)(void *ctx, const char *localname,
+                                   const char *prefix, const char *URI);
+
+typedef void (*Parser_callbackChar)(void *ctx, const char *ch, size_t len);
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -43,6 +58,43 @@ struct NodesetLoader {
     bool internalLogger;
     NL_ReferenceService *refService;
     bool internalRefService;
+};
+
+typedef enum {
+    PARSER_STATE_INIT,
+    PARSER_STATE_NODE,
+    PARSER_STATE_DISPLAYNAME,
+    PARSER_STATE_REFERENCES,
+    PARSER_STATE_REFERENCE,
+    PARSER_STATE_DESCRIPTION,
+    PARSER_STATE_INVERSENAME,
+    PARSER_STATE_ALIAS,
+    PARSER_STATE_NAMESPACEURIS,
+    PARSER_STATE_URI,
+    PARSER_STATE_VALUE,
+    PARSER_STATE_EXTENSION,
+    PARSER_STATE_EXTENSIONS,
+    PARSER_STATE_DATATYPE_DEFINITION,
+    PARSER_STATE_DATATYPE_DEFINITION_FIELD
+} TParserState;
+
+struct TParserCtx {
+    void *userContext;
+    TParserState state;
+    size_t unknown_depth;
+    size_t value_depth;
+    NL_NodeClass nodeClass;
+    NL_Node *node;
+    struct Alias *alias;
+    char *onCharacters;
+    size_t onCharLength;
+    long valueBegin;
+    void *extensionData;
+    NodesetLoader_ExtensionInterface *extIf;
+    NL_Reference *ref;
+    Nodeset *nodeset;
+    xmlParserCtxtPtr ctxt;
+    char *buf;
 };
 
 static void OnStartElementNs(void *ctx, const char *localname,
@@ -350,6 +402,123 @@ OnCharacters(void *ctx, const char *ch, size_t len) {
     }
     memcpy(pctx->onCharacters + pctx->onCharLength, ch, len);
     pctx->onCharLength += len;
+}
+
+static int
+Parser_run(void *context, FILE *file,
+           Parser_callbackStart start,
+           Parser_callbackEnd end,
+           Parser_callbackChar onChars) {
+    assert(start);
+    assert(end);
+    assert(onChars);
+
+    /* Read entire file into memory */
+    fseek(file, 0, SEEK_END);
+    long fsize = ftell(file);
+    fseek(file, 0, SEEK_SET);
+
+    char *buf = (char*)malloc((size_t)(fsize + 1));
+    if(!buf)
+        return 1;
+
+    size_t elems = fread(buf, 1, (size_t)fsize, file);
+    buf[elems] = 0; /* Ensure null terminated */
+
+    xmlInitParser();
+
+    xmlTextReaderPtr reader =
+        xmlReaderForMemory(buf, (int)elems,
+                           NULL, /* Filename not needed */
+                           "UTF-8", XML_PARSE_HUGE);
+
+    if(reader == NULL) {
+        free(buf);
+        return 1;
+    }
+
+    int ret;
+    while((ret = xmlTextReaderRead(reader)) == 1) {
+        int nodeType = xmlTextReaderNodeType(reader);
+
+        if(nodeType == XML_READER_TYPE_ELEMENT) {
+            const char *local = (const char*)xmlTextReaderConstLocalName(reader);
+            const char *prefix = (const char*)xmlTextReaderConstPrefix(reader);
+            const char *uri = (const char*)xmlTextReaderConstNamespaceUri(reader);
+
+            /* namespace declarations:
+             * xmlTextReader does not directly expose declared ns on this node,
+             * but for most OPC UA nodesets (and SAX2 consumers),
+             * the namespaces array was rarely used beyond URI+prefix.
+             * We pass 0 here. If you need full ns scope, we can augment via
+             * xmlGetNsList(document,node). */
+            size_t nb_namespaces = 0;
+            const char **namespaces = NULL;
+
+            /* attributes */
+            size_t nb_attributes = 0;
+            size_t nb_defaulted = 0;
+
+            if(xmlTextReaderHasAttributes(reader)) {
+                xmlTextReaderMoveToFirstAttribute(reader);
+                do {
+                    nb_attributes++;
+                } while(xmlTextReaderMoveToNextAttribute(reader) == 1);
+
+                /* Now build classical SAX2 attributes array:
+                 * attributes is:
+                 *  [localname, prefix, URI, value, ...] 4-tuple repeated
+                 */
+                const char **attrs = (const char **)
+                    malloc(sizeof(char*) * nb_attributes * 5);
+                int idx = 0;
+
+                xmlTextReaderMoveToFirstAttribute(reader);
+                do {
+                    const char *_local  = (const char*)xmlTextReaderConstLocalName(reader);
+                    const char *_prefix = (const char*)xmlTextReaderConstPrefix(reader);
+                    const char *_uri    = (const char*)xmlTextReaderConstNamespaceUri(reader);
+                    const char *_value  = (const char*)xmlTextReaderConstValue(reader);
+                    attrs[idx++] = _local;
+                    attrs[idx++] = _prefix;
+                    attrs[idx++] = _uri;
+                    attrs[idx++] = _value;
+                    attrs[idx++] = _value ? (_value + strlen(_value)) : NULL;
+                } while(xmlTextReaderMoveToNextAttribute(reader) == 1);
+
+                start(context, local, prefix, uri, nb_namespaces, namespaces,
+                      nb_attributes, nb_defaulted, attrs);
+
+                free(attrs);
+                xmlTextReaderMoveToElement(reader);
+            } else {
+                start(context, local, prefix, uri, nb_namespaces, namespaces,
+                      nb_attributes, nb_defaulted, NULL);
+            }
+
+            if(xmlTextReaderIsEmptyElement(reader))
+                end(context, local, prefix, uri);
+        } else if(nodeType == XML_READER_TYPE_END_ELEMENT) {
+            const char *local = (const char*)xmlTextReaderConstLocalName(reader);
+            const char *prefix = (const char*)xmlTextReaderConstPrefix(reader);
+            const char *uri = (const char*)xmlTextReaderConstNamespaceUri(reader);
+            end(context, local, prefix, uri);
+        } else if(nodeType == XML_READER_TYPE_TEXT ||
+                nodeType == XML_READER_TYPE_SIGNIFICANT_WHITESPACE ||
+                nodeType == XML_READER_TYPE_WHITESPACE) {
+            const char *txt = (const char*)xmlTextReaderConstValue(reader);
+            if(txt && *txt)
+                onChars(context, txt, strlen(txt));
+        }
+    }
+
+    xmlFreeTextReader(reader);
+    xmlCleanupParser();
+    free(buf);
+
+    if(ret < 0)
+        return 1;
+    return 0;
 }
 
 bool NodesetLoader_importFile(NodesetLoader *loader,
