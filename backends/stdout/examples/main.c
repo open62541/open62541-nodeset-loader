@@ -9,6 +9,14 @@
 #include <stdio.h>
 #include <string.h>
 
+static void
+NodesetLoader_Logger_null(void *context,
+                          enum NodesetLoader_LogLevel level,
+                          const char *message, ...)
+{
+
+}
+
 int main(int argc, char *argv[])
 {
     if (argc < 2)
@@ -23,7 +31,13 @@ int main(int argc, char *argv[])
     handler.addNamespace = _addNamespace;
     handler.userContext = &maxValueRank;
 
-    NodesetLoader *loader = NodesetLoader_new(NULL, NULL);
+    NodesetLoader_Logger *logger =
+        (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
+    logger->log = NodesetLoader_Logger_null;
+
+    NL_ReferenceService *refService = RefService_new();
+
+    NodesetLoader *loader = NodesetLoader_new(logger, refService);
 
     for (int cnt = 1; cnt < argc; cnt++)
     {
@@ -43,6 +57,7 @@ int main(int argc, char *argv[])
     }
 
     NodesetLoader_delete(loader);
+    RefService_delete(refService);
 
     printf("maxValue Rank: %d", maxValueRank);
     return 0;

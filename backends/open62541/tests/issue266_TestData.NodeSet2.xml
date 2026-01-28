@@ -56,13 +56,6 @@
     <Alias Alias="HasAddIn">i=17604</Alias>
     <Alias Alias="HasInterface">i=17603</Alias>
   </Aliases>
-  <UAReferenceType NodeId="i=9004" BrowseName="HasTrueSubState">
-    <DisplayName>HasTrueSubState</DisplayName>
-    <References>
-      <Reference ReferenceType="HasSubtype" IsForward="false">i=32</Reference>
-    </References>
-    <InverseName>IsTrueSubStateOf</InverseName>
-  </UAReferenceType>
   <UAObjectType NodeId="ns=1;i=9371" BrowseName="1:GenerateValuesEventType">
     <DisplayName>GenerateValuesEventType</DisplayName>
     <References>
