@@ -455,9 +455,11 @@ NodesetLoader_importFile(NodesetLoader *loader,
                                 &ns0, &UA_TYPES[UA_TYPES_STRING]);
         (void)ret;
 
-        loader->nodeset->fc->nsMapping.remote2local = (UA_UInt16*)
-            UA_calloc(1, sizeof(UA_UInt16));
-        loader->nodeset->fc->nsMapping.remote2localSize = 1;
+        if(!loader->nodeset->fc->nsMapping.remote2local) {
+            loader->nodeset->fc->nsMapping.remote2local = (UA_UInt16*)
+                UA_calloc(1, sizeof(UA_UInt16));
+            loader->nodeset->fc->nsMapping.remote2localSize = 1;
+        }
     }
 
     if(Parser_run(&ctx, f)) {
