@@ -206,17 +206,19 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     UA_String idBuf = {128, (UA_Byte*)buf};
     UA_NodeId_print(id, &idBuf);
 
-    UA_ServerConfig *sc = UA_Server_getConfig(server);
-    UA_DecodeXmlOptions opts;
-    memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
-    opts.unwrapped = true;
-    opts.customTypes = sc->customDataTypes;
-    opts.namespaceMapping = context->nsMapping;
-    UA_StatusCode ret =
-        UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
-    if(ret != UA_STATUSCODE_GOOD) {
-        context->logger->log(context->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                             "Failed to parse the value of %s", buf);
+    UA_StatusCode ret = UA_STATUSCODE_GOOD;
+    if(node->value.length > 0) {
+        UA_ServerConfig *sc = UA_Server_getConfig(server);
+        UA_DecodeXmlOptions opts;
+        memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
+        opts.unwrapped = true;
+        opts.customTypes = sc->customDataTypes;
+        opts.namespaceMapping = context->nsMapping;
+        ret = UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
+        if(ret != UA_STATUSCODE_GOOD) {
+            context->logger->log(context->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
+                                 "Failed to parse the value of %s", buf);
+        }
     }
 
     // this case is only needed for the euromap83 comparison, think the nodeset
@@ -240,18 +242,17 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         typeDefId = node->refToTypeDef->target;
 
     //value is copied by open62541
-    UA_StatusCode res =
-        UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
-                                *parentReferenceId, *qn, typeDefId, &attr,
-                                &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
-                                node->extension, NULL);
+    ret = UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
+                                  *parentReferenceId, *qn, typeDefId, &attr,
+                                  &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
+                                  node->extension, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
 
     UA_Variant_clear(&attr.value);
     if(attr.arrayDimensions && attr.arrayDimensions != &arrayDims)
         UA_free(attr.arrayDimensions);
-    return res;
+    return ret;
 }
 
 static UA_StatusCode
