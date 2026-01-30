@@ -188,11 +188,9 @@ add_subdirectory(backends)
 set(NODESETLOADER_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/CharAllocator.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/AliasList.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/Sort.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Node.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Nodeset.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/NodesetLoader.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/RefService.c
     ${NODESETLOADER_BACKEND_SOURCES}
     CACHE INTERNAL "")
 

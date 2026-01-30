@@ -14,45 +14,45 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct Nodeset;
-typedef struct Nodeset Nodeset;
-struct Alias;
 struct TParserCtx;
 typedef struct TParserCtx TParserCtx;
 
-struct NodeContainer;
+struct Nodeset;
+typedef struct Nodeset Nodeset;
+struct Alias;
 struct AliasList;
-struct SortContext;
+
+typedef struct {
+    NL_Node **nodes;
+    size_t size;
+    size_t capacity;
+} NodeContainer;
 
 struct Nodeset {
     CharArenaAllocator *charArena;
     struct AliasList *aliasList;
-    struct NodeContainer *nodes[NL_NODECLASS_COUNT];
+
+    NodeContainer nodes[NL_NODECLASS_COUNT];
+    NodeContainer allNodes; // gets sorted according to the nodeid
+    NodeContainer sortedNodes; // in the order to add to the server
 
     NL_FileContext *fc;
     size_t localNamespaceUrisSize;
     UA_String *localNamespaceUris;
 
-    struct SortContext *sortCtx;
-    NL_BiDirectionalReference *hasEncodingRefs;
     NodesetLoader_Logger* logger;
-    struct NodeContainer *nodesWithUnknownRefs;
-    struct NodeContainer *refTypesWithUnknownRefs;
-    NL_ReferenceService* refService;
 };
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
-                     NodesetLoader_Logger* logger,
-                     NL_ReferenceService* refService);
+                     NodesetLoader_Logger* logger);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                          size_t attributeSize, const char **attributes);
-void Nodeset_newNodeFinish(Nodeset *nodeset, NL_Node *node);
 NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                    size_t attributeSize, const char **attributes);
-void Nodeset_newReferenceFinish(Nodeset *nodeset, NL_Reference *ref, NL_Node *node,
-                                char *targetId);
+void Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
+                                 char *idString);
 struct Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
                                const char **attribute);
 void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias,
@@ -72,8 +72,7 @@ void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text
 void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-const NL_BiDirectionalReference * Nodeset_getBiDirectionalRefs(const Nodeset *nodeset);
-size_t Nodeset_forEachNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                           void *context, NodesetLoader_forEachNode_Func fn);
+void Nodeset_forEachNode(Nodeset *nodeset, void *context,
+                         NodesetLoader_forEachNode_Func fn);
 
 #endif

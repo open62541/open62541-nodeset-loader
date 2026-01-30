@@ -35,12 +35,9 @@ int main(int argc, char *argv[])
         (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
     logger->log = NodesetLoader_Logger_null;
 
-    NL_ReferenceService *refService = RefService_new();
+    NodesetLoader *loader = NodesetLoader_new(logger);
 
-    NodesetLoader *loader = NodesetLoader_new(logger, refService);
-
-    for (int cnt = 1; cnt < argc; cnt++)
-    {
+    for (int cnt = 1; cnt < argc; cnt++) {
         handler.file = argv[cnt];
         if (!NodesetLoader_importFile(loader, &handler))
         {
@@ -51,13 +48,9 @@ int main(int argc, char *argv[])
 
     NodesetLoader_sort(loader);
 
-    for (int i = 0; i < NL_NODECLASS_COUNT; i++)
-    {
-        NodesetLoader_forEachNode(loader, (NL_NodeClass)i, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
-    }
+    NodesetLoader_forEachNode(loader, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
 
     NodesetLoader_delete(loader);
-    RefService_delete(refService);
 
     printf("maxValue Rank: %d", maxValueRank);
     return 0;

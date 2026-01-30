@@ -57,19 +57,11 @@ void dumpNode(void *userContext, const NL_Node *node)
     case NODECLASS_VARIABLETYPE:
         break;
     }
-    NL_Reference *hierachicalRef = node->hierachicalRefs;
-    while (hierachicalRef)
+    NL_Reference *ref = node->refs;
+    while (ref)
     {
-        printf("\treftype: %s", printId(&hierachicalRef->refType));
-        printf(" target: %s\n", printId(&hierachicalRef->target));
-        hierachicalRef = hierachicalRef->next;
-    }
-
-    NL_Reference *nonHierRef = node->nonHierachicalRefs;
-    while (nonHierRef)
-    {
-        printf("\treftype: %s", printId(&nonHierRef->refType));
-        printf(" target: %s\n", printId(&nonHierRef->target));
-        nonHierRef = nonHierRef->next;
+        printf("\treftype: %s", printId(&ref->refType));
+        printf(" target: %s\n", printId(&ref->target));
+        ref = ref->next;
     }
 }

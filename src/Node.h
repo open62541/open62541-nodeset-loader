@@ -11,18 +11,10 @@
 #include "NodesetLoader/NodesetLoader.h"
 #include "Nodeset.h"
 
-struct NodeContainer {
-    NL_Node **nodes;
-    size_t size;
-    size_t capacity;
-    size_t incrementSize;
-    bool owner;
-};
-typedef struct NodeContainer NodeContainer;
-
-NodeContainer *NodeContainer_new(size_t initialSize, bool owner);
-void NodeContainer_delete(NodeContainer *container);
-void NodeContainer_add(NodeContainer *container, NL_Node *node);
+bool NodeContainer_init(NodeContainer *container, size_t initialSize);
+void NodeContainer_clear(NodeContainer *container);
+bool NodeContainer_add(NodeContainer *container, NL_Node *node);
+void NodeContainer_remove(NodeContainer *container, size_t index);
 
 NL_Node *Node_new(NL_NodeClass nodeClass);
 void Node_delete(NL_Node *node);

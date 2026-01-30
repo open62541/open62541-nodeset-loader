@@ -41,7 +41,6 @@ const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
 struct NodesetLoader {
     Nodeset *nodeset;
     NodesetLoader_Logger *logger;
-    NL_ReferenceService *refService;
 };
 
 typedef enum {
@@ -280,7 +279,6 @@ OnEndElementNs(void *ctx, const char *localname,
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_NODE:
-        Nodeset_newNodeFinish(pctx->nodeset, pctx->node);
         pctx->state = PARSER_STATE_INIT;
         break;
     case PARSER_STATE_DISPLAYNAME:
@@ -292,8 +290,7 @@ OnEndElementNs(void *ctx, const char *localname,
         pctx->state = PARSER_STATE_NODE;
         break;
     case PARSER_STATE_REFERENCE:
-        Nodeset_newReferenceFinish(pctx->nodeset, pctx->ref, pctx->node,
-                                   pctx->onCharacters);
+        Nodeset_newReference_finish(pctx->nodeset, pctx->ref, pctx->onCharacters);
         pctx->state = PARSER_STATE_REFERENCES;
         break;
     case PARSER_STATE_VALUE:
@@ -422,8 +419,7 @@ NodesetLoader_importFile(NodesetLoader *loader,
     }
 
     if(!loader->nodeset) {
-        loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger,
-                                      loader->refService);
+        loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger);
     }
 
     TParserCtx ctx;
@@ -487,16 +483,14 @@ NodesetLoader_sort(NodesetLoader *loader) {
 }
 
 NodesetLoader *
-NodesetLoader_new(NodesetLoader_Logger *logger,
-                  NL_ReferenceService *refService) {
-    if(!refService || !logger)
+NodesetLoader_new(NodesetLoader_Logger *logger) {
+    if(!logger)
         return NULL;
 
     NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
     if(!loader)
         return NULL;
     loader->logger = logger;
-    loader->refService = refService;
     return loader;
 }
 
@@ -506,13 +500,8 @@ NodesetLoader_delete(NodesetLoader *loader) {
     free(loader);
 }
 
-const NL_BiDirectionalReference *
-NodesetLoader_getBidirectionalRefs(const NodesetLoader *loader) {
-    return Nodeset_getBiDirectionalRefs(loader->nodeset);
-}
-
-size_t
-NodesetLoader_forEachNode(NodesetLoader *loader, NL_NodeClass nodeClass,
-                          void *context, NodesetLoader_forEachNode_Func fn) {
-    return Nodeset_forEachNode(loader->nodeset, nodeClass, context, fn);
+void
+NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
+                          NodesetLoader_forEachNode_Func fn) {
+    Nodeset_forEachNode(loader->nodeset, context, fn);
 }
