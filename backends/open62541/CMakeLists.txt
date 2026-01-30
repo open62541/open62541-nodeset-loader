@@ -2,7 +2,6 @@ set(NODESETLOADER_BACKEND_OPEN62541_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/customDataType.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/DataTypeImporter.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/ServerContext.c
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/RefServiceImpl.c
     ${CMAKE_CURRENT_SOURCE_DIR}/src/import.c
     PARENT_SCOPE)
 

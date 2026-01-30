@@ -25,13 +25,11 @@ struct DataTypeImporter {
 static UA_NodeId
 getBinaryEncodingId(const NL_DataTypeNode *node) {
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
-    NL_Reference *ref = node->nonHierachicalRefs;
-    while (ref) {
-        if (UA_NodeId_equal(&encodingRefType, &ref->refType)) {
-            UA_NodeId id = ref->target;
-            return id;
-        }
-        ref = ref->next;
+    for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
+        if(!ref->isForward)
+            continue;
+        if(UA_NodeId_equal(&encodingRefType, &ref->refType))
+            return ref->target;
     }
     return UA_NODEID_NULL;
 }
@@ -346,11 +344,12 @@ setPaddingMemsize(UA_DataType *type,
 
 static UA_NodeId
 getParentNode(const NL_DataTypeNode *node) {
-    NL_Reference *ref = node->hierachicalRefs;
-    while (ref) {
-        if (!ref->isForward)
+    UA_NodeId hasSubtype = UA_NS0ID(HASSUBTYPE);
+    for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
+        if (ref->isForward)
+            continue;
+        if(UA_NodeId_equal(&hasSubtype, &ref->refType))
             return ref->target;
-        ref = ref->next;
     }
     return UA_NODEID_NULL;
 }
