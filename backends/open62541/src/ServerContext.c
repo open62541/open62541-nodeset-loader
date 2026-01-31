@@ -19,12 +19,6 @@ AddNodeContext_new(struct UA_Server *server,
     ctx->server = server;
     ctx->logger = logger;
 
-    ctx->customTypes = (UA_DataTypeArray*)UA_calloc(1, sizeof(UA_DataTypeArray));
-    if(!ctx->customTypes) {
-        UA_free(ctx);
-        return NULL;
-    }
-
     // Load initial namespaces from the server
     UA_StatusCode res = UA_STATUSCODE_GOOD;
     size_t idx = 0;
@@ -62,28 +56,7 @@ AddNodeContext_new(struct UA_Server *server,
 
 void AddNodeContext_delete(AddNodeContext *ctx) {
     UA_NamespaceMapping_clear(&ctx->nsMapping);
-    if(ctx->customTypes) {
-        for(size_t i = 0; i < ctx->customTypes->typesSize; i++) {
-            UA_DataType *t = &ctx->customTypes->types[i];
-            UA_DataType_clear(t);
-        }
-        UA_free(ctx->customTypes->types);
-        UA_free(ctx->customTypes);
-    }
     free(ctx);
-}
-
-UA_StatusCode
- AddNodeContext_addDataType(AddNodeContext *ctx, UA_DataType *t) {
-    UA_DataType *tmp = (UA_DataType*)
-        UA_realloc(ctx->customTypes->types,
-                   sizeof(UA_DataType) * (ctx->customTypes->typesSize + 1));
-    if(!tmp)
-        return UA_STATUSCODE_BADOUTOFMEMORY;
-    ctx->customTypes->types = tmp;
-    ctx->customTypes->types[ctx->customTypes->typesSize] = *t;
-    ctx->customTypes->typesSize++;
-    return UA_STATUSCODE_GOOD;
 }
 
 UA_UInt16

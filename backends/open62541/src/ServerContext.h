@@ -16,7 +16,6 @@ typedef struct {
     UA_Server *server;
     UA_NamespaceMapping nsMapping; // From the nodeset (local) to the server (remote)
     NodesetLoader_Logger *logger;
-    UA_DataTypeArray *customTypes; // To be added to the server
 
     // ReferenceTypes that can point to a parent.
     // Inherited from HasChild.
@@ -27,9 +26,6 @@ typedef struct {
 AddNodeContext *AddNodeContext_new(struct UA_Server *server,
                                    NodesetLoader_Logger *logger);
 void AddNodeContext_delete(AddNodeContext *ctx);
-
-/* Moves the datatype into the addnodecontext */
-UA_StatusCode AddNodeContext_addDataType(AddNodeContext *ctx, UA_DataType *t);
 
 // Use AddNodeContext_addNamespaceIdx to sequentially add namespaces as they
 // appear in the nodeset file. This adds the namespaces to the server also.

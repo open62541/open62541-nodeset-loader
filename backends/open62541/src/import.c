@@ -8,6 +8,7 @@
 #include <open62541/server.h>
 
 #include <NodesetLoader/backendOpen62541.h>
+#include <open62541/types.h>
 
 #include "ServerContext.h"
 #include "NodesetLoader/NodesetLoader.h"
@@ -272,24 +273,20 @@ handleDataTypeNode(AddNodeContext *ctx,
                    const UA_LocalizedText *description) {
     return UA_STATUSCODE_GOOD;
 
-    UA_ExtensionObject typeDefinition;
-    UA_ExtensionObject_init(&typeDefinition);
+    UA_DecodeXmlOptions opts;
+    memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
+    opts.unwrapped = true;
+    opts.namespaceMapping = &ctx->nsMapping;
 
-    // Generate the UA_DataType
-    UA_DataType type;
-    memset(&type, 0, sizeof(UA_DataType));
-    UA_StatusCode res =
-        UA_DataType_fromDescription(&type, &typeDefinition,
-                                    ctx->customTypes);
-    if(res != UA_STATUSCODE_GOOD)
-        return res;
+    UA_ExtensionObject typeDefinition;
+    UA_decodeXml(&node->typeDefinition, &typeDefinition,
+                 &UA_TYPES[UA_TYPES_EXTENSIONOBJECT], &opts);
 
     // Add the UA_DataType the the server
-    res = AddNodeContext_addDataType(ctx, &type);
-    if(res != UA_STATUSCODE_GOOD) {
-        UA_DataType_clear(&type);
+    UA_StatusCode res =
+        UA_Server_addDataTypeFromDescription(ctx->server, &typeDefinition);
+    if(res != UA_STATUSCODE_GOOD)
         return res;
-    }
 
     // Add the DataTypeNode
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
