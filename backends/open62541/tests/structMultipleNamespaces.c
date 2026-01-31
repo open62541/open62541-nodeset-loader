@@ -15,16 +15,13 @@ UA_Server *server;
 char *nodesetPath1 = NULL;
 char *nodesetPath2 = NULL;
 
-static void setup(void)
-{
+static void setup(void) {
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
-    UA_Server_run_shutdown(server);
+static void teardown(void) {
     UA_Server_delete(server);
 }
 

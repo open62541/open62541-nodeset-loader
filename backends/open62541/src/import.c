@@ -10,26 +10,15 @@
 #include <open62541/server.h>
 
 #include <NodesetLoader/backendOpen62541.h>
-#include "NodesetLoader/NodesetLoader.h"
+#include "internal.h"
 #include "Node.h"
-
-typedef struct {
-    UA_Server *server;
-    UA_NamespaceMapping nsMapping; // From the nodeset (local) to the server (remote)
-    NodesetLoader_Logger *logger;
-
-    // ReferenceTypes that can point to a parent.
-    // Inherited from HasChild.
-    size_t parentRefTypesSize;
-    UA_ExpandedNodeId *parentRefTypes;
-} AddNodeContext;
 
 // Use AddNodeContext_addNamespaceIdx to sequentially add namespaces as they
 // appear in the nodeset file. This adds the namespaces to the server also.
 // Returns the local mapping index, not the in-server mapping index.
 static UA_UInt16
-AddNodeContext_addNamespace(AddNodeContext *ctx,
-                            const UA_String nsUri) {
+AddNodeContext_addNamespace(AddNodeContext *ctx, const UA_String nsUri,
+                            bool localOnly) {
     // Already in the mapping?
     for(size_t i = 0; i < ctx->nsMapping.namespaceUrisSize; i++) {
         if(UA_String_equal(&nsUri, &ctx->nsMapping.namespaceUris[i]))
@@ -40,33 +29,24 @@ AddNodeContext_addNamespace(AddNodeContext *ctx,
     char namebuf[512];
     memcpy(namebuf, nsUri.data, nsUri.length);
     namebuf[nsUri.length] = 0;
-    UA_UInt16 serverIdx = UA_Server_addNamespace(ctx->server, namebuf);
-    if(serverIdx == 0)
-        return 0;
+    UA_UInt16 localIdx = UA_Server_addNamespace(ctx->server, namebuf);
 
     // Add to the local mapping
-    UA_UInt16 localIdx = (UA_UInt16)ctx->nsMapping.namespaceUrisSize;
     UA_StatusCode res =
         UA_Array_appendCopy((void**)&ctx->nsMapping.namespaceUris,
                             &ctx->nsMapping.namespaceUrisSize,
                             &nsUri, &UA_TYPES[UA_TYPES_STRING]);
-    if(res != UA_STATUSCODE_GOOD)
-        return 0;
+    (void)res;
 
-    // Add to remote2local
-    if(serverIdx > ctx->nsMapping.remote2localSize - 1) {
-        // Assert: Nobody else is modifying the server-side namespacearray at the same time
-        UA_assert(serverIdx == ctx->nsMapping.remote2localSize);
-        res = UA_Array_append((void**)&ctx->nsMapping.remote2local,
-                              &ctx->nsMapping.remote2localSize,
-                              &localIdx, &UA_TYPES[UA_TYPES_UINT16]);
+    // Add to remote2local if this comes from the Nodeset xml
+    if(!localOnly) {
+        res = UA_Array_appendCopy((void**)&ctx->nsMapping.remote2local,
+                                  &ctx->nsMapping.remote2localSize,
+                                  &localIdx, &UA_TYPES[UA_TYPES_UINT16]);
         (void)res;
     }
 
-    res = UA_Array_append((void**)&ctx->nsMapping.local2remote,
-                          &ctx->nsMapping.local2remoteSize,
-                          &serverIdx, &UA_TYPES[UA_TYPES_UINT16]);
-    (void)res;
+    // We don't need local2remote since we are only parsing the remote
 
     return localIdx;
 }
@@ -83,11 +63,11 @@ AddNodeContext_init(AddNodeContext *ctx,
     UA_StatusCode res = UA_STATUSCODE_GOOD;
     size_t idx = 0;
     while(res == UA_STATUSCODE_GOOD) {
-        UA_String nsUri = UA_STRING_NULL;;
+        UA_String nsUri = UA_STRING_NULL;
         res = UA_Server_getNamespaceByIndex(server, idx, &nsUri);
         if(res != UA_STATUSCODE_GOOD)
             continue;
-        AddNodeContext_addNamespace(ctx, nsUri);
+        AddNodeContext_addNamespace(ctx, nsUri, true);
         UA_String_clear(&nsUri);
         idx++;
     }
@@ -115,6 +95,8 @@ AddNodeContext_init(AddNodeContext *ctx,
 static void
 AddNodeContext_clear(AddNodeContext *ctx) {
     UA_NamespaceMapping_clear(&ctx->nsMapping);
+    UA_Array_delete(ctx->parentRefTypes, ctx->parentRefTypesSize,
+                    &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
 }
 
 static inline UA_Boolean isValTrue(const char *s) {
@@ -125,7 +107,7 @@ static inline UA_Boolean isValTrue(const char *s) {
     return true;
 }
 
-static UA_NodeId
+UA_NodeId
 getParentId(const AddNodeContext *ctx, const NL_Node *node, UA_NodeId *parentRefId) {
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
         if(ref->isForward)
@@ -258,11 +240,10 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
 
     UA_StatusCode ret = UA_STATUSCODE_GOOD;
     if(node->value.length > 0) {
-        UA_ServerConfig *sc = UA_Server_getConfig(server);
         UA_DecodeXmlOptions opts;
         memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
         opts.unwrapped = true;
-        opts.customTypes = sc->customDataTypes;
+        opts.customTypes = UA_Server_getDataTypes(server);
         opts.namespaceMapping = &context->nsMapping;
         ret = UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
         if(ret != UA_STATUSCODE_GOOD) {
@@ -374,22 +355,8 @@ handleDataTypeNode(AddNodeContext *ctx,
                    const UA_LocalizedText *lt,
                    const UA_QualifiedName *qn,
                    const UA_LocalizedText *description) {
-    return UA_STATUSCODE_GOOD;
-
-    UA_DecodeXmlOptions opts;
-    memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
-    opts.unwrapped = true;
-    opts.namespaceMapping = &ctx->nsMapping;
-
-    UA_ExtensionObject typeDefinition;
-    UA_decodeXml(&node->typeDefinition, &typeDefinition,
-                 &UA_TYPES[UA_TYPES_EXTENSIONOBJECT], &opts);
-
     // Add the UA_DataType the the server
-    UA_StatusCode res =
-        UA_Server_addDataTypeFromDescription(ctx->server, &typeDefinition);
-    if(res != UA_STATUSCODE_GOOD)
-        return res;
+    addCustomDataType(ctx, node);
 
     // Add the DataTypeNode
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
@@ -474,8 +441,9 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
                                             UA_String *localNamespaceUris,
                                             UA_NamespaceMapping *nsMapping) {
     AddNodeContext *ctx = (AddNodeContext*)userContext;
+    assert(nsMapping == &ctx->nsMapping);
     for(size_t i = 0; i < localNamespaceUrisSize; i++) {
-        AddNodeContext_addNamespace(ctx, localNamespaceUris[i]);
+        AddNodeContext_addNamespace(ctx, localNamespaceUris[i], false);
     }
 }
 
@@ -517,8 +485,7 @@ addAllRefs(AddNodeContext *context, NL_Node *node) {
 }
 
 static bool
-addNodes(NodesetLoader *loader, NL_FileContext *handler,
-         AddNodeContext *anc) {
+addNodes(NodesetLoader *loader, AddNodeContext *anc) {
 
     // Add all nodes with their type definition and parent
     NodesetLoader_forEachNode(loader, anc,
@@ -569,7 +536,7 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     if(status)
         status = NodesetLoader_sort(loader);
     if(status)
-        status = addNodes(loader, &handler, &ctx);
+        status = addNodes(loader, &ctx);
     if(!status)
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
                     "Importing the nodeset failed, nodes were not added");

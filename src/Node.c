@@ -110,7 +110,10 @@ Node_delete(NL_Node *node) {
 
     if(node->nodeClass==NODECLASS_DATATYPE) {
         NL_DataTypeNode *dtNode = (NL_DataTypeNode *)node;
-        UA_String_clear(&dtNode->typeDefinition);
+        if(dtNode->definition) {
+            free(dtNode->definition->fields);
+            free(dtNode->definition);
+        }
     }
     free(node);
 }

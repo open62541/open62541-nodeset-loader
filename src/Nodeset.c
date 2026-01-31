@@ -255,6 +255,9 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++) {
         NodeContainer_clear(&nodeset->nodes[cnt]);
     }
+    for(size_t i = 0; i < nodeset->allNodes.size; i++) {
+        Node_delete(nodeset->allNodes.nodes[i]);
+    }
     NodeContainer_clear(&nodeset->allNodes);
     NodeContainer_clear(&nodeset->sortedNodes);
     free(nodeset);
@@ -410,6 +413,58 @@ void
 Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
                             char *idString) {
     ref->target = alias2Id(nodeset, idString);
+}
+
+static NL_DataTypeDefinitionField *
+DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
+    def->fieldCnt++;
+    def->fields = (NL_DataTypeDefinitionField *)
+        realloc(def->fields, def->fieldCnt * sizeof(NL_DataTypeDefinitionField));
+    if(!def->fields)
+        return NULL;
+    return &def->fields[def->fieldCnt - 1];
+}
+
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
+                                   size_t attributeSize, const char **attributes) {
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
+    dataTypeNode->definition = (NL_DataTypeDefinition *)
+        calloc(1, sizeof(NL_DataTypeDefinition));
+    dataTypeNode->definition->isUnion =
+        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
+                                          attributes, attributeSize));
+    dataTypeNode->definition->isOptionSet =
+        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
+                                          attributes, attributeSize));
+}
+
+void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
+                              size_t attributeSize, const char **attributes) {
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
+    if(dataTypeNode->definition->isOptionSet)
+        return;
+
+    NL_DataTypeDefinitionField *newField =
+        DataTypeNode_addDefinitionField(dataTypeNode->definition);
+    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
+                                       attributeSize);
+
+    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
+                                    attributeSize);
+    if (value) {
+        newField->value = atoi(value);
+        dataTypeNode->definition->isEnum =
+            !dataTypeNode->definition->isOptionSet;
+    } else {
+        newField->dataType = alias2Id(
+            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
+                                       attributes, attributeSize));
+        newField->valueRank = atoi(getAttributeValue(
+            nodeset, &attrValueRank, attributes, attributeSize));
+        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
+                                             attributes, attributeSize);
+        newField->isOptional = !strcmp("true", isOptional);
+    }
 }
 
 Alias *

@@ -105,9 +105,25 @@ typedef struct NL_VariableNode {
     UA_String value;
 } NL_VariableNode;
 
+typedef struct NL_DataTypeDefinitionField {
+    char *name;
+    UA_NodeId dataType;
+    int valueRank;
+    int value;
+    bool isOptional;
+} NL_DataTypeDefinitionField;
+
+typedef struct NL_DataTypeDefinition {
+    NL_DataTypeDefinitionField *fields;
+    size_t fieldCnt;
+    bool isEnum;
+    bool isUnion;
+    bool isOptionSet;
+} NL_DataTypeDefinition;
+
 typedef struct NL_DataTypeNode {
     NL_NODE_ATTRIBUTES
-    UA_String typeDefinition;
+    NL_DataTypeDefinition *definition;
     char *isAbstract;
 } NL_DataTypeNode;
 

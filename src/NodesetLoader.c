@@ -185,13 +185,23 @@ OnStartElementNs(void *ctx, const char *localname,
             pctx->state = PARSER_STATE_EXTENSIONS;
         } else if (!strcmp(localname, "Definition")) {
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
-            pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-            while(pctx->buf[pctx->valueBegin] != '<')
-                pctx->valueBegin--;
+            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node,
+                                          (size_t)nb_attributes, attributes);
         } else if (!strcmp(localname, INVERSENAME)) {
             pctx->state = PARSER_STATE_INVERSENAME;
             Nodeset_setInverseName(pctx->nodeset, pctx->node,
                                    (size_t)nb_attributes, attributes);
+        } else {
+            pctx->unknown_depth++;
+            return;
+        }
+        break;
+
+    case PARSER_STATE_DATATYPE_DEFINITION:
+        if (!strcmp(localname, "Field")) {
+            Nodeset_addDataTypeField(pctx->nodeset, pctx->node,
+                                     (size_t)nb_attributes, attributes);
+            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
         } else {
             pctx->unknown_depth++;
             return;
@@ -319,14 +329,9 @@ OnEndElementNs(void *ctx, const char *localname,
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
         pctx->state = PARSER_STATE_NODE;
-        if(pctx->node->nodeClass == NODECLASS_DATATYPE) {
-            long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-            UA_String xmlValue;
-            xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
-            xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
-            UA_String_copy(&xmlValue,
-                           &((NL_DataTypeNode *)pctx->node)->typeDefinition);
-        }
+        break;
+    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
+        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         break;
     }
     pctx->onCharacters = NULL;
