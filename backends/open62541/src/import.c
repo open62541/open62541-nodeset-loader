@@ -71,13 +71,11 @@ AddNodeContext_addNamespace(AddNodeContext *ctx,
     return localIdx;
 }
 
-static AddNodeContext *
-AddNodeContext_new(struct UA_Server *server,
-                   NodesetLoader_Logger *logger) {
-    // Allocate the context
-    AddNodeContext *ctx = (AddNodeContext *)UA_calloc(1, sizeof(AddNodeContext));
-    if(!ctx)
-        return NULL;
+static void
+AddNodeContext_init(AddNodeContext *ctx,
+                    struct UA_Server *server,
+                    NodesetLoader_Logger *logger) {
+    memset(ctx, 0, sizeof(AddNodeContext));
     ctx->server = server;
     ctx->logger = logger;
 
@@ -112,14 +110,11 @@ AddNodeContext_new(struct UA_Server *server,
     UA_Array_append((void**)&ctx->parentRefTypes,
                     &ctx->parentRefTypesSize, &hasChildExp,
                     &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
-
-    return ctx;
 }
 
 static void
-AddNodeContext_delete(AddNodeContext *ctx) {
+AddNodeContext_clear(AddNodeContext *ctx) {
     UA_NamespaceMapping_clear(&ctx->nsMapping);
-    free(ctx);
 }
 
 static inline UA_Boolean isValTrue(const char *s) {
@@ -556,16 +551,17 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
 #endif
     logger->log = &logToOpen;
 
-    AddNodeContext *ctx = AddNodeContext_new(server, logger);
+    AddNodeContext ctx;
+    AddNodeContext_init(&ctx, server, logger);
     NodesetLoader *loader = NodesetLoader_new(logger);
 
     NL_FileContext handler;
     memset(&handler, 0, sizeof(NL_FileContext));
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
-    handler.userContext = ctx;
+    handler.userContext = &ctx;
     handler.file = path;
     handler.extensionHandling = extensionHandling;
-    handler.nsMapping = &ctx->nsMapping; // Provide the pre-filled mapping
+    handler.nsMapping = &ctx.nsMapping; // Provide the pre-filled mapping
 
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
@@ -573,12 +569,12 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     if(status)
         status = NodesetLoader_sort(loader);
     if(status)
-        status = addNodes(loader, &handler, ctx);
+        status = addNodes(loader, &handler, &ctx);
     if(!status)
         logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
                     "Importing the nodeset failed, nodes were not added");
     NodesetLoader_delete(loader);
-    AddNodeContext_delete(ctx);
+    AddNodeContext_clear(&ctx);
     free(logger);
     return status;
 }
