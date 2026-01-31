@@ -7,10 +7,10 @@
 #include <open62541/types.h>
 
 #include "check.h"
+#include <stdio.h>
 
-#include "../testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
+#include "../testHelper.h"
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -34,7 +34,7 @@ START_TEST(OperatingModeEnum)
 {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
     UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
-    const UA_DataType *type = NodesetLoader_getCustomDataType(server, &typeId);
+    const UA_DataType *type = UA_Server_findDataType(server, &typeId);
     ck_assert(type);
 
     ck_assert(type->typeKind == UA_DATATYPEKIND_ENUM);

@@ -9,17 +9,13 @@
 #define ALIASLIST_H
 
 #include "NodesetLoader/NodesetLoader.h"
+#include "Nodeset.h"
 
-struct Alias
-{
+struct Alias {
     char *name;
     UA_NodeId id;
 };
 
-typedef struct Alias Alias;
-
-struct AliasList;
-typedef struct AliasList AliasList;
 AliasList *AliasList_new(void);
 Alias *AliasList_newAlias(AliasList *list, char *name);
 const UA_NodeId *AliasList_getNodeId(const AliasList *list, const char *alias);

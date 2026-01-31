@@ -61,7 +61,7 @@ typedef enum {
     PARSER_STATE_DATATYPE_DEFINITION_FIELD
 } TParserState;
 
-struct TParserCtx {
+typedef struct {
     void *userContext;
     TParserState state;
     size_t unknown_depth;
@@ -78,7 +78,7 @@ struct TParserCtx {
     Nodeset *nodeset;
     xmlParserCtxtPtr ctxt;
     char *buf;
-};
+} TParserCtx;
 
 static void
 OnStartElementNs(void *ctx, const char *localname,
@@ -185,13 +185,23 @@ OnStartElementNs(void *ctx, const char *localname,
             pctx->state = PARSER_STATE_EXTENSIONS;
         } else if (!strcmp(localname, "Definition")) {
             pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
-            pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-            while(pctx->buf[pctx->valueBegin] != '<')
-                pctx->valueBegin--;
+            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node,
+                                          (size_t)nb_attributes, attributes);
         } else if (!strcmp(localname, INVERSENAME)) {
             pctx->state = PARSER_STATE_INVERSENAME;
             Nodeset_setInverseName(pctx->nodeset, pctx->node,
                                    (size_t)nb_attributes, attributes);
+        } else {
+            pctx->unknown_depth++;
+            return;
+        }
+        break;
+
+    case PARSER_STATE_DATATYPE_DEFINITION:
+        if (!strcmp(localname, "Field")) {
+            Nodeset_addDataTypeField(pctx->nodeset, pctx->node,
+                                     (size_t)nb_attributes, attributes);
+            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
         } else {
             pctx->unknown_depth++;
             return;
@@ -319,14 +329,9 @@ OnEndElementNs(void *ctx, const char *localname,
         break;
     case PARSER_STATE_DATATYPE_DEFINITION:
         pctx->state = PARSER_STATE_NODE;
-        if(pctx->node->nodeClass == NODECLASS_DATATYPE) {
-            long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-            UA_String xmlValue;
-            xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
-            xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
-            UA_String_copy(&xmlValue,
-                           &((NL_DataTypeNode *)pctx->node)->typeDefinition);
-        }
+        break;
+    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
+        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
         break;
     }
     pctx->onCharacters = NULL;
@@ -411,7 +416,7 @@ NodesetLoader_importFile(NodesetLoader *loader,
     TParserCtx ctx;
     bool retStatus = true;
     FILE *f = fopen(fileHandler->file, "r");
-    memset(&ctx, 0, sizeof(struct TParserCtx));
+    memset(&ctx, 0, sizeof(TParserCtx));
 
     if(!f) {
         loader->logger->log(loader->logger->context,
@@ -428,34 +433,11 @@ NodesetLoader_importFile(NodesetLoader *loader,
     ctx.nodeset = loader->nodeset;
     ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
 
-    /* Initialize the nodeset context with ns0 */
-    if(loader->nodeset->localNamespaceUrisSize == 0) {
-        UA_String ns0 = UA_STRING("http://opcfoundation.org/UA/");
-        UA_StatusCode ret =
-            UA_Array_appendCopy((void**)&ctx.nodeset->localNamespaceUris,
-                                &ctx.nodeset->localNamespaceUrisSize,
-                                &ns0, &UA_TYPES[UA_TYPES_STRING]);
-        (void)ret;
-
-        if(!loader->nodeset->fc->nsMapping->remote2local) {
-            loader->nodeset->fc->nsMapping->remote2local = (UA_UInt16*)
-                UA_calloc(1, sizeof(UA_UInt16));
-            loader->nodeset->fc->nsMapping->remote2localSize = 1;
-        }
-    }
-
     if(Parser_run(&ctx, f)) {
         loader->logger->log(loader->logger->context,
                             NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
         retStatus = false;
     }
-
-    /* Clean up values that were added on the fly */
-    UA_Array_delete(loader->nodeset->localNamespaceUris,
-                    loader->nodeset->localNamespaceUrisSize,
-                    &UA_TYPES[UA_TYPES_STRING]);
-    loader->nodeset->localNamespaceUris = NULL;
-    loader->nodeset->localNamespaceUrisSize = 0;
 
 cleanup:
     if(f)

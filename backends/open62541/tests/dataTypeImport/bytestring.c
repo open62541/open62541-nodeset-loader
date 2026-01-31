@@ -12,7 +12,6 @@
 
 #include "../testHelper.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;

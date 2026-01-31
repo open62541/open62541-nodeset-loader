@@ -46,9 +46,9 @@
               <ValueRank>-1</ValueRank>
               <ArrayDimensions />
               <Description>
-                            <Locale>de</Locale>
-                            <Text>Argument1</Text>
-                        </Description>
+                <Locale>de</Locale>
+                <Text>Argument1</Text>
+              </Description>
             </Argument>
           </Body>
         </ExtensionObject>

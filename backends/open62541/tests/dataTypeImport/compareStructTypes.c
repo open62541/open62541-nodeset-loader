@@ -11,47 +11,36 @@
 #include "../testHelper.h"
 #include "open62541/types_struct_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
 
-static void setup(void)
-{
+static void setup(void) {
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
-    UA_Server_run_shutdown(server);
+static void teardown(void) {
     UA_Server_delete(server);
 }
 
-START_TEST(compareDI)
-{
+START_TEST(compareDI) {
     ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
 
     setNamespaceIndexOfGeneratedStruct(server,
                                        "http://yourorganisation.org/struct/",
                                        UA_TYPES_STRUCT, UA_TYPES_STRUCT_COUNT);
 
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    ck_assert(config->customDataTypes);
-
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_STRUCT_COUNT);
-
     for (const UA_DataType *generatedType = UA_TYPES_STRUCT;
          generatedType != UA_TYPES_STRUCT + UA_TYPES_STRUCT_COUNT;
          generatedType++)
     {
         const UA_DataType *importedType =
-            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
+            UA_Server_findDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType, &UA_TYPES_STRUCT[0],
-                         config->customDataTypes->types);
+        typesAreMatching(generatedType, importedType);
     }
 }
 END_TEST

@@ -227,10 +227,10 @@ bool Nodeset_sort(Nodeset *nodeset) {
  retry:
     totalSorted = nodeset->sortedNodes.size;
     done = true;
-    done |= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECTTYPE);
-    done |= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECT);
-    done |= Nodeset_sortNodeClass(nodeset, NODECLASS_METHOD);
-    done |= Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLE);
+    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECTTYPE);
+    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECT);
+    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_METHOD);
+    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLE);
     if(done)
         goto finish;
     if(totalSorted == nodeset->sortedNodes.size) {
@@ -254,6 +254,9 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     AliasList_delete(nodeset->aliasList);
     for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++) {
         NodeContainer_clear(&nodeset->nodes[cnt]);
+    }
+    for(size_t i = 0; i < nodeset->allNodes.size; i++) {
+        Node_delete(nodeset->allNodes.nodes[i]);
     }
     NodeContainer_clear(&nodeset->allNodes);
     NodeContainer_clear(&nodeset->sortedNodes);
@@ -297,17 +300,11 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
         break;
 
     case NODECLASS_OBJECT:
-        ((NL_ObjectNode *)node)->parentNodeId =
-            parseNodeId(nodeset, getAttributeValue(nodeset, &attrParentNodeId,
-                                                      attributes, attributeSize));
         ((NL_ObjectNode *)node)->eventNotifier =
             getAttributeValue(nodeset, &attrEventNotifier, attributes, attributeSize);
         break;
 
     case NODECLASS_VARIABLE: {
-        ((NL_VariableNode *)node)->parentNodeId =
-            parseNodeId(nodeset, getAttributeValue(nodeset, &attrParentNodeId,
-                                                      attributes, attributeSize));
         char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
                                            attributeSize);
         ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
@@ -344,9 +341,6 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
         break;
 
     case NODECLASS_METHOD:
-        ((NL_MethodNode *)node)->parentNodeId =
-            parseNodeId(nodeset, getAttributeValue(nodeset, &attrParentNodeId,
-                                                      attributes, attributeSize));
         ((NL_MethodNode *)node)->executable =
             getAttributeValue(nodeset, &attrExecutable, attributes, attributeSize);
         ((NL_MethodNode *)node)->userExecutable =
@@ -359,9 +353,6 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
         break;
 
     case NODECLASS_VIEW:
-        ((NL_ViewNode *)node)->parentNodeId =
-            parseNodeId(nodeset, getAttributeValue(nodeset, &attrParentNodeId,
-                                                      attributes, attributeSize));
         ((NL_ViewNode *)node)->containsNoLoops =
             getAttributeValue(nodeset, &attrContainsNoLoops, attributes, attributeSize);
         ((NL_ViewNode *)node)->eventNotifier =
@@ -412,6 +403,58 @@ Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
     ref->target = alias2Id(nodeset, idString);
 }
 
+static NL_DataTypeDefinitionField *
+DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
+    def->fieldCnt++;
+    def->fields = (NL_DataTypeDefinitionField *)
+        realloc(def->fields, def->fieldCnt * sizeof(NL_DataTypeDefinitionField));
+    if(!def->fields)
+        return NULL;
+    return &def->fields[def->fieldCnt - 1];
+}
+
+void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
+                                   size_t attributeSize, const char **attributes) {
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
+    dataTypeNode->definition = (NL_DataTypeDefinition *)
+        calloc(1, sizeof(NL_DataTypeDefinition));
+    dataTypeNode->definition->isUnion =
+        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
+                                          attributes, attributeSize));
+    dataTypeNode->definition->isOptionSet =
+        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
+                                          attributes, attributeSize));
+}
+
+void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
+                              size_t attributeSize, const char **attributes) {
+    NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
+
+    NL_DataTypeDefinitionField *newField =
+        DataTypeNode_addDefinitionField(dataTypeNode->definition);
+    memset(newField, 0, sizeof(NL_DataTypeDefinitionField));
+
+    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
+                                       attributeSize);
+
+    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
+                                    attributeSize);
+    if (value) {
+        newField->value = atoi(value);
+        dataTypeNode->definition->isEnum =
+            !dataTypeNode->definition->isOptionSet;
+    } else {
+        newField->dataType = alias2Id(
+            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
+                                       attributes, attributeSize));
+        newField->valueRank = atoi(getAttributeValue(
+            nodeset, &attrValueRank, attributes, attributeSize));
+        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
+                                             attributes, attributeSize);
+        newField->isOptional = !strcmp("true", isOptional);
+    }
+}
+
 Alias *
 Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize, const char **attributes) {
     return AliasList_newAlias(nodeset->aliasList,
@@ -428,15 +471,8 @@ void
 Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                            char *namespaceUri) {
     UA_String uri = UA_STRING(namespaceUri);
-    UA_StatusCode ret =
-        UA_Array_appendCopy((void**)&nodeset->localNamespaceUris,
-                            &nodeset->localNamespaceUrisSize,
-                            &uri, &UA_TYPES[UA_TYPES_STRING]);
-    (void)ret;
     nodeset->fc->addNamespace(nodeset->fc->userContext,
-                              nodeset->localNamespaceUrisSize,
-                              nodeset->localNamespaceUris,
-                              nodeset->fc->nsMapping);
+                              1, &uri, nodeset->fc->nsMapping);
 }
 
 void

@@ -62,20 +62,16 @@ typedef struct NL_Reference {
     void *extension;                                                    \
     bool isDone; /* the node was successfully added in the backend */
 
-#define NL_NODE_INSTANCE_ATTRIBUTES UA_NodeId parentNodeId;
-
 struct NL_Node {
     NL_NODE_ATTRIBUTES
 };
 
 typedef struct NL_InstanceNode {
     NL_NODE_ATTRIBUTES
-    NL_NODE_INSTANCE_ATTRIBUTES
 } NL_InstanceNode;
 
 typedef struct NL_ObjectNode {
     NL_NODE_ATTRIBUTES
-    NL_NODE_INSTANCE_ATTRIBUTES
     char *eventNotifier;
 } NL_ObjectNode;
 
@@ -94,7 +90,6 @@ typedef struct NL_VariableTypeNode {
 
 typedef struct NL_VariableNode {
     NL_NODE_ATTRIBUTES
-    NL_NODE_INSTANCE_ATTRIBUTES
     UA_NodeId datatype;
     char *arrayDimensions;
     char *valueRank;
@@ -105,15 +100,30 @@ typedef struct NL_VariableNode {
     UA_String value;
 } NL_VariableNode;
 
+typedef struct NL_DataTypeDefinitionField {
+    char *name;
+    UA_NodeId dataType;
+    int valueRank;
+    int value;
+    bool isOptional;
+} NL_DataTypeDefinitionField;
+
+typedef struct NL_DataTypeDefinition {
+    NL_DataTypeDefinitionField *fields;
+    size_t fieldCnt;
+    bool isEnum;
+    bool isUnion;
+    bool isOptionSet;
+} NL_DataTypeDefinition;
+
 typedef struct NL_DataTypeNode {
     NL_NODE_ATTRIBUTES
-    UA_String typeDefinition;
+    NL_DataTypeDefinition *definition;
     char *isAbstract;
 } NL_DataTypeNode;
 
 typedef struct NL_MethodNode {
     NL_NODE_ATTRIBUTES
-    NL_NODE_INSTANCE_ATTRIBUTES
     char *executable;
     char *userExecutable;
 } NL_MethodNode;
@@ -126,7 +136,6 @@ typedef struct NL_ReferenceTypeNode {
 
 typedef struct NL_ViewNode {
     NL_NODE_ATTRIBUTES
-    NL_NODE_INSTANCE_ATTRIBUTES
     char *containsNoLoops;
     char *eventNotifier;
 } NL_ViewNode;

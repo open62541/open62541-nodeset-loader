@@ -103,14 +103,12 @@ Node_delete(NL_Node *node) {
         UA_NodeId_clear(&varNode->datatype);
     }
 
-    if(node->nodeClass==NODECLASS_OBJECT) {
-        NL_ObjectNode *objNode = (NL_ObjectNode *)node;
-        UA_NodeId_clear(&objNode->parentNodeId);
-    }
-
     if(node->nodeClass==NODECLASS_DATATYPE) {
         NL_DataTypeNode *dtNode = (NL_DataTypeNode *)node;
-        UA_String_clear(&dtNode->typeDefinition);
+        if(dtNode->definition) {
+            free(dtNode->definition->fields);
+            free(dtNode->definition);
+        }
     }
     free(node);
 }

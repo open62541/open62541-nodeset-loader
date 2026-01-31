@@ -22,7 +22,6 @@ static void setup(void) {
 }
 
 static void teardown(void) {
-    UA_Server_run_shutdown(server);
     UA_Server_delete(server);
 }
 
