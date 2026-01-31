@@ -15,28 +15,22 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-struct TParserCtx;
-typedef struct TParserCtx TParserCtx;
-
-struct Nodeset;
-typedef struct Nodeset Nodeset;
 struct Alias;
+typedef struct Alias Alias;
 struct AliasList;
+typedef struct AliasList AliasList;
 
-struct Nodeset {
+typedef struct {
     CharArenaAllocator *charArena;
-    struct AliasList *aliasList;
+    AliasList *aliasList;
 
     NodeContainer nodes[NL_NODECLASS_COUNT];
     NodeContainer allNodes; // gets sorted according to the nodeid
     NodeContainer sortedNodes; // in the order to add to the server
 
     NL_FileContext *fc;
-    size_t localNamespaceUrisSize;
-    UA_String *localNamespaceUris;
-
     NodesetLoader_Logger* logger;
-};
+} Nodeset;
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
                      NodesetLoader_Logger* logger);
@@ -48,9 +42,9 @@ NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                    size_t attributeSize, const char **attributes);
 void Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
                                  char *idString);
-struct Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
-                               const char **attribute);
-void Nodeset_newAliasFinish(Nodeset *nodeset, struct Alias *alias,
+Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
+                        const char **attribute);
+void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias,
                             char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
                                 char *namespaceUri);

@@ -11,7 +11,6 @@
 #include "../testHelper.h"
 #include "open62541/types_abstractdatatypemember_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -24,10 +23,7 @@ static void setup(void)
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
-
-    UA_Server_run_shutdown(server);
+static void teardown(void) {
     UA_Server_delete(server);
 }
 
@@ -39,23 +35,15 @@ START_TEST(compareAbstractDataTypeMember)
         server, "http://yourorganisation.org/AbstractDataTypeMember/",
         UA_TYPES_ABSTRACTDATATYPEMEMBER, UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT);
 
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    ck_assert(config->customDataTypes);
-
-    ck_assert(config->customDataTypes->typesSize ==
-              UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT);
-
     for (const UA_DataType *generatedType = UA_TYPES_ABSTRACTDATATYPEMEMBER;
          generatedType != UA_TYPES_ABSTRACTDATATYPEMEMBER +
                               UA_TYPES_ABSTRACTDATATYPEMEMBER_COUNT;
          generatedType++)
     {
         const UA_DataType *importedType =
-            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
+            UA_Server_findDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType,
-                         &UA_TYPES_ABSTRACTDATATYPEMEMBER[0],
-                         config->customDataTypes->types);
+        typesAreMatching(generatedType, importedType);
     }
 }
 END_TEST

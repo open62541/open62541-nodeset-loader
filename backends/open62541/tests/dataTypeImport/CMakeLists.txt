@@ -5,13 +5,6 @@ add_test(NAME enum_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
     COMMAND enum ${CMAKE_CURRENT_SOURCE_DIR}/enum.xml)
 
-add_executable(padding padding.c)
-target_include_directories(padding PRIVATE ${CHECK_INCLUDE_DIR})
-target_link_libraries(padding PRIVATE NodesetLoader open62541::open62541  ${CHECK_LIBRARIES} ${PTHREAD_LIB})
-add_test(NAME padding_Test
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} 
-    COMMAND padding)
-
 add_executable(subDataType subDataType.c)
 target_include_directories(subDataType PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(subDataType PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})

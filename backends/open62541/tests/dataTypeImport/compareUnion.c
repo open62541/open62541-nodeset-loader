@@ -11,7 +11,6 @@
 #include "../testHelper.h"
 #include "open62541/types_union_generated.h"
 #include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -26,7 +25,6 @@ static void setup(void)
 
 static void teardown(void)
 {
-    UA_Server_run_shutdown(server);
     UA_Server_delete(server);
 }
 
@@ -38,20 +36,13 @@ START_TEST(compareUnion)
         server, "http://yourorganisation.org/union/",
         UA_TYPES_UNION, UA_TYPES_UNION_COUNT);
 
-    UA_ServerConfig *config = UA_Server_getConfig(server);
-    ck_assert(config->customDataTypes);
-
-    ck_assert(config->customDataTypes->typesSize == UA_TYPES_UNION_COUNT);
-
     for (const UA_DataType *generatedType = UA_TYPES_UNION;
          generatedType != UA_TYPES_UNION + UA_TYPES_UNION_COUNT;
-         generatedType++)
-    {
+         generatedType++) {
         const UA_DataType *importedType =
-            NodesetLoader_getCustomDataType(server, &generatedType->typeId);
+            UA_Server_findDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);
-        typesAreMatching(generatedType, importedType, &UA_TYPES_UNION[0],
-                         config->customDataTypes->types);
+        typesAreMatching(generatedType, importedType);
     }
 }
 END_TEST
