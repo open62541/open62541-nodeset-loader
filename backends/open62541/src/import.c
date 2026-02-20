@@ -437,7 +437,6 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
                                             UA_String *localNamespaceUris,
                                             UA_NamespaceMapping *nsMapping) {
     AddNodeContext *ctx = (AddNodeContext*)userContext;
-    assert(nsMapping == &ctx->nsMapping);
     for(size_t i = 0; i < localNamespaceUrisSize; i++) {
         AddNodeContext_addNamespace(ctx, localNamespaceUris[i], false);
     }
