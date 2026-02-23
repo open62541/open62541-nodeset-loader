@@ -145,12 +145,20 @@ typedef void (*NL_addNamespaceCallback)(void *userContext,
                                         UA_String *localNamespaceUris,
                                         UA_NamespaceMapping *nsMapping);
 
+/* Callback to check if a reference type is hierarchical (subtype of
+ * HierarchicalReferences i=33). Used by the topological sort to determine
+ * ordering dependencies. If NULL, all inverse references are conservatively
+ * treated as ordering dependencies. */
+typedef bool (*NL_isHierarchicalRefCallback)(void *userContext,
+                                             const UA_NodeId *refType);
+
 typedef struct NL_FileContext {
     void *userContext;
     const char *file;
     NL_addNamespaceCallback addNamespace;
     NodesetLoader_ExtensionInterface *extensionHandling;
     UA_NamespaceMapping *nsMapping;
+    NL_isHierarchicalRefCallback isHierarchicalRef;
 } NL_FileContext;
 
 struct NodesetLoader;

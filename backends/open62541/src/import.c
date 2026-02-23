@@ -90,12 +90,35 @@ AddNodeContext_init(AddNodeContext *ctx,
     UA_Array_append((void**)&ctx->parentRefTypes,
                     &ctx->parentRefTypesSize, &hasChildExp,
                     &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
+
+    // Get all hierarchical ReferenceTypes (subtypes of HierarchicalReferences).
+    // Used by the topological sort to distinguish ordering dependencies
+    // from non-hierarchical cross-references.
+    UA_BrowseDescription bd2;
+    UA_BrowseDescription_init(&bd2);
+    bd2.browseDirection = UA_BROWSEDIRECTION_FORWARD;
+    bd2.referenceTypeId = UA_NS0ID(HASSUBTYPE);
+    bd2.nodeId = UA_NS0ID(HIERARCHICALREFERENCES);
+
+    UA_Server_browseRecursive(server, &bd2,
+                              &ctx->hierarchicalRefTypesSize,
+                              &ctx->hierarchicalRefTypes);
+
+    // Include HierarchicalReferences itself
+    UA_ExpandedNodeId hierRefExp;
+    UA_ExpandedNodeId_init(&hierRefExp);
+    hierRefExp.nodeId = UA_NS0ID(HIERARCHICALREFERENCES);
+    UA_Array_append((void**)&ctx->hierarchicalRefTypes,
+                    &ctx->hierarchicalRefTypesSize, &hierRefExp,
+                    &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
 }
 
 static void
 AddNodeContext_clear(AddNodeContext *ctx) {
     UA_NamespaceMapping_clear(&ctx->nsMapping);
     UA_Array_delete(ctx->parentRefTypes, ctx->parentRefTypesSize,
+                    &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
+    UA_Array_delete(ctx->hierarchicalRefTypes, ctx->hierarchicalRefTypesSize,
                     &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
 }
 
@@ -497,6 +520,20 @@ addNodes(NodesetLoader *loader, AddNodeContext *anc) {
     return true;
 }
 
+/* Callback for the topological sort: check whether a reference type is
+ * hierarchical (subtype of HierarchicalReferences i=33). Only hierarchical
+ * inverse references create parent-child ordering dependencies. */
+static bool
+isHierarchicalRef(void *userContext, const UA_NodeId *refType) {
+    AddNodeContext *ctx = (AddNodeContext *)userContext;
+    for(size_t i = 0; i < ctx->hierarchicalRefTypesSize; i++) {
+        if(UA_NodeId_equal(refType,
+                           &ctx->hierarchicalRefTypes[i].nodeId))
+            return true;
+    }
+    return false;
+}
+
 bool
 NodesetLoader_loadFile(struct UA_Server *server, const char *path,
                        NodesetLoader_ExtensionInterface *extensionHandling) {
@@ -524,6 +561,7 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.file = path;
     handler.extensionHandling = extensionHandling;
     handler.nsMapping = &ctx.nsMapping; // Provide the pre-filled mapping
+    handler.isHierarchicalRef = isHierarchicalRef;
 
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);

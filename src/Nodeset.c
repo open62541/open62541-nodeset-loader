@@ -136,18 +136,50 @@ Nodeset_findByNodeId(Nodeset *nodeset, const UA_NodeId *key) {
 
 static UA_NodeId hasTypeDef = {0, UA_NODEIDTYPE_NUMERIC, {40}};
 
+/* Check whether a reference creates an ordering dependency for the
+ * topological sort. Only two kinds of references require the target
+ * to exist before the source node can be added:
+ *
+ * 1. Forward HasTypeDefinition -- the type node must exist first.
+ * 2. Inverse hierarchical references -- the parent node must exist first.
+ *    For example, an Object with an inverse HasComponent to its parent
+ *    cannot be added before the parent exists.
+ *
+ * Non-hierarchical references (like HasCondition or HasSubStateMachine)
+ * do NOT create ordering dependencies. If they are treated as such,
+ * they cause deadlocks when two nodes in the same nodeset reference
+ * each other via a non-hierarchical reference type.
+ *
+ * Whether a reference type is hierarchical is determined via the
+ * isHierarchicalRef callback in the NL_FileContext. The open62541
+ * backend sets this callback using UA_Server_browseRecursive to
+ * discover all subtypes of HierarchicalReferences (i=33) from the
+ * server's reference type hierarchy. If no callback is set, all
+ * inverse references are conservatively treated as dependencies. */
 static bool
-nodeRefsReady(NL_Node *node) {
+nodeRefsReady(Nodeset *nodeset, NL_Node *node) {
+    NL_isHierarchicalRefCallback isHierCb = NULL;
+    void *userCtx = NULL;
+    if(nodeset->fc) {
+        isHierCb = nodeset->fc->isHierarchicalRef;
+        userCtx = nodeset->fc->userContext;
+    }
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
         if(!ref->targetPtr)
             continue;
         if(ref->targetPtr->isDone)
             continue;
         if(UA_NodeId_equal(&hasTypeDef, &ref->refType)) {
+            /* Forward HasTypeDefinition: the type must exist first */
             if(ref->isForward)
                 return false;
-        } else {
-            if(!ref->isForward)
+        } else if(!ref->isForward) {
+            /* Inverse reference: only hierarchical refs create a
+             * parent-child ordering dependency. */
+            bool isHier = true; /* Conservative default */
+            if(isHierCb)
+                isHier = isHierCb(userCtx, &ref->refType);
+            if(isHier)
                 return false;
         }
     }
@@ -166,7 +198,7 @@ Nodeset_sortNodeClass(Nodeset *nodeset, NL_NodeClass nodeClass) {
     oldSize = nc->size;
     for(size_t i = 0; i < nc->size; i++) {
         NL_Node *node = nc->nodes[i];
-        if(!nodeRefsReady(node))
+        if(!nodeRefsReady(nodeset, node))
             continue;
         NodeContainer_add(&nodeset->sortedNodes, node);
         NodeContainer_remove(nc, i);
