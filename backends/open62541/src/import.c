@@ -275,8 +275,16 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         }
     }
 
-    // this case is only needed for the euromap83 comparison, think the nodeset
-    // is not valid
+    /* Some companion specs (e.g. IOLink, PNENC, PNRIO) declare
+     * ValueRank=1 (one-dimensional array) but provide a scalar default
+     * value in the XML. Wrap the scalar into a one-element array so that
+     * the value passes the server's ValueRank compatibility check. */
+    if(attr.valueRank >= 1 &&
+       UA_Variant_isScalar(&attr.value) && attr.value.data != NULL) {
+        attr.value.arrayLength = 1;
+    }
+
+    // Ensure ArrayDimensions is set when ValueRank=1
     UA_UInt32 arrayDims;
     if (attr.arrayDimensions == NULL && attr.valueRank == 1) {
         attr.arrayDimensionsSize = 1;
