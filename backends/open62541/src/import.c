@@ -287,8 +287,7 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         context->logger->log(context->logger->context,
                              NODESETLOADER_LOGLEVEL_WARNING,
                              "Node %s: ValueRank=%d but the XML value is "
-                             "scalar. Auto-wrapping into a one-element array "
-                             "(likely a nodeset authoring bug).",
+                             "scalar. Auto-wrapping into a one-element array.",
                              buf, attr.valueRank);
         attr.value.arrayLength = 1;
     }
