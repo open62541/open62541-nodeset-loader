@@ -277,10 +277,19 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
 
     /* Some companion specs (e.g. IOLink, PNENC, PNRIO) declare
      * ValueRank=1 (one-dimensional array) but provide a scalar default
-     * value in the XML. Wrap the scalar into a one-element array so that
+     * value in the XML (e.g. <String> instead of <ListOfString>). This is
+     * a known nodeset authoring bug -- ValueRank=1 is correct per the spec
+     * (confirmed by the base OPC UA nodeset's own StaticNumericNodeIdRange
+     * instance i=15963). Wrap the scalar into a one-element array so that
      * the value passes the server's ValueRank compatibility check. */
     if(attr.valueRank >= 1 &&
        UA_Variant_isScalar(&attr.value) && attr.value.data != NULL) {
+        context->logger->log(context->logger->context,
+                             NODESETLOADER_LOGLEVEL_WARNING,
+                             "Node %s: ValueRank=%d but the XML value is "
+                             "scalar. Auto-wrapping into a one-element array "
+                             "(likely a nodeset authoring bug).",
+                             buf, attr.valueRank);
         attr.value.arrayLength = 1;
     }
 
