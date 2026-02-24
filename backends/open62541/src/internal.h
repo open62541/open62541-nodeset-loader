@@ -27,6 +27,12 @@ typedef struct {
     // Inherited from HasChild.
     size_t parentRefTypesSize;
     UA_ExpandedNodeId *parentRefTypes;
+
+    // All hierarchical ReferenceTypes (subtypes of HierarchicalReferences).
+    // Used by the topological sort to distinguish ordering dependencies
+    // from non-hierarchical cross-references.
+    size_t hierarchicalRefTypesSize;
+    UA_ExpandedNodeId *hierarchicalRefTypes;
 } AddNodeContext;
 
 UA_NodeId
