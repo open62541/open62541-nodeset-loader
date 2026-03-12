@@ -146,6 +146,13 @@ add_test(NAME issue_246_2_Test
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND issue_246_2 ${CMAKE_CURRENT_SOURCE_DIR}/issue_246_2.xml)
 
+add_executable(loading_order_fix loading_order_fix.c)
+target_include_directories(loading_order_fix PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(loading_order_fix PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME loading_order_fix_Test
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND loading_order_fix ${CMAKE_CURRENT_SOURCE_DIR}/loading_order_fix.xml)
+
 add_executable(issue_266 issue_266_testdata.c)
 target_include_directories(issue_266 PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(issue_266 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
