@@ -10,6 +10,9 @@
 
 #include <open62541/types.h>
 #include <open62541/types_generated.h>
+#if UA_OPEN62541_VER_MAJOR == 1 && UA_OPEN62541_VER_MINOR < 4
+#include <open62541/types_generated_handling.h>
+#endif
 
 #include "Extension.h"
 #include "Logger.h"
