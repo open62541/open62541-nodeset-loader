@@ -157,3 +157,10 @@ target_link_libraries(compareInverseHasEncoding PRIVATE NodesetLoader open62541:
 add_test(NAME compareInverseHasEncoding_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND compareInverseHasEncoding ${CMAKE_CURRENT_SOURCE_DIR}/inverseHasEncoding.xml)
+
+add_executable(emptyStructs emptyStructs.c)
+target_include_directories(emptyStructs PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(emptyStructs PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME emptyStructs_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND emptyStructs ${CMAKE_CURRENT_SOURCE_DIR}/emptyStructs.xml)
