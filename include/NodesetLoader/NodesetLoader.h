@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2020 (c) Matthias Konnerth
+ *    Copyright 2026 (c) SICK AG (author: Joerg Fischer)
  */
 
 #ifndef NODESETLOADER_NODESETLOADER_H
@@ -59,6 +60,7 @@ typedef struct NL_Reference {
     UA_LocalizedText description;                                       \
     char *writeMask;                                                    \
     NL_Reference *refs;                                                 \
+    NL_Reference *inverseRefs;                                          \
     void *extension;                                                    \
     bool isDone; /* the node was successfully added in the backend */
 

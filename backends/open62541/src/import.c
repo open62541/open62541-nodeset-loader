@@ -5,6 +5,7 @@
  *    Copyright 2020 (c) Matthias Konnerth
  *    copyright 2021 (c) jan murzyn
  *    copyright 2025 (c) fraunhofer iosb (author: julius pfrommer)
+ *    Copyright 2026 (c) SICK AG (author: Joerg Fischer)
  */
 
 #include <open62541/server.h>
@@ -480,6 +481,35 @@ addAllRefs(AddNodeContext *context, NL_Node *node) {
 }
 
 static bool
+addInverseRefForNode(void *context, NL_Node *node) {
+    (void)context;
+    for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
+        if(ref->isForward)
+            continue;
+        if(!ref->targetPtr)
+            continue;
+
+        NL_Reference *inverseRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
+        if(!inverseRef)
+            return false;
+
+        inverseRef->isForward = true;
+        inverseRef->targetPtr = node;
+        if(UA_NodeId_copy(&ref->refType, &inverseRef->refType) != UA_STATUSCODE_GOOD ||
+           UA_NodeId_copy(&node->id, &inverseRef->target) != UA_STATUSCODE_GOOD) {
+            UA_NodeId_clear(&inverseRef->refType);
+            UA_NodeId_clear(&inverseRef->target);
+            free(inverseRef);
+            return false;
+        }
+
+        inverseRef->next = ref->targetPtr->inverseRefs;
+        ref->targetPtr->inverseRefs = inverseRef;
+    }
+    return true;
+}
+
+static bool
 addNodes(NodesetLoader *loader, AddNodeContext *anc) {
 
     // Add all nodes with their type definition and parent
@@ -495,6 +525,12 @@ addNodes(NodesetLoader *loader, AddNodeContext *anc) {
                               (NodesetLoader_forEachNode_Func)addNodeFinish);
 
     return true;
+}
+
+static bool
+addInverseReferences(NodesetLoader *loader) {
+    return NodesetLoader_forEachNode(loader, NULL,
+                                     (NodesetLoader_forEachNode_Func)addInverseRefForNode);
 }
 
 bool
@@ -528,8 +564,11 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
                 "Start import nodeset: %s", path);
     bool status = NodesetLoader_importFile(loader, &handler);
+
     if(status)
         status = NodesetLoader_sort(loader);
+    if(status)
+        status = addInverseReferences(loader);
     if(status)
         status = addNodes(loader, &ctx);
     if(!status)
