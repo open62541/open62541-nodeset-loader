@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2020 (c) Matthias Konnerth
+ *    Copyright 2026 (c) SICK AG (author: Joerg Fischer)   
  */
 
 #include "Node.h"
@@ -96,6 +97,7 @@ Node_delete(NL_Node *node) {
     UA_NodeId_clear(&node->id);
     UA_QualifiedName_clear(&node->browseName);
     deleteRef(node->refs);
+    deleteRef(node->inverseRefs);
 
     if(node->nodeClass == NODECLASS_VARIABLE) {
         NL_VariableNode* varNode = (NL_VariableNode*)node;

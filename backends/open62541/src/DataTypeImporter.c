@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2020 (c) Matthias Konnerth
+ *    Copyright 2026 (c) SICK AG (author: Joerg Fischer)
  */
 
 #include "internal.h"
@@ -10,15 +11,27 @@
 #include <assert.h>
 
 static UA_NodeId
-getBinaryEncodingId(const NL_DataTypeNode *node) {
-    UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
-    for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
+getEncodingId(const NL_DataTypeNode *node, const UA_String *encodingName) {
+    const UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
+
+    for(const NL_Reference *ref = node->refs; ref; ref = ref->next) {
         if(!UA_NodeId_equal(&encodingRefType, &ref->refType))
             continue;
         if(!ref->targetPtr)
             continue;
-        UA_String binaryStr = UA_STRING("Default Binary");
-        if(!UA_String_equal(&ref->targetPtr->browseName.name, &binaryStr))
+        if(!UA_String_equal(&ref->targetPtr->browseName.name, encodingName))
+            continue;
+        UA_NodeId idCopy;
+        UA_NodeId_copy(&ref->target, &idCopy);
+        return idCopy;
+    }
+
+    for(const NL_Reference *ref = node->inverseRefs; ref; ref = ref->next) {
+        if(!UA_NodeId_equal(&encodingRefType, &ref->refType))
+            continue;
+        if(!ref->targetPtr)
+            continue;
+        if(!UA_String_equal(&ref->targetPtr->browseName.name, encodingName))
             continue;
         UA_NodeId idCopy;
         UA_NodeId_copy(&ref->target, &idCopy);
@@ -28,21 +41,15 @@ getBinaryEncodingId(const NL_DataTypeNode *node) {
 }
 
 static UA_NodeId
+getBinaryEncodingId(const NL_DataTypeNode *node) {
+    const UA_String binaryStr = UA_STRING("Default Binary");
+    return getEncodingId(node, &binaryStr);
+}
+
+static UA_NodeId
 getXmlEncodingId(const NL_DataTypeNode *node) {
-    UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
-    for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
-        if(!UA_NodeId_equal(&encodingRefType, &ref->refType))
-            continue;
-        if(!ref->targetPtr)
-            continue;
-        UA_String xmlStr = UA_STRING("Default XML");
-        if(!UA_String_equal(&ref->targetPtr->browseName.name, &xmlStr))
-            continue;
-        UA_NodeId idCopy;
-        UA_NodeId_copy(&ref->target, &idCopy);
-        return idCopy;
-    }
-    return UA_NODEID_NULL;
+    const UA_String xmlStr = UA_STRING("Default XML");
+    return getEncodingId(node, &xmlStr);
 }
 
 static const UA_DataType *
@@ -62,11 +69,16 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
     if(parentType)
         memberSize += parentType->membersSize;
 
-    // Allocate the members
-    type->members = (UA_DataTypeMember *)
-        calloc(memberSize, sizeof(UA_DataTypeMember));
-    if(!type->members)
-        return UA_STATUSCODE_BADOUTOFMEMORY;
+    // Allocate the members (memberSize may be 0 for empty structs)
+    if(memberSize > 0) {
+        type->members = (UA_DataTypeMember *)
+            calloc(memberSize, sizeof(UA_DataTypeMember));
+        if(!type->members)
+            return UA_STATUSCODE_BADOUTOFMEMORY;
+    }
+    else {
+        type->members = NULL;
+    }
     type->membersSize = (unsigned char)memberSize;
 
     // Copy over members from the parent
@@ -239,14 +251,13 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     UA_StatusCode res;
     UA_ExtensionObject eo;
     UA_NodeId parent = getParentId(ctx, (const NL_Node*)node, NULL);
-
     if(node->definition &&
        (node->definition->isEnum ||
         node->definition->isOptionSet)) {
         // Enum and OptionSet
         res = EnumDataType_init(ctx, &type, node, &parent);
-    } else if(node->definition && node->definition->fieldCnt > 0) {
-        // Structure and Union
+    } else if(node->definition) {
+        // Structure and Union (including empty structs with zero fields)
         res = StructureDataType_init(ctx, &type, node, &parent);
     } else {
         // Opaque subtype

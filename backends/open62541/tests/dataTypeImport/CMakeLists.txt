@@ -148,3 +148,19 @@ target_link_libraries(bytestring PRIVATE NodesetLoader open62541::open62541 ${CH
 add_test(NAME bytestring_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND bytestring ${CMAKE_CURRENT_SOURCE_DIR}/bytestring.xml)
+
+# Test for inverse HasEncoding references (regression test for issue where
+# encoding references stored as inverse in NodeSet XML were not discovered)
+add_executable(compareInverseHasEncoding compareInverseHasEncoding.c)
+target_include_directories(compareInverseHasEncoding PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(compareInverseHasEncoding PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME compareInverseHasEncoding_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND compareInverseHasEncoding ${CMAKE_CURRENT_SOURCE_DIR}/inverseHasEncoding.xml)
+
+add_executable(emptyStructs emptyStructs.c)
+target_include_directories(emptyStructs PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(emptyStructs PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME emptyStructs_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND emptyStructs ${CMAKE_CURRENT_SOURCE_DIR}/emptyStructs.xml)

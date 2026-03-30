@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd" xsi:schemaLocation="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>http://open62541.org/test/emptyStructs/</Uri>
+  </NamespaceUris>
+  <Aliases>
+    <Alias Alias="HasSubtype">i=45</Alias>
+    <Alias Alias="Structure">i=22</Alias>
+  </Aliases>
+
+  <!-- 
+  Test file with 3 data types: NonEmptyStructC, EmptyStructB, EmptyStructA 
+  
+    - NonEmptyStructC is a non-empty structure inheriting from EmptyStructB
+    - EmptyStructB is an empty structure inheriting from EmptyStructA
+    - EmptyStructA is an empty structure inheriting from Structure
+
+  Structs are deliberately ordered in reverse order to test that the loader can handle this case.
+  -->
+  <UADataType NodeId="ns=1;i=6003" BrowseName="1:NonEmptyStructC">
+    <DisplayName>NonEmptyStructC</DisplayName>
+    <Description LocalizedText="NonEmptyStructC: non-empty structure inheriting from EmptyStructB"/>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=6002</Reference>
+    </References>
+    <Definition Name="NonEmptyStructC">
+      <Field Name="Value" DataType="i=7"/>
+    </Definition>
+  </UADataType>
+
+  <UADataType NodeId="ns=1;i=6002" BrowseName="1:EmptyStructB">
+    <DisplayName>EmptyStructB</DisplayName>
+    <Description LocalizedText="EmptyStructB: empty structure inheriting from EmptyStructA"/>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">ns=1;i=6001</Reference>
+    </References>
+    <Definition Name="EmptyStructB" />
+  </UADataType>
+
+  <UADataType NodeId="ns=1;i=6001" BrowseName="1:EmptyStructA">
+    <DisplayName>EmptyStructA</DisplayName>
+    <Description LocalizedText="EmptyStructA: empty structure inheriting from Structure"/>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=22</Reference>
+    </References>
+    <Definition Name="EmptyStructA" />
+  </UADataType>
+
+
+
+
+</UANodeSet>

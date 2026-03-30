@@ -154,6 +154,27 @@ nodeRefsReady(NL_Node *node) {
     return true;
 }
 
+
+static bool
+memberTypesReady(Nodeset *nodeset, NL_Node *node) {
+    if(node->nodeClass != NODECLASS_DATATYPE)
+        return true;
+    const NL_DataTypeNode *dtNode = (const NL_DataTypeNode *)node;
+    if(!dtNode->definition)
+        return true;
+    for(size_t i = 0; i < dtNode->definition->fieldCnt; i++) {
+        const UA_NodeId *memberTypeId = &dtNode->definition->fields[i].dataType;
+        NL_Node *memberNode = Nodeset_findByNodeId(nodeset, memberTypeId);
+        /* Member type not in this nodeset -> already present in the server */
+        if(!memberNode)
+            continue;
+        if(!memberNode->isDone)
+            return false;
+    }
+    return true;
+}
+
+
 // Returns true if all nodes could be added
 static bool
 Nodeset_sortNodeClass(Nodeset *nodeset, NL_NodeClass nodeClass) {
@@ -166,7 +187,7 @@ Nodeset_sortNodeClass(Nodeset *nodeset, NL_NodeClass nodeClass) {
     oldSize = nc->size;
     for(size_t i = 0; i < nc->size; i++) {
         NL_Node *node = nc->nodes[i];
-        if(!nodeRefsReady(node))
+        if(!nodeRefsReady(node) || !memberTypesReady(nodeset, node))
             continue;
         NodeContainer_add(&nodeset->sortedNodes, node);
         NodeContainer_remove(nc, i);
