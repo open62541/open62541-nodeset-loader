@@ -63,10 +63,11 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         memberSize += parentType->membersSize;
 
     // Allocate the members
-    type->members = (UA_DataTypeMember *)
+    UA_DataTypeMember *newMembers = (UA_DataTypeMember *)
         calloc(memberSize, sizeof(UA_DataTypeMember));
-    if(!type->members)
+    if(!newMembers)
         return UA_STATUSCODE_BADOUTOFMEMORY;
+    type->members = newMembers;
     type->membersSize = (unsigned char)memberSize;
 
     // Copy over members from the parent
@@ -74,7 +75,7 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
     if(parentType) {
         for(; i < parentType->membersSize; i++) {
             const UA_DataTypeMember *src = &parentType->members[i];
-            UA_DataTypeMember *dst = &type->members[i];
+            UA_DataTypeMember *dst = &newMembers[i];
             size_t nameLen = strlen(src->memberName);
             char *memberName = (char *)UA_calloc(1, nameLen + 1);
             memcpy(memberName, src->memberName, nameLen);
@@ -101,7 +102,7 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
 
     // Fill new member definition
     for(size_t j = 0; i < memberSize; i++, j++) {
-        UA_DataTypeMember *member = &type->members[i];
+        UA_DataTypeMember *member = &newMembers[i];
         NL_DataTypeDefinitionField *field = &node->definition->fields[j];
 
         // Member name
@@ -161,15 +162,16 @@ addEnumMembers(AddNodeContext *ctx, UA_DataType *type,
         return UA_STATUSCODE_GOOD;
 
     // Allocate the members
-    type->members = (UA_DataTypeMember *)
+    UA_DataTypeMember *newMembers = (UA_DataTypeMember *)
         calloc(node->definition->fieldCnt, sizeof(UA_DataTypeMember));
-    if(!type->members)
+    if(!newMembers)
         return UA_STATUSCODE_BADOUTOFMEMORY;
+    type->members = newMembers;
     type->membersSize = (UA_Byte)node->definition->fieldCnt;
 
     // Fill new member definition
     for(UA_Byte i = 0; i < type->membersSize; i++) {
-        UA_DataTypeMember *member = &type->members[i];
+        UA_DataTypeMember *member = &newMembers[i];
         NL_DataTypeDefinitionField *field = &node->definition->fields[i];
         member->memberType = (const UA_DataType*)(uintptr_t)field->value;
         size_t nameLen = strlen(field->name);
