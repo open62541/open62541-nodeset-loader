@@ -168,6 +168,8 @@ memberTypesReady(Nodeset *nodeset, NL_Node *node) {
         /* Member type not in this nodeset -> already present in the server */
         if(!memberNode)
             continue;
+        if(memberNode == node)
+            continue;
         if(!memberNode->isDone)
             return false;
     }

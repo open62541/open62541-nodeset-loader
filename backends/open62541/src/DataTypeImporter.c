@@ -123,7 +123,10 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         member->memberName = memberName;
 
         // Member type
-        member->memberType = getDataType(ctx, &field->dataType);
+        if(UA_NodeId_equal(&field->dataType, &node->id))
+            member->memberType = type;
+        else
+            member->memberType = getDataType(ctx, &field->dataType);
         if(!member->memberType) {
             ctx->logger->log(ctx->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
                              "Cannot find member type %N of datatype %N",
@@ -232,6 +235,58 @@ SubtypeOfBase_init(AddNodeContext *ctx,
     return UA_STATUSCODE_GOOD;
 }
 
+static bool
+hasSelfReference(const NL_DataTypeNode *node) {
+    if(!node->definition)
+        return false;
+    for(size_t i = 0; i < node->definition->fieldCnt; i++) {
+        if(UA_NodeId_equal(&node->definition->fields[i].dataType, &node->id))
+            return true;
+    }
+    return false;
+}
+
+static void
+repairSelfReferences(UA_DataType *type) {
+    for(size_t i = 0; i < type->membersSize; i++) {
+        UA_DataTypeMember *member = &type->members[i];
+        if(member->memberType &&
+           UA_NodeId_equal(&member->memberType->typeId, &type->typeId))
+            member->memberType = type;
+    }
+}
+
+static UA_StatusCode
+addDataTypeFromDescription(AddNodeContext *ctx, const NL_DataTypeNode *node,
+                           const UA_DataType *type,
+                           const UA_ExtensionObject *description,
+                           const UA_NodeId *parent) {
+    if(!hasSelfReference(node))
+        return UA_Server_addDataTypeFromDescription(ctx->server, description);
+
+    UA_DataTypeArray selfTypes;
+    memset(&selfTypes, 0, sizeof(UA_DataTypeArray));
+    selfTypes.next = (UA_DataTypeArray *)(uintptr_t)
+        UA_Server_getDataTypes(ctx->server);
+    selfTypes.typesSize = 1;
+    selfTypes.types = (UA_DataType *)(uintptr_t)type;
+
+    UA_DataType convertedType;
+    UA_StatusCode res =
+        UA_DataType_fromDescription(&convertedType, description, &selfTypes);
+    if(res != UA_STATUSCODE_GOOD)
+        return res;
+
+    res = UA_Server_addDataType(ctx->server, *parent, &convertedType);
+    if(res == UA_STATUSCODE_GOOD) {
+        UA_DataType *serverType = (UA_DataType *)(uintptr_t)
+            UA_Server_findDataType(ctx->server, &convertedType.typeId);
+        repairSelfReferences(serverType);
+    }
+    UA_DataType_clear(&convertedType);
+    return res;
+}
+
 void
 addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     UA_DataType type;
@@ -273,7 +328,7 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     if(res != UA_STATUSCODE_GOOD)
         goto cleanup;
 
-    UA_Server_addDataTypeFromDescription(ctx->server, &eo);
+    res = addDataTypeFromDescription(ctx, node, &type, &eo, &parent);
     UA_ExtensionObject_clear(&eo);
 
  cleanup:
