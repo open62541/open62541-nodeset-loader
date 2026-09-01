@@ -164,3 +164,10 @@ target_link_libraries(emptyStructs PRIVATE NodesetLoader open62541::open62541 ${
 add_test(NAME emptyStructs_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND emptyStructs ${CMAKE_CURRENT_SOURCE_DIR}/emptyStructs.xml)
+
+add_executable(recursiveDataType recursiveDataType.c)
+target_include_directories(recursiveDataType PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(recursiveDataType PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME recursiveDataType_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND recursiveDataType ${CMAKE_CURRENT_SOURCE_DIR}/recursiveDataType.xml)
