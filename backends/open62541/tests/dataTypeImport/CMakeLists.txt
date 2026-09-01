@@ -188,3 +188,10 @@ target_link_libraries(allowSubTypes PRIVATE NodesetLoader open62541::open62541 $
 add_test(NAME allowSubTypes_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND allowSubTypes ${CMAKE_CURRENT_SOURCE_DIR}/allowSubTypes.xml)
+
+add_executable(dataTypeError dataTypeError.c)
+target_include_directories(dataTypeError PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(dataTypeError PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME dataTypeError_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND dataTypeError ${CMAKE_CURRENT_SOURCE_DIR}/invalidDataTypeMember.xml)

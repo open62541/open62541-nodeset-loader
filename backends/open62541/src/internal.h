@@ -3,6 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  *
  *    Copyright 2016 (c) o6 Automation Gmbh (Author: Julius Pfrommer)
+ *    Copyright 2026 (c) SICK AG (Author: Joerg Fischer)
  */
 
 #ifndef __INTERNAL_H__
@@ -22,6 +23,7 @@ typedef struct {
     UA_Server *server;
     UA_NamespaceMapping nsMapping; // From the nodeset (local) to the server (remote)
     NodesetLoader_Logger *logger;
+    UA_StatusCode dataTypeStatus;
 
     // ReferenceTypes that can point to a parent.
     // Inherited from HasChild.
@@ -32,7 +34,7 @@ typedef struct {
 UA_NodeId
 getParentId(const AddNodeContext *ctx, const NL_Node *node, UA_NodeId *parentRefId);
 
-void
+UA_StatusCode
 addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node);
 
 #ifdef __cplusplus

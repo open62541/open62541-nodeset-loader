@@ -364,7 +364,7 @@ addDataTypeFromDescription(AddNodeContext *ctx, const NL_DataTypeNode *node,
     return res;
 }
 
-void
+UA_StatusCode
 addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     UA_DataType type;
     memset(&type, 0, sizeof(UA_DataType));
@@ -415,4 +415,5 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
                          node->id, UA_StatusCode_name(res));
     }
     UA_DataType_clear(&type);
+    return res;
 }

@@ -357,7 +357,9 @@ handleDataTypeNode(AddNodeContext *ctx,
                    const UA_QualifiedName *qn,
                    const UA_LocalizedText *description) {
     // Add the UA_DataType the the server
-    addCustomDataType(ctx, node);
+    UA_StatusCode res = addCustomDataType(ctx, node);
+    if(res != UA_STATUSCODE_GOOD && ctx->dataTypeStatus == UA_STATUSCODE_GOOD)
+        ctx->dataTypeStatus = res;
 
     // Add the DataTypeNode
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
@@ -524,7 +526,7 @@ addNodes(NodesetLoader *loader, AddNodeContext *anc) {
     NodesetLoader_forEachNode(loader, anc,
                               (NodesetLoader_forEachNode_Func)addNodeFinish);
 
-    return true;
+    return (anc->dataTypeStatus == UA_STATUSCODE_GOOD);
 }
 
 static bool
