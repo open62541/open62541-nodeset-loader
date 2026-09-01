@@ -108,6 +108,7 @@ typedef struct NL_DataTypeDefinitionField {
     int valueRank;
     int value;
     bool isOptional;
+    bool allowSubTypes;
 } NL_DataTypeDefinitionField;
 
 typedef struct NL_DataTypeDefinition {

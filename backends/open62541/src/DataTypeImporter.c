@@ -197,7 +197,9 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         member->memberName = memberName;
 
         // Member type
-        if(UA_NodeId_equal(&field->dataType, &node->id))
+        if(field->allowSubTypes)
+            member->memberType = &UA_TYPES[UA_TYPES_EXTENSIONOBJECT];
+        else if(UA_NodeId_equal(&field->dataType, &node->id))
             member->memberType = type;
         else
             member->memberType = getDataType(ctx, &field->dataType);

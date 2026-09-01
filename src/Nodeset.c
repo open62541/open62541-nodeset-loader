@@ -4,6 +4,7 @@
  *
  *    Copyright 2019 (c) Matthias Konnerth
  *    Copyright 2025 (c) Fraunhofer IOSB (Author: Julius Pfrommer)
+ *    Copyright 2026 (c) SICK AG (Author: Joerg Fischer)
  */
 
 #include "Nodeset.h"
@@ -58,6 +59,7 @@ const NodeAttribute dataTypeField_Name = {"Name", NULL};
 const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 const NodeAttribute dataTypeField_Value = {"Value", NULL};
 const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
+const NodeAttribute dataTypeField_AllowSubTypes = {"AllowSubTypes", "false"};
 const NodeAttribute attrLocale = {"Locale", NULL};
 const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
 const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
@@ -475,6 +477,9 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
         char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
                                              attributes, attributeSize);
         newField->isOptional = !strcmp("true", isOptional);
+        char *allowSubTypes = getAttributeValue(
+            nodeset, &dataTypeField_AllowSubTypes, attributes, attributeSize);
+        newField->allowSubTypes = !strcmp("true", allowSubTypes);
     }
 }
 

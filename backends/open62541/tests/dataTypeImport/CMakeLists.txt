@@ -181,3 +181,10 @@ add_test(NAME abstractSubtype_Test
             ${CMAKE_CURRENT_SOURCE_DIR}/abstractSubtype.xml
             ${CMAKE_CURRENT_SOURCE_DIR}/customAbstractSubtype.xml
             ${CMAKE_CURRENT_SOURCE_DIR}/baseDataTypeSubtype.xml)
+
+add_executable(allowSubTypes allowSubTypes.c)
+target_include_directories(allowSubTypes PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(allowSubTypes PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME allowSubTypes_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND allowSubTypes ${CMAKE_CURRENT_SOURCE_DIR}/allowSubTypes.xml)
