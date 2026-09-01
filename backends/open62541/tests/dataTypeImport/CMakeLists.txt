@@ -171,3 +171,13 @@ target_link_libraries(recursiveDataType PRIVATE NodesetLoader open62541::open625
 add_test(NAME recursiveDataType_Test
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
     COMMAND recursiveDataType ${CMAKE_CURRENT_SOURCE_DIR}/recursiveDataType.xml)
+
+add_executable(abstractSubtype abstractSubtype.c)
+target_include_directories(abstractSubtype PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(abstractSubtype PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME abstractSubtype_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND abstractSubtype
+            ${CMAKE_CURRENT_SOURCE_DIR}/abstractSubtype.xml
+            ${CMAKE_CURRENT_SOURCE_DIR}/customAbstractSubtype.xml
+            ${CMAKE_CURRENT_SOURCE_DIR}/baseDataTypeSubtype.xml)

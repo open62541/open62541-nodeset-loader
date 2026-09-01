@@ -58,6 +58,80 @@ getDataType(AddNodeContext *ctx, const UA_NodeId *id) {
 }
 
 static UA_StatusCode
+resolveDataType(AddNodeContext *ctx, const UA_NodeId *start,
+                const UA_DataType **resolvedType) {
+    *resolvedType = NULL;
+
+    UA_NodeId current;
+    UA_StatusCode res = UA_NodeId_copy(start, &current);
+    if(res != UA_STATUSCODE_GOOD)
+        return res;
+
+    UA_NodeId *visited = NULL;
+    size_t visitedSize = 0;
+    while(true) {
+        *resolvedType = getDataType(ctx, &current);
+        if(*resolvedType)
+            break;
+
+        for(size_t i = 0; i < visitedSize; i++) {
+            if(UA_NodeId_equal(&visited[i], &current)) {
+                res = UA_STATUSCODE_BADINVALIDSTATE;
+                goto cleanup;
+            }
+        }
+
+        res = UA_Array_appendCopy((void **)&visited, &visitedSize, &current,
+                                  &UA_TYPES[UA_TYPES_NODEID]);
+        if(res != UA_STATUSCODE_GOOD)
+            goto cleanup;
+
+        UA_BrowseDescription bd;
+        UA_BrowseDescription_init(&bd);
+        bd.nodeId = current;
+        bd.browseDirection = UA_BROWSEDIRECTION_INVERSE;
+        bd.referenceTypeId = UA_NS0ID(HASSUBTYPE);
+        bd.includeSubtypes = false;
+        bd.nodeClassMask = UA_NODECLASS_DATATYPE;
+
+        UA_BrowseResult br = UA_Server_browse(ctx->server, 0, &bd);
+        res = br.statusCode;
+        if(res != UA_STATUSCODE_GOOD) {
+            UA_BrowseResult_clear(&br);
+            goto cleanup;
+        }
+        if(br.referencesSize == 0) {
+            UA_BrowseResult_clear(&br);
+            res = UA_STATUSCODE_BADNOTFOUND;
+            goto cleanup;
+        }
+        if(br.referencesSize > 1) {
+            UA_BrowseResult_clear(&br);
+            res = UA_STATUSCODE_BADREFERENCENOTALLOWED;
+            goto cleanup;
+        }
+        if(!UA_ExpandedNodeId_isLocal(&br.references[0].nodeId)) {
+            UA_BrowseResult_clear(&br);
+            res = UA_STATUSCODE_BADNOTSUPPORTED;
+            goto cleanup;
+        }
+
+        UA_NodeId parent;
+        res = UA_NodeId_copy(&br.references[0].nodeId.nodeId, &parent);
+        UA_BrowseResult_clear(&br);
+        if(res != UA_STATUSCODE_GOOD)
+            goto cleanup;
+        UA_NodeId_clear(&current);
+        current = parent;
+    }
+
+ cleanup:
+    UA_NodeId_clear(&current);
+    UA_Array_delete(visited, visitedSize, &UA_TYPES[UA_TYPES_NODEID]);
+    return res;
+}
+
+static UA_StatusCode
 addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
                    const NL_DataTypeNode *node,
                    const UA_NodeId *parent) {
@@ -218,9 +292,10 @@ static UA_StatusCode
 SubtypeOfBase_init(AddNodeContext *ctx,
                    UA_DataType *type, const NL_DataTypeNode *node,
                    const UA_NodeId *parent) {
-    const UA_DataType *parentType = getDataType(ctx, parent);
-    if(!parentType)
-        return UA_STATUSCODE_BADINTERNALERROR;
+    const UA_DataType *parentType;
+    UA_StatusCode res = resolveDataType(ctx, parent, &parentType);
+    if(res != UA_STATUSCODE_GOOD)
+        return res;
     type->memSize = parentType->memSize;
     type->overlayable = parentType->overlayable;
     type->pointerFree = parentType->pointerFree;
@@ -228,7 +303,7 @@ SubtypeOfBase_init(AddNodeContext *ctx,
     if(parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
        parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
        parentType->typeKind == UA_DATATYPEKIND_UNION) {
-        return addDataTypeMembers(ctx, type, node, parent);
+        return addDataTypeMembers(ctx, type, node, &parentType->typeId);
     } else {
         type->binaryEncodingId = parentType->binaryEncodingId;
     }

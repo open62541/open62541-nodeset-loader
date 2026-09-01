@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <NamespaceUris>
+    <Uri>http://open62541.org/test/base-datatype-subtype/</Uri>
+  </NamespaceUris>
+  <Models>
+    <Model ModelUri="http://open62541.org/test/base-datatype-subtype/" Version="1.0.0">
+      <RequiredModel ModelUri="http://opcfoundation.org/UA/" Version="1.05.04"/>
+    </Model>
+  </Models>
+  <Aliases>
+    <Alias Alias="HasSubtype">i=45</Alias>
+  </Aliases>
+  <UADataType NodeId="ns=1;i=3001" BrowseName="1:CustomVariant">
+    <DisplayName>CustomVariant</DisplayName>
+    <References>
+      <Reference ReferenceType="HasSubtype" IsForward="false">i=24</Reference>
+    </References>
+  </UADataType>
+</UANodeSet>
