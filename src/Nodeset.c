@@ -139,6 +139,22 @@ Nodeset_findByNodeId(Nodeset *nodeset, const UA_NodeId *key) {
 static UA_NodeId hasTypeDef = {0, UA_NODEIDTYPE_NUMERIC, {40}};
 
 static bool
+isHierarchicalReference(const UA_NodeId *refType) {
+    /* This heuristic improves classification for known namespace-zero
+     * ReferenceTypes, allowing NodeSets with cyclic non-hierarchical references
+     * to load instead of reporting a false infinite loop. Unknown or custom
+     * ReferenceTypes are still treated as hierarchical, so cyclic
+     * non-hierarchical references using those types can still produce an
+     * infinite-loop error. This is not a fully general solution. */
+    if(refType->namespaceIndex != 0 ||
+       refType->identifierType != UA_NODEIDTYPE_NUMERIC)
+        return true;
+
+    UA_UInt32 id = refType->identifier.numeric;
+    return (id >= 33 && id <= 36) || (id >= 44 && id <= 49);
+}
+
+static bool
 nodeRefsReady(NL_Node *node) {
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
         if(!ref->targetPtr)
@@ -149,7 +165,7 @@ nodeRefsReady(NL_Node *node) {
             if(ref->isForward)
                 return false;
         } else {
-            if(!ref->isForward)
+            if(!ref->isForward && isHierarchicalReference(&ref->refType))
                 return false;
         }
     }

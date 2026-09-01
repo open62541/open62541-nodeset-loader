@@ -153,6 +153,13 @@ add_test(NAME loading_order_fix_Test
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND loading_order_fix ${CMAKE_CURRENT_SOURCE_DIR}/loading_order_fix.xml)
 
+add_executable(nonHierarchicalRefs nonHierarchicalRefs.c)
+target_include_directories(nonHierarchicalRefs PRIVATE ${CHECK_INCLUDE_DIR})
+target_link_libraries(nonHierarchicalRefs PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${PTHREAD_LIB})
+add_test(NAME nonHierarchicalRefs_Test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMAND nonHierarchicalRefs ${CMAKE_CURRENT_SOURCE_DIR}/nonHierarchicalRefs.xml)
+
 add_executable(issue_266 issue_266_testdata.c)
 target_include_directories(issue_266 PRIVATE ${CHECK_INCLUDE_DIR})
 target_link_libraries(issue_266 PRIVATE NodesetLoader open62541::open62541 ${CHECK_LIBRARIES} ${CHECK_LIBRARIES} ${PTHREAD_LIB})
