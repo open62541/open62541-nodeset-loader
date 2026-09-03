@@ -11,7 +11,7 @@
 
 #include "NodesetLoader/NodesetLoader.h"
 
-char nodeidDump[256];
+static char nodeidDump[256];
 static char *
 printId(const UA_NodeId *id) {
     UA_String myStr = {0};
@@ -24,36 +24,29 @@ printId(const UA_NodeId *id) {
     return nodeidDump;
 }
 
-static UA_NamespaceMapping _nsMapping;
-
-void _addNamespace(void *userContext,
-                   size_t localNamespaceUrisSize,
-                   UA_String *localNamespaceUris,
-                   UA_NamespaceMapping *nsMapping) {
-    // Already known?
-    for (size_t i = _nsMapping.namespaceUrisSize;
-         i < _nsMapping.namespaceUrisSize; i++) {
-        if (UA_String_equal(localNamespaceUris, &_nsMapping.namespaceUris[i]))
-            return;
+static void
+addNamespace(void *userContext, size_t namespaceUrisSize,
+             UA_String *namespaceUris, UA_NamespaceMapping *nsMapping) {
+    (void)userContext;
+    for(size_t i = 0; i < namespaceUrisSize; i++) {
+        UA_UInt16 localIdx = 0;
+        for(; localIdx < nsMapping->namespaceUrisSize; localIdx++) {
+            if(UA_String_equal(&namespaceUris[i],
+                               &nsMapping->namespaceUris[localIdx]))
+                break;
+        }
+        if(localIdx == nsMapping->namespaceUrisSize)
+            UA_Array_appendCopy((void**)&nsMapping->namespaceUris,
+                                &nsMapping->namespaceUrisSize,
+                                &namespaceUris[i], &UA_TYPES[UA_TYPES_STRING]);
+        UA_Array_appendCopy((void**)&nsMapping->remote2local,
+                            &nsMapping->remote2localSize, &localIdx,
+                            &UA_TYPES[UA_TYPES_UINT16]);
     }
-
-    UA_UInt16 localIdx = (UA_UInt16)_nsMapping.namespaceUrisSize;
-
-    // Add to the local mapping
-    UA_StatusCode res =
-        UA_Array_appendCopy((void**)&_nsMapping.namespaceUris,
-                            &_nsMapping.namespaceUrisSize,
-                            localNamespaceUris, &UA_TYPES[UA_TYPES_STRING]);
-    (void)res;
-
-
-    res = UA_Array_appendCopy((void**)&_nsMapping.remote2local,
-                              &_nsMapping.remote2localSize,
-                              &localIdx, &UA_TYPES[UA_TYPES_UINT16]);
-    (void)res;
 }
 
-bool dumpNode(void *userContext, const NL_Node *node) {
+static bool
+dumpNode(void *userContext, NL_Node *node) {
     printf("NodeId: %s BrowseName: %.*s DisplayName: %.*s\n", printId(&node->id),
            (int)node->browseName.name.length, node->browseName.name.data,
            (int)node->displayName.text.length, node->displayName.text.data);
@@ -101,8 +94,9 @@ int main(int argc, char *argv[]) {
 
     NL_FileContext handler;
     memset(&handler, 0, sizeof(NL_FileContext));
-    handler.addNamespace = _addNamespace;
-    handler.nsMapping = &_nsMapping;
+    UA_NamespaceMapping nsMapping = {0};
+    handler.addNamespace = addNamespace;
+    handler.nsMapping = &nsMapping;
 
     UA_Logger logger = {.log = printLog};
 
@@ -117,9 +111,9 @@ int main(int argc, char *argv[]) {
     }
 
     NodesetLoader_sort(loader);
-    NodesetLoader_forEachNode(loader, NULL, (NodesetLoader_forEachNode_Func)dumpNode);
+    NodesetLoader_forEachNode(loader, NULL, dumpNode);
     NodesetLoader_delete(loader);
 
-    UA_NamespaceMapping_clear(&_nsMapping);
+    UA_NamespaceMapping_clear(&nsMapping);
     return 0;
 }
