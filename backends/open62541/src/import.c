@@ -52,7 +52,7 @@ AddNodeContext_addNamespace(AddNodeContext *ctx, const UA_String nsUri,
 static void
 AddNodeContext_init(AddNodeContext *ctx,
                     struct UA_Server *server,
-                    NodesetLoader_Logger *logger) {
+                    UA_Logger *logger) {
     memset(ctx, 0, sizeof(AddNodeContext));
     ctx->server = server;
     ctx->logger = logger;
@@ -246,10 +246,9 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
         opts.customTypes = UA_Server_getDataTypes(server);
         opts.namespaceMapping = &context->nsMapping;
         ret = UA_decodeXml(&node->value, &attr.value, &UA_TYPES[UA_TYPES_VARIANT], &opts);
-        if(ret != UA_STATUSCODE_GOOD) {
-            context->logger->log(context->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                                 "Failed to parse the value of %s", buf);
-        }
+        if(ret != UA_STATUSCODE_GOOD)
+            UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER,
+                           "NodesetLoader: Failed to parse the value of %s", buf);
     }
 
     // this case is only needed for the euromap83 comparison, think the nodeset
@@ -442,28 +441,6 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
     }
 }
 
-static void
-logToOpen(void *context, enum NodesetLoader_LogLevel level,
-          const char *message, ...) {
-    UA_Logger *logger = (UA_Logger *)context;
-    va_list vl;
-    va_start(vl, message);
-    UA_LogLevel uaLevel = UA_LOGLEVEL_DEBUG;
-    switch (level) {
-    case NODESETLOADER_LOGLEVEL_DEBUG:
-        uaLevel = UA_LOGLEVEL_DEBUG;
-        break;
-    case NODESETLOADER_LOGLEVEL_ERROR:
-        uaLevel = UA_LOGLEVEL_ERROR;
-        break;
-    case NODESETLOADER_LOGLEVEL_WARNING:
-        uaLevel = UA_LOGLEVEL_WARNING;
-        break;
-    }
-    logger->log(logger->context, uaLevel, UA_LOGCATEGORY_USERLAND, message, vl);
-    va_end(vl);
-}
-
 static bool
 addAllRefs(AddNodeContext *context, NL_Node *node) {
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
@@ -505,14 +482,7 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
         return false;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
-    NodesetLoader_Logger *logger =
-        (NodesetLoader_Logger *)calloc(1, sizeof(NodesetLoader_Logger));
-#if UA_OPEN62541_VER_MAJOR == 1 && UA_OPEN62541_VER_MINOR < 4
-    logger->context = (void*)(uintptr_t)&config->logger;
-#else
-    logger->context = (void*)(uintptr_t)config->logging;
-#endif
-    logger->log = &logToOpen;
+    UA_Logger *logger = config->logging;
 
     AddNodeContext ctx;
     AddNodeContext_init(&ctx, server, logger);
@@ -525,18 +495,17 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.file = path;
     handler.nsMapping = &ctx.nsMapping; // Provide the pre-filled mapping
 
-    logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,
-                "Start import nodeset: %s", path);
+    UA_LOG_DEBUG(logger, UA_LOGCATEGORY_SERVER,
+                 "NodesetLoader: Start import nodeset: %s", path);
     bool status = NodesetLoader_importFile(loader, &handler);
     if(status)
         status = NodesetLoader_sort(loader);
     if(status)
         status = addNodes(loader, &ctx);
     if(!status)
-        logger->log(logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                    "Importing the nodeset failed, nodes were not added");
+        UA_LOG_ERROR(logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Importing the nodeset failed, nodes were not added");
     NodesetLoader_delete(loader);
     AddNodeContext_clear(&ctx);
-    free(logger);
     return status;
 }
