@@ -67,27 +67,36 @@ if(ENABLE_TESTING)
     include(CTest)
 endif()
 
-add_library(NodesetLoader
+add_library(NodesetLoaderObjects OBJECT
     src/Nodeset.c
     src/NodesetLoader.c
     backends/open62541/src/import.c
     backends/open62541/src/DataTypeImporter.c)
 
-target_include_directories(NodesetLoader
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+target_include_directories(NodesetLoaderObjects
     PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         ${CMAKE_CURRENT_SOURCE_DIR}/backends/open62541/src
         ${NODESETLOADER_OPEN62541_DIR}/deps)
+target_link_libraries(NodesetLoaderObjects PRIVATE open62541::open62541)
+target_compile_definitions(NodesetLoaderObjects PRIVATE
+    $<$<PLATFORM_ID:Linux>:_GNU_SOURCE>)
+target_compile_options(NodesetLoaderObjects PRIVATE ${C_COMPILE_DEFS})
+set_target_properties(NodesetLoaderObjects PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    POSITION_INDEPENDENT_CODE ON)
+
+add_library(NodesetLoader $<TARGET_OBJECTS:NodesetLoaderObjects>)
+target_include_directories(NodesetLoader
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>)
 target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
 target_compile_definitions(NodesetLoader PUBLIC
     $<$<PLATFORM_ID:Linux>:_GNU_SOURCE>)
-target_compile_options(NodesetLoader PRIVATE ${C_COMPILE_DEFS})
-set_target_properties(NodesetLoader PROPERTIES C_VISIBILITY_PRESET hidden)
-
 if(CALC_COVERAGE)
+    target_link_libraries(NodesetLoaderObjects PRIVATE coverageLib)
     target_link_libraries(NodesetLoader PUBLIC coverageLib)
 endif()
 if(ENABLE_ASAN)
