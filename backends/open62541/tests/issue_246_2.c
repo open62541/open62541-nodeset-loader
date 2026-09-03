@@ -1,11 +1,13 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+
+#include <stdio.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -26,30 +28,36 @@ static void teardown(void)
 
 START_TEST(Server_Issue_246)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    // Check if [Object Type] nodes exist with a HasHistoricalConfiguration type inverse reference to the Variable nodes.
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
+    // Check if [Object Type] nodes exist with a HasHistoricalConfiguration type
+    // inverse reference to the Variable nodes.
     UA_NodeClass node_class;
     UA_NodeClass_init(&node_class);
     UA_StatusCode retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(3, "History1.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History1.HistoricalDataConfiguration"),
+        &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(3, "History2.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History2.HistoricalDataConfiguration"),
+        &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(3, "History3.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History3.HistoricalDataConfiguration"),
+        &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);
 
     retval = UA_Server_readNodeClass(
-        server, UA_NODEID_STRING(3, "History4.HistoricalDataConfiguration"), &node_class);
+        server, UA_NODEID_STRING(3, "History4.HistoricalDataConfiguration"),
+        &node_class);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     ck_assert_uint_eq(node_class, UA_NODECLASS_OBJECT);
     UA_NodeClass_clear(&node_class);

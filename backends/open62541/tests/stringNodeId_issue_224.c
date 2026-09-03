@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
@@ -29,22 +29,23 @@ static void teardown(void)
 
 START_TEST(Server_Issue_224)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     UA_Variant var;
     UA_Variant_init(&var);
     ck_assert_uint_eq(
         UA_STATUSCODE_GOOD,
         UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6011), &var));
-    ck_assert(var.arrayLength==3);
-    ck_assert(var.type==&UA_TYPES[UA_TYPES_NODEID]);
-    UA_NodeId* ids = (UA_NodeId*)var.data;
+    ck_assert(var.arrayLength == 3);
+    ck_assert(var.type == &UA_TYPES[UA_TYPES_NODEID]);
+    UA_NodeId *ids = (UA_NodeId *)var.data;
     UA_NodeId firstId = UA_NODEID_STRING(0, "someNode");
     UA_NodeId secondId = UA_NODEID_STRING(0, "someNodeButCooler");
     UA_NodeId thirdId = UA_NODEID_STRING(0, "theNodeIsALie");
     ck_assert(UA_NodeId_equal(&firstId, ids));
-    ck_assert(UA_NodeId_equal(&secondId, ids+1));
-    ck_assert(UA_NodeId_equal(&thirdId, ids+2));
+    ck_assert(UA_NodeId_equal(&secondId, ids + 1));
+    ck_assert(UA_NodeId_equal(&thirdId, ids + 2));
     UA_Variant_clear(&var);
 
     ck_assert_uint_eq(
@@ -52,9 +53,10 @@ START_TEST(Server_Issue_224)
         UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6012), &var));
     ck_assert(var.type == &UA_TYPES[UA_TYPES_PUBLISHEDVARIABLEDATATYPE]);
     UA_PublishedVariableDataType *publishedVar =
-        (UA_PublishedVariableDataType *) var.data;
+        (UA_PublishedVariableDataType *)var.data;
     UA_NodeId publishedVariableId = UA_NODEID_STRING(0, "abcdef");
-    ck_assert(UA_NodeId_equal(&publishedVariableId, &publishedVar->publishedVariable));
+    ck_assert(UA_NodeId_equal(&publishedVariableId,
+                              &publishedVar->publishedVariable));
     UA_Variant_clear(&var);
 }
 END_TEST

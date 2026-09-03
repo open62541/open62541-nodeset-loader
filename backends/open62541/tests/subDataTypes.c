@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,8 +30,9 @@ static void teardown(void)
 
 START_TEST(Server_loadNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    //datatypes
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
+    // datatypes
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3002)) ==
               UA_NODECLASS_DATATYPE);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3003)) ==
@@ -41,8 +42,9 @@ START_TEST(Server_loadNodeset)
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3005)) ==
               UA_NODECLASS_DATATYPE);
 
-    //variables
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6002))==UA_NODECLASS_VARIABLE);
+    // variables
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)) ==
+              UA_NODECLASS_VARIABLE);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6003)) ==
               UA_NODECLASS_VARIABLE);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6004)) ==
@@ -55,17 +57,15 @@ START_TEST(Server_loadNodeset)
     UA_StatusCode retval =
         UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
-    ck_assert(*(UA_Boolean*)var.data == UA_TRUE);
+    ck_assert(*(UA_Boolean *)var.data == UA_TRUE);
     UA_Variant_clear(&var);
-    retval =
-        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var);
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     UA_NodeId test = UA_NODEID_NUMERIC(2, 234);
-    ck_assert(UA_NodeId_equal(&test, (UA_NodeId*)var.data));
+    ck_assert(UA_NodeId_equal(&test, (UA_NodeId *)var.data));
     UA_Variant_clear(&var);
-    retval =
-        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6005), &var);
-    ck_assert(*(UA_Int32*)var.data == 42);
+    retval = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6005), &var);
+    ck_assert(*(UA_Int32 *)var.data == 42);
 
     UA_Variant_clear(&var);
 }

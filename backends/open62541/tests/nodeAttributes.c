@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,7 +30,8 @@ static void teardown(void)
 
 START_TEST(Server_ImportNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 }
 END_TEST
 
@@ -81,8 +82,8 @@ END_TEST
 START_TEST(dataType)
 {
     UA_Boolean isAbstract = UA_FALSE;
-    UA_StatusCode retval = UA_Server_readIsAbstract(server, UA_NODEID_NUMERIC(2, 3002),
-                                     &isAbstract);
+    UA_StatusCode retval = UA_Server_readIsAbstract(
+        server, UA_NODEID_NUMERIC(2, 3002), &isAbstract);
     ck_assert(retval == UA_STATUSCODE_GOOD);
     ck_assert(isAbstract == UA_TRUE);
 }
@@ -101,8 +102,8 @@ END_TEST
 START_TEST(eventNotifier)
 {
     UA_Byte val = 0;
-    UA_StatusCode retval = UA_Server_readEventNotifier(
-        server, UA_NODEID_NUMERIC(2, 5003), &val);
+    UA_StatusCode retval =
+        UA_Server_readEventNotifier(server, UA_NODEID_NUMERIC(2, 5003), &val);
     ck_assert(retval == UA_STATUSCODE_GOOD);
     ck_assert(val == 1);
 }

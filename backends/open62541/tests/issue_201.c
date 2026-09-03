@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
@@ -29,11 +29,13 @@ static void teardown(void)
 
 START_TEST(Server_Issue_201)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
-    ck_assert(hasReference(
-        server, UA_NODEID_NUMERIC(2, 5000), UA_NODEID_NUMERIC(2, 4000),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT), UA_BROWSEDIRECTION_INVERSE));
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5000),
+                           UA_NODEID_NUMERIC(2, 4000),
+                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
+                           UA_BROWSEDIRECTION_INVERSE));
 
     ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 6000),
                            UA_NODEID_NUMERIC(2, 4000),

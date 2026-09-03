@@ -2,7 +2,7 @@
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 #include <stdio.h>
 
@@ -15,7 +15,7 @@ int main(int argc, const char *argv[])
 
     for (int cnt = 1; cnt < argc; cnt++)
     {
-        if (!NodesetLoader_loadFile(server, argv[cnt], NULL))
+        if (UA_StatusCode_isBad(UA_Server_loadNodeset(server, argv[cnt])))
         {
             printf("nodeset could not be loaded, exit\n");
             return 1;

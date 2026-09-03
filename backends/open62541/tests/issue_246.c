@@ -1,35 +1,37 @@
 /* This Source Code Form is subject to the terms of the Mozilla Public
-* License, v. 2.0. If a copy of the MPL was not distributed with this
-* file, You can obtain one at http://mozilla.org/MPL/2.0/. */
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
+
+#include <stdio.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
 START_TEST(Server_Issue_246)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     UA_Variant var;
     UA_Variant_init(&var);
     // Check if the last node in the chain exists. It should be.
-    UA_StatusCode retval = UA_Server_readValue(
-        server, UA_NODEID_STRING(3, "Test.Var4"), &var);
+    UA_StatusCode retval =
+        UA_Server_readValue(server, UA_NODEID_STRING(3, "Test.Var4"), &var);
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
     UA_Variant_clear(&var);
 }

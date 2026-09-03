@@ -10,24 +10,25 @@
 
 #include "../testHelper.h"
 #include "open62541/types_struct_generated.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     printf("path to testnodesets %s\n", nodesetPath);
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
-START_TEST(compareDI) {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+START_TEST(compareDI)
+{
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     setNamespaceIndexOfGeneratedStruct(server,
                                        "http://yourorganisation.org/struct/",

@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,7 +30,8 @@ static void teardown(void)
 
 START_TEST(references_typeDefinitionId)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     UA_NodeId baseDataVariableTypeId =
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE);
@@ -46,9 +47,12 @@ END_TEST
 START_TEST(forwardReferences)
 {
     // both nodes are there
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)) == UA_NODECLASS_OBJECT);
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6003)) == UA_NODECLASS_OBJECT);
-    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 6002), UA_NODEID_NUMERIC(2, 6003), 
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6002)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6003)) ==
+              UA_NODECLASS_OBJECT);
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 6002), UA_NODEID_NUMERIC(2, 6003),
         UA_NODEID_NUMERIC(0, UA_NS0ID_ORGANIZES), UA_BROWSEDIRECTION_FORWARD));
 }
 END_TEST
@@ -73,9 +77,10 @@ START_TEST(forwardReferences_EURange)
               UA_NODECLASS_OBJECT);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 7005)) ==
               UA_NODECLASS_VARIABLE);
-    ck_assert(hasReference(
-        server, UA_NODEID_NUMERIC(2, 7006), UA_NODEID_NUMERIC(2, 7005),
-        UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY), UA_BROWSEDIRECTION_FORWARD));
+    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 7006),
+                           UA_NODEID_NUMERIC(2, 7005),
+                           UA_NODEID_NUMERIC(0, UA_NS0ID_HASPROPERTY),
+                           UA_BROWSEDIRECTION_FORWARD));
 }
 END_TEST
 

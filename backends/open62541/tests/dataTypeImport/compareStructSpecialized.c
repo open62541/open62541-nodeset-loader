@@ -11,7 +11,7 @@
 #include "../testHelper.h"
 #include "open62541/types_specializedStruct_generated.h"
 #include "open62541/types_struct_generated.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodeset1 = NULL;
@@ -24,15 +24,16 @@ static void setup(void)
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
-START_TEST(compareSpecializedStruct) {
+START_TEST(compareSpecializedStruct)
+{
     printf("%s \n", nodeset1);
     printf("%s \n", nodeset2);
-    ck_assert(NodesetLoader_loadFile(server, nodeset1, NULL));
-    ck_assert(NodesetLoader_loadFile(server, nodeset2, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodeset1),
+                      UA_STATUSCODE_GOOD);
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodeset2),
+                      UA_STATUSCODE_GOOD);
 
     setNamespaceIndexOfGeneratedStruct(server,
                                        "http://yourorganisation.org/struct/",

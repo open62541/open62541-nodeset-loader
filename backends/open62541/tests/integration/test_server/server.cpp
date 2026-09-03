@@ -2,8 +2,7 @@
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 
-#include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 #include <signal.h>
 #include <stdlib.h>
@@ -11,6 +10,21 @@
 using namespace std;
 
 UA_Boolean running = true;
+
+static const UA_DataType *findDataType(UA_Server *server,
+                                       const UA_NodeId *typeId)
+{
+    for (const UA_DataTypeArray *array = UA_Server_getDataTypes(server); array;
+         array = array->next)
+    {
+        for (size_t i = 0; i < array->typesSize; i++)
+        {
+            if (UA_NodeId_equal(&array->types[i].typeId, typeId))
+                return &array->types[i];
+        }
+    }
+    return NULL;
+}
 
 static void stopHandler(int sign)
 {
@@ -32,7 +46,7 @@ UA_Boolean AddDIStructVariables(UA_Server *pServer)
     // so if we can't find the type we assume that it's okay
     UA_NodeId TransferResultDataDataTypeId = UA_NODEID_NUMERIC(2, 15889);
     const UA_DataType *importedType =
-        NodesetLoader_getCustomDataType(pServer, &TransferResultDataDataTypeId);
+        findDataType(pServer, &TransferResultDataDataTypeId);
     if (importedType == 0)
     {
         UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_SERVER,
@@ -77,7 +91,7 @@ int main(int argc, const char *argv[])
     for (int cnt = 1; cnt < argc; cnt++)
     {
         printf("Load file: '%s'\n", argv[cnt]);
-        if (!NodesetLoader_loadFile(server, argv[cnt], NULL))
+        if (UA_StatusCode_isBad(UA_Server_loadNodeset(server, argv[cnt])))
         {
             printf("nodeset could not be loaded, exit\n");
             UA_Server_delete(server);

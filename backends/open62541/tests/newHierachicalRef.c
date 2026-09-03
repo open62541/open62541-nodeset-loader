@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath1 = NULL;
@@ -30,8 +30,10 @@ static void teardown(void)
 
 START_TEST(loadNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath1, NULL));
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath2, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath1),
+                      UA_STATUSCODE_GOOD);
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath2),
+                      UA_STATUSCODE_GOOD);
 }
 END_TEST
 
@@ -40,18 +42,19 @@ START_TEST(newHierachicalRef)
     ck_assert(UA_NODECLASS_REFERENCETYPE ==
               getNodeClass(server, UA_NODEID_NUMERIC(2, 4002)));
 
-    ck_assert(UA_NODECLASS_OBJECT == getNodeClass(server, UA_NODEID_NUMERIC(2, 5002)));
+    ck_assert(UA_NODECLASS_OBJECT ==
+              getNodeClass(server, UA_NODEID_NUMERIC(2, 5002)));
 
     ck_assert(UA_NODECLASS_OBJECT ==
               getNodeClass(server, UA_NODEID_NUMERIC(2, 5004)));
 
-    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5004),
-                           UA_NODEID_NUMERIC(2, 5002),
-                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_INVERSE));
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 5004), UA_NODEID_NUMERIC(2, 5002),
+        UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_INVERSE));
 
-    ck_assert(hasReference(server, UA_NODEID_NUMERIC(2, 5002),
-                           UA_NODEID_NUMERIC(2, 5004),
-                           UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_FORWARD));
+    ck_assert(hasReference(
+        server, UA_NODEID_NUMERIC(2, 5002), UA_NODEID_NUMERIC(2, 5004),
+        UA_NODEID_NUMERIC(2, 4002), UA_BROWSEDIRECTION_FORWARD));
 }
 END_TEST
 

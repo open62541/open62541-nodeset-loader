@@ -8,7 +8,7 @@
 #ifndef NODESET_H
 #define NODESET_H
 
-#include "NodesetLoader/NodesetLoader.h"
+#include "NodesetLoader.h"
 #include <ziptree.h>
 
 #include <stdbool.h>
@@ -19,12 +19,14 @@ typedef struct AliasList AliasList;
 struct NodesetTextBuffer;
 typedef struct NodesetTextBuffer NodesetTextBuffer;
 
-typedef enum {
+typedef enum
+{
     XML_TOKEN_ELEMENT,
     XML_TOKEN_ATTRIBUTE
 } XmlTokenType;
 
-typedef struct {
+typedef struct
+{
     XmlTokenType type;
     size_t name;
     size_t content;
@@ -35,7 +37,8 @@ typedef struct {
     size_t end;
 } XmlToken;
 
-typedef struct {
+typedef struct
+{
     const XmlToken *tokens;
     size_t size;
     char *text;
@@ -43,12 +46,14 @@ typedef struct {
 
 typedef ZIP_HEAD(NodeTree, NL_Node) NodeTree;
 
-typedef struct {
+typedef struct
+{
     NL_Node *head;
     NL_Node *tail;
 } NodeList;
 
-typedef struct {
+typedef struct
+{
     NodesetTextBuffer *textBuffers;
     AliasList *aliasList;
 
@@ -56,25 +61,24 @@ typedef struct {
     NodeList pending[NL_NODECLASS_COUNT];
     NodeList sorted;
 
-    const NL_FileContext *fc;
-    UA_Logger *logger;
+    UA_NodeSetLoaderContext *context;
 } Nodeset;
 
-Nodeset *Nodeset_new(UA_Logger *logger);
-bool Nodeset_ownTextBuffer(Nodeset *nodeset, char *data);
-void Nodeset_cleanup(Nodeset *nodeset);
-bool Nodeset_sort(Nodeset *nodeset);
-NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                         const XmlAttributes *attributes);
-bool Nodeset_addReference(Nodeset *nodeset, NL_Node *node,
-                          const XmlAttributes *attributes, char *idString);
-bool Nodeset_addAlias(Nodeset *nodeset, const XmlAttributes *attributes,
-                      char *idString);
-bool Nodeset_addNamespace(Nodeset *nodeset, char *namespaceUri);
-bool Nodeset_addDataTypeDefinition(NL_Node *node,
-                                   const XmlAttributes *attributes);
-bool Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              const XmlAttributes *attributes);
-void Nodeset_setLocalizedText(UA_LocalizedText *target,
-                              const XmlAttributes *attributes, char *text);
+Nodeset *UA_NodeSet_new(UA_NodeSetLoaderContext *context);
+bool UA_NodeSet_ownTextBuffer(Nodeset *nodeset, char *data);
+void UA_NodeSet_cleanup(Nodeset *nodeset);
+bool UA_NodeSet_sort(Nodeset *nodeset);
+NL_Node *UA_NodeSet_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
+                            const XmlAttributes *attributes);
+bool UA_NodeSet_addReference(Nodeset *nodeset, NL_Node *node,
+                             const XmlAttributes *attributes, char *idString);
+bool UA_NodeSet_addAlias(Nodeset *nodeset, const XmlAttributes *attributes,
+                         char *idString);
+bool UA_NodeSet_addNamespace(Nodeset *nodeset, char *namespaceUri);
+bool UA_NodeSet_addDataTypeDefinition(NL_Node *node,
+                                      const XmlAttributes *attributes);
+bool UA_NodeSet_addDataTypeField(Nodeset *nodeset, NL_Node *node,
+                                 const XmlAttributes *attributes);
+void UA_NodeSet_setLocalizedText(UA_LocalizedText *target,
+                                 const XmlAttributes *attributes, char *text);
 #endif

@@ -9,8 +9,8 @@
 #include "check.h"
 #include <stdio.h>
 
-#include <NodesetLoader/backendOpen62541.h>
 #include "../testHelper.h"
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -32,7 +32,8 @@ static void teardown(void)
 
 START_TEST(OperatingModeEnum)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
     UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
     const UA_DataType *type = UA_Server_findDataType(server, &typeId);
     ck_assert(type);
