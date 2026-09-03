@@ -9,6 +9,7 @@
 #define NODESETLOADER_NODESETLOADER_H
 
 #include <open62541/types.h>
+#include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
 #include "Extension.h"
@@ -37,7 +38,7 @@ typedef enum {
     NODECLASS_VIEW = 7
 } NL_NodeClass;
 
-LOADER_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
+UA_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
 
 struct NL_Node;
 typedef struct NL_Node NL_Node;
@@ -154,23 +155,23 @@ typedef struct NL_FileContext {
 struct NodesetLoader;
 typedef struct NodesetLoader NodesetLoader;
 
-LOADER_EXPORT NodesetLoader *
-NodesetLoader_new(NodesetLoader_Logger *logger);
+UA_EXPORT NodesetLoader *
+NodesetLoader_new(UA_Logger *logger);
 
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_importFile(NodesetLoader *loader,
                          const NL_FileContext *fileContext);
 
-LOADER_EXPORT void
+UA_EXPORT void
 NodesetLoader_delete(NodesetLoader *loader);
 
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_sort(NodesetLoader *loader);
 
 typedef bool (*NodesetLoader_forEachNode_Func)(void *context, NL_Node *node);
 
 // Returns false in case of an error
-LOADER_EXPORT bool
+UA_EXPORT bool
 NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
                           NodesetLoader_forEachNode_Func fn);
 

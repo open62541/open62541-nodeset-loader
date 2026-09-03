@@ -21,7 +21,7 @@ extern "C" {
 typedef struct {
     UA_Server *server;
     UA_NamespaceMapping nsMapping; // From the nodeset (local) to the server (remote)
-    NodesetLoader_Logger *logger;
+    UA_Logger *logger;
 
     // ReferenceTypes that can point to a parent.
     // Inherited from HasChild.
@@ -39,4 +39,3 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node);
 }
 #endif
 #endif
-

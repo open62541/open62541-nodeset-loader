@@ -39,7 +39,7 @@ const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
 
 struct NodesetLoader {
     Nodeset *nodeset;
-    NodesetLoader_Logger *logger;
+    UA_Logger *logger;
 };
 
 typedef enum {
@@ -647,16 +647,14 @@ bool
 NodesetLoader_importFile(NodesetLoader *loader,
                          const NL_FileContext *fileHandler) {
     if(!fileHandler) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: no filehandler - abort");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: no filehandler - abort");
         return false;
     }
 
     if(!fileHandler->addNamespace) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: fileHandler->addNamespace missing");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: fileHandler->addNamespace missing");
         return false;
     }
 
@@ -670,9 +668,8 @@ NodesetLoader_importFile(NodesetLoader *loader,
     memset(&ctx, 0, sizeof(ctx));
 
     if(!f) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR,
-                            "NodesetLoader: file open error");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: file open error");
         retStatus = false;
         goto cleanup;
     }
@@ -681,8 +678,8 @@ NodesetLoader_importFile(NodesetLoader *loader,
     ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
 
     if(Parser_run(&ctx, f)) {
-        loader->logger->log(loader->logger->context,
-                            NODESETLOADER_LOGLEVEL_ERROR, "xml parsing error");
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: xml parsing error");
         retStatus = false;
     }
 
@@ -698,7 +695,7 @@ NodesetLoader_sort(NodesetLoader *loader) {
 }
 
 NodesetLoader *
-NodesetLoader_new(NodesetLoader_Logger *logger) {
+NodesetLoader_new(UA_Logger *logger) {
     if(!logger)
         return NULL;
 

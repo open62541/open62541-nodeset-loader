@@ -85,13 +85,12 @@ bool dumpNode(void *userContext, const NL_Node *node) {
 }
 
 static void
-NodesetLoader_Logger_printf(void *context,
-                          enum NodesetLoader_LogLevel level,
-                          const char *message, ...) {
-    va_list args;
-    va_start(args, message);
+printLog(void *context, UA_LogLevel level, UA_LogCategory category,
+         const char *message, va_list args) {
+    (void)context;
+    (void)level;
+    (void)category;
     vprintf(message, args);
-    va_end(args);
 }
 
 int main(int argc, char *argv[]) {
@@ -105,8 +104,7 @@ int main(int argc, char *argv[]) {
     handler.addNamespace = _addNamespace;
     handler.nsMapping = &_nsMapping;
 
-    NodesetLoader_Logger logger;
-    logger.log = NodesetLoader_Logger_printf;
+    UA_Logger logger = {.log = printLog};
 
     NodesetLoader *loader = NodesetLoader_new(&logger);
 

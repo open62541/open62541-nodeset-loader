@@ -87,7 +87,7 @@ alias2Id(const Nodeset *nodeset, char *name) {
 
 Nodeset *
 Nodeset_new(NL_addNamespaceCallback nsCallback,
-            NodesetLoader_Logger *logger) {
+            UA_Logger *logger) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if(!nodeset)
         return NULL;
@@ -196,31 +196,27 @@ bool Nodeset_sort(Nodeset *nodeset) {
 
     // Add ReferenceTypes
     bool done = Nodeset_sortNodeClass(nodeset, NODECLASS_REFERENCETYPE);
-    if(!done) {
-        nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                             "Cannot add ReferenceType hierarchy");
-    }
+    if(!done)
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Cannot add ReferenceType hierarchy");
 
     // Add DataTypes
     done = Nodeset_sortNodeClass(nodeset, NODECLASS_DATATYPE);
-    if(!done) {
-        nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                             "Cannot add DataType hierarchy");
-    }
+    if(!done)
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Cannot add DataType hierarchy");
 
     // Add VariableTypes
     done = Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLETYPE);
-    if(!done) {
-        nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                             "Cannot add VariableType hierarchy");
-    }
+    if(!done)
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Cannot add VariableType hierarchy");
 
     // Add Views
     done = Nodeset_sortNodeClass(nodeset, NODECLASS_VIEW);
-    if(!done) {
-        nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                             "Cannot add Views");
-    }
+    if(!done)
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Cannot add Views");
 
     // Add ObjectType, Object, Method and Variable
     size_t totalSorted;
@@ -234,8 +230,8 @@ bool Nodeset_sort(Nodeset *nodeset) {
     if(done)
         goto finish;
     if(totalSorted == nodeset->sortedNodes.size) {
-        nodeset->logger->log(nodeset->logger->context, NODESETLOADER_LOGLEVEL_ERROR,
-                             "Infinite loop in the references");
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Infinite loop in the references");
         goto finish;
     }
     goto retry;

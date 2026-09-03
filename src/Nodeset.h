@@ -29,11 +29,11 @@ typedef struct {
     NodeContainer sortedNodes; // in the order to add to the server
 
     NL_FileContext *fc;
-    NodesetLoader_Logger* logger;
+    UA_Logger *logger;
 } Nodeset;
 
 Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
-                     NodesetLoader_Logger* logger);
+                     UA_Logger *logger);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,

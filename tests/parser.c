@@ -8,11 +8,13 @@
 #include <NodesetLoader/NodesetLoader.h>
 
 static void
-logger(void *context, enum NodesetLoader_LogLevel level,
-       const char *message, ...) {
+logger(void *context, UA_LogLevel level, UA_LogCategory category,
+       const char *message, va_list args) {
     (void)context;
     (void)level;
+    (void)category;
     (void)message;
+    (void)args;
 }
 
 static void
@@ -81,7 +83,7 @@ parseValid(const char *directory) {
     if(written < 0 || (size_t)written >= sizeof(path))
         return false;
 
-    NodesetLoader_Logger log = {NULL, logger};
+    UA_Logger log = {.log = logger};
     NodesetLoader *loader = NodesetLoader_new(&log);
     if(!loader)
         return false;
@@ -116,7 +118,7 @@ rejectMalformed(const char *directory) {
     if(written < 0 || (size_t)written >= sizeof(path))
         return false;
 
-    NodesetLoader_Logger log = {NULL, logger};
+    UA_Logger log = {.log = logger};
     NodesetLoader *loader = NodesetLoader_new(&log);
     if(!loader)
         return false;

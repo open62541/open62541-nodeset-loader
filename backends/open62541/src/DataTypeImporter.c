@@ -121,9 +121,9 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         // Member type
         member->memberType = getDataType(ctx, &field->dataType);
         if(!member->memberType) {
-            ctx->logger->log(ctx->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                             "Cannot find member type %N of datatype %N",
-                             field->dataType, type->typeId);
+            UA_LOG_WARNING(ctx->logger, UA_LOGCATEGORY_SERVER,
+                           "NodesetLoader: Cannot find member type %N of datatype %N",
+                           field->dataType, type->typeId);
             return UA_STATUSCODE_BADINTERNALERROR;
         }
 
@@ -288,9 +288,9 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
 
  cleanup:
     if(res != UA_STATUSCODE_GOOD) {
-        ctx->logger->log(ctx->logger->context, NODESETLOADER_LOGLEVEL_WARNING,
-                         "Cannot create datatype description for %Ni (%s)",
-                         node->id, UA_StatusCode_name(res));
+        UA_LOG_WARNING(ctx->logger, UA_LOGCATEGORY_SERVER,
+                       "NodesetLoader: Cannot create datatype description for %Ni (%s)",
+                       node->id, UA_StatusCode_name(res));
     }
     UA_DataType_clear(&type);
 }
