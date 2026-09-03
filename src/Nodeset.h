@@ -9,6 +9,7 @@
 #define NODESET_H
 
 #include "NodesetLoader/NodesetLoader.h"
+#include <ziptree.h>
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -42,19 +43,20 @@ typedef struct {
     char *text;
 } XmlAttributes;
 
+typedef ZIP_HEAD(NodeTree, NL_Node) NodeTree;
+
 typedef struct {
-    NL_Node **nodes;
-    size_t size;
-    size_t capacity;
-} NodeContainer;
+    NL_Node *head;
+    NL_Node *tail;
+} NodeList;
 
 typedef struct {
     NodesetTextBuffer *textBuffers;
     AliasList *aliasList;
 
-    NodeContainer nodes[NL_NODECLASS_COUNT];
-    NodeContainer allNodes; // gets sorted according to the nodeid
-    NodeContainer sortedNodes; // in the order to add to the server
+    NodeTree nodeTree;
+    NodeList pending[NL_NODECLASS_COUNT];
+    NodeList sorted;
 
     const NL_FileContext *fc;
     UA_Logger *logger;
