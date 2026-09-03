@@ -1,8 +1,3 @@
-add_executable(allocator allocator.c ${CMAKE_CURRENT_SOURCE_DIR}/../src/CharAllocator.c)
-target_include_directories(allocator PRIVATE ${CHECK_INCLUDE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../src)
-target_link_libraries(allocator PRIVATE ${CHECK_LIBRARIES} ${PTHREAD_LIB} coverageLib open62541::open62541)
-add_test(NAME allocatorTest WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR} COMMAND allocator ${CMAKE_CURRENT_LIST_DIR})
-
 add_executable(parser parser.c)
 target_link_libraries(parser PRIVATE NodesetLoader open62541::open62541)
 add_test(NAME parserTest WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
