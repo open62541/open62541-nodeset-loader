@@ -32,7 +32,7 @@ typedef struct {
 UA_NodeId
 getParentId(const AddNodeContext *ctx, const NL_Node *node, UA_NodeId *parentRefId);
 
-void
+UA_StatusCode
 addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node);
 
 #ifdef __cplusplus
