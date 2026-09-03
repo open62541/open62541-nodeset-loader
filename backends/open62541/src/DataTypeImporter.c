@@ -7,9 +7,7 @@
 
 #include "internal.h"
 
-#include <assert.h>
-
-static UA_NodeId
+static const UA_NodeId *
 getBinaryEncodingId(const NL_DataTypeNode *node) {
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
     for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
@@ -20,14 +18,12 @@ getBinaryEncodingId(const NL_DataTypeNode *node) {
         UA_String binaryStr = UA_STRING("Default Binary");
         if(!UA_String_equal(&ref->targetPtr->browseName.name, &binaryStr))
             continue;
-        UA_NodeId idCopy;
-        UA_NodeId_copy(&ref->target, &idCopy);
-        return idCopy;
+        return &ref->target;
     }
-    return UA_NODEID_NULL;
+    return NULL;
 }
 
-static UA_NodeId
+static const UA_NodeId *
 getXmlEncodingId(const NL_DataTypeNode *node) {
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
     for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
@@ -38,11 +34,9 @@ getXmlEncodingId(const NL_DataTypeNode *node) {
         UA_String xmlStr = UA_STRING("Default XML");
         if(!UA_String_equal(&ref->targetPtr->browseName.name, &xmlStr))
             continue;
-        UA_NodeId idCopy;
-        UA_NodeId_copy(&ref->target, &idCopy);
-        return idCopy;
+        return &ref->target;
     }
-    return UA_NODEID_NULL;
+    return NULL;
 }
 
 static const UA_DataType *
@@ -69,10 +63,14 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         memberSize += node->definition->fieldCnt;
     if(parentType)
         memberSize += parentType->membersSize;
+    if(memberSize > UA_BYTE_MAX)
+        return UA_STATUSCODE_BADENCODINGLIMITSEXCEEDED;
+    if(memberSize == 0)
+        return UA_STATUSCODE_GOOD;
 
     // Allocate the members
     type->members = (UA_DataTypeMember *)
-        calloc(memberSize, sizeof(UA_DataTypeMember));
+        UA_calloc(memberSize, sizeof(UA_DataTypeMember));
     if(!type->members)
         return UA_STATUSCODE_BADOUTOFMEMORY;
     type->membersSize = (unsigned char)memberSize;
@@ -85,6 +83,8 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
             UA_DataTypeMember *dst = &type->members[i];
             size_t nameLen = strlen(src->memberName);
             char *memberName = (char *)UA_calloc(1, nameLen + 1);
+            if(!memberName)
+                return UA_STATUSCODE_BADOUTOFMEMORY;
             memcpy(memberName, src->memberName, nameLen);
             dst->memberName = memberName;
             dst->memberType = src->memberType;
@@ -115,6 +115,8 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
         // Member name
         size_t nameLen = strlen(field->name);
         char *memberName = (char *)UA_calloc(1, nameLen + 1);
+        if(!memberName)
+            return UA_STATUSCODE_BADOUTOFMEMORY;
         memcpy(memberName, field->name, nameLen);
         member->memberName = memberName;
 
@@ -156,7 +158,6 @@ StructureDataType_init(AddNodeContext *ctx, UA_DataType *type,
     } else {
         type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     }
-    type->typeId = node->id;
     type->pointerFree = true; // Gets overridden if necessary
     type->overlayable = false;
     return addDataTypeMembers(ctx, type, node, parent);
@@ -166,10 +167,12 @@ static UA_StatusCode
 addEnumMembers(UA_DataType *type, const NL_DataTypeNode *node) {
     if(node->definition->fieldCnt == 0)
         return UA_STATUSCODE_GOOD;
+    if(node->definition->fieldCnt > UA_BYTE_MAX)
+        return UA_STATUSCODE_BADENCODINGLIMITSEXCEEDED;
 
     // Allocate the members
     type->members = (UA_DataTypeMember *)
-        calloc(node->definition->fieldCnt, sizeof(UA_DataTypeMember));
+        UA_calloc(node->definition->fieldCnt, sizeof(UA_DataTypeMember));
     if(!type->members)
         return UA_STATUSCODE_BADOUTOFMEMORY;
     type->membersSize = (UA_Byte)node->definition->fieldCnt;
@@ -181,6 +184,8 @@ addEnumMembers(UA_DataType *type, const NL_DataTypeNode *node) {
         member->memberType = (const UA_DataType*)(uintptr_t)field->value;
         size_t nameLen = strlen(field->name);
         char *memberName = (char *)UA_calloc(1, nameLen + 1);
+        if(!memberName)
+            return UA_STATUSCODE_BADOUTOFMEMORY;
         memcpy(memberName, field->name, nameLen);
         member->memberName = memberName;
     }
@@ -235,29 +240,47 @@ SubtypeOfBase_init(AddNodeContext *ctx,
        parentType->typeKind == UA_DATATYPEKIND_UNION) {
         return addDataTypeMembers(ctx, type, node, parent);
     } else {
-        type->binaryEncodingId = parentType->binaryEncodingId;
+        return UA_NodeId_copy(&parentType->binaryEncodingId,
+                              &type->binaryEncodingId);
     }
-    return UA_STATUSCODE_GOOD;
 }
 
-void
+UA_StatusCode
 addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     UA_DataType type;
     memset(&type, 0, sizeof(UA_DataType));
+    UA_ExtensionObject eo;
+    UA_ExtensionObject_init(&eo);
 
-    UA_NodeId_copy(&node->id, &type.typeId);
+    UA_StatusCode res = UA_NodeId_copy(&node->id, &type.typeId);
+    if(res != UA_STATUSCODE_GOOD)
+        goto cleanup;
 
     size_t len = node->browseName.name.length;
-    type.typeName = (char *)calloc(len + 1, sizeof(char));
+    if(len == SIZE_MAX) {
+        res = UA_STATUSCODE_BADOUTOFMEMORY;
+        goto cleanup;
+    }
+    type.typeName = (char *)UA_calloc(len + 1, sizeof(char));
+    if(!type.typeName) {
+        res = UA_STATUSCODE_BADOUTOFMEMORY;
+        goto cleanup;
+    }
     memcpy((void*)(uintptr_t)type.typeName, node->browseName.name.data, len);
 
-    UA_NodeId tmp = getBinaryEncodingId(node);
-    UA_NodeId_copy(&tmp, &type.binaryEncodingId);
-    tmp = getXmlEncodingId(node);
-    UA_NodeId_copy(&tmp, &type.xmlEncodingId);
+    const UA_NodeId *encodingId = getBinaryEncodingId(node);
+    if(encodingId) {
+        res = UA_NodeId_copy(encodingId, &type.binaryEncodingId);
+        if(res != UA_STATUSCODE_GOOD)
+            goto cleanup;
+    }
+    encodingId = getXmlEncodingId(node);
+    if(encodingId) {
+        res = UA_NodeId_copy(encodingId, &type.xmlEncodingId);
+        if(res != UA_STATUSCODE_GOOD)
+            goto cleanup;
+    }
 
-    UA_StatusCode res;
-    UA_ExtensionObject eo;
     UA_NodeId parent = getParentId(ctx, (const NL_Node*)node, NULL);
 
     if(node->definition &&
@@ -282,14 +305,15 @@ addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
     if(res != UA_STATUSCODE_GOOD)
         goto cleanup;
 
-    UA_Server_addDataTypeFromDescription(ctx->server, &eo);
-    UA_ExtensionObject_clear(&eo);
+    res = UA_Server_addDataTypeFromDescription(ctx->server, &eo);
 
  cleanup:
     if(res != UA_STATUSCODE_GOOD) {
         UA_LOG_WARNING(ctx->logger, UA_LOGCATEGORY_SERVER,
-                       "NodesetLoader: Cannot create datatype description for %Ni (%s)",
+                       "NodesetLoader: Cannot add datatype description for %Ni (%s)",
                        node->id, UA_StatusCode_name(res));
     }
+    UA_ExtensionObject_clear(&eo);
     UA_DataType_clear(&type);
+    return res;
 }
