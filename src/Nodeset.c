@@ -273,7 +273,7 @@ Nodeset_findByNodeId(Nodeset *nodeset, const UA_NodeId *key) {
 static const UA_NodeId hasTypeDef = {0, UA_NODEIDTYPE_NUMERIC, {40}};
 
 static bool
-nodeRefsReady(NL_Node *node) {
+nodeDependenciesReady(Nodeset *nodeset, NL_Node *node) {
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
         if(!ref->targetPtr)
             continue;
@@ -288,6 +288,17 @@ nodeRefsReady(NL_Node *node) {
         }
     }
 
+    if(node->nodeClass != NODECLASS_DATATYPE)
+        return true;
+    NL_DataTypeNode *dataType = (NL_DataTypeNode*)node;
+    if(!dataType->definition)
+        return true;
+    for(size_t i = 0; i < dataType->definition->fieldCnt; i++) {
+        NL_Node *memberType = Nodeset_findByNodeId(
+            nodeset, &dataType->definition->fields[i].dataType);
+        if(memberType && !memberType->isSorted)
+            return false;
+    }
     return true;
 }
 
@@ -305,7 +316,7 @@ Nodeset_sortNodeClass(Nodeset *nodeset, NL_NodeClass nodeClass) {
         NL_Node *previous = NULL;
         while(*next) {
             NL_Node *node = *next;
-            if(!nodeRefsReady(node)) {
+            if(!nodeDependenciesReady(nodeset, node)) {
                 previous = node;
                 next = &node->sortNext;
                 continue;
