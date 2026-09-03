@@ -13,43 +13,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define ATTRIBUTE_NODEID "NodeId"
-#define ATTRIBUTE_BROWSENAME "BrowseName"
-#define ATTRIBUTE_DATATYPE "DataType"
-#define ATTRIBUTE_VALUERANK "ValueRank"
-#define ATTRIBUTE_ARRAYDIMENSIONS "ArrayDimensions"
-#define ATTRIBUTE_HISTORIZING "Historizing"
-#define ATTRIBUTE_MINIMUMSAMPLINGINTERVAL "MinimumSamplingInterval"
-#define ATTRIBUTE_EVENTNOTIFIER "EventNotifier"
-#define ATTRIBUTE_ISABSTRACT "IsAbstract"
-#define ATTRIBUTE_REFERENCETYPE "ReferenceType"
-#define ATTRIBUTE_ISFORWARD "IsForward"
-#define ATTRIBUTE_SYMMETRIC "Symmetric"
-#define ATTRIBUTE_ALIAS "Alias"
-#define ATTRIBUTE_CONTAINSNOLOOPS "ContainsNoLoops"
-
 typedef struct {
     const char *name;
     char *defaultValue;
 } NodeAttribute;
 
-static const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL};
-static const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL};
-static const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, "0"};
-static const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
-static const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
+static const NodeAttribute attrNodeId = {"NodeId", NULL};
+static const NodeAttribute attrBrowseName = {"BrowseName", NULL};
+static const NodeAttribute attrEventNotifier = {"EventNotifier", "0"};
+static const NodeAttribute attrDataType = {"DataType", "i=24"};
+static const NodeAttribute attrValueRank = {"ValueRank", "-1"};
 static const NodeAttribute attrMinimumSamplingInterval = {
-    ATTRIBUTE_MINIMUMSAMPLINGINTERVAL, "-1"};
-static const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
-static const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
-static const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};
-static const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL};
-static const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL};
+    "MinimumSamplingInterval", "-1"};
+static const NodeAttribute attrArrayDimensions = {"ArrayDimensions", ""};
+static const NodeAttribute attrIsAbstract = {"IsAbstract", "false"};
+static const NodeAttribute attrIsForward = {"IsForward", "true"};
+static const NodeAttribute attrReferenceType = {"ReferenceType", NULL};
+static const NodeAttribute attrAlias = {"Alias", NULL};
 static const NodeAttribute attrExecutable = {"Executable", "true"};
 static const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
 static const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
 static const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
-static const NodeAttribute attrSymmetric = {ATTRIBUTE_SYMMETRIC, "false"};
+static const NodeAttribute attrSymmetric = {"Symmetric", "false"};
 static const NodeAttribute dataTypeDefinition_IsUnion = {"IsUnion", "false"};
 static const NodeAttribute dataTypeDefinition_IsOptionSet = {"IsOptionSet", "false"};
 static const NodeAttribute dataTypeField_Name = {"Name", NULL};
@@ -57,20 +42,19 @@ static const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
 static const NodeAttribute dataTypeField_Value = {"Value", NULL};
 static const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
 static const NodeAttribute attrLocale = {"Locale", NULL};
-static const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
-static const NodeAttribute attrContainsNoLoops = {
-    ATTRIBUTE_CONTAINSNOLOOPS, "false"};
+static const NodeAttribute attrHistorizing = {"Historizing", "false"};
+static const NodeAttribute attrContainsNoLoops = {"ContainsNoLoops", "false"};
 
 #define MAX_ALIAS 300
 
-struct Alias {
+typedef struct Alias {
     char *name;
     UA_NodeId id;
-};
+} Alias;
 
 struct AliasList {
-    Alias *data;
     size_t size;
+    Alias data[];
 };
 
 struct NodesetTextBuffer {
@@ -98,36 +82,15 @@ NodeList_append(NodeList *list, NL_Node *node) {
 
 static NL_Node *
 Node_new(NL_NodeClass nodeClass) {
-    size_t nodeSize = 0;
-    switch(nodeClass) {
-    case NODECLASS_VARIABLE:
-        nodeSize = sizeof(NL_VariableNode);
-        break;
-    case NODECLASS_OBJECT:
-        nodeSize = sizeof(NL_ObjectNode);
-        break;
-    case NODECLASS_OBJECTTYPE:
-        nodeSize = sizeof(NL_ObjectTypeNode);
-        break;
-    case NODECLASS_REFERENCETYPE:
-        nodeSize = sizeof(NL_ReferenceTypeNode);
-        break;
-    case NODECLASS_VARIABLETYPE:
-        nodeSize = sizeof(NL_VariableTypeNode);
-        break;
-    case NODECLASS_DATATYPE:
-        nodeSize = sizeof(NL_DataTypeNode);
-        break;
-    case NODECLASS_METHOD:
-        nodeSize = sizeof(NL_MethodNode);
-        break;
-    case NODECLASS_VIEW:
-        nodeSize = sizeof(NL_ViewNode);
-        break;
-    }
-    if(nodeSize == 0)
+    static const size_t nodeSizes[NL_NODECLASS_COUNT] = {
+        sizeof(NL_ObjectNode), sizeof(NL_ObjectTypeNode),
+        sizeof(NL_VariableNode), sizeof(NL_DataTypeNode),
+        sizeof(NL_MethodNode), sizeof(NL_ReferenceTypeNode),
+        sizeof(NL_VariableTypeNode), sizeof(NL_ViewNode)
+    };
+    if((unsigned)nodeClass >= NL_NODECLASS_COUNT)
         return NULL;
-    return (NL_Node*)calloc(1, nodeSize);
+    return (NL_Node*)calloc(1, nodeSizes[nodeClass]);
 }
 
 static void
@@ -167,31 +130,16 @@ Node_delete(NL_Node *node) {
 
 static AliasList *
 AliasList_new(void) {
-    AliasList *list = (AliasList*)calloc(1, sizeof(AliasList));
-    if(!list)
-        return NULL;
-    list->data = (Alias*)calloc(MAX_ALIAS, sizeof(Alias));
-    if(!list->data) {
-        free(list);
-        return NULL;
-    }
-    return list;
-}
-
-static Alias *
-AliasList_newAlias(AliasList *list, char *name) {
-    if(list->size >= MAX_ALIAS)
-        return NULL;
-    Alias *alias = &list->data[list->size++];
-    alias->name = name;
-    return alias;
+    return (AliasList*)calloc(
+        1, sizeof(AliasList) + MAX_ALIAS * sizeof(Alias));
 }
 
 static const UA_NodeId *
 AliasList_getNodeId(const AliasList *list, const char *name) {
     if(!name)
         return NULL;
-    for(Alias *alias = list->data; alias != list->data + list->size; alias++) {
+    for(const Alias *alias = list->data;
+        alias != list->data + list->size; alias++) {
         if(!strcmp(name, alias->name))
             return &alias->id;
     }
@@ -204,7 +152,6 @@ AliasList_delete(AliasList *list) {
         return;
     for(size_t i = 0; i < list->size; i++)
         UA_NodeId_clear(&list->data[i].id);
-    free(list->data);
     free(list);
 }
 
@@ -334,18 +281,21 @@ Nodeset_sortNodeClass(Nodeset *nodeset, NL_NodeClass nodeClass) {
     return !pending->head;
 }
 
+static bool
+Nodeset_sortNodeClassLogged(Nodeset *nodeset, NL_NodeClass nodeClass,
+                            const char *description) {
+    bool done = Nodeset_sortNodeClass(nodeset, nodeClass);
+    if(!done)
+        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Cannot add %s", description);
+    return done;
+}
+
 static void *
 resolveReferenceTargets(void *context, NL_Node *node) {
     Nodeset *nodeset = (Nodeset*)context;
     for(NL_Reference *ref = node->refs; ref; ref = ref->next)
         ref->targetPtr = Nodeset_findByNodeId(nodeset, &ref->target);
-    return NULL;
-}
-
-static void *
-resetNodeState(void *context, NL_Node *node) {
-    (void)context;
-    node->isSorted = false;
     return NULL;
 }
 
@@ -362,55 +312,33 @@ bool Nodeset_sort(Nodeset *nodeset) {
     // If the target is not found in the tree, assume it already exists in the server.
     ZIP_ITER(NodeTree, &nodeset->nodeTree, resolveReferenceTargets, nodeset);
 
-    // Add ReferenceTypes
-    bool done = Nodeset_sortNodeClass(nodeset, NODECLASS_REFERENCETYPE);
-    bool allDone = done;
-    if(!done)
-        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: Cannot add ReferenceType hierarchy");
-
-    // Add DataTypes
-    done = Nodeset_sortNodeClass(nodeset, NODECLASS_DATATYPE);
-    allDone &= done;
-    if(!done)
-        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: Cannot add DataType hierarchy");
-
-    // Add VariableTypes
-    done = Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLETYPE);
-    allDone &= done;
-    if(!done)
-        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: Cannot add VariableType hierarchy");
-
-    // Add Views
-    done = Nodeset_sortNodeClass(nodeset, NODECLASS_VIEW);
-    allDone &= done;
-    if(!done)
-        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: Cannot add Views");
+    bool allDone = Nodeset_sortNodeClassLogged(
+        nodeset, NODECLASS_REFERENCETYPE, "ReferenceType hierarchy");
+    allDone &= Nodeset_sortNodeClassLogged(
+        nodeset, NODECLASS_DATATYPE, "DataType hierarchy");
+    allDone &= Nodeset_sortNodeClassLogged(
+        nodeset, NODECLASS_VARIABLETYPE, "VariableType hierarchy");
+    allDone &= Nodeset_sortNodeClassLogged(nodeset, NODECLASS_VIEW, "Views");
 
     // Add ObjectType, Object, Method and Variable
-    NL_Node *lastSorted;
- retry:
-    lastSorted = nodeset->sorted.tail;
-    done = true;
-    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECTTYPE);
-    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECT);
-    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_METHOD);
-    done &= Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLE);
-    if(done)
-        goto finish;
-    if(lastSorted == nodeset->sorted.tail) {
-        UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: Infinite loop in the references");
-        goto finish;
-    }
-    goto retry;
+    bool done;
+    do {
+        NL_Node *lastSorted = nodeset->sorted.tail;
+        done = true;
+        done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECTTYPE);
+        done &= Nodeset_sortNodeClass(nodeset, NODECLASS_OBJECT);
+        done &= Nodeset_sortNodeClass(nodeset, NODECLASS_METHOD);
+        done &= Nodeset_sortNodeClass(nodeset, NODECLASS_VARIABLE);
+        if(!done && lastSorted == nodeset->sorted.tail) {
+            UA_LOG_ERROR(nodeset->logger, UA_LOGCATEGORY_SERVER,
+                         "NodesetLoader: Infinite loop in the references");
+            break;
+        }
+    } while(!done);
 
- finish:
     // Reset the temporary sorting state.
-    ZIP_ITER(NodeTree, &nodeset->nodeTree, resetNodeState, NULL);
+    for(NL_Node *node = nodeset->sorted.head; node; node = node->sortNext)
+        node->isSorted = false;
     return allDone && done;
 }
 
@@ -557,37 +485,30 @@ Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
     return node;
 }
 
-NL_Reference *
-Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
-                     const XmlAttributes *attributes) {
+bool
+Nodeset_addReference(Nodeset *nodeset, NL_Node *node,
+                     const XmlAttributes *attributes, char *idString) {
     NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
     if(!newRef)
-        return NULL;
+        return false;
 
     char *isForwardString =
         getAttributeValue(&attrIsForward, attributes);
-    if(!strcmp("true", isForwardString)) {
-        newRef->isForward = true;
-    } else {
-        newRef->isForward = false;
-    }
+    newRef->isForward = !strcmp("true", isForwardString);
 
     char *aliasIdString =
         getAttributeValue(&attrReferenceType, attributes);
-    if(!alias2Id(nodeset, aliasIdString, &newRef->refType)) {
+    if(!alias2Id(nodeset, aliasIdString, &newRef->refType) ||
+       !alias2Id(nodeset, idString, &newRef->target)) {
+        UA_NodeId_clear(&newRef->refType);
+        UA_NodeId_clear(&newRef->target);
         free(newRef);
-        return NULL;
+        return false;
     }
 
     newRef->next = node->refs;
     node->refs = newRef;
-    return newRef;
-}
-
-bool
-Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
-                            char *idString) {
-    return alias2Id(nodeset, idString, &ref->target);
+    return true;
 }
 
 static NL_DataTypeDefinitionField *
@@ -661,19 +582,28 @@ bool Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
     return true;
 }
 
-Alias *
-Nodeset_newAlias(Nodeset *nodeset, const XmlAttributes *attributes) {
-    return AliasList_newAlias(nodeset->aliasList,
-                              getAttributeValue(&attrAlias, attributes));
+bool
+Nodeset_addAlias(Nodeset *nodeset, const XmlAttributes *attributes,
+                 char *idString) {
+    AliasList *list = nodeset->aliasList;
+    char *name = getAttributeValue(&attrAlias, attributes);
+    if(!name || list->size >= MAX_ALIAS)
+        return false;
+
+    UA_NodeId id = UA_NODEID_NULL;
+    if(!parseNodeId(nodeset, idString, &id)) {
+        UA_NodeId_clear(&id);
+        return false;
+    }
+
+    Alias *alias = &list->data[list->size++];
+    alias->name = name;
+    alias->id = id;
+    return true;
 }
 
 bool
-Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString) {
-    return parseNodeId(nodeset, idString, &alias->id);
-}
-
-bool
-Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri) {
+Nodeset_addNamespace(Nodeset *nodeset, char *namespaceUri) {
     if(!namespaceUri)
         return false;
     UA_String uri = UA_STRING(namespaceUri);
@@ -682,37 +612,9 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri) {
 }
 
 void
-Nodeset_setDisplayName(NL_Node *node, const XmlAttributes *attributes) {
-    node->displayName.locale =
+Nodeset_setLocalizedText(UA_LocalizedText *target,
+                         const XmlAttributes *attributes, char *text) {
+    target->locale =
         UA_STRING(getAttributeValue(&attrLocale, attributes));
-}
-
-void
-Nodeset_DisplayNameFinish(NL_Node *node, char *text) {
-    node->displayName.text = UA_STRING(text);
-}
-
-void
-Nodeset_setDescription(NL_Node *node, const XmlAttributes *attributes) {
-    node->description.locale =
-        UA_STRING(getAttributeValue(&attrLocale, attributes));
-}
-
-void
-Nodeset_DescriptionFinish(NL_Node *node, char *text) {
-    node->description.text = UA_STRING(text);
-}
-
-void
-Nodeset_setInverseName(NL_Node *node, const XmlAttributes *attributes) {
-    if (node->nodeClass == NODECLASS_REFERENCETYPE) {
-        ((NL_ReferenceTypeNode *)node)->inverseName.locale =
-            UA_STRING(getAttributeValue(&attrLocale, attributes));
-    }
-}
-
-void
-Nodeset_InverseNameFinish(NL_Node *node, char *text) {
-    if(node->nodeClass == NODECLASS_REFERENCETYPE)
-        ((NL_ReferenceTypeNode *)node)->inverseName.text = UA_STRING(text);
+    target->text = UA_STRING(text);
 }

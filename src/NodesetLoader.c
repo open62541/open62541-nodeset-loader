@@ -14,24 +14,6 @@
 
 #include <yxml.h>
 
-#define OBJECT "UAObject"
-#define METHOD "UAMethod"
-#define OBJECTTYPE "UAObjectType"
-#define VARIABLE "UAVariable"
-#define VARIABLETYPE "UAVariableType"
-#define DATATYPE "UADataType"
-#define REFERENCETYPE "UAReferenceType"
-#define VIEW "UAView"
-#define DISPLAYNAME "DisplayName"
-#define REFERENCES "References"
-#define REFERENCE "Reference"
-#define DESCRIPTION "Description"
-#define ALIAS "Alias"
-#define NAMESPACEURIS "NamespaceUris"
-#define NAMESPACEURI "Uri"
-#define VALUE "Value"
-#define INVERSENAME "InverseName"
-
 struct NodesetLoader {
     Nodeset *nodeset;
     UA_Logger *logger;
@@ -247,10 +229,6 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
     return result;
 }
 
-typedef struct {
-    Nodeset *nodeset;
-} ParserContext;
-
 static const char *
 localName(const char *qualifiedName) {
     const char *colon = strrchr(qualifiedName, ':');
@@ -269,32 +247,24 @@ typedef struct {
     const XmlToken *tokens;
     size_t tokensSize;
     size_t position;
-    const XmlTextBuffer *text;
+    char *text;
     const char *xml;
     size_t xmlLength;
 } XmlCursor;
 
 static bool
 XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass) {
-    if(!strcmp(name, VARIABLE))
-        *nodeClass = NODECLASS_VARIABLE;
-    else if(!strcmp(name, OBJECT))
-        *nodeClass = NODECLASS_OBJECT;
-    else if(!strcmp(name, OBJECTTYPE))
-        *nodeClass = NODECLASS_OBJECTTYPE;
-    else if(!strcmp(name, DATATYPE))
-        *nodeClass = NODECLASS_DATATYPE;
-    else if(!strcmp(name, METHOD))
-        *nodeClass = NODECLASS_METHOD;
-    else if(!strcmp(name, REFERENCETYPE))
-        *nodeClass = NODECLASS_REFERENCETYPE;
-    else if(!strcmp(name, VARIABLETYPE))
-        *nodeClass = NODECLASS_VARIABLETYPE;
-    else if(!strcmp(name, VIEW))
-        *nodeClass = NODECLASS_VIEW;
-    else
-        return false;
-    return true;
+    static const char *const names[NL_NODECLASS_COUNT] = {
+        "UAObject", "UAObjectType", "UAVariable", "UADataType",
+        "UAMethod", "UAReferenceType", "UAVariableType", "UAView"
+    };
+    for(size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
+        if(strcmp(name, names[i]))
+            continue;
+        *nodeClass = (NL_NodeClass)i;
+        return true;
+    }
+    return false;
 }
 
 static char *
@@ -302,28 +272,28 @@ XmlToken_leafContent(XmlCursor *cursor, const XmlToken *element) {
     cursor->position = element->subtreeEnd;
     if(element->contentLength == 0)
         return NULL;
-    return cursor->text->data + element->content;
+    return cursor->text + element->content;
 }
 
 static bool
-ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
+ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
                NL_Node *node);
 
 static bool
-ProcessChildren(ParserContext *context, XmlCursor *cursor,
+ProcessChildren(Nodeset *nodeset, XmlCursor *cursor,
                 const XmlToken *element, XmlScope scope, NL_Node *node) {
     if(element->subtreeEnd < cursor->position ||
        element->subtreeEnd > cursor->tokensSize)
         return false;
     while(cursor->position < element->subtreeEnd) {
-        if(!ProcessElement(context, cursor, scope, node))
+        if(!ProcessElement(nodeset, cursor, scope, node))
             return false;
     }
     return cursor->position == element->subtreeEnd;
 }
 
 static bool
-ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
+ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
                NL_Node *node) {
     if(cursor->position >= cursor->tokensSize)
         return false;
@@ -343,49 +313,43 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
     }
     cursor->position += element->attributes;
 
-    const char *name = localName(cursor->text->data + element->name);
+    const char *name = localName(cursor->text + element->name);
     XmlAttributes attributes = {
         &cursor->tokens[attributePosition], element->attributes,
-        cursor->text->data};
+        cursor->text};
 
     if(scope == XML_SCOPE_DOCUMENT) {
         NL_NodeClass nodeClass;
         if(XmlToken_nodeClass(name, &nodeClass)) {
-            NL_Node *newNode = Nodeset_newNode(context->nodeset, nodeClass,
-                                               &attributes);
+            NL_Node *newNode = Nodeset_newNode(nodeset, nodeClass, &attributes);
             if(!newNode)
                 return false;
-            return ProcessChildren(context, cursor, element, XML_SCOPE_NODE,
+            return ProcessChildren(nodeset, cursor, element, XML_SCOPE_NODE,
                                    newNode);
-        } else if(!strcmp(name, NAMESPACEURIS)) {
-            return ProcessChildren(context, cursor, element,
+        } else if(!strcmp(name, "NamespaceUris")) {
+            return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_NAMESPACE_URIS, NULL);
-        } else if(!strcmp(name, ALIAS)) {
-            Alias *alias = Nodeset_newAlias(context->nodeset, &attributes);
+        } else if(!strcmp(name, "Alias")) {
             char *content = XmlToken_leafContent(cursor, element);
-            if(!alias)
-                return false;
-            return Nodeset_newAliasFinish(context->nodeset, alias, content);
+            return Nodeset_addAlias(nodeset, &attributes, content);
         } else if(!strcmp(name, "UANodeSet") ||
                   !strcmp(name, "Aliases")) {
-            return ProcessChildren(context, cursor, element,
+            return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_DOCUMENT, NULL);
         }
     } else if(scope == XML_SCOPE_NODE) {
-        if(!strcmp(name, DISPLAYNAME)) {
-            Nodeset_setDisplayName(node, &attributes);
+        if(!strcmp(name, "DisplayName")) {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_DisplayNameFinish(node, content);
+            Nodeset_setLocalizedText(&node->displayName, &attributes, content);
             return true;
-        } else if(!strcmp(name, REFERENCES)) {
-            return ProcessChildren(context, cursor, element,
+        } else if(!strcmp(name, "References")) {
+            return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_REFERENCES, node);
-        } else if(!strcmp(name, DESCRIPTION)) {
-            Nodeset_setDescription(node, &attributes);
+        } else if(!strcmp(name, "Description")) {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_DescriptionFinish(node, content);
+            Nodeset_setLocalizedText(&node->description, &attributes, content);
             return true;
-        } else if(!strcmp(name, VALUE)) {
+        } else if(!strcmp(name, "Value")) {
             cursor->position = element->subtreeEnd;
             if(node->nodeClass != NODECLASS_VARIABLE)
                 return true;
@@ -402,32 +366,29 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
                   node->nodeClass == NODECLASS_DATATYPE) {
             if(!Nodeset_addDataTypeDefinition(node, &attributes))
                 return false;
-            return ProcessChildren(context, cursor, element,
+            return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_DEFINITION, node);
-        } else if(!strcmp(name, INVERSENAME)) {
-            Nodeset_setInverseName(node, &attributes);
+        } else if(!strcmp(name, "InverseName")) {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_InverseNameFinish(node, content);
+            if(node->nodeClass == NODECLASS_REFERENCETYPE)
+                Nodeset_setLocalizedText(
+                    &((NL_ReferenceTypeNode*)node)->inverseName,
+                    &attributes, content);
             return true;
         }
     } else if(scope == XML_SCOPE_NAMESPACE_URIS) {
-        if(!strcmp(name, NAMESPACEURI)) {
+        if(!strcmp(name, "Uri")) {
             char *content = XmlToken_leafContent(cursor, element);
-            return Nodeset_newNamespaceFinish(context->nodeset, content);
+            return Nodeset_addNamespace(nodeset, content);
         }
     } else if(scope == XML_SCOPE_REFERENCES) {
-        if(!strcmp(name, REFERENCE)) {
-            NL_Reference *reference = Nodeset_newReference(
-                context->nodeset, node, &attributes);
+        if(!strcmp(name, "Reference")) {
             char *content = XmlToken_leafContent(cursor, element);
-            if(!reference)
-                return false;
-            return Nodeset_newReference_finish(context->nodeset, reference,
-                                                content);
+            return Nodeset_addReference(nodeset, node, &attributes, content);
         }
     } else if(scope == XML_SCOPE_DEFINITION) {
         if(!strcmp(name, "Field")) {
-            if(!Nodeset_addDataTypeField(context->nodeset, node, &attributes))
+            if(!Nodeset_addDataTypeField(nodeset, node, &attributes))
                 return false;
             cursor->position = element->subtreeEnd;
             return true;
@@ -439,26 +400,26 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
     return true;
 }
 
-static int
-Parser_run(ParserContext *context, FILE *file) {
+static bool
+Parser_run(Nodeset *nodeset, FILE *file) {
     /* Read entire file into memory */
     if(fseek(file, 0, SEEK_END) != 0)
-        return 1;
+        return false;
     long fsize = ftell(file);
     if(fsize < 0 || fseek(file, 0, SEEK_SET) != 0)
-        return 1;
+        return false;
     if((uintmax_t)fsize >= SIZE_MAX)
-        return 1;
+        return false;
     size_t fileSize = (size_t)fsize;
 
     char *buf = (char*)malloc(fileSize + 1);
     if(!buf)
-        return 1;
+        return false;
 
     size_t elems = fread(buf, 1, fileSize, file);
     if(ferror(file)) {
         free(buf);
-        return 1;
+        return false;
     }
     buf[elems] = 0; /* Ensure null terminated */
 
@@ -469,7 +430,7 @@ Parser_run(ParserContext *context, FILE *file) {
     XmlTextBuffer text = {(char*)malloc(elems + 1), 0, elems + 1};
     if(!text.data) {
         free(buf);
-        return 1;
+        return false;
     }
 
     XmlTokenizeResult result =
@@ -484,16 +445,16 @@ Parser_run(ParserContext *context, FILE *file) {
     }
 
     bool textOwned = false;
-    int ret = 1;
+    bool success = false;
     if(tokens && result.status == XML_TOKENIZE_OK && result.tokensSize > 0) {
-        XmlCursor cursor = {tokens, result.tokensSize, 0, &text, buf, elems};
-        if(Nodeset_ownTextBuffer(context->nodeset, text.data)) {
+        XmlCursor cursor = {tokens, result.tokensSize, 0, text.data, buf, elems};
+        if(Nodeset_ownTextBuffer(nodeset, text.data)) {
             textOwned = true;
         }
         if(textOwned &&
-           ProcessElement(context, &cursor, XML_SCOPE_DOCUMENT, NULL) &&
+           ProcessElement(nodeset, &cursor, XML_SCOPE_DOCUMENT, NULL) &&
            cursor.position == cursor.tokensSize)
-            ret = 0;
+            success = true;
     }
 
     if(tokens != tokenBuffer)
@@ -501,7 +462,7 @@ Parser_run(ParserContext *context, FILE *file) {
     if(!textOwned)
         free(text.data);
     free(buf);
-    return ret;
+    return success;
 }
 
 bool
@@ -532,31 +493,21 @@ NodesetLoader_importFile(NodesetLoader *loader,
     if(!loader->nodeset)
         return false;
 
-    ParserContext ctx;
-    bool retStatus = true;
     FILE *f = fopen(fileHandler->file, "r");
-    memset(&ctx, 0, sizeof(ctx));
-
     if(!f) {
         UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
                      "NodesetLoader: file open error");
-        retStatus = false;
-        goto cleanup;
+        return false;
     }
 
-    ctx.nodeset = loader->nodeset;
-    ctx.nodeset->fc = fileHandler;
-
-    if(Parser_run(&ctx, f)) {
+    loader->nodeset->fc = fileHandler;
+    bool success = Parser_run(loader->nodeset, f);
+    loader->nodeset->fc = NULL;
+    fclose(f);
+    if(!success)
         UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
                      "NodesetLoader: xml parsing error");
-        retStatus = false;
-    }
-
-cleanup:
-    if(f)
-        fclose(f);
-    return retStatus;
+    return success;
 }
 
 bool
