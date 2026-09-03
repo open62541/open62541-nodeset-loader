@@ -5,6 +5,7 @@
 #include <NodesetLoader/NodesetLoader.h>
 
 #include <signal.h>
+#include <cstdio>
 #include <stdlib.h>
 
 using namespace std;
