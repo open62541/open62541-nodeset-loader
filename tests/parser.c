@@ -38,6 +38,8 @@ stringEqual(const UA_String *value, const char *expected) {
 typedef struct {
     bool objectSeen;
     bool variableSeen;
+    bool memberTypeSeen;
+    bool dependentTypeSeen;
     bool failed;
 } TestContext;
 
@@ -47,7 +49,15 @@ checkNode(void *context, NL_Node *node) {
     if(node->id.identifierType != UA_NODEIDTYPE_NUMERIC)
         return true;
 
-    if(node->id.identifier.numeric == 50000) {
+    if(node->id.identifier.numeric == 50002) {
+        test->memberTypeSeen = true;
+    } else if(node->id.identifier.numeric == 50003) {
+        test->dependentTypeSeen = true;
+        if(!test->memberTypeSeen) {
+            fprintf(stderr, "Dependent datatype was sorted before its member\n");
+            test->failed = true;
+        }
+    } else if(node->id.identifier.numeric == 50000) {
         test->objectSeen = true;
         if(!stringEqual(&node->browseName.name, "A&B"))
             fprintf(stderr, "BrowseName was not entity-decoded\n");
@@ -107,7 +117,7 @@ parseValid(const char *directory) {
     if(success)
         success = NodesetLoader_forEachNode(loader, &context, checkNode);
     success = success && context.objectSeen && context.variableSeen &&
-        !context.failed;
+        context.memberTypeSeen && context.dependentTypeSeen && !context.failed;
     NodesetLoader_delete(loader);
     UA_NamespaceMapping_clear(&mapping);
     return success;
