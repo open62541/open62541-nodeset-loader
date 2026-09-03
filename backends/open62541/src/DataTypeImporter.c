@@ -47,7 +47,15 @@ getXmlEncodingId(const NL_DataTypeNode *node) {
 
 static const UA_DataType *
 getDataType(AddNodeContext *ctx, const UA_NodeId *id) {
-    return UA_Server_findDataType(ctx->server, id);
+    const UA_DataType *type = UA_Server_findDataType(ctx->server, id);
+    if(type)
+        return type;
+
+    /* Abstract namespace-zero types have no binary representation of their
+     * own. Encode their values as Variants, as the nodeset compiler does. */
+    if(id->namespaceIndex == 0)
+        return &UA_TYPES[UA_TYPES_VARIANT];
+    return NULL;
 }
 
 static UA_StatusCode
