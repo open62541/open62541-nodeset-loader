@@ -12,10 +12,6 @@
 #include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
-#include "Extension.h"
-#include "Logger.h"
-#include "arch.h"
-
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
