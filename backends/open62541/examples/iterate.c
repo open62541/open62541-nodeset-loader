@@ -3,30 +3,32 @@
 #include <open62541/server_config_default.h>
 #include <open62541/util.h>
 
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 #include <stdio.h>
 
 static volatile UA_Boolean running = true;
 
-static void iterate(UA_Server* server, const UA_NodeId* id)
+static void iterate(UA_Server *server, const UA_NodeId *id)
 {
     UA_BrowseDescription bd;
     UA_BrowseDescription_init(&bd);
     bd.browseDirection = UA_BROWSEDIRECTION_FORWARD;
     bd.includeSubtypes = true;
     bd.referenceTypeId = UA_NODEID_NUMERIC(0, UA_NS0ID_HASSUBTYPE);
-    //bd.resultMask = UA_BROWSERESULTMASK_ALL;
+    // bd.resultMask = UA_BROWSERESULTMASK_ALL;
     bd.resultMask = UA_BROWSERESULTMASK_BROWSENAME;
     bd.nodeId = *id;
     bd.nodeClassMask = UA_NODECLASS_REFERENCETYPE;
-    //bd.nodeClassMask
+    // bd.nodeClassMask
     UA_BrowseResult br = UA_Server_browse(server, 100, &bd);
-    if(br.statusCode == UA_STATUSCODE_GOOD)
+    if (br.statusCode == UA_STATUSCODE_GOOD)
     {
-        for(UA_ReferenceDescription* rd = br.references; rd != br.references+br.referencesSize; rd++)
+        for (UA_ReferenceDescription *rd = br.references;
+             rd != br.references + br.referencesSize; rd++)
         {
-            printf("found :printf %.*s\n", UA_PRINTF_STRING_DATA( rd->browseName.name ) );
+            printf("found :printf %.*s\n",
+                   UA_PRINTF_STRING_DATA(rd->browseName.name));
 
             /*
             const char* bn = "PublishedEventsType";
@@ -52,22 +54,22 @@ int main(int argc, const char *argv[])
 
     for (int cnt = 1; cnt < argc; cnt++)
     {
-        if (!NodesetLoader_loadFile(server, argv[cnt], NULL))
+        if (UA_StatusCode_isBad(UA_Server_loadNodeset(server, argv[cnt])))
         {
             printf("nodeset could not be loaded, exit\n");
             return 1;
         }
     }
 
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "start hierachicalrefs");
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
+                "start hierachicalrefs");
     UA_NodeId startId = UA_NODEID_NUMERIC(0, UA_NS0ID_HIERARCHICALREFERENCES);
     iterate(server, &startId);
     UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
                 "start nonHierachicalRefs");
     startId = UA_NODEID_NUMERIC(0, UA_NS0ID_NONHIERARCHICALREFERENCES);
     iterate(server, &startId);
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND,
-                "finished");
+    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "finished");
 
     UA_Server_run(server, &running);
     UA_Server_delete(server);

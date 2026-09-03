@@ -10,7 +10,7 @@
 
 #include "../testHelper.h"
 #include "open62541/types_union_generated.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -23,22 +23,21 @@ static void setup(void)
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void)
-{
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
 START_TEST(compareUnion)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
-    setNamespaceIndexOfGeneratedStruct(
-        server, "http://yourorganisation.org/union/",
-        UA_TYPES_UNION, UA_TYPES_UNION_COUNT);
+    setNamespaceIndexOfGeneratedStruct(server,
+                                       "http://yourorganisation.org/union/",
+                                       UA_TYPES_UNION, UA_TYPES_UNION_COUNT);
 
     for (const UA_DataType *generatedType = UA_TYPES_UNION;
          generatedType != UA_TYPES_UNION + UA_TYPES_UNION_COUNT;
-         generatedType++) {
+         generatedType++)
+    {
         const UA_DataType *importedType =
             UA_Server_findDataType(server, &generatedType->typeId);
         ck_assert(importedType != NULL);

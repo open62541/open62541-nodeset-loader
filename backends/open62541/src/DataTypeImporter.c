@@ -5,102 +5,109 @@
  *    Copyright 2020 (c) Matthias Konnerth
  */
 
-#include "internal.h"
+#include "Nodeset.h"
 
-static const UA_NodeId *
-getBinaryEncodingId(const NL_DataTypeNode *node) {
+static const UA_NodeId *getBinaryEncodingId(const NL_DataTypeNode *node)
+{
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
-    for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
-        if(!UA_NodeId_equal(&encodingRefType, &ref->refType))
+    for (NL_Reference *ref = node->refs; ref; ref = ref->next)
+    {
+        if (!UA_NodeId_equal(&encodingRefType, &ref->refType))
             continue;
-        if(!ref->targetPtr)
+        if (!ref->targetPtr)
             continue;
         UA_String binaryStr = UA_STRING("Default Binary");
-        if(!UA_String_equal(&ref->targetPtr->browseName.name, &binaryStr))
+        if (!UA_String_equal(&ref->targetPtr->browseName.name, &binaryStr))
             continue;
         return &ref->target;
     }
     return NULL;
 }
 
-static const UA_NodeId *
-getXmlEncodingId(const NL_DataTypeNode *node) {
+static const UA_NodeId *getXmlEncodingId(const NL_DataTypeNode *node)
+{
     UA_NodeId encodingRefType = UA_NODEID_NUMERIC(0, 38);
-    for(NL_Reference *ref = node->refs; ref; ref = ref->next) {
-        if(!UA_NodeId_equal(&encodingRefType, &ref->refType))
+    for (NL_Reference *ref = node->refs; ref; ref = ref->next)
+    {
+        if (!UA_NodeId_equal(&encodingRefType, &ref->refType))
             continue;
-        if(!ref->targetPtr)
+        if (!ref->targetPtr)
             continue;
         UA_String xmlStr = UA_STRING("Default XML");
-        if(!UA_String_equal(&ref->targetPtr->browseName.name, &xmlStr))
+        if (!UA_String_equal(&ref->targetPtr->browseName.name, &xmlStr))
             continue;
         return &ref->target;
     }
     return NULL;
 }
 
-static const UA_DataType *
-getDataType(AddNodeContext *ctx, const UA_NodeId *id) {
+static const UA_DataType *getDataType(UA_NodeSetLoaderContext *ctx,
+                                      const UA_NodeId *id)
+{
     const UA_DataType *type = UA_Server_findDataType(ctx->server, id);
-    if(type)
+    if (type)
         return type;
 
     /* Abstract namespace-zero types have no binary representation of their
      * own. Encode their values as Variants, as the nodeset compiler does. */
-    if(id->namespaceIndex == 0)
+    if (id->namespaceIndex == 0)
         return &UA_TYPES[UA_TYPES_VARIANT];
     return NULL;
 }
 
-static UA_StatusCode
-addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
-                   const NL_DataTypeNode *node,
-                   const UA_NodeId *parent) {
+static UA_StatusCode addDataTypeMembers(UA_NodeSetLoaderContext *ctx,
+                                        UA_DataType *type,
+                                        const NL_DataTypeNode *node,
+                                        const UA_NodeId *parent)
+{
     // Get the parent type
     const UA_DataType *parentType = getDataType(ctx, parent);
     size_t memberSize = 0;
-    if(node->definition)
+    if (node->definition)
         memberSize += node->definition->fieldCnt;
-    if(parentType)
+    if (parentType)
         memberSize += parentType->membersSize;
-    if(memberSize > UA_BYTE_MAX)
+    if (memberSize > UA_BYTE_MAX)
         return UA_STATUSCODE_BADENCODINGLIMITSEXCEEDED;
-    if(memberSize == 0)
+    if (memberSize == 0)
         return UA_STATUSCODE_GOOD;
 
     // Allocate the members
-    type->members = (UA_DataTypeMember *)
-        UA_calloc(memberSize, sizeof(UA_DataTypeMember));
-    if(!type->members)
+    type->members =
+        (UA_DataTypeMember *)UA_calloc(memberSize, sizeof(UA_DataTypeMember));
+    if (!type->members)
         return UA_STATUSCODE_BADOUTOFMEMORY;
     type->membersSize = (unsigned char)memberSize;
 
     // Copy over members from the parent
     size_t i = 0;
-    if(parentType) {
-        for(; i < parentType->membersSize; i++) {
+    if (parentType)
+    {
+        for (; i < parentType->membersSize; i++)
+        {
             const UA_DataTypeMember *src = &parentType->members[i];
             UA_DataTypeMember *dst = &type->members[i];
             size_t nameLen = strlen(src->memberName);
             char *memberName = (char *)UA_calloc(1, nameLen + 1);
-            if(!memberName)
+            if (!memberName)
                 return UA_STATUSCODE_BADOUTOFMEMORY;
             memcpy(memberName, src->memberName, nameLen);
             dst->memberName = memberName;
             dst->memberType = src->memberType;
 
             // Pointer free??
-            if(!dst->memberType->pointerFree)
+            if (!dst->memberType->pointerFree)
                 type->pointerFree = false;
 
             // Array?
             dst->isArray = src->isArray;
-            if(dst->isArray)
+            if (dst->isArray)
                 type->pointerFree = false;
 
             // Optional?
             dst->isOptional = src->isOptional;
-            if(dst->isOptional) {
+            if (dst->isOptional)
+            {
                 type->pointerFree = false;
                 type->typeKind = UA_DATATYPEKIND_OPTSTRUCT;
             }
@@ -108,39 +115,43 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
     }
 
     // Fill new member definition
-    for(size_t j = 0; i < memberSize; i++, j++) {
+    for (size_t j = 0; i < memberSize; i++, j++)
+    {
         UA_DataTypeMember *member = &type->members[i];
         NL_DataTypeDefinitionField *field = &node->definition->fields[j];
 
         // Member name
         size_t nameLen = strlen(field->name);
         char *memberName = (char *)UA_calloc(1, nameLen + 1);
-        if(!memberName)
+        if (!memberName)
             return UA_STATUSCODE_BADOUTOFMEMORY;
         memcpy(memberName, field->name, nameLen);
         member->memberName = memberName;
 
         // Member type
         member->memberType = getDataType(ctx, &field->dataType);
-        if(!member->memberType) {
-            UA_LOG_WARNING(ctx->logger, UA_LOGCATEGORY_SERVER,
-                           "NodesetLoader: Cannot find member type %N of datatype %N",
-                           field->dataType, type->typeId);
+        if (!member->memberType)
+        {
+            UA_LOG_WARNING(
+                ctx->logger, UA_LOGCATEGORY_SERVER,
+                "NodeSetLoader: Cannot find member type %N of datatype %N",
+                field->dataType, type->typeId);
             return UA_STATUSCODE_BADINTERNALERROR;
         }
 
         // Pointer free??
-        if(!member->memberType->pointerFree)
+        if (!member->memberType->pointerFree)
             type->pointerFree = false;
 
         // Array?
         member->isArray = (field->valueRank >= 0);
-        if(member->isArray)
+        if (member->isArray)
             type->pointerFree = false;
 
         // Optional?
         member->isOptional = field->isOptional;
-        if(member->isOptional) {
+        if (member->isOptional)
+        {
             type->pointerFree = false;
             type->typeKind = UA_DATATYPEKIND_OPTSTRUCT;
         }
@@ -149,13 +160,17 @@ addDataTypeMembers(AddNodeContext *ctx, UA_DataType *type,
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode
-StructureDataType_init(AddNodeContext *ctx, UA_DataType *type,
-                       const NL_DataTypeNode *node,
-                       const UA_NodeId *parent) {
-    if(node->definition->isUnion) {
+static UA_StatusCode StructureDataType_init(UA_NodeSetLoaderContext *ctx,
+                                            UA_DataType *type,
+                                            const NL_DataTypeNode *node,
+                                            const UA_NodeId *parent)
+{
+    if (node->definition->isUnion)
+    {
         type->typeKind = UA_DATATYPEKIND_UNION;
-    } else {
+    }
+    else
+    {
         type->typeKind = UA_DATATYPEKIND_STRUCTURE;
     }
     type->pointerFree = true; // Gets overridden if necessary
@@ -163,28 +178,30 @@ StructureDataType_init(AddNodeContext *ctx, UA_DataType *type,
     return addDataTypeMembers(ctx, type, node, parent);
 }
 
-static UA_StatusCode
-addEnumMembers(UA_DataType *type, const NL_DataTypeNode *node) {
-    if(node->definition->fieldCnt == 0)
+static UA_StatusCode addEnumMembers(UA_DataType *type,
+                                    const NL_DataTypeNode *node)
+{
+    if (node->definition->fieldCnt == 0)
         return UA_STATUSCODE_GOOD;
-    if(node->definition->fieldCnt > UA_BYTE_MAX)
+    if (node->definition->fieldCnt > UA_BYTE_MAX)
         return UA_STATUSCODE_BADENCODINGLIMITSEXCEEDED;
 
     // Allocate the members
-    type->members = (UA_DataTypeMember *)
-        UA_calloc(node->definition->fieldCnt, sizeof(UA_DataTypeMember));
-    if(!type->members)
+    type->members = (UA_DataTypeMember *)UA_calloc(node->definition->fieldCnt,
+                                                   sizeof(UA_DataTypeMember));
+    if (!type->members)
         return UA_STATUSCODE_BADOUTOFMEMORY;
     type->membersSize = (UA_Byte)node->definition->fieldCnt;
 
     // Fill new member definition
-    for(UA_Byte i = 0; i < type->membersSize; i++) {
+    for (UA_Byte i = 0; i < type->membersSize; i++)
+    {
         UA_DataTypeMember *member = &type->members[i];
         NL_DataTypeDefinitionField *field = &node->definition->fields[i];
-        member->memberType = (const UA_DataType*)(uintptr_t)field->value;
+        member->memberType = (const UA_DataType *)(uintptr_t)field->value;
         size_t nameLen = strlen(field->name);
         char *memberName = (char *)UA_calloc(1, nameLen + 1);
-        if(!memberName)
+        if (!memberName)
             return UA_STATUSCODE_BADOUTOFMEMORY;
         memcpy(memberName, field->name, nameLen);
         member->memberName = memberName;
@@ -192,23 +209,28 @@ addEnumMembers(UA_DataType *type, const NL_DataTypeNode *node) {
     return UA_STATUSCODE_GOOD;
 }
 
-static UA_StatusCode
-EnumDataType_init(AddNodeContext *ctx, UA_DataType *enumType,
-                  const NL_DataTypeNode *node,
-                  const UA_NodeId *parent) {
+static UA_StatusCode EnumDataType_init(UA_NodeSetLoaderContext *ctx,
+                                       UA_DataType *enumType,
+                                       const NL_DataTypeNode *node,
+                                       const UA_NodeId *parent)
+{
     enumType->typeKind = UA_DATATYPEKIND_ENUM;
     enumType->pointerFree = true;
     enumType->overlayable = UA_BINARY_OVERLAYABLE_INTEGER;
     enumType->memSize = sizeof(UA_Int32);
-    if(node->definition->isOptionSet) {
+    if (node->definition->isOptionSet)
+    {
         const UA_DataType *parentType = getDataType(ctx, parent);
-        if(parentType && parentType->typeKind <= UA_DATATYPEKIND_DOUBLE) {
+        if (parentType && parentType->typeKind <= UA_DATATYPEKIND_DOUBLE)
+        {
             enumType->typeKind = parentType->typeKind;
             enumType->overlayable = parentType->overlayable;
             enumType->memSize = parentType->memSize;
-        } else if(parentType &&
-                  (parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
-                   parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT)) {
+        }
+        else if (parentType &&
+                 (parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+                  parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT))
+        {
             enumType->typeKind = parentType->typeKind;
             enumType->pointerFree = parentType->pointerFree;
             enumType->overlayable = parentType->overlayable;
@@ -224,94 +246,110 @@ EnumDataType_init(AddNodeContext *ctx, UA_DataType *enumType,
     return addEnumMembers(enumType, node);
 }
 
-static UA_StatusCode
-SubtypeOfBase_init(AddNodeContext *ctx,
-                   UA_DataType *type, const NL_DataTypeNode *node,
-                   const UA_NodeId *parent) {
+static UA_StatusCode SubtypeOfBase_init(UA_NodeSetLoaderContext *ctx,
+                                        UA_DataType *type,
+                                        const NL_DataTypeNode *node,
+                                        const UA_NodeId *parent)
+{
     const UA_DataType *parentType = getDataType(ctx, parent);
-    if(!parentType)
+    if (!parentType)
         return UA_STATUSCODE_BADINTERNALERROR;
     type->memSize = parentType->memSize;
     type->overlayable = parentType->overlayable;
     type->pointerFree = parentType->pointerFree;
     type->typeKind = parentType->typeKind;
-    if(parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
-       parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
-       parentType->typeKind == UA_DATATYPEKIND_UNION) {
+    if (parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+        parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT ||
+        parentType->typeKind == UA_DATATYPEKIND_UNION)
+    {
         return addDataTypeMembers(ctx, type, node, parent);
-    } else {
+    }
+    else
+    {
         return UA_NodeId_copy(&parentType->binaryEncodingId,
                               &type->binaryEncodingId);
     }
 }
 
-UA_StatusCode
-addCustomDataType(AddNodeContext *ctx, const NL_DataTypeNode *node) {
+UA_StatusCode UA_NodeSetLoader_addCustomDataType(UA_NodeSetLoaderContext *ctx,
+                                                 const NL_DataTypeNode *node)
+{
     UA_DataType type;
     memset(&type, 0, sizeof(UA_DataType));
     UA_ExtensionObject eo;
     UA_ExtensionObject_init(&eo);
 
     UA_StatusCode res = UA_NodeId_copy(&node->id, &type.typeId);
-    if(res != UA_STATUSCODE_GOOD)
+    if (res != UA_STATUSCODE_GOOD)
         goto cleanup;
 
     size_t len = node->browseName.name.length;
-    if(len == SIZE_MAX) {
+    if (len == SIZE_MAX)
+    {
         res = UA_STATUSCODE_BADOUTOFMEMORY;
         goto cleanup;
     }
     type.typeName = (char *)UA_calloc(len + 1, sizeof(char));
-    if(!type.typeName) {
+    if (!type.typeName)
+    {
         res = UA_STATUSCODE_BADOUTOFMEMORY;
         goto cleanup;
     }
-    memcpy((void*)(uintptr_t)type.typeName, node->browseName.name.data, len);
+    memcpy((void *)(uintptr_t)type.typeName, node->browseName.name.data, len);
 
     const UA_NodeId *encodingId = getBinaryEncodingId(node);
-    if(encodingId) {
+    if (encodingId)
+    {
         res = UA_NodeId_copy(encodingId, &type.binaryEncodingId);
-        if(res != UA_STATUSCODE_GOOD)
+        if (res != UA_STATUSCODE_GOOD)
             goto cleanup;
     }
     encodingId = getXmlEncodingId(node);
-    if(encodingId) {
+    if (encodingId)
+    {
         res = UA_NodeId_copy(encodingId, &type.xmlEncodingId);
-        if(res != UA_STATUSCODE_GOOD)
+        if (res != UA_STATUSCODE_GOOD)
             goto cleanup;
     }
 
-    UA_NodeId parent = getParentId(ctx, (const NL_Node*)node, NULL);
+    UA_NodeId parent =
+        UA_NodeSetLoader_getParentId(ctx, (const NL_Node *)node, NULL);
 
-    if(node->definition &&
-       (node->definition->isEnum ||
-        node->definition->isOptionSet)) {
+    if (node->definition &&
+        (node->definition->isEnum || node->definition->isOptionSet))
+    {
         // Enum and OptionSet
         res = EnumDataType_init(ctx, &type, node, &parent);
-    } else if(node->definition && node->definition->fieldCnt > 0) {
+    }
+    else if (node->definition && node->definition->fieldCnt > 0)
+    {
         // Structure and Union
         res = StructureDataType_init(ctx, &type, node, &parent);
-    } else {
+    }
+    else
+    {
         // Opaque subtype
         res = SubtypeOfBase_init(ctx, &type, node, &parent);
     }
-    if(res != UA_STATUSCODE_GOOD)
+    if (res != UA_STATUSCODE_GOOD)
         goto cleanup;
 
     // Convert type to description. This generates the correct padding between
     // member fields in UA_Server_addDataTypeFromDescription.
 
     res = UA_DataType_toDescription(&type, &eo);
-    if(res != UA_STATUSCODE_GOOD)
+    if (res != UA_STATUSCODE_GOOD)
         goto cleanup;
 
     res = UA_Server_addDataTypeFromDescription(ctx->server, &eo);
 
- cleanup:
-    if(res != UA_STATUSCODE_GOOD) {
-        UA_LOG_WARNING(ctx->logger, UA_LOGCATEGORY_SERVER,
-                       "NodesetLoader: Cannot add datatype description for %Ni (%s)",
-                       node->id, UA_StatusCode_name(res));
+cleanup:
+    if (res != UA_STATUSCODE_GOOD)
+    {
+        UA_LOG_WARNING(
+            ctx->logger, UA_LOGCATEGORY_SERVER,
+            "NodeSetLoader: Cannot add datatype description for %Ni (%s)",
+            node->id, UA_StatusCode_name(res));
     }
     UA_ExtensionObject_clear(&eo);
     UA_DataType_clear(&type);

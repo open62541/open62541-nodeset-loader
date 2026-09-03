@@ -10,7 +10,7 @@
 
 #include "../testHelper.h"
 #include "open62541/types_optionsetgen_generated.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -23,21 +23,19 @@ static void setup(void)
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
 START_TEST(compareOptionSet)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     setNamespaceIndexOfGeneratedStruct(
-        server, "http://yourorganisation.org/optionSet/",
-        UA_TYPES_OPTIONSETGEN, UA_TYPES_OPTIONSETGEN_COUNT);
+        server, "http://yourorganisation.org/optionSet/", UA_TYPES_OPTIONSETGEN,
+        UA_TYPES_OPTIONSETGEN_COUNT);
 
     for (const UA_DataType *generatedType = UA_TYPES_OPTIONSETGEN;
-         generatedType !=
-         UA_TYPES_OPTIONSETGEN + UA_TYPES_OPTIONSETGEN_COUNT;
+         generatedType != UA_TYPES_OPTIONSETGEN + UA_TYPES_OPTIONSETGEN_COUNT;
          generatedType++)
     {
         const UA_DataType *importedType =

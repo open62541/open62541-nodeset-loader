@@ -9,21 +9,20 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath1 = NULL;
 char *nodesetPath2 = NULL;
 
-static void setup(void) {
+static void setup(void)
+{
     server = UA_Server_new();
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_ServerConfig_setDefault(config);
 }
 
-static void teardown(void) {
-    UA_Server_delete(server);
-}
+static void teardown(void) { UA_Server_delete(server); }
 
 struct Point
 {
@@ -42,8 +41,10 @@ struct PointWithOffset
 
 START_TEST(Server_ReadPointWithOffset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath1, NULL));
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath2, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath1),
+                      UA_STATUSCODE_GOOD);
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath2),
+                      UA_STATUSCODE_GOOD);
 
     UA_Variant var;
     UA_Variant_init(&var);

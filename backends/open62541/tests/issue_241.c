@@ -3,7 +3,7 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
 #include "check.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 #include <open62541/types.h>
@@ -29,7 +29,8 @@ static void teardown(void)
 
 START_TEST(Server_Issue_241)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     UA_Variant var;
     UA_Variant_init(&var);
@@ -38,9 +39,9 @@ START_TEST(Server_Issue_241)
     ck_assert_uint_eq(retval, UA_STATUSCODE_GOOD);
 
     ck_assert(var.type = &UA_TYPES[UA_TYPES_STATUSCODE]);
-    ck_assert(var.arrayLength==10);
+    ck_assert(var.arrayLength == 10);
 
-    UA_StatusCode *first = (UA_StatusCode*)var.data;
+    UA_StatusCode *first = (UA_StatusCode *)var.data;
     ck_assert(*first == 0u);
     UA_StatusCode last = first[9];
     ck_assert(last == 2151022592u);

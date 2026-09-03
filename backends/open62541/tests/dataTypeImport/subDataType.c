@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "../testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,15 +30,17 @@ static void teardown(void)
 
 START_TEST(SubTypeOfInt32)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
     UA_NodeId typeId = UA_NODEID_NUMERIC(2, 3002);
     const UA_DataType *type = UA_Server_findDataType(server, &typeId);
     ck_assert(type);
     ck_assert(type->typeKind == UA_DATATYPEKIND_INT32);
     UA_Variant var;
-    UA_StatusCode status = UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var);
-    ck_assert(UA_STATUSCODE_GOOD==status);
-    ck_assert(*(UA_Int32*)var.data==12);
+    UA_StatusCode status =
+        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var);
+    ck_assert(UA_STATUSCODE_GOOD == status);
+    ck_assert(*(UA_Int32 *)var.data == 12);
     UA_Variant_clear(&var);
 }
 END_TEST

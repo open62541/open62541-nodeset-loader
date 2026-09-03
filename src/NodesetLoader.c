@@ -7,30 +7,31 @@
  */
 
 #include "Nodeset.h"
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
 #include <yxml.h>
 
-struct NodesetLoader {
+struct UA_NodeSetLoader
+{
     Nodeset *nodeset;
-    UA_Logger *logger;
 };
 
-typedef enum {
+typedef enum
+{
     XML_TOKENIZE_OK,
     XML_TOKENIZE_INVALID,
     XML_TOKENIZE_OVERFLOW
 } XmlTokenizeStatus;
 
-typedef struct {
+typedef struct
+{
     XmlTokenizeStatus status;
     size_t tokensSize;
 } XmlTokenizeResult;
 
-typedef struct {
+typedef struct
+{
     char *data;
     size_t size;
     size_t capacity;
@@ -39,31 +40,34 @@ typedef struct {
 #define XML_TOKEN_STACK_SIZE 128
 #define XML_YXML_STACK_SIZE 4096
 
-static bool
-XmlTextBuffer_append(XmlTextBuffer *buf, const char *data, size_t length) {
-    if(buf->size > buf->capacity || length > buf->capacity - buf->size)
+static bool XmlTextBuffer_append(XmlTextBuffer *buf, const char *data,
+                                 size_t length)
+{
+    if (buf->size > buf->capacity || length > buf->capacity - buf->size)
         return false;
     memcpy(buf->data + buf->size, data, length);
     buf->size += length;
     return true;
 }
 
-static bool
-XmlTextBuffer_appendName(XmlTextBuffer *buf, const char *name,
-                         size_t length, size_t *offset) {
+static bool XmlTextBuffer_appendName(XmlTextBuffer *buf, const char *name,
+                                     size_t length, size_t *offset)
+{
     *offset = buf->size;
     return XmlTextBuffer_append(buf, name, length) &&
-        XmlTextBuffer_append(buf, "", 1);
+           XmlTextBuffer_append(buf, "", 1);
 }
 
-static XmlTokenizeResult
-XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
-            size_t maxTokens, XmlTextBuffer *text) {
+static XmlTokenizeResult XmlTokenize(const char *xml, size_t xmlLength,
+                                     XmlToken *tokens, size_t maxTokens,
+                                     XmlTextBuffer *text)
+{
     XmlTokenizeResult result;
     memset(&result, 0, sizeof(result));
 
     text->size = 0;
-    if(!XmlTextBuffer_append(text, "", 1)) {
+    if (!XmlTextBuffer_append(text, "", 1))
+    {
         result.status = XML_TOKENIZE_INVALID;
         return result;
     }
@@ -86,15 +90,18 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
     size_t depth = 0;
     size_t tokenPosition = 0;
 
-    for(size_t pos = 0; pos < xmlLength; pos++) {
+    for (size_t pos = 0; pos < xmlLength; pos++)
+    {
         yxml_ret_t status = yxml_parse(&parser, (unsigned char)xml[pos]);
-        if(status < YXML_OK) {
+        if (status < YXML_OK)
+        {
             result.status = XML_TOKENIZE_INVALID;
             result.tokensSize = tokenPosition;
             return result;
         }
 
-        switch(status) {
+        switch (status)
+        {
         case YXML_OK:
         case YXML_PISTART:
         case YXML_PICONTENT:
@@ -102,30 +109,33 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
             break;
 
         case YXML_ELEMSTART: {
-            if(depth >= XML_TOKEN_STACK_SIZE) {
+            if (depth >= XML_TOKEN_STACK_SIZE)
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
             }
-            if(depth > 0) {
+            if (depth > 0)
+            {
                 hasChildren[depth - 1] = true;
                 stack[depth - 1]->contentLength = 0;
             }
 
             stored[depth] = (tokenPosition < maxTokens);
-            XmlToken *token = stored[depth] ? &tokens[tokenPosition] :
-                &scratch[depth];
+            XmlToken *token =
+                stored[depth] ? &tokens[tokenPosition] : &scratch[depth];
             memset(token, 0, sizeof(*token));
             token->type = XML_TOKEN_ELEMENT;
             size_t nameLength = yxml_symlen(&parser, parser.elem);
-            if(stored[depth] &&
-               !XmlTextBuffer_appendName(text, parser.elem, nameLength,
-                                         &token->name)) {
+            if (stored[depth] &&
+                !XmlTextBuffer_appendName(text, parser.elem, nameLength,
+                                          &token->name))
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
             }
-            if(nameLength < pos + 1)
+            if (nameLength < pos + 1)
                 token->start = pos - nameLength - 1;
             stack[depth] = token;
             hasChildren[depth] = false;
@@ -135,20 +145,23 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
         }
 
         case YXML_ATTRSTART: {
-            if(depth == 0) {
+            if (depth == 0)
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
             }
             stack[depth - 1]->attributes++;
             attributeStored = (tokenPosition < maxTokens);
-            attribute = attributeStored ? &tokens[tokenPosition] : &attributeScratch;
+            attribute =
+                attributeStored ? &tokens[tokenPosition] : &attributeScratch;
             memset(attribute, 0, sizeof(*attribute));
             attribute->type = XML_TOKEN_ATTRIBUTE;
             size_t nameLength = yxml_symlen(&parser, parser.attr);
-            if(attributeStored &&
-               !XmlTextBuffer_appendName(text, parser.attr, nameLength,
-                                         &attribute->name)) {
+            if (attributeStored &&
+                !XmlTextBuffer_appendName(text, parser.attr, nameLength,
+                                          &attribute->name))
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
@@ -158,11 +171,13 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
         }
 
         case YXML_CONTENT:
-            if(depth > 0 && stored[depth - 1] && !hasChildren[depth - 1]) {
+            if (depth > 0 && stored[depth - 1] && !hasChildren[depth - 1])
+            {
                 size_t length = strlen(parser.data);
-                if(stack[depth - 1]->contentLength == 0)
+                if (stack[depth - 1]->contentLength == 0)
                     stack[depth - 1]->content = text->size;
-                if(!XmlTextBuffer_append(text, parser.data, length)) {
+                if (!XmlTextBuffer_append(text, parser.data, length))
+                {
                     result.status = XML_TOKENIZE_INVALID;
                     result.tokensSize = tokenPosition;
                     return result;
@@ -172,11 +187,13 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
             break;
 
         case YXML_ATTRVAL:
-            if(attributeStored) {
+            if (attributeStored)
+            {
                 size_t length = strlen(parser.data);
-                if(attribute->contentLength == 0)
+                if (attribute->contentLength == 0)
                     attribute->content = text->size;
-                if(!XmlTextBuffer_append(text, parser.data, length)) {
+                if (!XmlTextBuffer_append(text, parser.data, length))
+                {
                     result.status = XML_TOKENIZE_INVALID;
                     result.tokensSize = tokenPosition;
                     return result;
@@ -186,8 +203,9 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
             break;
 
         case YXML_ATTREND:
-            if(attributeStored && attribute->contentLength > 0 &&
-               !XmlTextBuffer_append(text, "", 1)) {
+            if (attributeStored && attribute->contentLength > 0 &&
+                !XmlTextBuffer_append(text, "", 1))
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
@@ -197,7 +215,8 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
             break;
 
         case YXML_ELEMEND:
-            if(depth == 0) {
+            if (depth == 0)
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
@@ -205,8 +224,9 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
             depth--;
             stack[depth]->end = pos + 1;
             stack[depth]->subtreeEnd = tokenPosition;
-            if(stored[depth] && stack[depth]->contentLength > 0 &&
-               !XmlTextBuffer_append(text, "", 1)) {
+            if (stored[depth] && stack[depth]->contentLength > 0 &&
+                !XmlTextBuffer_append(text, "", 1))
+            {
                 result.status = XML_TOKENIZE_INVALID;
                 result.tokensSize = tokenPosition;
                 return result;
@@ -221,21 +241,25 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
     }
 
     result.tokensSize = tokenPosition;
-    if(yxml_eof(&parser) != YXML_OK || depth != 0) {
+    if (yxml_eof(&parser) != YXML_OK || depth != 0)
+    {
         result.status = XML_TOKENIZE_INVALID;
-    } else if(tokenPosition > maxTokens) {
+    }
+    else if (tokenPosition > maxTokens)
+    {
         result.status = XML_TOKENIZE_OVERFLOW;
     }
     return result;
 }
 
-static const char *
-localName(const char *qualifiedName) {
+static const char *localName(const char *qualifiedName)
+{
     const char *colon = strrchr(qualifiedName, ':');
     return colon ? colon + 1 : qualifiedName;
 }
 
-typedef enum {
+typedef enum
+{
     XML_SCOPE_DOCUMENT,
     XML_SCOPE_NODE,
     XML_SCOPE_NAMESPACE_URIS,
@@ -243,7 +267,8 @@ typedef enum {
     XML_SCOPE_DEFINITION
 } XmlScope;
 
-typedef struct {
+typedef struct
+{
     const XmlToken *tokens;
     size_t tokensSize;
     size_t position;
@@ -252,14 +277,14 @@ typedef struct {
     size_t xmlLength;
 } XmlCursor;
 
-static bool
-XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass) {
+static bool XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass)
+{
     static const char *const names[NL_NODECLASS_COUNT] = {
-        "UAObject", "UAObjectType", "UAVariable", "UADataType",
-        "UAMethod", "UAReferenceType", "UAVariableType", "UAView"
-    };
-    for(size_t i = 0; i < NL_NODECLASS_COUNT; i++) {
-        if(strcmp(name, names[i]))
+        "UAObject", "UAObjectType",    "UAVariable",     "UADataType",
+        "UAMethod", "UAReferenceType", "UAVariableType", "UAView"};
+    for (size_t i = 0; i < NL_NODECLASS_COUNT; i++)
+    {
+        if (strcmp(name, names[i]))
             continue;
         *nodeClass = (NL_NodeClass)i;
         return true;
@@ -267,128 +292,161 @@ XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass) {
     return false;
 }
 
-static char *
-XmlToken_leafContent(XmlCursor *cursor, const XmlToken *element) {
+static char *XmlToken_leafContent(XmlCursor *cursor, const XmlToken *element)
+{
     cursor->position = element->subtreeEnd;
-    if(element->contentLength == 0)
+    if (element->contentLength == 0)
         return NULL;
     return cursor->text + element->content;
 }
 
-static bool
-ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
-               NL_Node *node);
+static bool ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
+                           NL_Node *node);
 
-static bool
-ProcessChildren(Nodeset *nodeset, XmlCursor *cursor,
-                const XmlToken *element, XmlScope scope, NL_Node *node) {
-    if(element->subtreeEnd < cursor->position ||
-       element->subtreeEnd > cursor->tokensSize)
+static bool ProcessChildren(Nodeset *nodeset, XmlCursor *cursor,
+                            const XmlToken *element, XmlScope scope,
+                            NL_Node *node)
+{
+    if (element->subtreeEnd < cursor->position ||
+        element->subtreeEnd > cursor->tokensSize)
         return false;
-    while(cursor->position < element->subtreeEnd) {
-        if(!ProcessElement(nodeset, cursor, scope, node))
+    while (cursor->position < element->subtreeEnd)
+    {
+        if (!ProcessElement(nodeset, cursor, scope, node))
             return false;
     }
     return cursor->position == element->subtreeEnd;
 }
 
-static bool
-ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
-               NL_Node *node) {
-    if(cursor->position >= cursor->tokensSize)
+static bool ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
+                           NL_Node *node)
+{
+    if (cursor->position >= cursor->tokensSize)
         return false;
 
     const XmlToken *element = &cursor->tokens[cursor->position++];
-    if(element->type != XML_TOKEN_ELEMENT ||
-       element->subtreeEnd < cursor->position ||
-       element->subtreeEnd > cursor->tokensSize)
+    if (element->type != XML_TOKEN_ELEMENT ||
+        element->subtreeEnd < cursor->position ||
+        element->subtreeEnd > cursor->tokensSize)
         return false;
 
     size_t attributePosition = cursor->position;
-    if(element->attributes > element->subtreeEnd - cursor->position)
+    if (element->attributes > element->subtreeEnd - cursor->position)
         return false;
-    for(size_t i = 0; i < element->attributes; i++) {
-        if(cursor->tokens[attributePosition + i].type != XML_TOKEN_ATTRIBUTE)
+    for (size_t i = 0; i < element->attributes; i++)
+    {
+        if (cursor->tokens[attributePosition + i].type != XML_TOKEN_ATTRIBUTE)
             return false;
     }
     cursor->position += element->attributes;
 
     const char *name = localName(cursor->text + element->name);
-    XmlAttributes attributes = {
-        &cursor->tokens[attributePosition], element->attributes,
-        cursor->text};
+    XmlAttributes attributes = {&cursor->tokens[attributePosition],
+                                element->attributes, cursor->text};
 
-    if(scope == XML_SCOPE_DOCUMENT) {
+    if (scope == XML_SCOPE_DOCUMENT)
+    {
         NL_NodeClass nodeClass;
-        if(XmlToken_nodeClass(name, &nodeClass)) {
-            NL_Node *newNode = Nodeset_newNode(nodeset, nodeClass, &attributes);
-            if(!newNode)
+        if (XmlToken_nodeClass(name, &nodeClass))
+        {
+            NL_Node *newNode =
+                UA_NodeSet_newNode(nodeset, nodeClass, &attributes);
+            if (!newNode)
                 return false;
             return ProcessChildren(nodeset, cursor, element, XML_SCOPE_NODE,
                                    newNode);
-        } else if(!strcmp(name, "NamespaceUris")) {
+        }
+        else if (!strcmp(name, "NamespaceUris"))
+        {
             return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_NAMESPACE_URIS, NULL);
-        } else if(!strcmp(name, "Alias")) {
-            char *content = XmlToken_leafContent(cursor, element);
-            return Nodeset_addAlias(nodeset, &attributes, content);
-        } else if(!strcmp(name, "UANodeSet") ||
-                  !strcmp(name, "Aliases")) {
-            return ProcessChildren(nodeset, cursor, element,
-                                   XML_SCOPE_DOCUMENT, NULL);
         }
-    } else if(scope == XML_SCOPE_NODE) {
-        if(!strcmp(name, "DisplayName")) {
+        else if (!strcmp(name, "Alias"))
+        {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_setLocalizedText(&node->displayName, &attributes, content);
+            return UA_NodeSet_addAlias(nodeset, &attributes, content);
+        }
+        else if (!strcmp(name, "UANodeSet") || !strcmp(name, "Aliases"))
+        {
+            return ProcessChildren(nodeset, cursor, element, XML_SCOPE_DOCUMENT,
+                                   NULL);
+        }
+    }
+    else if (scope == XML_SCOPE_NODE)
+    {
+        if (!strcmp(name, "DisplayName"))
+        {
+            char *content = XmlToken_leafContent(cursor, element);
+            UA_NodeSet_setLocalizedText(&node->displayName, &attributes,
+                                        content);
             return true;
-        } else if(!strcmp(name, "References")) {
+        }
+        else if (!strcmp(name, "References"))
+        {
             return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_REFERENCES, node);
-        } else if(!strcmp(name, "Description")) {
+        }
+        else if (!strcmp(name, "Description"))
+        {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_setLocalizedText(&node->description, &attributes, content);
+            UA_NodeSet_setLocalizedText(&node->description, &attributes,
+                                        content);
             return true;
-        } else if(!strcmp(name, "Value")) {
+        }
+        else if (!strcmp(name, "Value"))
+        {
             cursor->position = element->subtreeEnd;
-            if(node->nodeClass != NODECLASS_VARIABLE)
+            if (node->nodeClass != NODECLASS_VARIABLE)
                 return true;
-            if(element->end < element->start ||
-               element->end > cursor->xmlLength)
+            if (element->end < element->start ||
+                element->end > cursor->xmlLength)
                 return false;
             UA_String xmlValue = {
                 element->end - element->start,
-                (UA_Byte*)(uintptr_t)(cursor->xml + element->start)
-            };
-            return UA_String_copy(&xmlValue, &((NL_VariableNode*)node)->value) ==
-                UA_STATUSCODE_GOOD;
-        } else if(!strcmp(name, "Definition") &&
-                  node->nodeClass == NODECLASS_DATATYPE) {
-            if(!Nodeset_addDataTypeDefinition(node, &attributes))
+                (UA_Byte *)(uintptr_t)(cursor->xml + element->start)};
+            return UA_String_copy(&xmlValue,
+                                  &((NL_VariableNode *)node)->value) ==
+                   UA_STATUSCODE_GOOD;
+        }
+        else if (!strcmp(name, "Definition") &&
+                 node->nodeClass == NODECLASS_DATATYPE)
+        {
+            if (!UA_NodeSet_addDataTypeDefinition(node, &attributes))
                 return false;
             return ProcessChildren(nodeset, cursor, element,
                                    XML_SCOPE_DEFINITION, node);
-        } else if(!strcmp(name, "InverseName")) {
+        }
+        else if (!strcmp(name, "InverseName"))
+        {
             char *content = XmlToken_leafContent(cursor, element);
-            if(node->nodeClass == NODECLASS_REFERENCETYPE)
-                Nodeset_setLocalizedText(
-                    &((NL_ReferenceTypeNode*)node)->inverseName,
-                    &attributes, content);
+            if (node->nodeClass == NODECLASS_REFERENCETYPE)
+                UA_NodeSet_setLocalizedText(
+                    &((NL_ReferenceTypeNode *)node)->inverseName, &attributes,
+                    content);
             return true;
         }
-    } else if(scope == XML_SCOPE_NAMESPACE_URIS) {
-        if(!strcmp(name, "Uri")) {
+    }
+    else if (scope == XML_SCOPE_NAMESPACE_URIS)
+    {
+        if (!strcmp(name, "Uri"))
+        {
             char *content = XmlToken_leafContent(cursor, element);
-            return Nodeset_addNamespace(nodeset, content);
+            return UA_NodeSet_addNamespace(nodeset, content);
         }
-    } else if(scope == XML_SCOPE_REFERENCES) {
-        if(!strcmp(name, "Reference")) {
+    }
+    else if (scope == XML_SCOPE_REFERENCES)
+    {
+        if (!strcmp(name, "Reference"))
+        {
             char *content = XmlToken_leafContent(cursor, element);
-            return Nodeset_addReference(nodeset, node, &attributes, content);
+            return UA_NodeSet_addReference(nodeset, node, &attributes, content);
         }
-    } else if(scope == XML_SCOPE_DEFINITION) {
-        if(!strcmp(name, "Field")) {
-            if(!Nodeset_addDataTypeField(nodeset, node, &attributes))
+    }
+    else if (scope == XML_SCOPE_DEFINITION)
+    {
+        if (!strcmp(name, "Field"))
+        {
+            if (!UA_NodeSet_addDataTypeField(nodeset, node, &attributes))
                 return false;
             cursor->position = element->subtreeEnd;
             return true;
@@ -400,151 +458,113 @@ ProcessElement(Nodeset *nodeset, XmlCursor *cursor, XmlScope scope,
     return true;
 }
 
-static bool
-Parser_run(Nodeset *nodeset, FILE *file) {
-    /* Read entire file into memory */
-    if(fseek(file, 0, SEEK_END) != 0)
-        return false;
-    long fsize = ftell(file);
-    if(fsize < 0 || fseek(file, 0, SEEK_SET) != 0)
-        return false;
-    if((uintmax_t)fsize >= SIZE_MAX)
-        return false;
-    size_t fileSize = (size_t)fsize;
-
-    char *buf = (char*)malloc(fileSize + 1);
-    if(!buf)
-        return false;
-
-    size_t elems = fread(buf, 1, fileSize, file);
-    if(ferror(file)) {
-        free(buf);
-        return false;
-    }
-    buf[elems] = 0; /* Ensure null terminated */
-
+static UA_StatusCode Parser_run(Nodeset *nodeset, const UA_ByteString *xml)
+{
+    if (!xml || (!xml->data && xml->length > 0) || xml->length == SIZE_MAX)
+        return UA_STATUSCODE_BADINVALIDARGUMENT;
     XmlToken tokenBuffer[64];
     XmlToken *tokens = tokenBuffer;
     size_t tokensCapacity = 64;
     /* Decoded names and leaf values cannot exceed their source XML size. */
-    XmlTextBuffer text = {(char*)malloc(elems + 1), 0, elems + 1};
-    if(!text.data) {
-        free(buf);
-        return false;
-    }
+    XmlTextBuffer text = {(char *)UA_malloc(xml->length + 1), 0,
+                          xml->length + 1};
+    if (!text.data)
+        return UA_STATUSCODE_BADOUTOFMEMORY;
 
-    XmlTokenizeResult result =
-        XmlTokenize(buf, elems, tokens, tokensCapacity, &text);
-    if(result.status == XML_TOKENIZE_OVERFLOW) {
+    XmlTokenizeResult result = XmlTokenize((const char *)xml->data, xml->length,
+                                           tokens, tokensCapacity, &text);
+    if (result.status == XML_TOKENIZE_OVERFLOW)
+    {
         tokensCapacity = result.tokensSize;
         tokens = NULL;
-        if(tokensCapacity <= SIZE_MAX / sizeof(XmlToken))
-            tokens = (XmlToken*)malloc(tokensCapacity * sizeof(XmlToken));
-        if(tokens)
-            result = XmlTokenize(buf, elems, tokens, tokensCapacity, &text);
+        if (tokensCapacity <= SIZE_MAX / sizeof(XmlToken))
+            tokens = (XmlToken *)UA_malloc(tokensCapacity * sizeof(XmlToken));
+        if (tokens)
+            result = XmlTokenize((const char *)xml->data, xml->length, tokens,
+                                 tokensCapacity, &text);
     }
 
     bool textOwned = false;
-    bool success = false;
-    if(tokens && result.status == XML_TOKENIZE_OK && result.tokensSize > 0) {
-        XmlCursor cursor = {tokens, result.tokensSize, 0, text.data, buf, elems};
-        if(Nodeset_ownTextBuffer(nodeset, text.data)) {
+    UA_StatusCode status = UA_STATUSCODE_BADDECODINGERROR;
+    if (tokens && result.status == XML_TOKENIZE_OK && result.tokensSize > 0)
+    {
+        XmlCursor cursor = {tokens,    result.tokensSize,       0,
+                            text.data, (const char *)xml->data, xml->length};
+        if (UA_NodeSet_ownTextBuffer(nodeset, text.data))
+        {
             textOwned = true;
         }
-        if(textOwned &&
-           ProcessElement(nodeset, &cursor, XML_SCOPE_DOCUMENT, NULL) &&
-           cursor.position == cursor.tokensSize)
-            success = true;
+        else
+        {
+            status = UA_STATUSCODE_BADOUTOFMEMORY;
+        }
+        if (textOwned &&
+            ProcessElement(nodeset, &cursor, XML_SCOPE_DOCUMENT, NULL) &&
+            cursor.position == cursor.tokensSize)
+            status = UA_STATUSCODE_GOOD;
+    }
+    else if (!tokens)
+    {
+        status = UA_STATUSCODE_BADOUTOFMEMORY;
     }
 
-    if(tokens != tokenBuffer)
-        free(tokens);
-    if(!textOwned)
-        free(text.data);
-    free(buf);
-    return success;
+    if (tokens != tokenBuffer)
+        UA_free(tokens);
+    if (!textOwned)
+        UA_free(text.data);
+    return status;
 }
 
-bool
-NodesetLoader_importFile(NodesetLoader *loader,
-                         const NL_FileContext *fileHandler) {
-    if(!loader)
-        return false;
-    if(!fileHandler) {
-        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: no filehandler - abort");
-        return false;
-    }
-
-    if(!fileHandler->addNamespace) {
-        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: fileHandler->addNamespace missing");
-        return false;
-    }
-
-    if(!fileHandler->file || !fileHandler->nsMapping) {
-        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: incomplete file context");
-        return false;
-    }
-
-    if(!loader->nodeset)
-        loader->nodeset = Nodeset_new(loader->logger);
-    if(!loader->nodeset)
-        return false;
-
-    FILE *f = fopen(fileHandler->file, "r");
-    if(!f) {
-        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: file open error");
-        return false;
-    }
-
-    loader->nodeset->fc = fileHandler;
-    bool success = Parser_run(loader->nodeset, f);
-    loader->nodeset->fc = NULL;
-    fclose(f);
-    if(!success)
-        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
-                     "NodesetLoader: xml parsing error");
-    return success;
+UA_StatusCode UA_NodeSetLoader_import(UA_NodeSetLoader *loader,
+                                      const UA_ByteString *xml)
+{
+    if (!loader || !loader->nodeset)
+        return UA_STATUSCODE_BADINVALIDARGUMENT;
+    return Parser_run(loader->nodeset, xml);
 }
 
-bool
-NodesetLoader_sort(NodesetLoader *loader) {
-    if(!loader)
+bool UA_NodeSetLoader_sort(UA_NodeSetLoader *loader)
+{
+    if (!loader)
         return false;
-    return Nodeset_sort(loader->nodeset);
+    return UA_NodeSet_sort(loader->nodeset);
 }
 
-NodesetLoader *
-NodesetLoader_new(UA_Logger *logger) {
-    if(!logger)
+UA_NodeSetLoader *UA_NodeSetLoader_new(UA_NodeSetLoaderContext *context)
+{
+    if (!context || !context->logger)
         return NULL;
 
-    NodesetLoader *loader = (NodesetLoader *)calloc(1, sizeof(NodesetLoader));
-    if(!loader)
+    UA_NodeSetLoader *loader =
+        (UA_NodeSetLoader *)UA_calloc(1, sizeof(UA_NodeSetLoader));
+    if (!loader)
         return NULL;
-    loader->logger = logger;
+    loader->nodeset = UA_NodeSet_new(context);
+    if (!loader->nodeset)
+    {
+        UA_free(loader);
+        return NULL;
+    }
     return loader;
 }
 
-void
-NodesetLoader_delete(NodesetLoader *loader) {
-    if(!loader)
+void UA_NodeSetLoader_delete(UA_NodeSetLoader *loader)
+{
+    if (!loader)
         return;
-    Nodeset_cleanup(loader->nodeset);
-    free(loader);
+    UA_NodeSet_cleanup(loader->nodeset);
+    UA_free(loader);
 }
 
-bool
-NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
-                          NodesetLoader_forEachNode_Func fn) {
-    if(!loader || !loader->nodeset || !fn)
+bool UA_NodeSetLoader_forEach(UA_NodeSetLoader *loader, void *context,
+                              UA_NodeSetLoaderVisitor fn)
+{
+    if (!loader || !loader->nodeset || !fn)
         return false;
-    for(NL_Node *node = loader->nodeset->sorted.head; node;
-        node = node->sortNext) {
-        if(!fn(context, node))
+    for (NL_Node *node = loader->nodeset->sorted.head; node;
+         node = node->sortNext)
+    {
+        if (!fn(context, node))
             return false;
     }
     return true;

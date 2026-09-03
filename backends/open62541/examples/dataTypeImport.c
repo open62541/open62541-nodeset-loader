@@ -2,7 +2,7 @@
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
 
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -25,15 +25,16 @@ static void addPoint(UA_Server *server)
         UA_NODEID_NUMERIC(0, UA_NS0ID_HASCOMPONENT),
         UA_QUALIFIEDNAME(1, "myVar"),
         UA_NODEID_NUMERIC(0, UA_NS0ID_BASEDATAVARIABLETYPE), attr, NULL, NULL);
-    
+
     struct Point p1 = {1, 2, 3};
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
 
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &p1,
-                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
+    UA_Variant_setScalar(
+        &var, &p1,
+        UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1000), var);
 }
 
@@ -64,8 +65,9 @@ static void addStructWithArray(UA_Server *server)
 
     UA_Variant var;
     UA_Variant_init(&var);
-    UA_Variant_setScalar(&var, &s,
-                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
+    UA_Variant_setScalar(
+        &var, &s,
+        UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
 
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1001), var);
 }
@@ -103,8 +105,9 @@ static void addStructWithPointArray(UA_Server *server)
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
 
-    UA_Variant_setScalar(&var, &structWithPointData,
-                         UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
+    UA_Variant_setScalar(
+        &var, &structWithPointData,
+        UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
 
     UA_StatusCode retval =
         UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1002), var);
@@ -119,13 +122,12 @@ int main(int argc, const char *argv[])
 
     for (int cnt = 1; cnt < argc; cnt++)
     {
-        if (!NodesetLoader_loadFile(server, argv[cnt], NULL))
+        if (UA_StatusCode_isBad(UA_Server_loadNodeset(server, argv[cnt])))
         {
             printf("nodeset could not be loaded, exit\n");
             return 1;
         }
     }
-
 
     addPoint(server);
     addStructWithArray(server);

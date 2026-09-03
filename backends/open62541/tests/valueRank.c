@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,31 +30,29 @@ static void teardown(void)
 
 START_TEST(import_ValueRank)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 
     UA_Variant var;
     UA_Variant_init(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var));
-    ck_assert(1==*(int*)var.data);
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6002), &var));
+    ck_assert(1 == *(int *)var.data);
     UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6003), &var));
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6003), &var));
     ck_assert(13 == ((int *)var.data)[1]);
     UA_Variant_clear(&var);
-    ck_assert(
-        UA_STATUSCODE_GOOD ==
-            UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var));
+    ck_assert(UA_STATUSCODE_GOOD ==
+              UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6004), &var));
     ck_assert(300 == ((int *)var.data)[2]);
     UA_Variant_clear(&var);
     ck_assert(UA_STATUSCODE_GOOD ==
               UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6005), &var));
     ck_assert(4 == ((int *)var.data)[4]);
     UA_Variant_clear(&var);
-    //should this really work?
-    //value rank = 1, no arrayDimensions and scalar value
+    // should this really work?
+    // value rank = 1, no arrayDimensions and scalar value
     ck_assert(UA_STATUSCODE_GOOD ==
               UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6006), &var));
     ck_assert(1 == *((int *)var.data));
@@ -62,14 +60,17 @@ START_TEST(import_ValueRank)
 
     // Test import of multi-dimensional arrays.
     // Test only ValueRank and ArrayDimensions attributes.
-    // TODO: test also imported value when importing multi-dimensional array values is supported.
+    // TODO: test also imported value when importing multi-dimensional array
+    // values is supported.
     UA_Int32 valueRank;
     ck_assert(UA_STATUSCODE_GOOD ==
-              UA_Server_readValueRank(server, UA_NODEID_NUMERIC(2, 6007), &valueRank));
+              UA_Server_readValueRank(server, UA_NODEID_NUMERIC(2, 6007),
+                                      &valueRank));
     ck_assert(valueRank == 2);
     UA_Variant dimensions;
     ck_assert(UA_STATUSCODE_GOOD ==
-              UA_Server_readArrayDimensions(server, UA_NODEID_NUMERIC(2, 6007), &dimensions));
+              UA_Server_readArrayDimensions(server, UA_NODEID_NUMERIC(2, 6007),
+                                            &dimensions));
     ck_assert(dimensions.arrayLength == 2);
     ck_assert(((UA_Int32 *)dimensions.data)[0] == 2);
     ck_assert(((UA_Int32 *)dimensions.data)[1] == 3);

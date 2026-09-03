@@ -9,7 +9,7 @@
 #include "check.h"
 
 #include "testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -30,8 +30,10 @@ static void teardown(void)
 
 START_TEST(Server_loadNodeset)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
-    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3002))==UA_NODECLASS_DATATYPE);
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
+    ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 3002)) ==
+              UA_NODECLASS_DATATYPE);
     ck_assert(getNodeClass(server, UA_NODEID_NUMERIC(2, 6008)) ==
               UA_NODECLASS_VARIABLE);
     struct Point
@@ -39,19 +41,20 @@ START_TEST(Server_loadNodeset)
         UA_Int32 x;
         UA_Int32 y;
         size_t size;
-        UA_Int32* scaleFactors;
+        UA_Int32 *scaleFactors;
     };
 
     UA_Variant var;
     UA_Variant_init(&var);
 
-    UA_StatusCode status = UA_Server_readValue(server, UA_NODEID_NUMERIC(2,6008), &var);
+    UA_StatusCode status =
+        UA_Server_readValue(server, UA_NODEID_NUMERIC(2, 6008), &var);
     ck_assert(status == UA_STATUSCODE_GOOD);
-    struct Point* p = (struct Point*)var.data;
-    ck_assert(p->x==10);
-    ck_assert(p->y==20);
-    ck_assert(p->size==4);
-    ck_assert(p->scaleFactors[3]==23);
+    struct Point *p = (struct Point *)var.data;
+    ck_assert(p->x == 10);
+    ck_assert(p->y == 20);
+    ck_assert(p->size == 4);
+    ck_assert(p->scaleFactors[3] == 23);
 
     UA_Variant_clear(&var);
 }

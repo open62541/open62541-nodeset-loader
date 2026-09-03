@@ -11,7 +11,7 @@
 #include <stdio.h>
 
 #include "../testHelper.h"
-#include <NodesetLoader/backendOpen62541.h>
+#include <NodesetLoader/NodesetLoader.h>
 
 UA_Server *server;
 char *nodesetPath = NULL;
@@ -32,7 +32,8 @@ static void teardown(void)
 
 START_TEST(TestByteString)
 {
-    ck_assert(NodesetLoader_loadFile(server, nodesetPath, NULL));
+    ck_assert_uint_eq(UA_Server_loadNodeset(server, nodesetPath),
+                      UA_STATUSCODE_GOOD);
 }
 END_TEST
 

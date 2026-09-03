@@ -18,9 +18,10 @@ Support parsing of extensions (via a callback interface)
 ## Contribution
 Feel free to work on issues or providing further tests to improve the quality of this library. You can start by forking this repository and opening pull requests on it.
 
-## dependencies
-xmlImport: yxml from the open62541 submodule for parsing the nodeset xml \
-unit testing: libcheck
+## Dependencies
+
+The loader uses yxml and ziptree from the open62541 submodule. Unit tests
+require libcheck.
 
 ## Design goals
 1) performance
@@ -33,16 +34,12 @@ cd build \
 cmake .. \
 make
 
-## Running the demo
-./parserDemo pathToNodesetFile1 pathToNodesetFile2
-  
 ## Integration with open62541
 
 ### example
 
 ```c
-#include <NodesetLoader/backendOpen62541.h>
-#include <NodesetLoader/dataTypes.h>
+#include <NodesetLoader/NodesetLoader.h>
 #include <open62541/plugin/log_stdout.h>
 #include <open62541/server.h>
 #include <open62541/server_config_default.h>
@@ -56,14 +53,12 @@ static void stopHandler(int sign) {
 int main(int argc, const char *argv[]) {
   UA_Server *server = UA_Server_new();
   UA_ServerConfig_setDefault(UA_Server_getConfig(server));
-  //provide the server and the path to nodeset
-  //returns true in case of successful import
-  if(!NodesetLoader_loadFile(server, "../Opc.Ua.Di.NodeSet2.xml", NULL))
+  // Provide the server and the path to the NodeSet XML file.
+  if(UA_StatusCode_isBad(UA_Server_loadNodeset(server, "../Opc.Ua.Di.NodeSet2.xml")))
   {
     UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "importing the xml nodeset failed");
   }
   UA_StatusCode retval = UA_Server_run(server, &running);
-  //NodesetLoader is allocating memory for custom dataTypes, user has to manually clean up
   UA_Server_delete(server);
   return retval == UA_STATUSCODE_GOOD ? EXIT_SUCCESS : EXIT_FAILURE;
 }
