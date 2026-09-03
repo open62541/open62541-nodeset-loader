@@ -152,7 +152,7 @@ handleObjectNode(const NL_ObjectNode *node, UA_NodeId *id,
     return UA_Server_addNode_begin(server, UA_NODECLASS_OBJECT, *id, *parentId,
                             *parentReferenceId, *qn, typeDefId, &oAttr,
                             &UA_TYPES[UA_TYPES_OBJECTATTRIBUTES],
-                            node->extension, NULL);
+                            NULL, NULL);
 }
 
 static UA_StatusCode
@@ -166,7 +166,7 @@ handleViewNode(const NL_ViewNode *node, UA_NodeId *id, const UA_NodeId *parentId
     attr.eventNotifier = (UA_Byte)atoi(node->eventNotifier);
     attr.containsNoLoops = isValTrue(node->containsNoLoops);
     return UA_Server_addViewNode(server, *id, *parentId, *parentReferenceId,
-                                 *qn, attr, node->extension, NULL);
+                                 *qn, attr, NULL, NULL);
 }
 
 static UA_StatusCode
@@ -182,7 +182,7 @@ handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
 
     return UA_Server_addMethodNode(server, *id, *parentId, *parentReferenceId,
                                    *qn, attr, NULL, 0, NULL, 0, NULL,
-                                   node->extension, NULL);
+                                   NULL, NULL);
 }
 
 static size_t
@@ -274,7 +274,7 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     ret = UA_Server_addNode_begin(server, UA_NODECLASS_VARIABLE, *id, *parentId,
                                   *parentReferenceId, *qn, typeDefId, &attr,
                                   &UA_TYPES[UA_TYPES_VARIABLEATTRIBUTES],
-                                  node->extension, NULL);
+                                  NULL, NULL);
     //cannot call addNode finish, otherwise the nodes for e.g. range will be instantiated twice
     //UA_Server_addNode_finish(server, *id);
 
@@ -299,7 +299,7 @@ handleObjectTypeNode(const NL_ObjectTypeNode *node, UA_NodeId *id,
 
     return UA_Server_addObjectTypeNode(server, *id, *parentId,
                                        *parentReferenceId, *qn,
-                                       oAttr, node->extension, NULL);
+                                       oAttr, NULL, NULL);
 }
 
 static UA_StatusCode
@@ -316,7 +316,7 @@ handleReferenceTypeNode(const NL_ReferenceTypeNode *node,
     attr.description = *description;
     attr.inverseName = node->inverseName;
     return UA_Server_addReferenceTypeNode(server, *id, *parentId, *parentReferenceId,
-                                   *qn, attr, node->extension, NULL);
+                                   *qn, attr, NULL, NULL);
 }
 
 static UA_StatusCode
@@ -344,7 +344,7 @@ handleVariableTypeNode(const NL_VariableTypeNode *node, UA_NodeId *id,
                                   *id, *parentId, *parentReferenceId, *qn,
                                   UA_NODEID_NULL, &attr,
                                   &UA_TYPES[UA_TYPES_VARIABLETYPEATTRIBUTES],
-                                  node->extension, NULL);
+                                  NULL, NULL);
 }
 
 static UA_StatusCode
@@ -365,7 +365,7 @@ handleDataTypeNode(AddNodeContext *ctx,
     attr.isAbstract = isValTrue(node->isAbstract);
     return UA_Server_addDataTypeNode(ctx->server, *id, *parentId,
                                      *parentReferenceId, *qn,
-                                     attr, node->extension, NULL);
+                                     attr, NULL, NULL);
 }
 
 static bool
@@ -499,7 +499,8 @@ addNodes(NodesetLoader *loader, AddNodeContext *anc) {
 
 bool
 NodesetLoader_loadFile(struct UA_Server *server, const char *path,
-                       NodesetLoader_ExtensionInterface *extensionHandling) {
+                       void *options) {
+    (void)options;
     if(!server)
         return false;
 
@@ -522,7 +523,6 @@ NodesetLoader_loadFile(struct UA_Server *server, const char *path,
     handler.addNamespace = NodesetLoader_BackendOpen62541_addNamespace;
     handler.userContext = &ctx;
     handler.file = path;
-    handler.extensionHandling = extensionHandling;
     handler.nsMapping = &ctx.nsMapping; // Provide the pre-filled mapping
 
     logger->log(logger->context, NODESETLOADER_LOGLEVEL_DEBUG,

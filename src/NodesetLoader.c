@@ -31,8 +31,6 @@
 #define NAMESPACEURIS "NamespaceUris"
 #define NAMESPACEURI "Uri"
 #define VALUE "Value"
-#define EXTENSIONS "Extensions"
-#define EXTENSION "Extension"
 #define INVERSENAME "InverseName"
 
 const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
@@ -271,7 +269,6 @@ XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
 }
 
 typedef struct {
-    NodesetLoader_ExtensionInterface *extIf;
     Nodeset *nodeset;
 } ParserContext;
 
@@ -291,9 +288,7 @@ typedef enum {
     XML_SCOPE_NODE,
     XML_SCOPE_NAMESPACE_URIS,
     XML_SCOPE_REFERENCES,
-    XML_SCOPE_DEFINITION,
-    XML_SCOPE_EXTENSIONS,
-    XML_SCOPE_EXTENSION
+    XML_SCOPE_DEFINITION
 } XmlScope;
 
 #define XML_ATTRIBUTE_STACK_SIZE 16
@@ -400,17 +395,16 @@ XmlToken_copyLeafContent(ParserContext *context, XmlCursor *cursor,
 
 static bool
 ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
-               NL_Node *node, void *extensionData);
+               NL_Node *node);
 
 static bool
 ProcessChildren(ParserContext *context, XmlCursor *cursor,
-                const XmlToken *element, XmlScope scope, NL_Node *node,
-                void *extensionData) {
+                const XmlToken *element, XmlScope scope, NL_Node *node) {
     if(element->subtreeEnd < cursor->position ||
        element->subtreeEnd > cursor->tokensSize)
         return false;
     while(cursor->position < element->subtreeEnd) {
-        if(!ProcessElement(context, cursor, scope, node, extensionData))
+        if(!ProcessElement(context, cursor, scope, node))
             return false;
     }
     return cursor->position == element->subtreeEnd;
@@ -418,7 +412,7 @@ ProcessChildren(ParserContext *context, XmlCursor *cursor,
 
 static bool
 ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
-               NL_Node *node, void *extensionData) {
+               NL_Node *node) {
     if(cursor->position >= cursor->tokensSize)
         return false;
 
@@ -450,10 +444,10 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             NL_Node *newNode = Nodeset_newNode(context->nodeset, nodeClass,
                                                attributesSize, attributes);
             return ProcessChildren(context, cursor, element, XML_SCOPE_NODE,
-                                   newNode, NULL);
+                                   newNode);
         } else if(!strcmp(name, NAMESPACEURIS)) {
             return ProcessChildren(context, cursor, element,
-                                   XML_SCOPE_NAMESPACE_URIS, NULL, NULL);
+                                   XML_SCOPE_NAMESPACE_URIS, NULL);
         } else if(!strcmp(name, ALIAS)) {
             if(!XmlToken_attributes(cursor, element, attributePosition,
                                     &attributes, &attributesSize))
@@ -467,10 +461,9 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             Nodeset_newAliasFinish(context->nodeset, alias, content);
             return true;
         } else if(!strcmp(name, "UANodeSet") ||
-                  !strcmp(name, "Aliases") ||
-                  !strcmp(name, "Extensions")) {
+                  !strcmp(name, "Aliases")) {
             return ProcessChildren(context, cursor, element,
-                                   XML_SCOPE_DOCUMENT, NULL, NULL);
+                                   XML_SCOPE_DOCUMENT, NULL);
         }
     } else if(scope == XML_SCOPE_NODE) {
         if(!strcmp(name, DISPLAYNAME)) {
@@ -486,7 +479,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             return true;
         } else if(!strcmp(name, REFERENCES)) {
             return ProcessChildren(context, cursor, element,
-                                   XML_SCOPE_REFERENCES, node, NULL);
+                                   XML_SCOPE_REFERENCES, node);
         } else if(!strcmp(name, DESCRIPTION)) {
             if(!XmlToken_attributes(cursor, element, attributePosition,
                                     &attributes, &attributesSize))
@@ -511,9 +504,6 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             };
             return UA_String_copy(&xmlValue, &((NL_VariableNode*)node)->value) ==
                 UA_STATUSCODE_GOOD;
-        } else if(!strcmp(name, EXTENSIONS)) {
-            return ProcessChildren(context, cursor, element,
-                                   XML_SCOPE_EXTENSIONS, node, NULL);
         } else if(!strcmp(name, "Definition") &&
                   node->nodeClass == NODECLASS_DATATYPE) {
             if(!XmlToken_attributes(cursor, element, attributePosition,
@@ -522,7 +512,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             Nodeset_addDataTypeDefinition(context->nodeset, node,
                                           attributesSize, attributes);
             return ProcessChildren(context, cursor, element,
-                                   XML_SCOPE_DEFINITION, node, NULL);
+                                   XML_SCOPE_DEFINITION, node);
         } else if(!strcmp(name, INVERSENAME)) {
             if(!XmlToken_attributes(cursor, element, attributePosition,
                                     &attributes, &attributesSize))
@@ -567,35 +557,6 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             cursor->position = element->subtreeEnd;
             return true;
         }
-    } else if(scope == XML_SCOPE_EXTENSIONS) {
-        if(!strcmp(name, EXTENSION)) {
-            if(!context->extIf) {
-                cursor->position = element->subtreeEnd;
-                return true;
-            }
-            void *newExtensionData = context->extIf->newExtension();
-            if(!ProcessChildren(context, cursor, element,
-                                XML_SCOPE_EXTENSION, node,
-                                newExtensionData))
-                return false;
-            context->extIf->finish(newExtensionData);
-            node->extension = newExtensionData;
-            return true;
-        }
-    } else if(scope == XML_SCOPE_EXTENSION) {
-        if(!XmlToken_attributes(cursor, element, attributePosition,
-                                &attributes, &attributesSize))
-            return false;
-        context->extIf->start(extensionData, name, (int)attributesSize,
-                              attributes);
-        if(!ProcessChildren(context, cursor, element, XML_SCOPE_EXTENSION,
-                            node, extensionData))
-            return false;
-        char *content = NULL;
-        if(!XmlToken_copyContent(context, cursor, element, &content))
-            return false;
-        context->extIf->end(extensionData, name, content);
-        return true;
     }
 
     /* Unknown elements are irrelevant together with their entire subtree. */
@@ -668,7 +629,7 @@ Parser_run(ParserContext *context, FILE *file) {
         XmlCursor cursor = {tokens, result.tokensSize, 0, &text, buf, elems,
                             attributeBuffer, attributesCapacity};
         if(attributeBuffer &&
-           ProcessElement(context, &cursor, XML_SCOPE_DOCUMENT, NULL, NULL) &&
+           ProcessElement(context, &cursor, XML_SCOPE_DOCUMENT, NULL) &&
            cursor.position == cursor.tokensSize)
             ret = 0;
     }
@@ -716,7 +677,6 @@ NodesetLoader_importFile(NodesetLoader *loader,
         goto cleanup;
     }
 
-    ctx.extIf = fileHandler->extensionHandling;
     ctx.nodeset = loader->nodeset;
     ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
 
