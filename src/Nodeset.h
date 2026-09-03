@@ -20,6 +20,28 @@ typedef struct AliasList AliasList;
 struct NodesetTextBuffer;
 typedef struct NodesetTextBuffer NodesetTextBuffer;
 
+typedef enum {
+    XML_TOKEN_ELEMENT,
+    XML_TOKEN_ATTRIBUTE
+} XmlTokenType;
+
+typedef struct {
+    XmlTokenType type;
+    size_t name;
+    size_t content;
+    size_t contentLength;
+    size_t attributes;
+    size_t subtreeEnd;
+    size_t start;
+    size_t end;
+} XmlToken;
+
+typedef struct {
+    const XmlToken *tokens;
+    size_t size;
+    char *text;
+} XmlAttributes;
+
 typedef struct {
     NL_Node **nodes;
     size_t size;
@@ -43,27 +65,23 @@ bool Nodeset_ownTextBuffer(Nodeset *nodeset, char *data);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                         size_t attributeSize, const char **attributes);
+                         const XmlAttributes *attributes);
 NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
-                                   size_t attributeSize, const char **attributes);
+                                   const XmlAttributes *attributes);
 void Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
                                  char *idString);
-Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
-                        const char **attribute);
+Alias *Nodeset_newAlias(Nodeset *nodeset, const XmlAttributes *attributes);
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias,
                             char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri);
-void Nodeset_addDataTypeDefinition(NL_Node *node, size_t attributeSize,
-                                   const char **attributes);
+void Nodeset_addDataTypeDefinition(NL_Node *node,
+                                   const XmlAttributes *attributes);
 void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              size_t attributeSize, const char **attributes);
-void Nodeset_setDisplayName(NL_Node *node, size_t attributeSize,
-                            const char **attributes);
+                              const XmlAttributes *attributes);
+void Nodeset_setDisplayName(NL_Node *node, const XmlAttributes *attributes);
 void Nodeset_DisplayNameFinish(NL_Node *node, char *text);
-void Nodeset_setDescription(NL_Node *node, size_t attributeSize,
-                            const char **attributes);
+void Nodeset_setDescription(NL_Node *node, const XmlAttributes *attributes);
 void Nodeset_DescriptionFinish(NL_Node *node, char *text);
-void Nodeset_setInverseName(NL_Node *node, size_t attributeSize,
-                            const char **attributes);
+void Nodeset_setInverseName(NL_Node *node, const XmlAttributes *attributes);
 void Nodeset_InverseNameFinish(NL_Node *node, char *text);
 #endif

@@ -429,14 +429,17 @@ void Nodeset_cleanup(Nodeset *nodeset) {
 }
 
 static char *
-getAttributeValue(const NodeAttribute *attr, const char **attributes,
-                  size_t nb_attributes) {
-    const size_t fields = 5;
-    for (size_t i = 0; i < nb_attributes; i++) {
-        const char *localname = attributes[i * fields + 0];
-        if(strcmp((const char *)localname, attr->name))
+getAttributeValue(const NodeAttribute *attr,
+                  const XmlAttributes *attributes) {
+    for(size_t i = 0; i < attributes->size; i++) {
+        const XmlToken *token = &attributes->tokens[i];
+        const char *name = attributes->text + token->name;
+        const char *colon = strrchr(name, ':');
+        if(colon)
+            name = colon + 1;
+        if(strcmp(name, attr->name))
             continue;
-        return (char*)(uintptr_t)attributes[i * fields + 3];
+        return attributes->text + token->content;
     }
 
     // we return the defaultValue, if NULL or not, following code has to cope
@@ -446,77 +449,75 @@ getAttributeValue(const NodeAttribute *attr, const char **attributes,
 
 static void
 extractAttributes(Nodeset *nodeset, NL_Node *node,
-                  size_t attributeSize, const char **attributes) {
+                  const XmlAttributes *attributes) {
     node->id =
-        parseNodeId(nodeset, getAttributeValue(&attrNodeId,
-                                               attributes, attributeSize));
+        parseNodeId(nodeset, getAttributeValue(&attrNodeId, attributes));
     node->browseName =
-        parseQualifiedName(nodeset, getAttributeValue(&attrBrowseName,
-                                                      attributes, attributeSize));
+        parseQualifiedName(nodeset,
+                           getAttributeValue(&attrBrowseName, attributes));
     switch (node->nodeClass) {
     case NODECLASS_OBJECTTYPE:
         ((NL_ObjectTypeNode *)node)->isAbstract =
-            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes);
         break;
 
     case NODECLASS_OBJECT:
         ((NL_ObjectNode *)node)->eventNotifier =
-            getAttributeValue(&attrEventNotifier, attributes, attributeSize);
+            getAttributeValue(&attrEventNotifier, attributes);
         break;
 
     case NODECLASS_VARIABLE: {
-        char *datatype = getAttributeValue(&attrDataType, attributes,
-                                           attributeSize);
+        char *datatype = getAttributeValue(&attrDataType, attributes);
         ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((NL_VariableNode *)node)->valueRank =
-            getAttributeValue(&attrValueRank, attributes, attributeSize);
+            getAttributeValue(&attrValueRank, attributes);
         ((NL_VariableNode *)node)->minimumSamplingInterval =
-            getAttributeValue(&attrMinimumSamplingInterval, attributes, attributeSize);
+            getAttributeValue(&attrMinimumSamplingInterval, attributes);
         ((NL_VariableNode *)node)->arrayDimensions =
-            getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
+            getAttributeValue(&attrArrayDimensions, attributes);
         ((NL_VariableNode *)node)->accessLevel =
-            getAttributeValue(&attrAccessLevel, attributes, attributeSize);
+            getAttributeValue(&attrAccessLevel, attributes);
         ((NL_VariableNode *)node)->userAccessLevel =
-            getAttributeValue(&attrUserAccessLevel, attributes, attributeSize);
+            getAttributeValue(&attrUserAccessLevel, attributes);
         ((NL_VariableNode *)node)->historizing =
-            getAttributeValue(&attrHistorizing, attributes, attributeSize);
+            getAttributeValue(&attrHistorizing, attributes);
         break;
     }
 
     case NODECLASS_VARIABLETYPE: {
         ((NL_VariableTypeNode *)node)->valueRank =
-            getAttributeValue(&attrValueRank, attributes, attributeSize);
-        char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
+            getAttributeValue(&attrValueRank, attributes);
+        char *datatype = getAttributeValue(&attrDataType, attributes);
         ((NL_VariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((NL_VariableTypeNode *)node)->arrayDimensions =
-            getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
+            getAttributeValue(&attrArrayDimensions, attributes);
         ((NL_VariableTypeNode *)node)->isAbstract =
-            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes);
         break;
     }
 
     case NODECLASS_DATATYPE:
         ((NL_DataTypeNode *)node)->isAbstract =
-            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes);
         break;
 
     case NODECLASS_METHOD:
         ((NL_MethodNode *)node)->executable =
-            getAttributeValue(&attrExecutable, attributes, attributeSize);
+            getAttributeValue(&attrExecutable, attributes);
         ((NL_MethodNode *)node)->userExecutable =
-            getAttributeValue(&attrUserExecutable, attributes, attributeSize);
+            getAttributeValue(&attrUserExecutable, attributes);
         break;
 
     case NODECLASS_REFERENCETYPE:
         ((NL_ReferenceTypeNode *)node)->symmetric =
-            getAttributeValue(&attrSymmetric, attributes, attributeSize);
+            getAttributeValue(&attrSymmetric, attributes);
         break;
 
     case NODECLASS_VIEW:
         ((NL_ViewNode *)node)->containsNoLoops =
-            getAttributeValue(&attrContainsNoLoops, attributes, attributeSize);
+            getAttributeValue(&attrContainsNoLoops, attributes);
         ((NL_ViewNode *)node)->eventNotifier =
-            getAttributeValue(&attrEventNotifier, attributes, attributeSize);
+            getAttributeValue(&attrEventNotifier, attributes);
         break;
 
     default:
@@ -526,10 +527,10 @@ extractAttributes(Nodeset *nodeset, NL_Node *node,
 
 NL_Node *
 Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
-                size_t nb_attributes, const char **attributes) {
+                const XmlAttributes *attributes) {
     NL_Node *node = Node_new(nodeClass);
     node->nodeClass = nodeClass;
-    extractAttributes(nodeset, node, nb_attributes, attributes);
+    extractAttributes(nodeset, node, attributes);
     NodeContainer_add(&nodeset->nodes[node->nodeClass], node);
     NodeContainer_add(&nodeset->allNodes, node);
     return node;
@@ -537,11 +538,11 @@ Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
 
 NL_Reference *
 Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
-                     size_t attributeSize, const char **attributes) {
+                     const XmlAttributes *attributes) {
     NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
 
     char *isForwardString =
-        getAttributeValue(&attrIsForward, attributes, attributeSize);
+        getAttributeValue(&attrIsForward, attributes);
     if(!strcmp("true", isForwardString)) {
         newRef->isForward = true;
     } else {
@@ -549,7 +550,7 @@ Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
     }
 
     char *aliasIdString =
-        getAttributeValue(&attrReferenceType, attributes, attributeSize);
+        getAttributeValue(&attrReferenceType, attributes);
     newRef->refType = alias2Id(nodeset, aliasIdString);
 
     newRef->next = node->refs;
@@ -573,53 +574,49 @@ DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
     return &def->fields[def->fieldCnt - 1];
 }
 
-void Nodeset_addDataTypeDefinition(NL_Node *node, size_t attributeSize,
-                                   const char **attributes) {
+void Nodeset_addDataTypeDefinition(NL_Node *node,
+                                   const XmlAttributes *attributes) {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     dataTypeNode->definition = (NL_DataTypeDefinition *)
         calloc(1, sizeof(NL_DataTypeDefinition));
     dataTypeNode->definition->isUnion =
         !strcmp("true", getAttributeValue(&dataTypeDefinition_IsUnion,
-                                          attributes, attributeSize));
+                                          attributes));
     dataTypeNode->definition->isOptionSet =
         !strcmp("true", getAttributeValue(&dataTypeDefinition_IsOptionSet,
-                                          attributes, attributeSize));
+                                          attributes));
 }
 
 void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
-                              size_t attributeSize, const char **attributes) {
+                              const XmlAttributes *attributes) {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
 
     NL_DataTypeDefinitionField *newField =
         DataTypeNode_addDefinitionField(dataTypeNode->definition);
     memset(newField, 0, sizeof(NL_DataTypeDefinitionField));
 
-    newField->name = getAttributeValue(&dataTypeField_Name, attributes,
-                                       attributeSize);
+    newField->name = getAttributeValue(&dataTypeField_Name, attributes);
 
-    char *value = getAttributeValue(&dataTypeField_Value, attributes,
-                                    attributeSize);
+    char *value = getAttributeValue(&dataTypeField_Value, attributes);
     if (value) {
         newField->value = atoi(value);
         dataTypeNode->definition->isEnum =
             !dataTypeNode->definition->isOptionSet;
     } else {
         newField->dataType = alias2Id(
-            nodeset, getAttributeValue(&dataTypeField_DataType,
-                                       attributes, attributeSize));
-        newField->valueRank = atoi(getAttributeValue(
-            &attrValueRank, attributes, attributeSize));
-        char *isOptional = getAttributeValue(&dataTypeField_IsOptional,
-                                             attributes, attributeSize);
+            nodeset, getAttributeValue(&dataTypeField_DataType, attributes));
+        newField->valueRank = atoi(getAttributeValue(&attrValueRank,
+                                                     attributes));
+        char *isOptional =
+            getAttributeValue(&dataTypeField_IsOptional, attributes);
         newField->isOptional = !strcmp("true", isOptional);
     }
 }
 
 Alias *
-Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize, const char **attributes) {
+Nodeset_newAlias(Nodeset *nodeset, const XmlAttributes *attributes) {
     return AliasList_newAlias(nodeset->aliasList,
-                              getAttributeValue(&attrAlias,
-                                                attributes, attributeSize));
+                              getAttributeValue(&attrAlias, attributes));
 }
 
 void
@@ -635,10 +632,9 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri) {
 }
 
 void
-Nodeset_setDisplayName(NL_Node *node, size_t attributeSize,
-                       const char **attributes) {
+Nodeset_setDisplayName(NL_Node *node, const XmlAttributes *attributes) {
     node->displayName.locale =
-        UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
+        UA_STRING(getAttributeValue(&attrLocale, attributes));
 }
 
 void
@@ -647,10 +643,9 @@ Nodeset_DisplayNameFinish(NL_Node *node, char *text) {
 }
 
 void
-Nodeset_setDescription(NL_Node *node, size_t attributeSize,
-                       const char **attributes) {
+Nodeset_setDescription(NL_Node *node, const XmlAttributes *attributes) {
     node->description.locale =
-        UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
+        UA_STRING(getAttributeValue(&attrLocale, attributes));
 }
 
 void
@@ -659,11 +654,10 @@ Nodeset_DescriptionFinish(NL_Node *node, char *text) {
 }
 
 void
-Nodeset_setInverseName(NL_Node *node, size_t attributeSize,
-                       const char **attributes) {
+Nodeset_setInverseName(NL_Node *node, const XmlAttributes *attributes) {
     if (node->nodeClass == NODECLASS_REFERENCETYPE) {
         ((NL_ReferenceTypeNode *)node)->inverseName.locale =
-            UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
+            UA_STRING(getAttributeValue(&attrLocale, attributes));
     }
 }
 
