@@ -11,6 +11,10 @@ option(ENABLE_ASAN "build with address sanitizer enabled" OFF)
 option(ENABLE_DATATYPEIMPORT_TEST "run tests for importing datatypes" OFF)
 option(CALC_COVERAGE "calculate code coverage" OFF)
 
+# The legacy address-space comparison tests are not maintained and were
+# already forcibly disabled before the CMake cleanup.
+set(ENABLE_INTEGRATION_TEST OFF)
+
 set(NODESETLOADER_OPEN62541_DIR ${CMAKE_CURRENT_SOURCE_DIR}/deps/open62541)
 if(NOT EXISTS ${NODESETLOADER_OPEN62541_DIR}/CMakeLists.txt OR
    NOT EXISTS ${NODESETLOADER_OPEN62541_DIR}/deps/yxml.c OR
