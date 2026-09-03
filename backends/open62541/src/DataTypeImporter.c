@@ -202,6 +202,19 @@ EnumDataType_init(AddNodeContext *ctx, UA_DataType *enumType,
             enumType->typeKind = parentType->typeKind;
             enumType->overlayable = parentType->overlayable;
             enumType->memSize = parentType->memSize;
+        } else if(parentType &&
+                  (parentType->typeKind == UA_DATATYPEKIND_STRUCTURE ||
+                   parentType->typeKind == UA_DATATYPEKIND_OPTSTRUCT)) {
+            enumType->typeKind = parentType->typeKind;
+            enumType->pointerFree = parentType->pointerFree;
+            enumType->overlayable = parentType->overlayable;
+            enumType->memSize = parentType->memSize;
+
+            /* The fields in an OptionSet definition describe its bits, not
+             * its binary members. Reuse only the parent's representation. */
+            NL_DataTypeNode parentOnly = *node;
+            parentOnly.definition = NULL;
+            return addDataTypeMembers(ctx, enumType, &parentOnly, parent);
         }
     }
     return addEnumMembers(ctx, enumType, node);
