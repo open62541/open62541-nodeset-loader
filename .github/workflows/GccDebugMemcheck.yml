@@ -43,9 +43,6 @@ jobs:
       - name: Install lcov
         run: sudo apt-get install lcov
 
-      - name: Lnstall libxml2
-        run: sudo apt-get install libxml2-dev
-
       # open62541
       - uses: actions/checkout@v4
         with:

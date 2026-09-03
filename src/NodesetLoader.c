@@ -7,12 +7,13 @@
  */
 
 #include "Nodeset.h"
-#include <assert.h>
+#include <limits.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
-#include <libxml/parser.h>
+#include <yxml.h>
 
 #define OBJECT "UAObject"
 #define METHOD "UAMethod"
@@ -44,352 +45,641 @@ struct NodesetLoader {
 };
 
 typedef enum {
-    PARSER_STATE_INIT,
-    PARSER_STATE_NODE,
-    PARSER_STATE_DISPLAYNAME,
-    PARSER_STATE_REFERENCES,
-    PARSER_STATE_REFERENCE,
-    PARSER_STATE_DESCRIPTION,
-    PARSER_STATE_INVERSENAME,
-    PARSER_STATE_ALIAS,
-    PARSER_STATE_NAMESPACEURIS,
-    PARSER_STATE_URI,
-    PARSER_STATE_VALUE,
-    PARSER_STATE_EXTENSION,
-    PARSER_STATE_EXTENSIONS,
-    PARSER_STATE_DATATYPE_DEFINITION,
-    PARSER_STATE_DATATYPE_DEFINITION_FIELD
-} TParserState;
+    XML_TOKEN_ELEMENT,
+    XML_TOKEN_ATTRIBUTE
+} XmlTokenType;
 
 typedef struct {
-    void *userContext;
-    TParserState state;
-    size_t unknown_depth;
-    size_t value_depth;
-    NL_NodeClass nodeClass;
-    NL_Node *node;
-    struct Alias *alias;
-    char *onCharacters;
-    size_t onCharLength;
-    long valueBegin;
-    void *extensionData;
-    NodesetLoader_ExtensionInterface *extIf;
-    NL_Reference *ref;
-    Nodeset *nodeset;
-    xmlParserCtxtPtr ctxt;
-    char *buf;
-} TParserCtx;
+    XmlTokenType type;
+    size_t name;
+    size_t content;
+    size_t contentLength;
+    size_t attributes;
+    size_t subtreeEnd;
+    size_t start;
+    size_t end;
+} XmlToken;
 
-static void
-OnStartElementNs(void *ctx, const char *localname,
-                 const char *prefix, const char *URI,
-                 int nb_namespaces, const char **namespaces,
-                 int nb_attributes, int nb_defaulted,
-                 const char **attributes) {
-    TParserCtx *pctx = (TParserCtx*)ctx;
+typedef enum {
+    XML_TOKENIZE_OK,
+    XML_TOKENIZE_INVALID,
+    XML_TOKENIZE_OVERFLOW
+} XmlTokenizeStatus;
 
-    /* We are below an unknown element */
-    if(pctx->unknown_depth > 0) {
-        pctx->unknown_depth++;
-        return;
-    }
+typedef struct {
+    XmlTokenizeStatus status;
+    size_t tokensSize;
+} XmlTokenizeResult;
 
-    switch (pctx->state) {
-    case PARSER_STATE_INIT:
-        if(!strcmp(localname, VARIABLE)) {
-            pctx->nodeClass = NODECLASS_VARIABLE;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, OBJECT)) {
-            pctx->nodeClass = NODECLASS_OBJECT;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, OBJECTTYPE)) {
-            pctx->nodeClass = NODECLASS_OBJECTTYPE;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, DATATYPE)) {
-            pctx->nodeClass = NODECLASS_DATATYPE;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, METHOD)) {
-            pctx->nodeClass = NODECLASS_METHOD;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, REFERENCETYPE)) {
-            pctx->nodeClass = NODECLASS_REFERENCETYPE;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, VARIABLETYPE)) {
-            pctx->nodeClass = NODECLASS_VARIABLETYPE;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, VIEW)) {
-            pctx->nodeClass = NODECLASS_VIEW;
-            pctx->node = Nodeset_newNode(pctx->nodeset, pctx->nodeClass,
-                                         (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_NODE;
-        } else if(!strcmp(localname, NAMESPACEURIS)) {
-            pctx->state = PARSER_STATE_NAMESPACEURIS;
-        } else if(!strcmp(localname, ALIAS)) {
-            pctx->state = PARSER_STATE_ALIAS;
-            pctx->node = NULL;
-            pctx->alias = Nodeset_newAlias(pctx->nodeset, (size_t)nb_attributes,
-                                           attributes);
-            pctx->state = PARSER_STATE_ALIAS;
-        } else if(!strcmp(localname, "UANodeSet") ||
-                  !strcmp(localname, "Aliases") ||
-                  !strcmp(localname, "Extensions")) {
-            pctx->state = PARSER_STATE_INIT;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_NAMESPACEURIS:
-        if (!strcmp(localname, NAMESPACEURI)) {
-            pctx->state = PARSER_STATE_URI;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_URI:
-        pctx->unknown_depth++;
-        return;
-    case PARSER_STATE_NODE:
-        if (!strcmp(localname, DISPLAYNAME)) {
-            Nodeset_setDisplayName(pctx->nodeset, pctx->node,
-                                   (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_DISPLAYNAME;
-        } else if (!strcmp(localname, REFERENCES)) {
-            pctx->state = PARSER_STATE_REFERENCES;
-        } else if (!strcmp(localname, DESCRIPTION)) {
-            pctx->state = PARSER_STATE_DESCRIPTION;
-            Nodeset_setDescription(pctx->nodeset, pctx->node,
-                                   (size_t)nb_attributes, attributes);
-        } else if (!strcmp(localname, VALUE)) {
-            pctx->state = PARSER_STATE_VALUE;
-            pctx->value_depth++;
-            pctx->valueBegin = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-            while(pctx->buf[pctx->valueBegin] != '<')
-                pctx->valueBegin--;
-        } else if (!strcmp(localname, EXTENSIONS)) {
-            pctx->state = PARSER_STATE_EXTENSIONS;
-        } else if (!strcmp(localname, "Definition")) {
-            pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
-            Nodeset_addDataTypeDefinition(pctx->nodeset, pctx->node,
-                                          (size_t)nb_attributes, attributes);
-        } else if (!strcmp(localname, INVERSENAME)) {
-            pctx->state = PARSER_STATE_INVERSENAME;
-            Nodeset_setInverseName(pctx->nodeset, pctx->node,
-                                   (size_t)nb_attributes, attributes);
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
+typedef struct {
+    char *data;
+    size_t size;
+    size_t capacity;
+} XmlTextBuffer;
 
-    case PARSER_STATE_DATATYPE_DEFINITION:
-        if (!strcmp(localname, "Field")) {
-            Nodeset_addDataTypeField(pctx->nodeset, pctx->node,
-                                     (size_t)nb_attributes, attributes);
-            pctx->state = PARSER_STATE_DATATYPE_DEFINITION_FIELD;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
+#define XML_TOKEN_STACK_SIZE 128
+#define XML_YXML_STACK_SIZE 4096
 
-    case PARSER_STATE_VALUE:
-        if(!strcmp(localname, VALUE))
-            pctx->value_depth++; /* Nested <Value> elements */
-        break;
-
-    case PARSER_STATE_EXTENSIONS:
-        if (!strcmp(localname, EXTENSION)) {
-            if(pctx->extIf)
-                pctx->extensionData = pctx->extIf->newExtension();
-            pctx->state = PARSER_STATE_EXTENSION;
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    case PARSER_STATE_EXTENSION:
-        if(pctx->extIf) {
-            pctx->extIf->start(pctx->extensionData, localname,
-                               nb_attributes, attributes);
-        }
-        break;
-
-    case PARSER_STATE_REFERENCES:
-        if(!strcmp(localname, REFERENCE)) {
-            pctx->state = PARSER_STATE_REFERENCE;
-            pctx->ref = Nodeset_newReference(pctx->nodeset, pctx->node,
-                                             (size_t)nb_attributes, attributes);
-        } else {
-            pctx->unknown_depth++;
-            return;
-        }
-        break;
-    default:
-        pctx->unknown_depth++;
-        return;
-    }
-    pctx->onCharacters = NULL;
-    pctx->onCharLength = 0;
+static bool
+XmlTextBuffer_append(XmlTextBuffer *buf, const char *data, size_t length) {
+    if(buf->size > buf->capacity || length > buf->capacity - buf->size)
+        return false;
+    memcpy(buf->data + buf->size, data, length);
+    buf->size += length;
+    return true;
 }
 
-static void
-OnEndElementNs(void *ctx, const char *localname,
-               const char *prefix, const char *URI) {
-    TParserCtx *pctx = (TParserCtx*)ctx;
-    
-    if(pctx->unknown_depth > 0) {
-        pctx->unknown_depth--;
-        return;
+static bool
+XmlTextBuffer_appendName(XmlTextBuffer *buf, const char *name,
+                         size_t length, size_t *offset) {
+    *offset = buf->size;
+    return XmlTextBuffer_append(buf, name, length) &&
+        XmlTextBuffer_append(buf, "", 1);
+}
+
+static XmlTokenizeResult
+XmlTokenize(const char *xml, size_t xmlLength, XmlToken *tokens,
+            size_t maxTokens, XmlTextBuffer *text) {
+    XmlTokenizeResult result;
+    memset(&result, 0, sizeof(result));
+
+    text->size = 0;
+    if(!XmlTextBuffer_append(text, "", 1)) {
+        result.status = XML_TOKENIZE_INVALID;
+        return result;
     }
 
-    switch (pctx->state) {
-    default:
-        break;
-    case PARSER_STATE_ALIAS:
-        Nodeset_newAliasFinish(pctx->nodeset, pctx->alias, pctx->onCharacters);
-        pctx->state = PARSER_STATE_INIT;
-        break;
-    case PARSER_STATE_URI:
-        Nodeset_newNamespaceFinish(pctx->nodeset, pctx->userContext, pctx->onCharacters);
-        pctx->state = PARSER_STATE_NAMESPACEURIS;
-        break;
-    case PARSER_STATE_NAMESPACEURIS:
-        pctx->state = PARSER_STATE_INIT;
-        break;
-    case PARSER_STATE_NODE:
-        pctx->state = PARSER_STATE_INIT;
-        break;
-    case PARSER_STATE_DISPLAYNAME:
-        Nodeset_DisplayNameFinish(pctx->nodeset, pctx->node,
-                                  pctx->onCharacters);
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_REFERENCES:
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_REFERENCE:
-        Nodeset_newReference_finish(pctx->nodeset, pctx->ref, pctx->onCharacters);
-        pctx->state = PARSER_STATE_REFERENCES;
-        break;
-    case PARSER_STATE_VALUE:
-        if(!strcmp(localname, VALUE)) {
-            pctx->value_depth--;
-            if(pctx->value_depth == 0) {
-                /* Leaving the value element. Store the value */
-                if(pctx->node->nodeClass == NODECLASS_VARIABLE) {
-                    long valueEnd = pctx->ctxt->input->cur - pctx->ctxt->input->base;
-                    UA_String xmlValue;
-                    xmlValue.data = (UA_Byte*)pctx->buf + pctx->valueBegin;
-                    xmlValue.length = (size_t)(valueEnd - pctx->valueBegin);
-                    UA_String_copy(&xmlValue, &((NL_VariableNode *)pctx->node)->value);
+    yxml_t parser;
+    char parserStack[XML_YXML_STACK_SIZE];
+    yxml_init(&parser, parserStack, sizeof(parserStack));
+
+    XmlToken scratch[XML_TOKEN_STACK_SIZE];
+    XmlToken *stack[XML_TOKEN_STACK_SIZE];
+    bool stored[XML_TOKEN_STACK_SIZE];
+    bool hasChildren[XML_TOKEN_STACK_SIZE];
+    memset(scratch, 0, sizeof(scratch));
+    memset(stored, 0, sizeof(stored));
+    memset(hasChildren, 0, sizeof(hasChildren));
+
+    XmlToken attributeScratch;
+    XmlToken *attribute = NULL;
+    bool attributeStored = false;
+    size_t depth = 0;
+    size_t tokenPosition = 0;
+
+    for(size_t pos = 0; pos < xmlLength; pos++) {
+        yxml_ret_t status = yxml_parse(&parser, (unsigned char)xml[pos]);
+        if(status < YXML_OK) {
+            result.status = XML_TOKENIZE_INVALID;
+            result.tokensSize = tokenPosition;
+            return result;
+        }
+
+        switch(status) {
+        case YXML_OK:
+        case YXML_PISTART:
+        case YXML_PICONTENT:
+        case YXML_PIEND:
+            break;
+
+        case YXML_ELEMSTART: {
+            if(depth >= XML_TOKEN_STACK_SIZE) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            if(depth > 0) {
+                hasChildren[depth - 1] = true;
+                stack[depth - 1]->contentLength = 0;
+            }
+
+            stored[depth] = (tokenPosition < maxTokens);
+            XmlToken *token = stored[depth] ? &tokens[tokenPosition] :
+                &scratch[depth];
+            memset(token, 0, sizeof(*token));
+            token->type = XML_TOKEN_ELEMENT;
+            size_t nameLength = yxml_symlen(&parser, parser.elem);
+            if(stored[depth] &&
+               !XmlTextBuffer_appendName(text, parser.elem, nameLength,
+                                         &token->name)) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            if(nameLength < pos + 1)
+                token->start = pos - nameLength - 1;
+            stack[depth] = token;
+            hasChildren[depth] = false;
+            depth++;
+            tokenPosition++;
+            break;
+        }
+
+        case YXML_ATTRSTART: {
+            if(depth == 0) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            stack[depth - 1]->attributes++;
+            attributeStored = (tokenPosition < maxTokens);
+            attribute = attributeStored ? &tokens[tokenPosition] : &attributeScratch;
+            memset(attribute, 0, sizeof(*attribute));
+            attribute->type = XML_TOKEN_ATTRIBUTE;
+            size_t nameLength = yxml_symlen(&parser, parser.attr);
+            if(attributeStored &&
+               !XmlTextBuffer_appendName(text, parser.attr, nameLength,
+                                         &attribute->name)) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            tokenPosition++;
+            break;
+        }
+
+        case YXML_CONTENT:
+            if(depth > 0 && stored[depth - 1] && !hasChildren[depth - 1]) {
+                size_t length = strlen(parser.data);
+                if(stack[depth - 1]->contentLength == 0)
+                    stack[depth - 1]->content = text->size;
+                if(!XmlTextBuffer_append(text, parser.data, length)) {
+                    result.status = XML_TOKENIZE_INVALID;
+                    result.tokensSize = tokenPosition;
+                    return result;
                 }
-                pctx->state = PARSER_STATE_NODE;
+                stack[depth - 1]->contentLength += length;
             }
-        }
-        break;
-    case PARSER_STATE_EXTENSION:
-        if (!strcmp(localname, EXTENSION)) {
-            if (pctx->extIf) {
-                pctx->extIf->finish(pctx->extensionData);
-                pctx->node->extension = pctx->extensionData;
+            break;
+
+        case YXML_ATTRVAL:
+            if(attributeStored) {
+                size_t length = strlen(parser.data);
+                if(attribute->contentLength == 0)
+                    attribute->content = text->size;
+                if(!XmlTextBuffer_append(text, parser.data, length)) {
+                    result.status = XML_TOKENIZE_INVALID;
+                    result.tokensSize = tokenPosition;
+                    return result;
+                }
+                attribute->contentLength += length;
             }
-            pctx->state = PARSER_STATE_EXTENSIONS;
-        } else {
-            if(pctx->extIf)
-                pctx->extIf->end(pctx->extensionData, localname,
-                                 pctx->onCharacters);
+            break;
+
+        case YXML_ATTREND:
+            if(attributeStored && attribute->contentLength > 0 &&
+               !XmlTextBuffer_append(text, "", 1)) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            attribute = NULL;
+            attributeStored = false;
+            break;
+
+        case YXML_ELEMEND:
+            if(depth == 0) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            depth--;
+            stack[depth]->end = pos + 1;
+            stack[depth]->subtreeEnd = tokenPosition;
+            if(stored[depth] && stack[depth]->contentLength > 0 &&
+               !XmlTextBuffer_append(text, "", 1)) {
+                result.status = XML_TOKENIZE_INVALID;
+                result.tokensSize = tokenPosition;
+                return result;
+            }
+            break;
+
+        default:
+            result.status = XML_TOKENIZE_INVALID;
+            result.tokensSize = tokenPosition;
+            return result;
         }
-        break;
-    case PARSER_STATE_EXTENSIONS:
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_DESCRIPTION:
-        Nodeset_DescriptionFinish(pctx->nodeset, pctx->node, pctx->onCharacters);
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_INVERSENAME:
-        Nodeset_InverseNameFinish(pctx->nodeset, pctx->node, pctx->onCharacters);
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION:
-        pctx->state = PARSER_STATE_NODE;
-        break;
-    case PARSER_STATE_DATATYPE_DEFINITION_FIELD:
-        pctx->state = PARSER_STATE_DATATYPE_DEFINITION;
-        break;
     }
-    pctx->onCharacters = NULL;
-    pctx->onCharLength = 0;
+
+    result.tokensSize = tokenPosition;
+    if(yxml_eof(&parser) != YXML_OK || depth != 0) {
+        result.status = XML_TOKENIZE_INVALID;
+    } else if(tokenPosition > maxTokens) {
+        result.status = XML_TOKENIZE_OVERFLOW;
+    }
+    return result;
 }
 
-static void
-OnCharacters(void *ctx, const char *ch, int len) {
-    TParserCtx *pctx = (TParserCtx*)ctx;
-    if(pctx->onCharacters == NULL) {
-        char *newValue = CharArenaAllocator_malloc(pctx->nodeset->charArena,
-                                                   (size_t) len + 1);
-        pctx->onCharacters = newValue;
-    } else {
-        pctx->onCharacters = CharArenaAllocator_realloc(
-                                   pctx->nodeset->charArena, (size_t)len + 1);
+typedef struct {
+    NodesetLoader_ExtensionInterface *extIf;
+    Nodeset *nodeset;
+} ParserContext;
+
+static const char *
+localName(const char *qualifiedName) {
+    const char *colon = strrchr(qualifiedName, ':');
+    return colon ? colon + 1 : qualifiedName;
+}
+
+static bool
+isNamespaceAttribute(const char *name) {
+    return !strcmp(name, "xmlns") || !strncmp(name, "xmlns:", 6);
+}
+
+typedef enum {
+    XML_SCOPE_DOCUMENT,
+    XML_SCOPE_NODE,
+    XML_SCOPE_NAMESPACE_URIS,
+    XML_SCOPE_REFERENCES,
+    XML_SCOPE_DEFINITION,
+    XML_SCOPE_EXTENSIONS,
+    XML_SCOPE_EXTENSION
+} XmlScope;
+
+#define XML_ATTRIBUTE_STACK_SIZE 16
+typedef struct {
+    const XmlToken *tokens;
+    size_t tokensSize;
+    size_t position;
+    const XmlTextBuffer *text;
+    const char *xml;
+    size_t xmlLength;
+    const char **attributes;
+    size_t attributesCapacity;
+} XmlCursor;
+
+static bool
+XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass) {
+    if(!strcmp(name, VARIABLE))
+        *nodeClass = NODECLASS_VARIABLE;
+    else if(!strcmp(name, OBJECT))
+        *nodeClass = NODECLASS_OBJECT;
+    else if(!strcmp(name, OBJECTTYPE))
+        *nodeClass = NODECLASS_OBJECTTYPE;
+    else if(!strcmp(name, DATATYPE))
+        *nodeClass = NODECLASS_DATATYPE;
+    else if(!strcmp(name, METHOD))
+        *nodeClass = NODECLASS_METHOD;
+    else if(!strcmp(name, REFERENCETYPE))
+        *nodeClass = NODECLASS_REFERENCETYPE;
+    else if(!strcmp(name, VARIABLETYPE))
+        *nodeClass = NODECLASS_VARIABLETYPE;
+    else if(!strcmp(name, VIEW))
+        *nodeClass = NODECLASS_VIEW;
+    else
+        return false;
+    return true;
+}
+
+static bool
+XmlToken_attributes(XmlCursor *cursor, const XmlToken *element,
+                    size_t attributePosition, const char ***attributes,
+                    size_t *attributesSize) {
+    *attributes = NULL;
+    *attributesSize = 0;
+
+    for(size_t i = 0; i < element->attributes; i++) {
+        const XmlToken *attribute = &cursor->tokens[attributePosition + i];
+        const char *name = cursor->text->data + attribute->name;
+        if(!isNamespaceAttribute(name))
+            (*attributesSize)++;
     }
-    memcpy(pctx->onCharacters + pctx->onCharLength, ch, (size_t)len);
-    pctx->onCharLength += (size_t)len;
+
+    if(*attributesSize > (size_t)INT_MAX ||
+       *attributesSize > cursor->attributesCapacity)
+        return false;
+    if(*attributesSize == 0)
+        return true;
+
+    size_t out = 0;
+    for(size_t i = 0; i < element->attributes; i++) {
+        const XmlToken *attribute = &cursor->tokens[attributePosition + i];
+        const char *name = cursor->text->data + attribute->name;
+        if(isNamespaceAttribute(name))
+            continue;
+        cursor->attributes[out * 5] = localName(name);
+        cursor->attributes[out * 5 + 1] = NULL;
+        cursor->attributes[out * 5 + 2] = NULL;
+        cursor->attributes[out * 5 + 3] =
+            cursor->text->data + attribute->content;
+        cursor->attributes[out * 5 + 4] =
+            cursor->attributes[out * 5 + 3] + attribute->contentLength;
+        out++;
+    }
+
+    *attributes = cursor->attributes;
+    return true;
+}
+
+static bool
+XmlToken_copyContent(ParserContext *context, const XmlCursor *cursor,
+                     const XmlToken *element, char **content) {
+    *content = NULL;
+    if(element->contentLength == 0)
+        return true;
+    if(element->contentLength == SIZE_MAX)
+        return false;
+
+    char *result = CharArenaAllocator_malloc(context->nodeset->charArena,
+                                              element->contentLength + 1);
+    if(!result)
+        return false;
+    memcpy(result, cursor->text->data + element->content,
+           element->contentLength);
+    result[element->contentLength] = 0;
+    *content = result;
+    return true;
+}
+
+static bool
+XmlToken_copyLeafContent(ParserContext *context, XmlCursor *cursor,
+                         const XmlToken *element, char **content) {
+    cursor->position = element->subtreeEnd;
+    return XmlToken_copyContent(context, cursor, element, content);
+}
+
+static bool
+ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
+               NL_Node *node, void *extensionData);
+
+static bool
+ProcessChildren(ParserContext *context, XmlCursor *cursor,
+                const XmlToken *element, XmlScope scope, NL_Node *node,
+                void *extensionData) {
+    if(element->subtreeEnd < cursor->position ||
+       element->subtreeEnd > cursor->tokensSize)
+        return false;
+    while(cursor->position < element->subtreeEnd) {
+        if(!ProcessElement(context, cursor, scope, node, extensionData))
+            return false;
+    }
+    return cursor->position == element->subtreeEnd;
+}
+
+static bool
+ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
+               NL_Node *node, void *extensionData) {
+    if(cursor->position >= cursor->tokensSize)
+        return false;
+
+    const XmlToken *element = &cursor->tokens[cursor->position++];
+    if(element->type != XML_TOKEN_ELEMENT ||
+       element->subtreeEnd < cursor->position ||
+       element->subtreeEnd > cursor->tokensSize)
+        return false;
+
+    size_t attributePosition = cursor->position;
+    if(element->attributes > element->subtreeEnd - cursor->position)
+        return false;
+    for(size_t i = 0; i < element->attributes; i++) {
+        if(cursor->tokens[attributePosition + i].type != XML_TOKEN_ATTRIBUTE)
+            return false;
+    }
+    cursor->position += element->attributes;
+
+    const char *name = localName(cursor->text->data + element->name);
+    const char **attributes = NULL;
+    size_t attributesSize = 0;
+
+    if(scope == XML_SCOPE_DOCUMENT) {
+        NL_NodeClass nodeClass;
+        if(XmlToken_nodeClass(name, &nodeClass)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            NL_Node *newNode = Nodeset_newNode(context->nodeset, nodeClass,
+                                               attributesSize, attributes);
+            return ProcessChildren(context, cursor, element, XML_SCOPE_NODE,
+                                   newNode, NULL);
+        } else if(!strcmp(name, NAMESPACEURIS)) {
+            return ProcessChildren(context, cursor, element,
+                                   XML_SCOPE_NAMESPACE_URIS, NULL, NULL);
+        } else if(!strcmp(name, ALIAS)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Alias *alias = Nodeset_newAlias(context->nodeset, attributesSize,
+                                            attributes);
+            char *content = NULL;
+            if(!alias || !XmlToken_copyLeafContent(context, cursor, element,
+                                                   &content))
+                return false;
+            Nodeset_newAliasFinish(context->nodeset, alias, content);
+            return true;
+        } else if(!strcmp(name, "UANodeSet") ||
+                  !strcmp(name, "Aliases") ||
+                  !strcmp(name, "Extensions")) {
+            return ProcessChildren(context, cursor, element,
+                                   XML_SCOPE_DOCUMENT, NULL, NULL);
+        }
+    } else if(scope == XML_SCOPE_NODE) {
+        if(!strcmp(name, DISPLAYNAME)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Nodeset_setDisplayName(context->nodeset, node, attributesSize,
+                                   attributes);
+            char *content = NULL;
+            if(!XmlToken_copyLeafContent(context, cursor, element, &content))
+                return false;
+            Nodeset_DisplayNameFinish(context->nodeset, node, content);
+            return true;
+        } else if(!strcmp(name, REFERENCES)) {
+            return ProcessChildren(context, cursor, element,
+                                   XML_SCOPE_REFERENCES, node, NULL);
+        } else if(!strcmp(name, DESCRIPTION)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Nodeset_setDescription(context->nodeset, node, attributesSize,
+                                   attributes);
+            char *content = NULL;
+            if(!XmlToken_copyLeafContent(context, cursor, element, &content))
+                return false;
+            Nodeset_DescriptionFinish(context->nodeset, node, content);
+            return true;
+        } else if(!strcmp(name, VALUE)) {
+            cursor->position = element->subtreeEnd;
+            if(node->nodeClass != NODECLASS_VARIABLE)
+                return true;
+            if(element->end < element->start ||
+               element->end > cursor->xmlLength)
+                return false;
+            UA_String xmlValue = {
+                element->end - element->start,
+                (UA_Byte*)(uintptr_t)(cursor->xml + element->start)
+            };
+            return UA_String_copy(&xmlValue, &((NL_VariableNode*)node)->value) ==
+                UA_STATUSCODE_GOOD;
+        } else if(!strcmp(name, EXTENSIONS)) {
+            return ProcessChildren(context, cursor, element,
+                                   XML_SCOPE_EXTENSIONS, node, NULL);
+        } else if(!strcmp(name, "Definition") &&
+                  node->nodeClass == NODECLASS_DATATYPE) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Nodeset_addDataTypeDefinition(context->nodeset, node,
+                                          attributesSize, attributes);
+            return ProcessChildren(context, cursor, element,
+                                   XML_SCOPE_DEFINITION, node, NULL);
+        } else if(!strcmp(name, INVERSENAME)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Nodeset_setInverseName(context->nodeset, node, attributesSize,
+                                   attributes);
+            char *content = NULL;
+            if(!XmlToken_copyLeafContent(context, cursor, element, &content))
+                return false;
+            Nodeset_InverseNameFinish(context->nodeset, node, content);
+            return true;
+        }
+    } else if(scope == XML_SCOPE_NAMESPACE_URIS) {
+        if(!strcmp(name, NAMESPACEURI)) {
+            char *content = NULL;
+            if(!XmlToken_copyLeafContent(context, cursor, element, &content))
+                return false;
+            Nodeset_newNamespaceFinish(context->nodeset, content);
+            return true;
+        }
+    } else if(scope == XML_SCOPE_REFERENCES) {
+        if(!strcmp(name, REFERENCE)) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            NL_Reference *reference = Nodeset_newReference(
+                context->nodeset, node, attributesSize, attributes);
+            char *content = NULL;
+            if(!reference ||
+               !XmlToken_copyLeafContent(context, cursor, element, &content))
+                return false;
+            Nodeset_newReference_finish(context->nodeset, reference, content);
+            return true;
+        }
+    } else if(scope == XML_SCOPE_DEFINITION) {
+        if(!strcmp(name, "Field")) {
+            if(!XmlToken_attributes(cursor, element, attributePosition,
+                                    &attributes, &attributesSize))
+                return false;
+            Nodeset_addDataTypeField(context->nodeset, node, attributesSize,
+                                     attributes);
+            cursor->position = element->subtreeEnd;
+            return true;
+        }
+    } else if(scope == XML_SCOPE_EXTENSIONS) {
+        if(!strcmp(name, EXTENSION)) {
+            if(!context->extIf) {
+                cursor->position = element->subtreeEnd;
+                return true;
+            }
+            void *newExtensionData = context->extIf->newExtension();
+            if(!ProcessChildren(context, cursor, element,
+                                XML_SCOPE_EXTENSION, node,
+                                newExtensionData))
+                return false;
+            context->extIf->finish(newExtensionData);
+            node->extension = newExtensionData;
+            return true;
+        }
+    } else if(scope == XML_SCOPE_EXTENSION) {
+        if(!XmlToken_attributes(cursor, element, attributePosition,
+                                &attributes, &attributesSize))
+            return false;
+        context->extIf->start(extensionData, name, (int)attributesSize,
+                              attributes);
+        if(!ProcessChildren(context, cursor, element, XML_SCOPE_EXTENSION,
+                            node, extensionData))
+            return false;
+        char *content = NULL;
+        if(!XmlToken_copyContent(context, cursor, element, &content))
+            return false;
+        context->extIf->end(extensionData, name, content);
+        return true;
+    }
+
+    /* Unknown elements are irrelevant together with their entire subtree. */
+    cursor->position = element->subtreeEnd;
+    return true;
 }
 
 static int
-Parser_run(TParserCtx *context, FILE *file) {
+Parser_run(ParserContext *context, FILE *file) {
     /* Read entire file into memory */
-    fseek(file, 0, SEEK_END);
+    if(fseek(file, 0, SEEK_END) != 0)
+        return 1;
     long fsize = ftell(file);
-    fseek(file, 0, SEEK_SET);
+    if(fsize < 0 || fseek(file, 0, SEEK_SET) != 0)
+        return 1;
+    if((uintmax_t)fsize >= SIZE_MAX)
+        return 1;
+    size_t fileSize = (size_t)fsize;
 
-    char *buf = (char*)malloc((size_t)(fsize + 1));
+    char *buf = (char*)malloc(fileSize + 1);
     if(!buf)
         return 1;
 
-    size_t elems = fread(buf, 1, (size_t)fsize, file);
-    buf[elems] = 0; /* Ensure null terminated */
-    context->buf = buf;
-
-    xmlInitParser();
-
-    xmlSAXHandler hdl;
-    memset(&hdl, 0, sizeof(hdl));
-    hdl.initialized = XML_SAX2_MAGIC;
-    hdl.startElementNs = (startElementNsSAX2Func)OnStartElementNs;
-    hdl.endElementNs = (endElementNsSAX2Func)OnEndElementNs;
-    hdl.characters = (charactersSAXFunc)OnCharacters;
-
-    context->ctxt = xmlCreatePushParserCtxt(&hdl, context, NULL, 0, NULL);
-    xmlCtxtUseOptions(context->ctxt, XML_PARSE_HUGE);
-
-    /* single-chunk feed */
-    int ret = xmlParseChunk(context->ctxt, buf, (int)elems, 1);
-
-    xmlFreeParserCtxt(context->ctxt);
-    free(buf);
-    xmlCleanupParser();
-
-    if(ret < 0)
+    size_t elems = fread(buf, 1, fileSize, file);
+    if(ferror(file)) {
+        free(buf);
         return 1;
-    return 0;
+    }
+    buf[elems] = 0; /* Ensure null terminated */
+
+    XmlToken tokenBuffer[64];
+    XmlToken *tokens = tokenBuffer;
+    size_t tokensCapacity = 64;
+    /* Decoded names and leaf values cannot exceed their source XML size. */
+    XmlTextBuffer text = {(char*)malloc(elems + 1), 0, elems + 1};
+    if(!text.data) {
+        free(buf);
+        return 1;
+    }
+
+    XmlTokenizeResult result =
+        XmlTokenize(buf, elems, tokens, tokensCapacity, &text);
+    if(result.status == XML_TOKENIZE_OVERFLOW) {
+        tokensCapacity = result.tokensSize;
+        tokens = NULL;
+        if(tokensCapacity <= SIZE_MAX / sizeof(XmlToken))
+            tokens = (XmlToken*)malloc(tokensCapacity * sizeof(XmlToken));
+        if(tokens)
+            result = XmlTokenize(buf, elems, tokens, tokensCapacity, &text);
+    }
+
+    const char *attributeStack[XML_ATTRIBUTE_STACK_SIZE * 5];
+    const char **attributeBuffer = attributeStack;
+    size_t attributesCapacity = XML_ATTRIBUTE_STACK_SIZE;
+    int ret = 1;
+    if(tokens && result.status == XML_TOKENIZE_OK && result.tokensSize > 0) {
+        for(size_t i = 0; i < result.tokensSize; i++) {
+            if(tokens[i].type == XML_TOKEN_ELEMENT &&
+               tokens[i].attributes > attributesCapacity)
+                attributesCapacity = tokens[i].attributes;
+        }
+        if(attributesCapacity > XML_ATTRIBUTE_STACK_SIZE) {
+            if(attributesCapacity <= SIZE_MAX / (5 * sizeof(char*)))
+                attributeBuffer = (const char**)malloc(
+                    attributesCapacity * 5 * sizeof(char*));
+            else
+                attributeBuffer = NULL;
+        }
+
+        XmlCursor cursor = {tokens, result.tokensSize, 0, &text, buf, elems,
+                            attributeBuffer, attributesCapacity};
+        if(attributeBuffer &&
+           ProcessElement(context, &cursor, XML_SCOPE_DOCUMENT, NULL, NULL) &&
+           cursor.position == cursor.tokensSize)
+            ret = 0;
+    }
+
+    if(attributeBuffer != attributeStack)
+        free(attributeBuffer);
+    if(tokens != tokenBuffer)
+        free(tokens);
+    free(text.data);
+    free(buf);
+    return ret;
 }
 
 bool
@@ -413,10 +703,10 @@ NodesetLoader_importFile(NodesetLoader *loader,
         loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger);
     }
 
-    TParserCtx ctx;
+    ParserContext ctx;
     bool retStatus = true;
     FILE *f = fopen(fileHandler->file, "r");
-    memset(&ctx, 0, sizeof(TParserCtx));
+    memset(&ctx, 0, sizeof(ctx));
 
     if(!f) {
         loader->logger->log(loader->logger->context,
@@ -426,9 +716,6 @@ NodesetLoader_importFile(NodesetLoader *loader,
         goto cleanup;
     }
 
-    ctx.nodeset = loader->nodeset;
-    ctx.state = PARSER_STATE_INIT;
-    ctx.userContext = fileHandler->userContext;
     ctx.extIf = fileHandler->extensionHandling;
     ctx.nodeset = loader->nodeset;
     ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;

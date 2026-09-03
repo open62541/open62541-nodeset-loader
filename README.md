@@ -11,7 +11,7 @@ Supported operating systems: Linux, Windows (rudimentary)
 
 #### Backend open62541
 
-Supported open62541 version: 1.3.x
+Supported open62541 version: master
 Support for loading values with datatypes from namespace 0 or custom namespaces
 Support parsing of extensions (via a callback interface)
 
@@ -19,7 +19,7 @@ Support parsing of extensions (via a callback interface)
 Feel free to work on issues or providing further tests to improve the quality of this library. You can start by forking this repository and opening pull requests on it.
 
 ## dependencies
-xmlImport: libXml (http://www.xmlsoft.org/) for parsing the nodeset xml \
+xmlImport: yxml from the open62541 submodule for parsing the nodeset xml \
 unit testing: libcheck
 
 ## Design goals
@@ -27,6 +27,7 @@ unit testing: libcheck
 2) memory overhead
 
 ## Build
+git submodule update --init deps/open62541 \
 mkdir build \
 cd build \
 cmake .. \

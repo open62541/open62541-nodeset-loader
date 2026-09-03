@@ -468,8 +468,7 @@ Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias, char *idString) {
 }
 
 void
-Nodeset_newNamespaceFinish(Nodeset *nodeset, void *userContext,
-                           char *namespaceUri) {
+Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri) {
     UA_String uri = UA_STRING(namespaceUri);
     nodeset->fc->addNamespace(nodeset->fc->userContext,
                               1, &uri, nodeset->fc->nsMapping);

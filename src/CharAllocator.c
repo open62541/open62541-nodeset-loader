@@ -17,8 +17,6 @@ struct Region
     size_t size;
     struct Region *next;
     char *mem;
-    char *userPtr;
-    size_t userSize;
 };
 
 struct CharArenaAllocator
@@ -41,7 +39,6 @@ static struct Region *Region_new(size_t capacity)
         return NULL;
     }
     region->capacity = capacity;
-    region->userPtr = region->mem;
     return region;
 }
 
@@ -80,33 +77,9 @@ char *CharArenaAllocator_malloc(CharArenaAllocator *arena, size_t size)
         newRegion->next = arena->current;
         arena->current = newRegion;
     }
-    arena->current->userPtr = arena->current->mem + arena->current->size;
+    char *result = arena->current->mem + arena->current->size;
     arena->current->size += size;
-    arena->current->userSize = size;
-    return arena->current->userPtr;
-}
-
-char *CharArenaAllocator_realloc(CharArenaAllocator *arena, size_t size)
-{
-    if ((arena->current->size + size) > arena->current->capacity)
-    {
-        // we also have to consider the size we have to transfer
-        struct Region *newRegion =
-            Region_new(getRegionSize(size + arena->current->userSize*2, arena->initialSize));
-        if (!newRegion)
-        {
-            return NULL;
-        }
-        //we have to copy over the old stuff
-        memcpy(newRegion->userPtr, arena->current->userPtr, arena->current->userSize);
-        newRegion->userSize = arena->current->userSize;
-        newRegion->next = arena->current;
-        newRegion->size = newRegion->userSize;
-        arena->current = newRegion;
-    }
-    arena->current->userSize += size;
-    arena->current->size += size;
-    return arena->current->userPtr;
+    return result;
 }
 
 void CharArenaAllocator_delete(CharArenaAllocator *arena)
