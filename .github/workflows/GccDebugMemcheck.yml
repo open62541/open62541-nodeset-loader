@@ -24,7 +24,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4    
+      - uses: actions/checkout@v4
+        with:
+          submodules: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -43,37 +45,10 @@ jobs:
       - name: Install lcov
         run: sudo apt-get install lcov
 
-      # open62541
-      - uses: actions/checkout@v4
-        with:
-          repository: open62541/open62541
-          ref: 1.4
-          submodules: recursive
-          path: ./openRoot
-        
-      - name: Create Build Environment for open62541
-        shell: bash
-        run: cmake -E make_directory ./openRoot/build
-
-      - name: Configure open
-        shell: bash
-        working-directory: ./openRoot/build
+      - name: Initialize open62541 dependency
         run: |
-          cmake -DCMAKE_BUILD_TYPE=Debug \
-                -DUA_NAMESPACE_ZERO=FULL \
-                -DBUILD_SHARED_LIBS=ON \
-                -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON \
-                ..
-
-      - name: Build open
-        shell: bash
-        working-directory: ./openRoot/build
-        run: cmake --build . --config "$BUILD_TYPE"
-
-      - name: Install open
-        shell: bash
-        working-directory: ./openRoot/build
-        run: sudo cmake --install .
+          git submodule update --init deps/open62541
+          git -C deps/open62541 submodule update --init deps/ua-nodeset
 
       - name: Create Build Environment
         # Some projects don't allow in-source building, so create a separate
@@ -96,6 +71,8 @@ jobs:
                 -DCMAKE_BUILD_TYPE=Debug \
                 -DENABLE_TESTING=ON \
                 -DBUILD_SHARED_LIBS=ON \
+                -DUA_NAMESPACE_ZERO=FULL \
+                -DUA_ENABLE_SUBSCRIPTIONS_EVENTS=ON \
                 -DENABLE_DATATYPEIMPORT_TEST=ON \
                 -DCALC_COVERAGE=ON \
                 ..
