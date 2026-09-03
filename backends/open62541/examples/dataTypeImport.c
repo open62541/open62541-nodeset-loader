@@ -34,7 +34,7 @@ void addPoint(UA_Server *server)
     
     struct Point p1 = {1, 2, 3};
 
-    UA_ServerConfig *config;
+    UA_ServerConfig *config = UA_Server_getConfig(server);
 
     UA_Variant var;
     UA_Variant_init(&var);
@@ -66,7 +66,7 @@ void addStructWithArray(UA_Server *server)
     s.valid = true;
     s.size = 3;
 
-    UA_ServerConfig *config;
+    UA_ServerConfig *config = UA_Server_getConfig(server);
 
     UA_Variant var;
     UA_Variant_init(&var);
@@ -107,7 +107,7 @@ void addStructWithPointArray(UA_Server *server)
     UA_Variant var;
     UA_Variant_init(&var);
 
-    UA_ServerConfig *config;
+    UA_ServerConfig *config = UA_Server_getConfig(server);
 
     UA_Variant_setScalar(&var, &structWithPointData,
                          UA_findDataTypeWithCustom(&attr.dataType, config->customDataTypes));
