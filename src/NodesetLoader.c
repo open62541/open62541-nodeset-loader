@@ -7,7 +7,6 @@
  */
 
 #include "Nodeset.h"
-#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,22 +36,6 @@ struct NodesetLoader {
     Nodeset *nodeset;
     UA_Logger *logger;
 };
-
-typedef enum {
-    XML_TOKEN_ELEMENT,
-    XML_TOKEN_ATTRIBUTE
-} XmlTokenType;
-
-typedef struct {
-    XmlTokenType type;
-    size_t name;
-    size_t content;
-    size_t contentLength;
-    size_t attributes;
-    size_t subtreeEnd;
-    size_t start;
-    size_t end;
-} XmlToken;
 
 typedef enum {
     XML_TOKENIZE_OK,
@@ -274,11 +257,6 @@ localName(const char *qualifiedName) {
     return colon ? colon + 1 : qualifiedName;
 }
 
-static bool
-isNamespaceAttribute(const char *name) {
-    return !strcmp(name, "xmlns") || !strncmp(name, "xmlns:", 6);
-}
-
 typedef enum {
     XML_SCOPE_DOCUMENT,
     XML_SCOPE_NODE,
@@ -287,7 +265,6 @@ typedef enum {
     XML_SCOPE_DEFINITION
 } XmlScope;
 
-#define XML_ATTRIBUTE_STACK_SIZE 16
 typedef struct {
     const XmlToken *tokens;
     size_t tokensSize;
@@ -295,8 +272,6 @@ typedef struct {
     const XmlTextBuffer *text;
     const char *xml;
     size_t xmlLength;
-    const char **attributes;
-    size_t attributesCapacity;
 } XmlCursor;
 
 static bool
@@ -319,46 +294,6 @@ XmlToken_nodeClass(const char *name, NL_NodeClass *nodeClass) {
         *nodeClass = NODECLASS_VIEW;
     else
         return false;
-    return true;
-}
-
-static bool
-XmlToken_attributes(XmlCursor *cursor, const XmlToken *element,
-                    size_t attributePosition, const char ***attributes,
-                    size_t *attributesSize) {
-    *attributes = NULL;
-    *attributesSize = 0;
-
-    for(size_t i = 0; i < element->attributes; i++) {
-        const XmlToken *attribute = &cursor->tokens[attributePosition + i];
-        const char *name = cursor->text->data + attribute->name;
-        if(!isNamespaceAttribute(name))
-            (*attributesSize)++;
-    }
-
-    if(*attributesSize > (size_t)INT_MAX ||
-       *attributesSize > cursor->attributesCapacity)
-        return false;
-    if(*attributesSize == 0)
-        return true;
-
-    size_t out = 0;
-    for(size_t i = 0; i < element->attributes; i++) {
-        const XmlToken *attribute = &cursor->tokens[attributePosition + i];
-        const char *name = cursor->text->data + attribute->name;
-        if(isNamespaceAttribute(name))
-            continue;
-        cursor->attributes[out * 5] = localName(name);
-        cursor->attributes[out * 5 + 1] = NULL;
-        cursor->attributes[out * 5 + 2] = NULL;
-        cursor->attributes[out * 5 + 3] =
-            cursor->text->data + attribute->content;
-        cursor->attributes[out * 5 + 4] =
-            cursor->attributes[out * 5 + 3] + attribute->contentLength;
-        out++;
-    }
-
-    *attributes = cursor->attributes;
     return true;
 }
 
@@ -409,28 +344,22 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
     cursor->position += element->attributes;
 
     const char *name = localName(cursor->text->data + element->name);
-    const char **attributes = NULL;
-    size_t attributesSize = 0;
+    XmlAttributes attributes = {
+        &cursor->tokens[attributePosition], element->attributes,
+        cursor->text->data};
 
     if(scope == XML_SCOPE_DOCUMENT) {
         NL_NodeClass nodeClass;
         if(XmlToken_nodeClass(name, &nodeClass)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
             NL_Node *newNode = Nodeset_newNode(context->nodeset, nodeClass,
-                                               attributesSize, attributes);
+                                               &attributes);
             return ProcessChildren(context, cursor, element, XML_SCOPE_NODE,
                                    newNode);
         } else if(!strcmp(name, NAMESPACEURIS)) {
             return ProcessChildren(context, cursor, element,
                                    XML_SCOPE_NAMESPACE_URIS, NULL);
         } else if(!strcmp(name, ALIAS)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Alias *alias = Nodeset_newAlias(context->nodeset, attributesSize,
-                                            attributes);
+            Alias *alias = Nodeset_newAlias(context->nodeset, &attributes);
             char *content = XmlToken_leafContent(cursor, element);
             if(!alias)
                 return false;
@@ -443,10 +372,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
         }
     } else if(scope == XML_SCOPE_NODE) {
         if(!strcmp(name, DISPLAYNAME)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Nodeset_setDisplayName(node, attributesSize, attributes);
+            Nodeset_setDisplayName(node, &attributes);
             char *content = XmlToken_leafContent(cursor, element);
             Nodeset_DisplayNameFinish(node, content);
             return true;
@@ -454,10 +380,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             return ProcessChildren(context, cursor, element,
                                    XML_SCOPE_REFERENCES, node);
         } else if(!strcmp(name, DESCRIPTION)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Nodeset_setDescription(node, attributesSize, attributes);
+            Nodeset_setDescription(node, &attributes);
             char *content = XmlToken_leafContent(cursor, element);
             Nodeset_DescriptionFinish(node, content);
             return true;
@@ -476,17 +399,11 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
                 UA_STATUSCODE_GOOD;
         } else if(!strcmp(name, "Definition") &&
                   node->nodeClass == NODECLASS_DATATYPE) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Nodeset_addDataTypeDefinition(node, attributesSize, attributes);
+            Nodeset_addDataTypeDefinition(node, &attributes);
             return ProcessChildren(context, cursor, element,
                                    XML_SCOPE_DEFINITION, node);
         } else if(!strcmp(name, INVERSENAME)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Nodeset_setInverseName(node, attributesSize, attributes);
+            Nodeset_setInverseName(node, &attributes);
             char *content = XmlToken_leafContent(cursor, element);
             Nodeset_InverseNameFinish(node, content);
             return true;
@@ -499,11 +416,8 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
         }
     } else if(scope == XML_SCOPE_REFERENCES) {
         if(!strcmp(name, REFERENCE)) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
             NL_Reference *reference = Nodeset_newReference(
-                context->nodeset, node, attributesSize, attributes);
+                context->nodeset, node, &attributes);
             char *content = XmlToken_leafContent(cursor, element);
             if(!reference)
                 return false;
@@ -512,11 +426,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
         }
     } else if(scope == XML_SCOPE_DEFINITION) {
         if(!strcmp(name, "Field")) {
-            if(!XmlToken_attributes(cursor, element, attributePosition,
-                                    &attributes, &attributesSize))
-                return false;
-            Nodeset_addDataTypeField(context->nodeset, node, attributesSize,
-                                     attributes);
+            Nodeset_addDataTypeField(context->nodeset, node, &attributes);
             cursor->position = element->subtreeEnd;
             return true;
         }
@@ -571,29 +481,11 @@ Parser_run(ParserContext *context, FILE *file) {
             result = XmlTokenize(buf, elems, tokens, tokensCapacity, &text);
     }
 
-    const char *attributeStack[XML_ATTRIBUTE_STACK_SIZE * 5];
-    const char **attributeBuffer = attributeStack;
-    size_t attributesCapacity = XML_ATTRIBUTE_STACK_SIZE;
     bool textOwned = false;
     int ret = 1;
     if(tokens && result.status == XML_TOKENIZE_OK && result.tokensSize > 0) {
-        for(size_t i = 0; i < result.tokensSize; i++) {
-            if(tokens[i].type == XML_TOKEN_ELEMENT &&
-               tokens[i].attributes > attributesCapacity)
-                attributesCapacity = tokens[i].attributes;
-        }
-        if(attributesCapacity > XML_ATTRIBUTE_STACK_SIZE) {
-            if(attributesCapacity <= SIZE_MAX / (5 * sizeof(char*)))
-                attributeBuffer = (const char**)malloc(
-                    attributesCapacity * 5 * sizeof(char*));
-            else
-                attributeBuffer = NULL;
-        }
-
-        XmlCursor cursor = {tokens, result.tokensSize, 0, &text, buf, elems,
-                            attributeBuffer, attributesCapacity};
-        if(attributeBuffer &&
-           Nodeset_ownTextBuffer(context->nodeset, text.data)) {
+        XmlCursor cursor = {tokens, result.tokensSize, 0, &text, buf, elems};
+        if(Nodeset_ownTextBuffer(context->nodeset, text.data)) {
             textOwned = true;
         }
         if(textOwned &&
@@ -602,8 +494,6 @@ Parser_run(ParserContext *context, FILE *file) {
             ret = 0;
     }
 
-    if(attributeBuffer != attributeStack)
-        free(attributeBuffer);
     if(tokens != tokenBuffer)
         free(tokens);
     if(!textOwned)
