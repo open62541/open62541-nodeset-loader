@@ -49,7 +49,12 @@ typedef struct NL_Reference {
     UA_LocalizedText displayName;                                       \
     UA_LocalizedText description;                                       \
     NL_Reference *refs;                                                 \
-    bool isDone; /* the node was successfully added in the backend */
+    bool isSorted;                                                       \
+    struct {                                                             \
+        NL_Node *left;                                                   \
+        NL_Node *right;                                                  \
+    } treeEntry;                                                         \
+    NL_Node *sortNext;
 
 struct NL_Node {
     NL_NODE_ATTRIBUTES
