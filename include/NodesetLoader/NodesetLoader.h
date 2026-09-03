@@ -59,7 +59,6 @@ typedef struct NL_Reference {
     UA_LocalizedText description;                                       \
     char *writeMask;                                                    \
     NL_Reference *refs;                                                 \
-    void *extension;                                                    \
     bool isDone; /* the node was successfully added in the backend */
 
 struct NL_Node {
@@ -149,7 +148,6 @@ typedef struct NL_FileContext {
     void *userContext;
     const char *file;
     NL_addNamespaceCallback addNamespace;
-    NodesetLoader_ExtensionInterface *extensionHandling;
     UA_NamespaceMapping *nsMapping;
 } NL_FileContext;
 
