@@ -5,15 +5,9 @@
 #include <NodesetLoader/backendOpen62541.h>
 
 #include <assert.h>
-#include <signal.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 static volatile UA_Boolean running = true;
-static void stopHandler(int sig)
-{
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "received ctrl-c");
-    running = false;
-}
 
 struct Point
 {
@@ -22,7 +16,7 @@ struct Point
     UA_Int32 z;
 };
 
-void addPoint(UA_Server *server)
+static void addPoint(UA_Server *server)
 {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.dataType = UA_NODEID_NUMERIC(2, 3002);
@@ -43,7 +37,7 @@ void addPoint(UA_Server *server)
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1000), var);
 }
 
-void addStructWithArray(UA_Server *server)
+static void addStructWithArray(UA_Server *server)
 {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.dataType = UA_NODEID_NUMERIC(2, 3006);
@@ -76,7 +70,7 @@ void addStructWithArray(UA_Server *server)
     UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1001), var);
 }
 
-void addStructWithPointArray(UA_Server *server)
+static void addStructWithPointArray(UA_Server *server)
 {
     UA_VariableAttributes attr = UA_VariableAttributes_default;
     attr.dataType = UA_NODEID_NUMERIC(2, 3007);
@@ -115,6 +109,7 @@ void addStructWithPointArray(UA_Server *server)
     UA_StatusCode retval =
         UA_Server_writeValue(server, UA_NODEID_NUMERIC(1, 1002), var);
     assert(UA_STATUSCODE_GOOD == retval);
+    (void)retval;
 }
 
 int main(int argc, const char *argv[])

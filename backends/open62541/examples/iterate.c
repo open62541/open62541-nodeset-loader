@@ -5,17 +5,11 @@
 
 #include <NodesetLoader/backendOpen62541.h>
 
-#include <signal.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 static volatile UA_Boolean running = true;
-static void stopHandler(int sig)
-{
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "received ctrl-c");
-    running = false;
-}
 
-void iterate(UA_Server* server, const UA_NodeId* id)
+static void iterate(UA_Server* server, const UA_NodeId* id)
 {
     UA_BrowseDescription bd;
     UA_BrowseDescription_init(&bd);

@@ -367,14 +367,16 @@ handleDataTypeNode(AddNodeContext *ctx,
 }
 
 static bool
-addNodeFinish(AddNodeContext *context, NL_Node *node) {
+addNodeFinish(void *contextPtr, NL_Node *node) {
+    AddNodeContext *context = (AddNodeContext*)contextPtr;
     UA_StatusCode res =
         UA_Server_addNode_finish(context->server, node->id);
     return (res == UA_STATUSCODE_GOOD);
 }
 
 static bool
-addNodeImpl(AddNodeContext *context, NL_Node *node) {
+addNodeImpl(void *contextPtr, NL_Node *node) {
+    AddNodeContext *context = (AddNodeContext*)contextPtr;
     UA_NodeId id = node->id;
     UA_NodeId parentReferenceId = UA_NODEID_NULL;
     UA_NodeId parentId = getParentId(context, node, &parentReferenceId);
@@ -434,6 +436,7 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
                                             size_t localNamespaceUrisSize,
                                             UA_String *localNamespaceUris,
                                             UA_NamespaceMapping *nsMapping) {
+    (void)nsMapping;
     AddNodeContext *ctx = (AddNodeContext*)userContext;
     for(size_t i = 0; i < localNamespaceUrisSize; i++) {
         AddNodeContext_addNamespace(ctx, localNamespaceUris[i], false);
@@ -441,7 +444,8 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
 }
 
 static bool
-addAllRefs(AddNodeContext *context, NL_Node *node) {
+addAllRefs(void *contextPtr, NL_Node *node) {
+    AddNodeContext *context = (AddNodeContext*)contextPtr;
     for(NL_Reference *ref = node->refs; ref != NULL; ref = ref->next) {
         UA_ExpandedNodeId target = UA_EXPANDEDNODEID_NULL;
         target.nodeId = ref->target;
@@ -459,16 +463,13 @@ static bool
 addNodes(NodesetLoader *loader, AddNodeContext *anc) {
 
     // Add all nodes with their type definition and parent
-    NodesetLoader_forEachNode(loader, anc,
-                              (NodesetLoader_forEachNode_Func)addNodeImpl);
+    (void)NodesetLoader_forEachNode(loader, anc, addNodeImpl);
 
     // Add additional non-hierarchical references
-    NodesetLoader_forEachNode(loader, anc,
-                              (NodesetLoader_forEachNode_Func)addAllRefs);
+    (void)NodesetLoader_forEachNode(loader, anc, addAllRefs);
 
     // Call AddNode_finish for all nodes
-    NodesetLoader_forEachNode(loader, anc,
-                              (NodesetLoader_forEachNode_Func)addNodeFinish);
+    (void)NodesetLoader_forEachNode(loader, anc, addNodeFinish);
 
     return true;
 }
