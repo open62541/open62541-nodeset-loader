@@ -12,43 +12,61 @@
 #include <NodesetLoader/backendOpen62541.h>
 #include "internal.h"
 
+#include <errno.h>
+#include <stdlib.h>
+
 // Use AddNodeContext_addNamespaceIdx to sequentially add namespaces as they
 // appear in the nodeset file. This adds the namespaces to the server also.
 // Returns the local mapping index, not the in-server mapping index.
-static void
+static UA_StatusCode
 AddNodeContext_addNamespace(AddNodeContext *ctx, const UA_String nsUri,
                             bool localOnly) {
     // Get the index / add to the server if required
-    char namebuf[512];
-    memcpy(namebuf, nsUri.data, nsUri.length);
-    namebuf[nsUri.length] = 0;
-    UA_UInt16 localIdx = UA_Server_addNamespace(ctx->server, namebuf);
+    if(nsUri.length == SIZE_MAX)
+        return UA_STATUSCODE_BADOUTOFMEMORY;
+    char *name = (char*)UA_malloc(nsUri.length + 1);
+    if(!name)
+        return UA_STATUSCODE_BADOUTOFMEMORY;
+    memcpy(name, nsUri.data, nsUri.length);
+    name[nsUri.length] = 0;
+    (void)UA_Server_addNamespace(ctx->server, name);
+    UA_free(name);
+
+    size_t serverIdx = 0;
+    UA_StatusCode res =
+        UA_Server_getNamespaceByName(ctx->server, nsUri, &serverIdx);
+    if(res != UA_STATUSCODE_GOOD || serverIdx > UA_UINT16_MAX)
+        return res != UA_STATUSCODE_GOOD ? res :
+            UA_STATUSCODE_BADENCODINGLIMITSEXCEEDED;
+    UA_UInt16 localIdx = (UA_UInt16)serverIdx;
 
     // Add to the local mapping
-    UA_StatusCode res =
-        UA_Array_appendCopy((void**)&ctx->nsMapping.namespaceUris,
-                            &ctx->nsMapping.namespaceUrisSize,
-                            &nsUri, &UA_TYPES[UA_TYPES_STRING]);
-    (void)res;
+    res = UA_Array_appendCopy((void**)&ctx->nsMapping.namespaceUris,
+                              &ctx->nsMapping.namespaceUrisSize,
+                              &nsUri, &UA_TYPES[UA_TYPES_STRING]);
+    if(res != UA_STATUSCODE_GOOD)
+        return res;
 
     // Prevent that ns0 is added a second time.
     // This happens when it is named explicitly in the nodeset xml
     // (as the first entry of the list).
     if(localIdx == 0 && ctx->nsMapping.remote2localSize > 0)
-        return;
+        return UA_STATUSCODE_GOOD;
 
     // Add to remote2local only if this comes from the Nodeset xml
     if(!localOnly) {
         res = UA_Array_appendCopy((void**)&ctx->nsMapping.remote2local,
                                   &ctx->nsMapping.remote2localSize,
                                   &localIdx, &UA_TYPES[UA_TYPES_UINT16]);
-        (void)res;
+        if(res != UA_STATUSCODE_GOOD)
+            return res;
     }
 
     // We don't need local2remote since we are only parsing the remote
+    return UA_STATUSCODE_GOOD;
 }
 
-static void
+static UA_StatusCode
 AddNodeContext_init(AddNodeContext *ctx,
                     struct UA_Server *server,
                     UA_Logger *logger) {
@@ -59,15 +77,19 @@ AddNodeContext_init(AddNodeContext *ctx,
     // Load initial namespaces from the server.
     // Every nodeset xml implies that ns0 is the first entry.
     // Add it to the remote-namespaces (idx != 0).
-    UA_StatusCode res = UA_STATUSCODE_GOOD;
     size_t idx = 0;
-    while(res == UA_STATUSCODE_GOOD) {
+    for(;;) {
         UA_String nsUri = UA_STRING_NULL;
-        res = UA_Server_getNamespaceByIndex(server, idx, &nsUri);
+        UA_StatusCode res =
+            UA_Server_getNamespaceByIndex(server, idx, &nsUri);
+        if(res == UA_STATUSCODE_BADNOTFOUND)
+            break;
         if(res != UA_STATUSCODE_GOOD)
-            continue;
-        AddNodeContext_addNamespace(ctx, nsUri, idx != 0);
+            return res;
+        res = AddNodeContext_addNamespace(ctx, nsUri, idx != 0);
         UA_String_clear(&nsUri);
+        if(res != UA_STATUSCODE_GOOD)
+            return res;
         idx++;
     }
     
@@ -78,17 +100,19 @@ AddNodeContext_init(AddNodeContext *ctx,
     bd.referenceTypeId = UA_NS0ID(HASSUBTYPE);
     bd.nodeId = UA_NS0ID(HASCHILD);
 
-    UA_Server_browseRecursive(server, &bd,
-                              &ctx->parentRefTypesSize,
-                              &ctx->parentRefTypes);
+    UA_StatusCode res = UA_Server_browseRecursive(server, &bd,
+                                                  &ctx->parentRefTypesSize,
+                                                  &ctx->parentRefTypes);
+    if(res != UA_STATUSCODE_GOOD)
+        return res;
 
     // Include HasChild itself
     UA_ExpandedNodeId hasChildExp;
     UA_ExpandedNodeId_init(&hasChildExp);
     hasChildExp.nodeId = UA_NS0ID(HASCHILD);
-    UA_Array_append((void**)&ctx->parentRefTypes,
-                    &ctx->parentRefTypesSize, &hasChildExp,
-                    &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
+    return UA_Array_append((void**)&ctx->parentRefTypes,
+                           &ctx->parentRefTypesSize, &hasChildExp,
+                           &UA_TYPES[UA_TYPES_EXPANDEDNODEID]);
 }
 
 static void
@@ -184,28 +208,43 @@ handleMethodNode(const NL_MethodNode *node, UA_NodeId *id,
                                    NULL, NULL);
 }
 
-static size_t
-getArrayDimensions(const char *s, UA_UInt32 **dims) {
-    size_t length = strlen(s);
-    size_t arrSize = 0;
-    if (0 == length)
-        return 0;
+static UA_StatusCode
+getArrayDimensions(const char *s, size_t *dimsSize, UA_UInt32 **dims) {
+    *dimsSize = 0;
+    *dims = NULL;
+    if(!s || s[0] == 0)
+        return UA_STATUSCODE_GOOD;
 
-    // add the first one
-    int val = atoi(s);
-    arrSize++;
-    *dims = (UA_UInt32 *)malloc(sizeof(UA_UInt32));
-    (*dims)[0] = (UA_UInt32)val;
-
-    const char *subString = strchr(s, ',');
-
-    while (subString != NULL) {
-        arrSize++;
-        *dims = (UA_UInt32 *)realloc(*dims, arrSize * sizeof(UA_UInt32));
-        (*dims)[arrSize - 1] = (UA_UInt32)atoi(subString + 1);
-        subString = strchr(subString + 1, ',');
+    size_t count = 1;
+    for(const char *pos = s; *pos; pos++) {
+        if(*pos == ',') {
+            if(count == SIZE_MAX / sizeof(UA_UInt32))
+                return UA_STATUSCODE_BADOUTOFMEMORY;
+            count++;
+        }
     }
-    return arrSize;
+
+    UA_UInt32 *values = (UA_UInt32*)UA_malloc(count * sizeof(UA_UInt32));
+    if(!values)
+        return UA_STATUSCODE_BADOUTOFMEMORY;
+
+    const char *pos = s;
+    for(size_t i = 0; i < count; i++) {
+        errno = 0;
+        char *end = NULL;
+        unsigned long value = strtoul(pos, &end, 10);
+        if(end == pos || errno == ERANGE || value > UA_UINT32_MAX ||
+           (*end != ',' && *end != 0)) {
+            UA_free(values);
+            return UA_STATUSCODE_BADDECODINGERROR;
+        }
+        values[i] = (UA_UInt32)value;
+        pos = end + (*end == ',');
+    }
+
+    *dimsSize = count;
+    *dims = values;
+    return UA_STATUSCODE_GOOD;
 }
 
 static UA_StatusCode
@@ -223,8 +262,16 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     attr.dataType = node->datatype;
     attr.valueRank = atoi(node->valueRank);
     UA_UInt32 *arrDims = NULL;
-    attr.arrayDimensionsSize =
-        getArrayDimensions(node->arrayDimensions, &arrDims);
+    UA_StatusCode ret = getArrayDimensions(node->arrayDimensions,
+                                           &attr.arrayDimensionsSize,
+                                           &arrDims);
+    if(ret == UA_STATUSCODE_BADOUTOFMEMORY)
+        return ret;
+    if(ret != UA_STATUSCODE_GOOD) {
+        UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER,
+                       "NodesetLoader: Ignoring malformed ArrayDimensions");
+        attr.arrayDimensionsSize = 0;
+    }
     attr.arrayDimensions = arrDims;
     attr.accessLevel = (UA_Byte)atoi(node->accessLevel);
     attr.userAccessLevel = (UA_Byte)atoi(node->userAccessLevel);
@@ -237,7 +284,7 @@ handleVariableNode(const NL_VariableNode *node, UA_NodeId *id,
     UA_String idBuf = {128, (UA_Byte*)buf};
     UA_NodeId_print(id, &idBuf);
 
-    UA_StatusCode ret = UA_STATUSCODE_GOOD;
+    ret = UA_STATUSCODE_GOOD;
     if(node->value.length > 0) {
         UA_DecodeXmlOptions opts;
         memset(&opts, 0, sizeof(UA_DecodeXmlOptions));
@@ -353,8 +400,9 @@ handleDataTypeNode(AddNodeContext *ctx,
                    const UA_LocalizedText *lt,
                    const UA_QualifiedName *qn,
                    const UA_LocalizedText *description) {
-    // Add the UA_DataType the the server
-    addCustomDataType(ctx, node);
+    // Add the UA_DataType to the server. Failure remains lenient: the node may
+    // still be useful even if no in-memory encoding description was created.
+    (void)addCustomDataType(ctx, node);
 
     // Add the DataTypeNode
     UA_DataTypeAttributes attr = UA_DataTypeAttributes_default;
@@ -371,7 +419,11 @@ addNodeFinish(void *contextPtr, NL_Node *node) {
     AddNodeContext *context = (AddNodeContext*)contextPtr;
     UA_StatusCode res =
         UA_Server_addNode_finish(context->server, node->id);
-    return (res == UA_STATUSCODE_GOOD);
+    if(res != UA_STATUSCODE_GOOD)
+        UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER,
+                       "NodesetLoader: Could not finish node %N (%s)",
+                       node->id, UA_StatusCode_name(res));
+    return true;
 }
 
 static bool
@@ -428,10 +480,14 @@ addNodeImpl(void *contextPtr, NL_Node *node) {
         break;
     }
 
-    return (res == UA_STATUSCODE_GOOD);
+    if(res != UA_STATUSCODE_GOOD)
+        UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER,
+                       "NodesetLoader: Could not add node %N (%s)",
+                       node->id, UA_StatusCode_name(res));
+    return true;
 }
 
-static void
+static bool
 NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
                                             size_t localNamespaceUrisSize,
                                             UA_String *localNamespaceUris,
@@ -439,8 +495,12 @@ NodesetLoader_BackendOpen62541_addNamespace(void *userContext,
     (void)nsMapping;
     AddNodeContext *ctx = (AddNodeContext*)userContext;
     for(size_t i = 0; i < localNamespaceUrisSize; i++) {
-        AddNodeContext_addNamespace(ctx, localNamespaceUris[i], false);
+        UA_StatusCode res =
+            AddNodeContext_addNamespace(ctx, localNamespaceUris[i], false);
+        if(res != UA_STATUSCODE_GOOD)
+            return false;
     }
+    return true;
 }
 
 static bool
@@ -454,7 +514,10 @@ addAllRefs(void *contextPtr, NL_Node *node) {
                                    target, ref->isForward);
         if(res != UA_STATUSCODE_GOOD &&
            res != UA_STATUSCODE_BADDUPLICATEREFERENCENOTALLOWED)
-            return false;
+            UA_LOG_WARNING(context->logger, UA_LOGCATEGORY_SERVER,
+                           "NodesetLoader: Could not add reference from %N "
+                           "to %N (%s)", node->id, ref->target,
+                           UA_StatusCode_name(res));
     }
     return true;
 }
@@ -478,15 +541,26 @@ bool
 NodesetLoader_loadFile(struct UA_Server *server, const char *path,
                        void *options) {
     (void)options;
-    if(!server)
+    if(!server || !path)
         return false;
 
     UA_ServerConfig *config = UA_Server_getConfig(server);
     UA_Logger *logger = config->logging;
 
     AddNodeContext ctx;
-    AddNodeContext_init(&ctx, server, logger);
+    UA_StatusCode res = AddNodeContext_init(&ctx, server, logger);
+    if(res != UA_STATUSCODE_GOOD) {
+        UA_LOG_ERROR(logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: Could not initialize import (%s)",
+                     UA_StatusCode_name(res));
+        AddNodeContext_clear(&ctx);
+        return false;
+    }
     NodesetLoader *loader = NodesetLoader_new(logger);
+    if(!loader) {
+        AddNodeContext_clear(&ctx);
+        return false;
+    }
 
     NL_FileContext handler;
     memset(&handler, 0, sizeof(NL_FileContext));

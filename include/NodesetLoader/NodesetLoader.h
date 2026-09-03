@@ -130,7 +130,8 @@ typedef struct NL_ViewNode {
     char *eventNotifier;
 } NL_ViewNode;
 
-typedef void (*NL_addNamespaceCallback)(void *userContext,
+/* Return false if the namespace mapping could not be extended. */
+typedef bool (*NL_addNamespaceCallback)(void *userContext,
                                         size_t localNamespaceUrisSize,
                                         UA_String *localNamespaceUris,
                                         UA_NamespaceMapping *nsMapping);

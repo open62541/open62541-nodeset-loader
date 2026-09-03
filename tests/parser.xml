@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <x:UANodeSet xmlns:x="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
              xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+  <x:Aliases>
+    <x:Alias Alias="StringAlias">ns=1;s=StringType</x:Alias>
+  </x:Aliases>
   <x:UADataType NodeId="i=50003" BrowseName="DependentType">
     <x:Definition>
       <x:Field Name="Member" DataType="i=50002"/>
@@ -15,7 +18,7 @@
   <x:Unknown>
     <x:UAObject NodeId="i=59999" BrowseName="MustNotBeImported"/>
   </x:Unknown>
-  <x:UAVariable NodeId="i=50001" BrowseName="Value" DataType="i=12">
+  <x:UAVariable NodeId="i=50001" BrowseName="Value" DataType="StringAlias">
     <x:DisplayName>Value</x:DisplayName>
     <x:Value><uax:String>hello &amp; goodbye</uax:String></x:Value>
     <x:Description Locale="en">After Value</x:Description>

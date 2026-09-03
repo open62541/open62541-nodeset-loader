@@ -24,7 +24,7 @@ printId(const UA_NodeId *id) {
     return nodeidDump;
 }
 
-static void
+static bool
 addNamespace(void *userContext, size_t namespaceUrisSize,
              UA_String *namespaceUris, UA_NamespaceMapping *nsMapping) {
     (void)userContext;
@@ -35,14 +35,20 @@ addNamespace(void *userContext, size_t namespaceUrisSize,
                                &nsMapping->namespaceUris[localIdx]))
                 break;
         }
-        if(localIdx == nsMapping->namespaceUrisSize)
-            UA_Array_appendCopy((void**)&nsMapping->namespaceUris,
-                                &nsMapping->namespaceUrisSize,
-                                &namespaceUris[i], &UA_TYPES[UA_TYPES_STRING]);
-        UA_Array_appendCopy((void**)&nsMapping->remote2local,
-                            &nsMapping->remote2localSize, &localIdx,
-                            &UA_TYPES[UA_TYPES_UINT16]);
+        if(localIdx == nsMapping->namespaceUrisSize &&
+           UA_Array_appendCopy((void**)&nsMapping->namespaceUris,
+                               &nsMapping->namespaceUrisSize,
+                               &namespaceUris[i],
+                               &UA_TYPES[UA_TYPES_STRING]) !=
+           UA_STATUSCODE_GOOD)
+            return false;
+        if(UA_Array_appendCopy((void**)&nsMapping->remote2local,
+                               &nsMapping->remote2localSize, &localIdx,
+                               &UA_TYPES[UA_TYPES_UINT16]) !=
+           UA_STATUSCODE_GOOD)
+            return false;
     }
+    return true;
 }
 
 static bool

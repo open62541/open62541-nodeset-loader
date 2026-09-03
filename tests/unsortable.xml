@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<UANodeSet xmlns="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd">
+  <UAReferenceType NodeId="i=50000" BrowseName="First">
+    <References>
+      <Reference ReferenceType="i=45" IsForward="false">i=50001</Reference>
+    </References>
+  </UAReferenceType>
+  <UAReferenceType NodeId="i=50001" BrowseName="Second">
+    <References>
+      <Reference ReferenceType="i=45" IsForward="false">i=50000</Reference>
+    </References>
+  </UAReferenceType>
+</UANodeSet>
