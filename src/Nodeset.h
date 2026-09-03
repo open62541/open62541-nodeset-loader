@@ -68,15 +68,15 @@ NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
                          const XmlAttributes *attributes);
 NL_Reference *Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
                                    const XmlAttributes *attributes);
-void Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
+bool Nodeset_newReference_finish(Nodeset *nodeset, NL_Reference *ref,
                                  char *idString);
 Alias *Nodeset_newAlias(Nodeset *nodeset, const XmlAttributes *attributes);
-void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias,
+bool Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias,
                             char *idString);
-void Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri);
-void Nodeset_addDataTypeDefinition(NL_Node *node,
+bool Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri);
+bool Nodeset_addDataTypeDefinition(NL_Node *node,
                                    const XmlAttributes *attributes);
-void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
+bool Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
                               const XmlAttributes *attributes);
 void Nodeset_setDisplayName(NL_Node *node, const XmlAttributes *attributes);
 void Nodeset_DisplayNameFinish(NL_Node *node, char *text);

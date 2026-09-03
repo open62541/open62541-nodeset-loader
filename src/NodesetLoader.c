@@ -353,6 +353,8 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
         if(XmlToken_nodeClass(name, &nodeClass)) {
             NL_Node *newNode = Nodeset_newNode(context->nodeset, nodeClass,
                                                &attributes);
+            if(!newNode)
+                return false;
             return ProcessChildren(context, cursor, element, XML_SCOPE_NODE,
                                    newNode);
         } else if(!strcmp(name, NAMESPACEURIS)) {
@@ -363,8 +365,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             char *content = XmlToken_leafContent(cursor, element);
             if(!alias)
                 return false;
-            Nodeset_newAliasFinish(context->nodeset, alias, content);
-            return true;
+            return Nodeset_newAliasFinish(context->nodeset, alias, content);
         } else if(!strcmp(name, "UANodeSet") ||
                   !strcmp(name, "Aliases")) {
             return ProcessChildren(context, cursor, element,
@@ -399,7 +400,8 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
                 UA_STATUSCODE_GOOD;
         } else if(!strcmp(name, "Definition") &&
                   node->nodeClass == NODECLASS_DATATYPE) {
-            Nodeset_addDataTypeDefinition(node, &attributes);
+            if(!Nodeset_addDataTypeDefinition(node, &attributes))
+                return false;
             return ProcessChildren(context, cursor, element,
                                    XML_SCOPE_DEFINITION, node);
         } else if(!strcmp(name, INVERSENAME)) {
@@ -411,8 +413,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
     } else if(scope == XML_SCOPE_NAMESPACE_URIS) {
         if(!strcmp(name, NAMESPACEURI)) {
             char *content = XmlToken_leafContent(cursor, element);
-            Nodeset_newNamespaceFinish(context->nodeset, content);
-            return true;
+            return Nodeset_newNamespaceFinish(context->nodeset, content);
         }
     } else if(scope == XML_SCOPE_REFERENCES) {
         if(!strcmp(name, REFERENCE)) {
@@ -421,12 +422,13 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             char *content = XmlToken_leafContent(cursor, element);
             if(!reference)
                 return false;
-            Nodeset_newReference_finish(context->nodeset, reference, content);
-            return true;
+            return Nodeset_newReference_finish(context->nodeset, reference,
+                                                content);
         }
     } else if(scope == XML_SCOPE_DEFINITION) {
         if(!strcmp(name, "Field")) {
-            Nodeset_addDataTypeField(context->nodeset, node, &attributes);
+            if(!Nodeset_addDataTypeField(context->nodeset, node, &attributes))
+                return false;
             cursor->position = element->subtreeEnd;
             return true;
         }
@@ -505,6 +507,8 @@ Parser_run(ParserContext *context, FILE *file) {
 bool
 NodesetLoader_importFile(NodesetLoader *loader,
                          const NL_FileContext *fileHandler) {
+    if(!loader)
+        return false;
     if(!fileHandler) {
         UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
                      "NodesetLoader: no filehandler - abort");
@@ -517,9 +521,16 @@ NodesetLoader_importFile(NodesetLoader *loader,
         return false;
     }
 
-    if(!loader->nodeset) {
-        loader->nodeset = Nodeset_new(loader->logger);
+    if(!fileHandler->file || !fileHandler->nsMapping) {
+        UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
+                     "NodesetLoader: incomplete file context");
+        return false;
     }
+
+    if(!loader->nodeset)
+        loader->nodeset = Nodeset_new(loader->logger);
+    if(!loader->nodeset)
+        return false;
 
     ParserContext ctx;
     bool retStatus = true;
@@ -550,6 +561,8 @@ cleanup:
 
 bool
 NodesetLoader_sort(NodesetLoader *loader) {
+    if(!loader)
+        return false;
     return Nodeset_sort(loader->nodeset);
 }
 
@@ -567,6 +580,8 @@ NodesetLoader_new(UA_Logger *logger) {
 
 void
 NodesetLoader_delete(NodesetLoader *loader) {
+    if(!loader)
+        return;
     Nodeset_cleanup(loader->nodeset);
     free(loader);
 }
@@ -574,6 +589,8 @@ NodesetLoader_delete(NodesetLoader *loader) {
 bool
 NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
                           NodesetLoader_forEachNode_Func fn) {
+    if(!loader || !loader->nodeset || !fn)
+        return false;
     NodeContainer *nodes = &loader->nodeset->sortedNodes;
     for(size_t i = 0; i < nodes->size; i++) {
         if(!fn(context, nodes->nodes[i]))

@@ -20,13 +20,24 @@ logger(void *context, UA_LogLevel level, UA_LogCategory category,
     (void)args;
 }
 
-static void
+static bool
 addNamespace(void *context, size_t urisSize, UA_String *uris,
              UA_NamespaceMapping *mapping) {
     (void)context;
     (void)urisSize;
     (void)uris;
     (void)mapping;
+    return true;
+}
+
+static bool
+rejectNamespace(void *context, size_t urisSize, UA_String *uris,
+                UA_NamespaceMapping *mapping) {
+    (void)context;
+    (void)urisSize;
+    (void)uris;
+    (void)mapping;
+    return false;
 }
 
 static bool
@@ -139,6 +150,72 @@ rejectMalformed(const char *directory) {
     return rejected;
 }
 
+static bool
+rejectInvalidNodes(const char *directory) {
+    char path[1024];
+    int written = snprintf(path, sizeof(path), "%s/invalidNodeDefinitions.xml",
+                           directory);
+    if(written < 0 || (size_t)written >= sizeof(path))
+        return false;
+
+    UA_Logger log = {.log = logger};
+    NodesetLoader *loader = NodesetLoader_new(&log);
+    if(!loader)
+        return false;
+
+    UA_NamespaceMapping mapping;
+    memset(&mapping, 0, sizeof(mapping));
+    NL_FileContext file = {NULL, path, addNamespace, &mapping};
+    bool rejected = !NodesetLoader_importFile(loader, &file);
+    NodesetLoader_delete(loader);
+    UA_NamespaceMapping_clear(&mapping);
+    return rejected;
+}
+
+static bool
+rejectNamespaceFailure(const char *directory) {
+    char path[1024];
+    int written = snprintf(path, sizeof(path), "%s/invalidNodeDefinitions.xml",
+                           directory);
+    if(written < 0 || (size_t)written >= sizeof(path))
+        return false;
+
+    UA_Logger log = {.log = logger};
+    NodesetLoader *loader = NodesetLoader_new(&log);
+    if(!loader)
+        return false;
+
+    UA_NamespaceMapping mapping;
+    memset(&mapping, 0, sizeof(mapping));
+    NL_FileContext file = {NULL, path, rejectNamespace, &mapping};
+    bool rejected = !NodesetLoader_importFile(loader, &file);
+    NodesetLoader_delete(loader);
+    UA_NamespaceMapping_clear(&mapping);
+    return rejected;
+}
+
+static bool
+rejectUnsortable(const char *directory) {
+    char path[1024];
+    int written = snprintf(path, sizeof(path), "%s/unsortable.xml", directory);
+    if(written < 0 || (size_t)written >= sizeof(path))
+        return false;
+
+    UA_Logger log = {.log = logger};
+    NodesetLoader *loader = NodesetLoader_new(&log);
+    if(!loader)
+        return false;
+
+    UA_NamespaceMapping mapping;
+    memset(&mapping, 0, sizeof(mapping));
+    NL_FileContext file = {NULL, path, addNamespace, &mapping};
+    bool success = NodesetLoader_importFile(loader, &file);
+    bool rejected = success && !NodesetLoader_sort(loader);
+    NodesetLoader_delete(loader);
+    UA_NamespaceMapping_clear(&mapping);
+    return rejected;
+}
+
 int
 main(int argc, char **argv) {
     if(argc != 2)
@@ -147,5 +224,11 @@ main(int argc, char **argv) {
         return 2;
     if(!rejectMalformed(argv[1]))
         return 3;
+    if(!rejectInvalidNodes(argv[1]))
+        return 4;
+    if(!rejectNamespaceFailure(argv[1]))
+        return 5;
+    if(!rejectUnsortable(argv[1]))
+        return 6;
     return EXIT_SUCCESS;
 }
