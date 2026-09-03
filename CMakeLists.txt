@@ -35,16 +35,37 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
     set(ENABLE_BACKEND_STDOUT off)
 endif()
 
-# LibXML2 is always required
-find_package(LibXml2 REQUIRED QUIET)
+if(${ENABLE_BUILD_INTO_OPEN62541})
+    if(NOT UA_ENABLE_XML_ENCODING)
+        message(FATAL_ERROR "Building nodesetLoader into open62541 requires UA_ENABLE_XML_ENCODING")
+    endif()
+    set(NODESETLOADER_YXML_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/..)
+else()
+    set(NODESETLOADER_OPEN62541_DIR
+        ${CMAKE_CURRENT_SOURCE_DIR}/deps/open62541)
+    if(NOT EXISTS ${NODESETLOADER_OPEN62541_DIR}/CMakeLists.txt OR
+       NOT EXISTS ${NODESETLOADER_OPEN62541_DIR}/deps/yxml.c OR
+       NOT EXISTS ${NODESETLOADER_OPEN62541_DIR}/deps/yxml.h)
+        message(FATAL_ERROR
+            "Standalone builds require the open62541 submodule. "
+            "Run: git submodule update --init deps/open62541")
+    endif()
+
+    # Avoid recursively embedding nodesetLoader from the open62541 submodule.
+    set(UA_ENABLE_NODESETLOADER OFF CACHE BOOL
+        "Do not recursively embed nodesetLoader" FORCE)
+    add_subdirectory(${NODESETLOADER_OPEN62541_DIR}
+                     ${CMAKE_CURRENT_BINARY_DIR}/open62541 EXCLUDE_FROM_ALL)
+    if(NOT UA_ENABLE_XML_ENCODING)
+        message(FATAL_ERROR "Standalone builds require UA_ENABLE_XML_ENCODING")
+    endif()
+    set(NODESETLOADER_YXML_INCLUDE_DIR
+        ${NODESETLOADER_OPEN62541_DIR}/deps)
+endif()
 
 add_library(coverageLib INTERFACE)
 
 if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
-  # open62541 ia always required.
-  # But we need to avoid a cyclic dependency if the loader is built into open62541.
-  find_package(open62541 REQUIRED)
-
     if(${CALC_COVERAGE})
       #link against this library to gather coverage info
         #set(GCOV_COMPILE_OPTIONS -g -O0 -fno-inline -fno-inline-small-functions -fno-default-inline -fprofile-arcs -ftest-coverage)
@@ -131,47 +152,8 @@ if(${ENABLE_BUILD_INTO_OPEN62541})
         message("open62541 ${OPEN62541_VERSION} is compatible to use the nodesetLoader.")
     endif()
 
-    if(${UA_FORCE_32BIT}) # add option to search for 32-bit libraries (Linux is only supported)
-        execute_process(COMMAND dpkg --print-architecture
-                        OUTPUT_VARIABLE ARCH_PREFIX)
-        if((NOT "${ARCH_PREFIX}" MATCHES "^armhf.$") AND
-           (NOT "${ARCH_PREFIX}" MATCHES "^i386.$"))
-            execute_process(COMMAND dpkg --print-foreign-architectures
-                            OUTPUT_VARIABLE ARCH_PREFIX)
-        endif()
-
-        if("${ARCH_PREFIX}" MATCHES "^armhf.$")
-            find_library(LIBXML2_LIBRARIES_32BIT
-                         NAMES xml2
-                         HINTS "/usr/lib/arm-linux-gnueabihf"
-                         NO_CACHE
-                         REQUIRED
-                         NO_DEFAULT_PATH
-                         NO_PACKAGE_ROOT_PATH
-                         NO_CMAKE_PATH
-                         NO_CMAKE_ENVIRONMENT_PATH)
-        elseif("${ARCH_PREFIX}" MATCHES "^i386.$")
-            find_library(LIBXML2_LIBRARIES_32BIT
-                         NAMES xml2
-                         PATHS "/usr/lib/i386-linux-gnu"
-                         NO_CACHE
-                         REQUIRED
-                         NO_DEFAULT_PATH
-                         NO_PACKAGE_ROOT_PATH
-                         NO_CMAKE_PATH
-                         NO_CMAKE_ENVIRONMENT_PATH)
-        else()
-            message(FATAL_ERROR "Not supported 32-bit compiler architecture")
-        endif()
-        unset(LIBXML2_LIBRARIES)
-        set(LIBXML2_LIBRARIES ${LIBXML2_LIBRARIES_32BIT})
-    endif()
 else()
-    if(open62541_VERSION VERSION_LESS "1.3.x")
-        set(open62541_NODESET_BASE_DIR "${open62541_NODESET_DIR}")
-    else()
-        set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
-    endif()
+    set(open62541_NODESET_BASE_DIR "${UA_NODESET_DIR}")
 endif()
 
 if(${ENABLE_TESTING})
@@ -201,12 +183,11 @@ set(NODESETLOADER_PUBLIC_INCLUDES
 
 set(NODESETLOADER_PRIVATE_INCLUDES
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${NODESETLOADER_YXML_INCLUDE_DIR}
     ${NODESETLOADER_BACKEND_PRIVATE_INCLUDES}
-    ${LIBXML2_INCLUDE_DIRS}
     CACHE INTERNAL "")
 
 set(NODESETLOADER_DEPS_LIBS
-    ${LIBXML2_LIBRARIES}
     ${NODESETLOADER_BACKEND_DEPS_LIBS}
     CACHE INTERNAL "")
 
@@ -235,9 +216,12 @@ if(NOT ${ENABLE_BUILD_INTO_OPEN62541})
     target_include_directories(NodesetLoader
                                PUBLIC ${NODESETLOADER_PUBLIC_INCLUDES}
                                PRIVATE ${NODESETLOADER_PRIVATE_INCLUDES})
-    target_include_directories(NodesetLoader PRIVATE ${OPEN62541_INCLUDE_DIR})
     target_link_libraries(NodesetLoader PRIVATE ${NODESETLOADER_DEPS_LIBS})
     target_link_libraries(NodesetLoader PRIVATE open62541::open62541)
+    # open62541's public POSIX lock helpers need the glibc feature declarations
+    # even when a consumer included another system header first.
+    target_compile_definitions(NodesetLoader PUBLIC
+        $<$<PLATFORM_ID:Linux>:_GNU_SOURCE>)
 
     if(${CALC_COVERAGE})
         target_link_libraries(NodesetLoader PUBLIC coverageLib)
