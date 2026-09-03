@@ -7,8 +7,6 @@
  */
 
 #include "Nodeset.h"
-#include "AliasList.h"
-#include "Node.h"
 #include <open62541/types.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,7 +14,6 @@
 
 #define ATTRIBUTE_NODEID "NodeId"
 #define ATTRIBUTE_BROWSENAME "BrowseName"
-#define ATTRIBUTE_PARENTNODEID "ParentNodeId"
 #define ATTRIBUTE_DATATYPE "DataType"
 #define ATTRIBUTE_VALUERANK "ValueRank"
 #define ATTRIBUTE_ARRAYDIMENSIONS "ArrayDimensions"
@@ -35,32 +32,182 @@ typedef struct {
     char *defaultValue;
 } NodeAttribute;
 
-const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL};
-const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL};
-const NodeAttribute attrParentNodeId = {ATTRIBUTE_PARENTNODEID, NULL};
-const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, "0"};
-const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
-const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
-const NodeAttribute attrMinimumSamplingInterval = {ATTRIBUTE_MINIMUMSAMPLINGINTERVAL, "-1"};
-const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
-const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
-const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};
-const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL};
-const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL};
-const NodeAttribute attrExecutable = {"Executable", "true"};
-const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
-const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
-const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
-const NodeAttribute attrSymmetric = {"Symmetric", "false"};
-const NodeAttribute dataTypeDefinition_IsUnion = {"IsUnion", "false"};
-const NodeAttribute dataTypeDefinition_IsOptionSet = {"IsOptionSet", "false"};
-const NodeAttribute dataTypeField_Name = {"Name", NULL};
-const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
-const NodeAttribute dataTypeField_Value = {"Value", NULL};
-const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
-const NodeAttribute attrLocale = {"Locale", NULL};
-const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
-const NodeAttribute attrContainsNoLoops = {ATTRIBUTE_CONTAINSNOLOOPS, "false"};
+static const NodeAttribute attrNodeId = {ATTRIBUTE_NODEID, NULL};
+static const NodeAttribute attrBrowseName = {ATTRIBUTE_BROWSENAME, NULL};
+static const NodeAttribute attrEventNotifier = {ATTRIBUTE_EVENTNOTIFIER, "0"};
+static const NodeAttribute attrDataType = {ATTRIBUTE_DATATYPE, "i=24"};
+static const NodeAttribute attrValueRank = {ATTRIBUTE_VALUERANK, "-1"};
+static const NodeAttribute attrMinimumSamplingInterval = {
+    ATTRIBUTE_MINIMUMSAMPLINGINTERVAL, "-1"};
+static const NodeAttribute attrArrayDimensions = {ATTRIBUTE_ARRAYDIMENSIONS, ""};
+static const NodeAttribute attrIsAbstract = {ATTRIBUTE_ISABSTRACT, "false"};
+static const NodeAttribute attrIsForward = {ATTRIBUTE_ISFORWARD, "true"};
+static const NodeAttribute attrReferenceType = {ATTRIBUTE_REFERENCETYPE, NULL};
+static const NodeAttribute attrAlias = {ATTRIBUTE_ALIAS, NULL};
+static const NodeAttribute attrExecutable = {"Executable", "true"};
+static const NodeAttribute attrUserExecutable = {"UserExecutable", "true"};
+static const NodeAttribute attrAccessLevel = {"AccessLevel", "1"};
+static const NodeAttribute attrUserAccessLevel = {"UserAccessLevel", "1"};
+static const NodeAttribute attrSymmetric = {ATTRIBUTE_SYMMETRIC, "false"};
+static const NodeAttribute dataTypeDefinition_IsUnion = {"IsUnion", "false"};
+static const NodeAttribute dataTypeDefinition_IsOptionSet = {"IsOptionSet", "false"};
+static const NodeAttribute dataTypeField_Name = {"Name", NULL};
+static const NodeAttribute dataTypeField_DataType = {"DataType", "i=24"};
+static const NodeAttribute dataTypeField_Value = {"Value", NULL};
+static const NodeAttribute dataTypeField_IsOptional = {"IsOptional", "false"};
+static const NodeAttribute attrLocale = {"Locale", NULL};
+static const NodeAttribute attrHistorizing = {ATTRIBUTE_HISTORIZING, "false"};
+static const NodeAttribute attrContainsNoLoops = {
+    ATTRIBUTE_CONTAINSNOLOOPS, "false"};
+
+#define MAX_ALIAS 300
+
+struct Alias {
+    char *name;
+    UA_NodeId id;
+};
+
+struct AliasList {
+    Alias *data;
+    size_t size;
+};
+
+static bool
+NodeContainer_init(NodeContainer *container, size_t initialSize) {
+    memset(container, 0, sizeof(NodeContainer));
+    container->nodes = (NL_Node **)calloc(initialSize, sizeof(NL_Node*));
+    if(!container->nodes)
+        return false;
+    container->capacity = initialSize;
+    return true;
+}
+
+static bool
+NodeContainer_add(NodeContainer *container, NL_Node *node) {
+    if(container->size == container->capacity) {
+        NL_Node **nodes = (NL_Node **)realloc(
+            container->nodes, container->size * 2 * sizeof(NL_Node*));
+        if(!nodes)
+            return false;
+        container->nodes = nodes;
+        container->capacity *= 2;
+    }
+    container->nodes[container->size++] = node;
+    return true;
+}
+
+static void
+NodeContainer_remove(NodeContainer *container, size_t index) {
+    container->nodes[index] = container->nodes[container->size - 1];
+    container->size--;
+}
+
+static void
+NodeContainer_clear(NodeContainer *container) {
+    free(container->nodes);
+    memset(container, 0, sizeof(NodeContainer));
+}
+
+static NL_Node *
+Node_new(NL_NodeClass nodeClass) {
+    size_t nodeSize = 0;
+    switch(nodeClass) {
+    case NODECLASS_VARIABLE:
+        nodeSize = sizeof(NL_VariableNode);
+        break;
+    case NODECLASS_OBJECT:
+        nodeSize = sizeof(NL_ObjectNode);
+        break;
+    case NODECLASS_OBJECTTYPE:
+        nodeSize = sizeof(NL_ObjectTypeNode);
+        break;
+    case NODECLASS_REFERENCETYPE:
+        nodeSize = sizeof(NL_ReferenceTypeNode);
+        break;
+    case NODECLASS_VARIABLETYPE:
+        nodeSize = sizeof(NL_VariableTypeNode);
+        break;
+    case NODECLASS_DATATYPE:
+        nodeSize = sizeof(NL_DataTypeNode);
+        break;
+    case NODECLASS_METHOD:
+        nodeSize = sizeof(NL_MethodNode);
+        break;
+    case NODECLASS_VIEW:
+        nodeSize = sizeof(NL_ViewNode);
+        break;
+    }
+    if(nodeSize == 0)
+        return NULL;
+    return (NL_Node*)calloc(1, nodeSize);
+}
+
+static void
+Node_delete(NL_Node *node) {
+    UA_NodeId_clear(&node->id);
+    UA_QualifiedName_clear(&node->browseName);
+
+    NL_Reference *ref = node->refs;
+    while(ref) {
+        NL_Reference *next = ref->next;
+        UA_NodeId_clear(&ref->target);
+        UA_NodeId_clear(&ref->refType);
+        free(ref);
+        ref = next;
+    }
+
+    if(node->nodeClass == NODECLASS_VARIABLE) {
+        NL_VariableNode *varNode = (NL_VariableNode*)node;
+        UA_String_clear(&varNode->value);
+        UA_NodeId_clear(&varNode->datatype);
+    } else if(node->nodeClass == NODECLASS_DATATYPE) {
+        NL_DataTypeNode *dtNode = (NL_DataTypeNode*)node;
+        if(dtNode->definition) {
+            free(dtNode->definition->fields);
+            free(dtNode->definition);
+        }
+    }
+    free(node);
+}
+
+static AliasList *
+AliasList_new(void) {
+    AliasList *list = (AliasList*)calloc(1, sizeof(AliasList));
+    if(!list)
+        return NULL;
+    list->data = (Alias*)calloc(MAX_ALIAS, sizeof(Alias));
+    if(!list->data) {
+        free(list);
+        return NULL;
+    }
+    return list;
+}
+
+static Alias *
+AliasList_newAlias(AliasList *list, char *name) {
+    if(list->size >= MAX_ALIAS)
+        return NULL;
+    Alias *alias = &list->data[list->size++];
+    alias->name = name;
+    return alias;
+}
+
+static const UA_NodeId *
+AliasList_getNodeId(const AliasList *list, const char *name) {
+    if(!name)
+        return NULL;
+    for(Alias *alias = list->data; alias != list->data + list->size; alias++) {
+        if(!strcmp(name, alias->name))
+            return &alias->id;
+    }
+    return NULL;
+}
+
+static void
+AliasList_delete(AliasList *list) {
+    free(list->data);
+    free(list);
+}
 
 static UA_NodeId
 parseNodeId(const Nodeset *nodeset, char *s) {
@@ -86,8 +233,7 @@ alias2Id(const Nodeset *nodeset, char *name) {
 }
 
 Nodeset *
-Nodeset_new(NL_addNamespaceCallback nsCallback,
-            UA_Logger *logger) {
+Nodeset_new(UA_Logger *logger) {
     Nodeset *nodeset = (Nodeset *)calloc(1, sizeof(Nodeset));
     if(!nodeset)
         return NULL;
@@ -134,7 +280,7 @@ Nodeset_findByNodeId(Nodeset *nodeset, const UA_NodeId *key) {
     return NULL;
 }
 
-static UA_NodeId hasTypeDef = {0, UA_NODEIDTYPE_NUMERIC, {40}};
+static const UA_NodeId hasTypeDef = {0, UA_NODEIDTYPE_NUMERIC, {40}};
 
 static bool
 nodeRefsReady(NL_Node *node) {
@@ -478,7 +624,7 @@ Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
 }
 
 void
-Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+Nodeset_DisplayNameFinish(NL_Node *node, char *text) {
     node->displayName.text = UA_STRING(text);
 }
 
@@ -490,7 +636,7 @@ Nodeset_setDescription(Nodeset *nodeset, NL_Node *node,
 }
 
 void
-Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+Nodeset_DescriptionFinish(NL_Node *node, char *text) {
     node->description.text = UA_STRING(text);
 }
 
@@ -504,20 +650,7 @@ Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node,
 }
 
 void
-Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text) {
+Nodeset_InverseNameFinish(NL_Node *node, char *text) {
     if(node->nodeClass == NODECLASS_REFERENCETYPE)
         ((NL_ReferenceTypeNode *)node)->inverseName.text = UA_STRING(text);
-}
-
-bool
-Nodeset_forEachNode(Nodeset *nodeset, void *context,
-                    NodesetLoader_forEachNode_Func fn) {
-    NodeContainer *c = &nodeset->sortedNodes;
-    for(size_t i = 0; i < c->size; i++) {
-        NL_Node *node = c->nodes[i];
-        bool res = fn(context, node);
-        if(!res)
-            return false;
-    }
-    return true;
 }

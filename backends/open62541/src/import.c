@@ -11,7 +11,6 @@
 
 #include <NodesetLoader/backendOpen62541.h>
 #include "internal.h"
-#include "Node.h"
 
 // Use AddNodeContext_addNamespaceIdx to sequentially add namespaces as they
 // appear in the nodeset file. This adds the namespaces to the server also.

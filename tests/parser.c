@@ -7,6 +7,9 @@
 
 #include <NodesetLoader/NodesetLoader.h>
 
+#include <stdio.h>
+#include <string.h>
+
 static void
 logger(void *context, UA_LogLevel level, UA_LogCategory category,
        const char *message, va_list args) {
