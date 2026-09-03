@@ -163,8 +163,7 @@ StructureDataType_init(AddNodeContext *ctx, UA_DataType *type,
 }
 
 static UA_StatusCode
-addEnumMembers(AddNodeContext *ctx, UA_DataType *type,
-               const NL_DataTypeNode *node) {
+addEnumMembers(UA_DataType *type, const NL_DataTypeNode *node) {
     if(node->definition->fieldCnt == 0)
         return UA_STATUSCODE_GOOD;
 
@@ -217,7 +216,7 @@ EnumDataType_init(AddNodeContext *ctx, UA_DataType *enumType,
             return addDataTypeMembers(ctx, enumType, &parentOnly, parent);
         }
     }
-    return addEnumMembers(ctx, enumType, node);
+    return addEnumMembers(enumType, node);
 }
 
 static UA_StatusCode

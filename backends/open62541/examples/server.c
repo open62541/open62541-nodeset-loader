@@ -4,15 +4,9 @@
 
 #include <NodesetLoader/backendOpen62541.h>
 
-#include <signal.h>
-#include <stdlib.h>
+#include <stdio.h>
 
 static volatile UA_Boolean running = true;
-static void stopHandler(int sig)
-{
-    UA_LOG_INFO(UA_Log_Stdout, UA_LOGCATEGORY_USERLAND, "received ctrl-c");
-    running = false;
-}
 
 int main(int argc, const char *argv[])
 {
