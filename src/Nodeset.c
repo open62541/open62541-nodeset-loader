@@ -8,6 +8,7 @@
 
 #include "Nodeset.h"
 #include <open62541/types.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +71,11 @@ struct Alias {
 struct AliasList {
     Alias *data;
     size_t size;
+};
+
+struct NodesetTextBuffer {
+    char *data;
+    NodesetTextBuffer *next;
 };
 
 static bool
@@ -239,7 +245,6 @@ Nodeset_new(UA_Logger *logger) {
         return NULL;
 
     nodeset->aliasList = AliasList_new();
-    nodeset->charArena = CharArenaAllocator_new(1024 * 1024);
     NodeContainer_init(&nodeset->nodes[NODECLASS_OBJECT], 1000);
     NodeContainer_init(&nodeset->nodes[NODECLASS_VARIABLE], 1000);
     NodeContainer_init(&nodeset->nodes[NODECLASS_METHOD], 1000);
@@ -252,6 +257,18 @@ Nodeset_new(UA_Logger *logger) {
     NodeContainer_init(&nodeset->sortedNodes, 10000);
     nodeset->logger = logger;
     return nodeset;
+}
+
+bool
+Nodeset_ownTextBuffer(Nodeset *nodeset, char *data) {
+    NodesetTextBuffer *buffer =
+        (NodesetTextBuffer*)malloc(sizeof(NodesetTextBuffer));
+    if(!buffer)
+        return false;
+    buffer->data = data;
+    buffer->next = nodeset->textBuffers;
+    nodeset->textBuffers = buffer;
+    return true;
 }
 
 static int
@@ -392,7 +409,6 @@ bool Nodeset_sort(Nodeset *nodeset) {
 }
 
 void Nodeset_cleanup(Nodeset *nodeset) {
-    CharArenaAllocator_delete(nodeset->charArena);
     AliasList_delete(nodeset->aliasList);
     for (size_t cnt = 0; cnt < NL_NODECLASS_COUNT; cnt++) {
         NodeContainer_clear(&nodeset->nodes[cnt]);
@@ -402,23 +418,25 @@ void Nodeset_cleanup(Nodeset *nodeset) {
     }
     NodeContainer_clear(&nodeset->allNodes);
     NodeContainer_clear(&nodeset->sortedNodes);
+    NodesetTextBuffer *buffer = nodeset->textBuffers;
+    while(buffer) {
+        NodesetTextBuffer *next = buffer->next;
+        free(buffer->data);
+        free(buffer);
+        buffer = next;
+    }
     free(nodeset);
 }
 
 static char *
-getAttributeValue(Nodeset *nodeset, const NodeAttribute *attr,
-                               const char **attributes, size_t nb_attributes) {
+getAttributeValue(const NodeAttribute *attr, const char **attributes,
+                  size_t nb_attributes) {
     const size_t fields = 5;
     for (size_t i = 0; i < nb_attributes; i++) {
         const char *localname = attributes[i * fields + 0];
         if(strcmp((const char *)localname, attr->name))
             continue;
-        const char *value_start = attributes[i * fields + 3];
-        const char *value_end = attributes[i * fields + 4];
-        size_t size = (size_t)(value_end - value_start);
-        char *value = CharArenaAllocator_malloc(nodeset->charArena, size + 1);
-        memcpy(value, value_start, size);
-        return value;
+        return (char*)(uintptr_t)attributes[i * fields + 3];
     }
 
     // we return the defaultValue, if NULL or not, following code has to cope
@@ -430,75 +448,75 @@ static void
 extractAttributes(Nodeset *nodeset, NL_Node *node,
                   size_t attributeSize, const char **attributes) {
     node->id =
-        parseNodeId(nodeset, getAttributeValue(nodeset, &attrNodeId,
+        parseNodeId(nodeset, getAttributeValue(&attrNodeId,
                                                attributes, attributeSize));
     node->browseName =
-        parseQualifiedName(nodeset, getAttributeValue(nodeset, &attrBrowseName,
+        parseQualifiedName(nodeset, getAttributeValue(&attrBrowseName,
                                                       attributes, attributeSize));
     switch (node->nodeClass) {
     case NODECLASS_OBJECTTYPE:
         ((NL_ObjectTypeNode *)node)->isAbstract =
-            getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
         break;
 
     case NODECLASS_OBJECT:
         ((NL_ObjectNode *)node)->eventNotifier =
-            getAttributeValue(nodeset, &attrEventNotifier, attributes, attributeSize);
+            getAttributeValue(&attrEventNotifier, attributes, attributeSize);
         break;
 
     case NODECLASS_VARIABLE: {
-        char *datatype = getAttributeValue(nodeset, &attrDataType, attributes,
+        char *datatype = getAttributeValue(&attrDataType, attributes,
                                            attributeSize);
         ((NL_VariableNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((NL_VariableNode *)node)->valueRank =
-            getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize);
+            getAttributeValue(&attrValueRank, attributes, attributeSize);
         ((NL_VariableNode *)node)->minimumSamplingInterval =
-            getAttributeValue(nodeset, &attrMinimumSamplingInterval, attributes, attributeSize);
+            getAttributeValue(&attrMinimumSamplingInterval, attributes, attributeSize);
         ((NL_VariableNode *)node)->arrayDimensions =
-            getAttributeValue(nodeset, &attrArrayDimensions, attributes, attributeSize);
+            getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
         ((NL_VariableNode *)node)->accessLevel =
-            getAttributeValue(nodeset, &attrAccessLevel, attributes, attributeSize);
+            getAttributeValue(&attrAccessLevel, attributes, attributeSize);
         ((NL_VariableNode *)node)->userAccessLevel =
-            getAttributeValue(nodeset, &attrUserAccessLevel, attributes, attributeSize);
+            getAttributeValue(&attrUserAccessLevel, attributes, attributeSize);
         ((NL_VariableNode *)node)->historizing =
-            getAttributeValue(nodeset, &attrHistorizing, attributes, attributeSize);
+            getAttributeValue(&attrHistorizing, attributes, attributeSize);
         break;
     }
 
     case NODECLASS_VARIABLETYPE: {
         ((NL_VariableTypeNode *)node)->valueRank =
-            getAttributeValue(nodeset, &attrValueRank, attributes, attributeSize);
-        char *datatype = getAttributeValue(nodeset, &attrDataType, attributes, attributeSize);
+            getAttributeValue(&attrValueRank, attributes, attributeSize);
+        char *datatype = getAttributeValue(&attrDataType, attributes, attributeSize);
         ((NL_VariableTypeNode *)node)->datatype = alias2Id(nodeset, datatype);
         ((NL_VariableTypeNode *)node)->arrayDimensions =
-            getAttributeValue(nodeset, &attrArrayDimensions, attributes, attributeSize);
+            getAttributeValue(&attrArrayDimensions, attributes, attributeSize);
         ((NL_VariableTypeNode *)node)->isAbstract =
-            getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
         break;
     }
 
     case NODECLASS_DATATYPE:
         ((NL_DataTypeNode *)node)->isAbstract =
-            getAttributeValue(nodeset, &attrIsAbstract, attributes, attributeSize);
+            getAttributeValue(&attrIsAbstract, attributes, attributeSize);
         break;
 
     case NODECLASS_METHOD:
         ((NL_MethodNode *)node)->executable =
-            getAttributeValue(nodeset, &attrExecutable, attributes, attributeSize);
+            getAttributeValue(&attrExecutable, attributes, attributeSize);
         ((NL_MethodNode *)node)->userExecutable =
-            getAttributeValue(nodeset, &attrUserExecutable, attributes, attributeSize);
+            getAttributeValue(&attrUserExecutable, attributes, attributeSize);
         break;
 
     case NODECLASS_REFERENCETYPE:
         ((NL_ReferenceTypeNode *)node)->symmetric =
-            getAttributeValue(nodeset, &attrSymmetric, attributes, attributeSize);
+            getAttributeValue(&attrSymmetric, attributes, attributeSize);
         break;
 
     case NODECLASS_VIEW:
         ((NL_ViewNode *)node)->containsNoLoops =
-            getAttributeValue(nodeset, &attrContainsNoLoops, attributes, attributeSize);
+            getAttributeValue(&attrContainsNoLoops, attributes, attributeSize);
         ((NL_ViewNode *)node)->eventNotifier =
-            getAttributeValue(nodeset, &attrEventNotifier, attributes, attributeSize);
+            getAttributeValue(&attrEventNotifier, attributes, attributeSize);
         break;
 
     default:
@@ -523,7 +541,7 @@ Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
     NL_Reference *newRef = (NL_Reference *)calloc(1, sizeof(NL_Reference));
 
     char *isForwardString =
-        getAttributeValue(nodeset, &attrIsForward, attributes, attributeSize);
+        getAttributeValue(&attrIsForward, attributes, attributeSize);
     if(!strcmp("true", isForwardString)) {
         newRef->isForward = true;
     } else {
@@ -531,7 +549,7 @@ Nodeset_newReference(Nodeset *nodeset, NL_Node *node,
     }
 
     char *aliasIdString =
-        getAttributeValue(nodeset, &attrReferenceType, attributes, attributeSize);
+        getAttributeValue(&attrReferenceType, attributes, attributeSize);
     newRef->refType = alias2Id(nodeset, aliasIdString);
 
     newRef->next = node->refs;
@@ -555,16 +573,16 @@ DataTypeNode_addDefinitionField(NL_DataTypeDefinition *def) {
     return &def->fields[def->fieldCnt - 1];
 }
 
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
-                                   size_t attributeSize, const char **attributes) {
+void Nodeset_addDataTypeDefinition(NL_Node *node, size_t attributeSize,
+                                   const char **attributes) {
     NL_DataTypeNode *dataTypeNode = (NL_DataTypeNode *)node;
     dataTypeNode->definition = (NL_DataTypeDefinition *)
         calloc(1, sizeof(NL_DataTypeDefinition));
     dataTypeNode->definition->isUnion =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsUnion,
+        !strcmp("true", getAttributeValue(&dataTypeDefinition_IsUnion,
                                           attributes, attributeSize));
     dataTypeNode->definition->isOptionSet =
-        !strcmp("true", getAttributeValue(nodeset, &dataTypeDefinition_IsOptionSet,
+        !strcmp("true", getAttributeValue(&dataTypeDefinition_IsOptionSet,
                                           attributes, attributeSize));
 }
 
@@ -576,10 +594,10 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
         DataTypeNode_addDefinitionField(dataTypeNode->definition);
     memset(newField, 0, sizeof(NL_DataTypeDefinitionField));
 
-    newField->name = getAttributeValue(nodeset, &dataTypeField_Name, attributes,
+    newField->name = getAttributeValue(&dataTypeField_Name, attributes,
                                        attributeSize);
 
-    char *value = getAttributeValue(nodeset, &dataTypeField_Value, attributes,
+    char *value = getAttributeValue(&dataTypeField_Value, attributes,
                                     attributeSize);
     if (value) {
         newField->value = atoi(value);
@@ -587,11 +605,11 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
             !dataTypeNode->definition->isOptionSet;
     } else {
         newField->dataType = alias2Id(
-            nodeset, getAttributeValue(nodeset, &dataTypeField_DataType,
+            nodeset, getAttributeValue(&dataTypeField_DataType,
                                        attributes, attributeSize));
         newField->valueRank = atoi(getAttributeValue(
-            nodeset, &attrValueRank, attributes, attributeSize));
-        char *isOptional = getAttributeValue(nodeset, &dataTypeField_IsOptional,
+            &attrValueRank, attributes, attributeSize));
+        char *isOptional = getAttributeValue(&dataTypeField_IsOptional,
                                              attributes, attributeSize);
         newField->isOptional = !strcmp("true", isOptional);
     }
@@ -600,7 +618,7 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
 Alias *
 Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize, const char **attributes) {
     return AliasList_newAlias(nodeset->aliasList,
-                              getAttributeValue(nodeset, &attrAlias,
+                              getAttributeValue(&attrAlias,
                                                 attributes, attributeSize));
 }
 
@@ -617,10 +635,10 @@ Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri) {
 }
 
 void
-Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
-                       size_t attributeSize, const char **attributes) {
+Nodeset_setDisplayName(NL_Node *node, size_t attributeSize,
+                       const char **attributes) {
     node->displayName.locale =
-        UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
+        UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
 }
 
 void
@@ -629,10 +647,10 @@ Nodeset_DisplayNameFinish(NL_Node *node, char *text) {
 }
 
 void
-Nodeset_setDescription(Nodeset *nodeset, NL_Node *node,
-                       size_t attributeSize, const char **attributes) {
+Nodeset_setDescription(NL_Node *node, size_t attributeSize,
+                       const char **attributes) {
     node->description.locale =
-        UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
+        UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
 }
 
 void
@@ -641,11 +659,11 @@ Nodeset_DescriptionFinish(NL_Node *node, char *text) {
 }
 
 void
-Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node,
-                       size_t attributeSize, const char **attributes) {
+Nodeset_setInverseName(NL_Node *node, size_t attributeSize,
+                       const char **attributes) {
     if (node->nodeClass == NODECLASS_REFERENCETYPE) {
         ((NL_ReferenceTypeNode *)node)->inverseName.locale =
-            UA_STRING(getAttributeValue(nodeset, &attrLocale, attributes, attributeSize));
+            UA_STRING(getAttributeValue(&attrLocale, attributes, attributeSize));
     }
 }
 

@@ -9,7 +9,6 @@
 #define NODESET_H
 
 #include "NodesetLoader/NodesetLoader.h"
-#include "CharAllocator.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -18,6 +17,8 @@ struct Alias;
 typedef struct Alias Alias;
 struct AliasList;
 typedef struct AliasList AliasList;
+struct NodesetTextBuffer;
+typedef struct NodesetTextBuffer NodesetTextBuffer;
 
 typedef struct {
     NL_Node **nodes;
@@ -26,7 +27,7 @@ typedef struct {
 } NodeContainer;
 
 typedef struct {
-    CharArenaAllocator *charArena;
+    NodesetTextBuffer *textBuffers;
     AliasList *aliasList;
 
     NodeContainer nodes[NL_NODECLASS_COUNT];
@@ -38,6 +39,7 @@ typedef struct {
 } Nodeset;
 
 Nodeset *Nodeset_new(UA_Logger *logger);
+bool Nodeset_ownTextBuffer(Nodeset *nodeset, char *data);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
@@ -51,17 +53,17 @@ Alias *Nodeset_newAlias(Nodeset *nodeset, size_t attributeSize,
 void Nodeset_newAliasFinish(Nodeset *nodeset, Alias *alias,
                             char *idString);
 void Nodeset_newNamespaceFinish(Nodeset *nodeset, char *namespaceUri);
-void Nodeset_addDataTypeDefinition(Nodeset *nodeset, NL_Node *node,
-                                   size_t attributeSize, const char **attributes);
+void Nodeset_addDataTypeDefinition(NL_Node *node, size_t attributeSize,
+                                   const char **attributes);
 void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
                               size_t attributeSize, const char **attributes);
-void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
-                            size_t attributeSize, const char **attributes);
+void Nodeset_setDisplayName(NL_Node *node, size_t attributeSize,
+                            const char **attributes);
 void Nodeset_DisplayNameFinish(NL_Node *node, char *text);
-void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
+void Nodeset_setDescription(NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_DescriptionFinish(NL_Node *node, char *text);
-void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
+void Nodeset_setInverseName(NL_Node *node, size_t attributeSize,
                             const char **attributes);
 void Nodeset_InverseNameFinish(NL_Node *node, char *text);
 #endif
