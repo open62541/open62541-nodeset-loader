@@ -12,11 +12,8 @@
 #include <open62541/plugin/log.h>
 #include <open62541/types_generated.h>
 
+#include <stddef.h>
 #include <stdbool.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdio.h>
-#include <stdlib.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,12 +31,9 @@ typedef enum {
     NODECLASS_VIEW = 7
 } NL_NodeClass;
 
-UA_EXPORT extern const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT];
-
 struct NL_Node;
 typedef struct NL_Node NL_Node;
 
-struct NL_Reference;
 typedef struct NL_Reference {
     bool isForward;
     UA_NodeId refType;
@@ -54,17 +48,12 @@ typedef struct NL_Reference {
     UA_QualifiedName browseName;                                        \
     UA_LocalizedText displayName;                                       \
     UA_LocalizedText description;                                       \
-    char *writeMask;                                                    \
     NL_Reference *refs;                                                 \
     bool isDone; /* the node was successfully added in the backend */
 
 struct NL_Node {
     NL_NODE_ATTRIBUTES
 };
-
-typedef struct NL_InstanceNode {
-    NL_NODE_ATTRIBUTES
-} NL_InstanceNode;
 
 typedef struct NL_ObjectNode {
     NL_NODE_ATTRIBUTES

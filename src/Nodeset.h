@@ -10,7 +10,6 @@
 
 #include "NodesetLoader/NodesetLoader.h"
 #include "CharAllocator.h"
-#include "Node.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -21,6 +20,12 @@ struct AliasList;
 typedef struct AliasList AliasList;
 
 typedef struct {
+    NL_Node **nodes;
+    size_t size;
+    size_t capacity;
+} NodeContainer;
+
+typedef struct {
     CharArenaAllocator *charArena;
     AliasList *aliasList;
 
@@ -28,12 +33,11 @@ typedef struct {
     NodeContainer allNodes; // gets sorted according to the nodeid
     NodeContainer sortedNodes; // in the order to add to the server
 
-    NL_FileContext *fc;
+    const NL_FileContext *fc;
     UA_Logger *logger;
 } Nodeset;
 
-Nodeset *Nodeset_new(NL_addNamespaceCallback nsCallback,
-                     UA_Logger *logger);
+Nodeset *Nodeset_new(UA_Logger *logger);
 void Nodeset_cleanup(Nodeset *nodeset);
 bool Nodeset_sort(Nodeset *nodeset);
 NL_Node *Nodeset_newNode(Nodeset *nodeset, NL_NodeClass nodeClass,
@@ -53,14 +57,11 @@ void Nodeset_addDataTypeField(Nodeset *nodeset, NL_Node *node,
                               size_t attributeSize, const char **attributes);
 void Nodeset_setDisplayName(Nodeset *nodeset, NL_Node *node,
                             size_t attributeSize, const char **attributes);
-void Nodeset_DisplayNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
+void Nodeset_DisplayNameFinish(NL_Node *node, char *text);
 void Nodeset_setDescription(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
-void Nodeset_DescriptionFinish(const Nodeset *nodeset, NL_Node *node, char *text);
+void Nodeset_DescriptionFinish(NL_Node *node, char *text);
 void Nodeset_setInverseName(Nodeset *nodeset, NL_Node *node, size_t attributeSize,
                             const char **attributes);
-void Nodeset_InverseNameFinish(const Nodeset *nodeset, NL_Node *node, char *text);
-bool Nodeset_forEachNode(Nodeset *nodeset, void *context,
-                         NodesetLoader_forEachNode_Func fn);
-
+void Nodeset_InverseNameFinish(NL_Node *node, char *text);
 #endif

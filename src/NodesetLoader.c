@@ -33,10 +33,6 @@
 #define VALUE "Value"
 #define INVERSENAME "InverseName"
 
-const char *NL_NODECLASS_NAME[NL_NODECLASS_COUNT] = {
-    "Object", "ObjectType", "Variable", "DataType",
-    "Method", "ReferenceType", "VariableType", "View"};
-
 struct NodesetLoader {
     Nodeset *nodeset;
     UA_Logger *logger;
@@ -475,7 +471,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             char *content = NULL;
             if(!XmlToken_copyLeafContent(context, cursor, element, &content))
                 return false;
-            Nodeset_DisplayNameFinish(context->nodeset, node, content);
+            Nodeset_DisplayNameFinish(node, content);
             return true;
         } else if(!strcmp(name, REFERENCES)) {
             return ProcessChildren(context, cursor, element,
@@ -489,7 +485,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             char *content = NULL;
             if(!XmlToken_copyLeafContent(context, cursor, element, &content))
                 return false;
-            Nodeset_DescriptionFinish(context->nodeset, node, content);
+            Nodeset_DescriptionFinish(node, content);
             return true;
         } else if(!strcmp(name, VALUE)) {
             cursor->position = element->subtreeEnd;
@@ -522,7 +518,7 @@ ProcessElement(ParserContext *context, XmlCursor *cursor, XmlScope scope,
             char *content = NULL;
             if(!XmlToken_copyLeafContent(context, cursor, element, &content))
                 return false;
-            Nodeset_InverseNameFinish(context->nodeset, node, content);
+            Nodeset_InverseNameFinish(node, content);
             return true;
         }
     } else if(scope == XML_SCOPE_NAMESPACE_URIS) {
@@ -659,7 +655,7 @@ NodesetLoader_importFile(NodesetLoader *loader,
     }
 
     if(!loader->nodeset) {
-        loader->nodeset = Nodeset_new(fileHandler->addNamespace, loader->logger);
+        loader->nodeset = Nodeset_new(loader->logger);
     }
 
     ParserContext ctx;
@@ -675,7 +671,7 @@ NodesetLoader_importFile(NodesetLoader *loader,
     }
 
     ctx.nodeset = loader->nodeset;
-    ctx.nodeset->fc = (NL_FileContext*)(uintptr_t)fileHandler;
+    ctx.nodeset->fc = fileHandler;
 
     if(Parser_run(&ctx, f)) {
         UA_LOG_ERROR(loader->logger, UA_LOGCATEGORY_SERVER,
@@ -715,5 +711,10 @@ NodesetLoader_delete(NodesetLoader *loader) {
 bool
 NodesetLoader_forEachNode(NodesetLoader *loader, void *context,
                           NodesetLoader_forEachNode_Func fn) {
-    return Nodeset_forEachNode(loader->nodeset, context, fn);
+    NodeContainer *nodes = &loader->nodeset->sortedNodes;
+    for(size_t i = 0; i < nodes->size; i++) {
+        if(!fn(context, nodes->nodes[i]))
+            return false;
+    }
+    return true;
 }
