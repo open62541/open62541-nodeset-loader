@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<x:UANodeSet xmlns:x="http://opcfoundation.org/UA/2011/03/UANodeSet.xsd"
+             xmlns:uax="http://opcfoundation.org/UA/2008/02/Types.xsd">
+  <x:UAObject NodeId="i=50000" BrowseName="A&amp;B">
+    <x:DisplayName Locale="en&amp;US">A &lt; B<![CDATA[ & C]]></x:DisplayName>
+    <x:Unknown><x:DisplayName>Must be ignored</x:DisplayName></x:Unknown>
+    <x:Definition><x:Field Name="MustBeIgnored"/></x:Definition>
+  </x:UAObject>
+  <x:Unknown>
+    <x:UAObject NodeId="i=59999" BrowseName="MustNotBeImported"/>
+  </x:Unknown>
+  <x:UAVariable NodeId="i=50001" BrowseName="Value" DataType="i=12">
+    <x:DisplayName>Value</x:DisplayName>
+    <x:Value><uax:String>hello &amp; goodbye</uax:String></x:Value>
+    <x:Description Locale="en">After Value</x:Description>
+  </x:UAVariable>
+</x:UANodeSet>

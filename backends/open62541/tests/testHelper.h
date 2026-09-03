@@ -4,6 +4,7 @@
 #include <open62541/types.h>
 #include <open62541/types_generated.h>
 
+#include <assert.h>
 #include <stdio.h>
 
 UA_NodeId getTypeId(UA_UInt16 typeIndex, UA_Boolean isNamespaceZero, const UA_DataType* customTypes)
