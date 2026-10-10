@@ -184,11 +184,7 @@ static bool parseQualifiedName(const Nodeset *nodeset, char *s,
         return false;
     UA_StatusCode res = UA_QualifiedName_parseEx(
         out, UA_STRING(s), &nodeset->context->namespaceMapping);
-    if (res != UA_STATUSCODE_GOOD)
-        return false;
-    out->namespaceIndex = UA_NamespaceMapping_remote2Local(
-        &nodeset->context->namespaceMapping, out->namespaceIndex);
-    return true;
+    return res == UA_STATUSCODE_GOOD;
 }
 
 static bool alias2Id(const Nodeset *nodeset, char *name, UA_NodeId *out)
